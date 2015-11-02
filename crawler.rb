@@ -21,30 +21,46 @@ class Crawler
         end
     end
     
-    def add_url(url)
+    def [](*urls)
+        self.urls = urls
+    end
+    
+    def <<(url)
         @urls = [] if @urls.nil?
         @urls << Url.new(url)
     end
 	
-	def crawl_urls(urls = @urls)
-        raise "No urls to crawl" if @urls.count < 1
+	def crawl_urls(urls = @urls, &block)
+        raise "No urls to crawl" if @urls.nil? or @urls.count < 1
 		if urls.respond_to?(:each)
 			urls.each do |url|
-                raise unless url.respond_to?(:to_url)
-				@docs[url.to_url] = Document.new(crawl_url(url.to_s))
+                handle_crawl_block(url, &block)
 			end
 		else
-            raise unless url.respond_to?(:to_url)
-			@docs[url.to_url] = Document.new(crawl_url(urls.to_s))
+            handle_crawl_block(urls, &block)
 		end
+        urls
 	end
 	
 	# Crawl the url and return the response markup.
-	def crawl_url(url)
-		raise unless url.respond_to?(:to_s)
-        url = url.to_s
-		Net::HTTP.get(url, '/index.html')
+    # Also yield if a block is provided.
+	def crawl_url(url = @urls[0], &block)
+		raise unless url.respond_to?(:to_url)
+		markup = Net::HTTP.get(url.to_host, '/index.html')
+        doc = Document.new(url, markup)
+        block.call(url, doc) unless block.nil?
+        doc
 	end
     
     alias :crawl :crawl_urls
+    
+    private
+    
+    def handle_crawl_block(url, &block)
+        if block.nil?
+		    @docs[url.to_host] = crawl_url(url)
+        else
+            crawl_url(url, &block)
+        end
+    end
 end
