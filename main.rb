@@ -22,7 +22,9 @@ if __FILE__ == $0
     
     # Crawl and provide a block for writing to the file system.
     count = 0
+    docs = []
     crawler.crawl do |url, doc|
+        docs << doc
         name = url.to_host + ".html"
         File.open(dir + name, 'w') { |f| f.write(doc.html) }
         count += 1
@@ -30,4 +32,8 @@ if __FILE__ == $0
     end
     
     puts "Finished. Crawled and created files for #{count} urls."
+    
+    docs.each do |doc|
+        puts "URL: #{doc.url}, LINKS: #{doc.links}, TEXT: #{doc.text}"
+    end
 end

@@ -19,42 +19,53 @@ class Document
 	end
     
     def pretty_print
-        Hash[instance_variables.map { |name| 
-            [name, instance_variable_get(name)]
-        }]
+        Hash[instance_variables.map do |name| 
+            [name[1..-1], instance_variable_get(name)]
+        end]
     end
 	
 	private
+    
+    def init_var(html, xpath, var, first_result = true)
+		raise unless html.respond_to?(:xpath)
+		results = html.xpath(xpath)
+        unless results.nil? or results.empty?
+            result = if first_result
+                         results.first.content
+                     else
+                         results.map { |res| res.content }
+                     end
+            instance_variable_set(var, result)
+        end
+    end
 	
 	def init_title(html)
-		raise unless html.respond_to?(:xpath)
-		results = html.xpath("//title")
-        unless results.nil? or results.empty?
-            @title = results.first.content
-        end
+        xpath = "//title"
+        init_var(html, xpath, :@title)
 	end
 	
 	def init_author(html)
-		raise unless html.respond_to?(:xpath)
-		results = html.xpath("//meta[@name='author']/@content")
-        unless results.nil? or results.empty?
-            @author = results.first.content
-        end
+        xpath = "//meta[@name='author']/@content"
+        init_var(html, xpath, :@author)
 	end
 	
 	def init_keywords(html)
-		raise unless html.respond_to?(:xpath)
-		results = html.xpath("//meta[@name='keywords']/@content")
-        unless results.nil? or results.empty?
-            @keywords = results.first.content
+        xpath = "//meta[@name='keywords']/@content"
+        init_var(html, xpath, :@keywords)
+        if @keywords.respond_to?(:split)
+            @keywords = @keywords.split(",")
+            @keywords.map { |keyword| keyword.strip! }
         end
 	end
     
     def init_links(html)
-       # 
+        xpath = "//a/@href"
+        init_var(html, xpath, :@links, false)
     end
     
     def init_text(html)
-        #
+        xpath = "//*/text()"
+        init_var(html, xpath, :@text, false)
+        @text = @text.join("\n") if @text.respond_to?(:join)
     end
 end

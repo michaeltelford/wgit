@@ -2,6 +2,7 @@ require_relative 'url'
 require_relative 'documents'
 require_relative 'document'
 require 'net/http'
+require 'uri'
 
 # @author Michael Telford
 # Crawler class provides a means of crawling (GET'ting) web URL's.
@@ -46,7 +47,7 @@ class Crawler
     # Also yield if a block is provided.
 	def crawl_url(url = @urls[0], &block)
 		raise unless url.respond_to?(:to_url)
-		markup = Net::HTTP.get(url.to_host, '/index.html')
+		markup = Net::HTTP.get(URI(url))
         doc = Document.new(url, markup)
         block.call(url, doc) unless block.nil?
         doc
