@@ -1,0 +1,1 @@
+Crawler is a WWW indexer or 'spider' which crawls URL's and retrieves their page contents for later use.
