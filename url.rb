@@ -1,9 +1,12 @@
+require 'uri'
+
 # @author Michael Telford
 # Class modeling a web based URL.
 class Url < String
     
     def initialize(url)
         url = Url.to_url(url)
+		Url.validate(url)
         super
     end
     
@@ -16,6 +19,13 @@ class Url < String
 			url = url + "/"
 		end
 		url
+	end
+	
+	def self.validate(url)
+		if URI.regexp.match(url).nil?
+			raise "Invalid url: #{url}"
+		end
+		true
 	end
     
 	def to_url
@@ -41,4 +51,8 @@ class Url < String
 		end
 		url
     end
+	
+	def save
+		yield self
+	end
 end
