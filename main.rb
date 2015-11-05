@@ -13,7 +13,7 @@ if __FILE__ == $0
     puts "Using dir: #{dir}"
     
     # Init the urls to crawl.
-    urls = ["www.facebook.com", "www.google.co.uk", "www.youtube.com", "www.yahoo.co.uk", "http://www.nokogiri.org/tutorials/searching_a_xml_html_document.html"]
+    urls = ["https://en.wikipedia.org/wiki/Main_Page", "https://en.wikipedia.org/wiki/Antonov_An-12"]
     puts "Using urls: #{urls}"
     
     # Init the crawler.
@@ -31,9 +31,9 @@ if __FILE__ == $0
         puts "Created file: #{name} for url: #{url.to_url}"
     end
     
-    puts "Finished. Crawled and created files for #{count} urls."
+    puts "Finished. Crawled and created file(s) for #{count} url(s)."
     
     docs.each do |doc|
-        puts "URL: #{doc.url}, LINKS: #{doc.links}, TEXT: #{doc.text}"
+        puts doc.to_hash(false)
     end
 end

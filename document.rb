@@ -23,8 +23,9 @@ class Document
         init_text(nokogiri_doc)
 	end
     
-    def pretty_print
+    def to_hash(include_html = true)
         Hash[instance_variables.map do |name| 
+            next if not include_html and name == "@html"
             [name[1..-1], instance_variable_get(name)]
         end]
     end
@@ -40,7 +41,7 @@ class Document
         return xpath if TEXT_ELEMENTS.empty?
         el_xpath = "//%s/text()"
         TEXT_ELEMENTS.each_with_index do |el, i|
-            xpath += " or " unless i == 0
+            xpath += " | " unless i == 0
             xpath += el_xpath %[el]
         end
         xpath
@@ -49,15 +50,13 @@ class Document
     def init_var(html, xpath, var, first_result = true)
 		raise unless html.respond_to?(:xpath)
 		results = html.xpath(xpath)        
-        if results.respond_to?("empty?")
-            unless results.nil? or results.empty?
-                result = if first_result
-                             results.first.content
-                         else
-                             results.map { |res| res.content }
-                         end
-                instance_variable_set(var, result)
-            end
+        unless results.nil? or results.empty?
+            result = if first_result
+                         results.first.content
+                     else
+                         results.map { |res| res.content }
+                     end
+            instance_variable_set(var, result)
         end
     end
 	
@@ -87,10 +86,10 @@ class Document
     
     def init_text(html)
         xpath = text_elements_xpath
-        
-        puts xpath
-        
         init_var(html, xpath, :@text, false)
-        @text = @text.join("\n") if @text.respond_to?(:join)
+        if @text.respond_to?(:map)
+            @text.map { |t| t.strip! }
+            @text.reject! { |t| t.empty? }
+        end
     end
 end
