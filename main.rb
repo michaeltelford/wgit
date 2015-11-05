@@ -13,7 +13,7 @@ if __FILE__ == $0
     puts "Using dir: #{dir}"
     
     # Init the urls to crawl.
-    urls = ["www.facebook.com", "www.google.co.uk", "www.youtube.com", "www.yahoo.co.uk"]
+    urls = ["www.facebook.com", "www.google.co.uk", "www.youtube.com", "www.yahoo.co.uk", "http://www.nokogiri.org/tutorials/searching_a_xml_html_document.html"]
     puts "Using urls: #{urls}"
     
     # Init the crawler.
@@ -25,7 +25,7 @@ if __FILE__ == $0
     docs = []
     crawler.crawl do |url, doc|
         docs << doc
-        name = url.to_host + ".html"
+        name = url.to_host.split('/').join('.') + ".html"
         File.open(dir + name, 'w') { |f| f.write(doc.html) }
         count += 1
         puts "Created file: #{name} for url: #{url.to_url}"

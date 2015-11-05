@@ -3,6 +3,11 @@ require 'nokogiri'
 # @author Michael Telford
 # Class modeling a HTML web document.
 class Document
+    # Element list contains all text (currently only text) elements from:
+    # https://developer.mozilla.org/en-US/docs/Web/HTML/Element
+    TEXT_ELEMENTS = [:dd, :div, :dl, :dt, :figcaption, :figure, :hr, :li, 
+                     :main, :ol, :p, :pre, :ul]
+    
 	attr_reader :url, :html, :title, :author, :keywords, :links, :text
 	
 	def initialize(url, html)
@@ -23,19 +28,36 @@ class Document
             [name[1..-1], instance_variable_get(name)]
         end]
     end
+    
+	def save
+		yield self
+	end
 	
 	private
     
+    def text_elements_xpath
+        xpath = ""
+        return xpath if TEXT_ELEMENTS.empty?
+        el_xpath = "//%s/text()"
+        TEXT_ELEMENTS.each_with_index do |el, i|
+            xpath += " or " unless i == 0
+            xpath += el_xpath %[el]
+        end
+        xpath
+    end
+    
     def init_var(html, xpath, var, first_result = true)
 		raise unless html.respond_to?(:xpath)
-		results = html.xpath(xpath)
-        unless results.nil? or results.empty?
-            result = if first_result
-                         results.first.content
-                     else
-                         results.map { |res| res.content }
-                     end
-            instance_variable_set(var, result)
+		results = html.xpath(xpath)        
+        if results.respond_to?("empty?")
+            unless results.nil? or results.empty?
+                result = if first_result
+                             results.first.content
+                         else
+                             results.map { |res| res.content }
+                         end
+                instance_variable_set(var, result)
+            end
         end
     end
 	
@@ -64,7 +86,10 @@ class Document
     end
     
     def init_text(html)
-        xpath = "//*/text()"
+        xpath = text_elements_xpath
+        
+        puts xpath
+        
         init_var(html, xpath, :@text, false)
         @text = @text.join("\n") if @text.respond_to?(:join)
     end
