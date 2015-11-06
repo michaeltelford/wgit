@@ -14,13 +14,13 @@ class Document
         @url = url
         @html = html
 		
-        nokogiri_doc = Nokogiri::HTML(html)
+        doc = Nokogiri::HTML(html)
 		
-        init_title(nokogiri_doc)
-		init_author(nokogiri_doc)
-		init_keywords(nokogiri_doc)
-        init_links(nokogiri_doc)
-        init_text(nokogiri_doc)
+        init_title(doc)
+		init_author(doc)
+		init_keywords(doc)
+        init_links(doc)
+        init_text(doc)
 	end
     
     def to_hash(include_html = true)
@@ -47,9 +47,9 @@ class Document
         xpath
     end
     
-    def init_var(html, xpath, var, first_result = true)
-		raise unless html.respond_to?(:xpath)
-		results = html.xpath(xpath)        
+    def init_var(doc, xpath, var, first_result = true)
+		raise unless doc.respond_to?(:xpath)
+		results = doc.xpath(xpath)        
         unless results.nil? or results.empty?
             result = if first_result
                          results.first.content
@@ -60,34 +60,34 @@ class Document
         end
     end
 	
-	def init_title(html)
+	def init_title(doc)
         xpath = "//title"
-        init_var(html, xpath, :@title)
+        init_var(doc, xpath, :@title)
 	end
 	
-	def init_author(html)
+	def init_author(doc)
         xpath = "//meta[@name='author']/@content"
-        init_var(html, xpath, :@author)
+        init_var(doc, xpath, :@author)
 	end
 	
-	def init_keywords(html)
+	def init_keywords(doc)
         xpath = "//meta[@name='keywords']/@content"
-        init_var(html, xpath, :@keywords)
-        if @keywords.respond_to?(:split)
+        init_var(doc, xpath, :@keywords)
+        if @keywords.is_a?(Array)
             @keywords = @keywords.split(",")
             @keywords.map { |keyword| keyword.strip! }
         end
 	end
     
-    def init_links(html)
+    def init_links(doc)
         xpath = "//a/@href"
-        init_var(html, xpath, :@links, false)
+        init_var(doc, xpath, :@links, false)
     end
     
-    def init_text(html)
+    def init_text(doc)
         xpath = text_elements_xpath
-        init_var(html, xpath, :@text, false)
-        if @text.respond_to?(:map)
+        init_var(doc, xpath, :@text, false)
+        if @text.is_a?(Array)
             @text.map { |t| t.strip! }
             @text.reject! { |t| t.empty? }
         end

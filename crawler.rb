@@ -15,7 +15,7 @@ class Crawler
 	end
     
     def urls=(urls)
-        raise "Must be an array of urls" unless urls.respond_to?(:each)
+        raise "urls must respond_to? :each" unless urls.respond_to?(:each)
         @urls = []
         urls.each do |url|
             @urls << Url.new(url)
@@ -43,7 +43,7 @@ class Crawler
         urls
 	end
 	
-	# Crawl the url and return the response markup.
+	# Crawl the url and return the response document.
     # Also yield if a block is provided.
 	def crawl_url(url = @urls[0], &block)
 		raise unless url.respond_to?(:to_url)
@@ -57,6 +57,8 @@ class Crawler
     
     private
     
+    # Add the document to the hash for later processing
+    # or let the block process it here and now.
     def handle_crawl_block(url, &block)
         if block.nil?
 		    @docs[url.to_host] = crawl_url(url)
