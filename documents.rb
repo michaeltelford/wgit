@@ -9,7 +9,9 @@ class Documents < Hash
         # Don't yet know how we want to handle duplicate urls
         # and is below the best way?
         #raise "Url already exists" if self.has_key?(url)
-        raise "value must be a Document object" unless value.is_a?(Document)
+        unless value.is_a?(Document) or value.nil?
+            raise "value must be a Document object"
+        end
         super
     end
     
