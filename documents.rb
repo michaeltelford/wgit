@@ -5,14 +5,21 @@ class Documents < Hash
 		super
 	end
     
-    # Don't yet know how we want to handle duplicate urls
-    # and is below the best way?
-    #def []=(url, value)
-    #    raise "Url already exists" if self.has_key?(url)
-    #    super
-    #end
+    def []=(url, value)
+        # Don't yet know how we want to handle duplicate urls
+        # and is below the best way?
+        #raise "Url already exists" if self.has_key?(url)
+        raise "value must be a Document object" unless value.is_a?(Document)
+        super
+    end
     
     def filter!(urls)
         urls.reject! { |url| keys.include?(url) }
+    end
+    
+    def search_text(text)
+        results = []
+        values.each { |doc| results.concat(doc.search_text(text)) }
+        results
     end
 end

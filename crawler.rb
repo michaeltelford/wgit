@@ -14,7 +14,7 @@ class Crawler
 	end
     
     def urls=(urls)
-        raise "urls must respond_to? :each" unless urls.respond_to?(:each)
+        raise "urls must #respond_to? :each" unless urls.respond_to?(:each)
         @urls = []
         urls.each do |url|
             @urls << Url.new(url)
@@ -31,7 +31,7 @@ class Crawler
     end
 	
 	def crawl_urls(urls = @urls, &block)
-        raise "No urls to crawl" if @urls.nil? or @urls.count < 1
+        raise "No urls to crawl" if urls.nil? or urls.length < 1
 		if urls.respond_to?(:each)
 			urls.each do |url|
                 handle_crawl_block(url, &block)
@@ -45,7 +45,6 @@ class Crawler
 	# Crawl the url and return the response document.
     # Also yield if a block is provided.
 	def crawl_url(url = @urls[0], &block)
-		raise unless url.is_a?(Url)
 		markup = fetch(url)
         return nil if markup.nil?
         doc = Document.new(url, markup)
@@ -59,18 +58,16 @@ class Crawler
     # or let the block process it here and now.
     def handle_crawl_block(url, &block)
         if block.nil?
-		    @docs[url.to_host] = crawl_url(url)
+		    @docs[url] = crawl_url(url)
         else
             crawl_url(url, &block)
         end
     end
     
     def fetch(url)
-        begin
-            Net::HTTP.get(url.to_uri)
-        rescue SocketError
-            nil
-        end
+        Net::HTTP.get(url.to_uri)
+    rescue SocketError
+        nil
     end
     
     alias :crawl :crawl_urls

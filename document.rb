@@ -10,7 +10,7 @@ class Document
 	attr_reader :url, :html, :title, :author, :keywords, :links, :text
 	
 	def initialize(url, html)
-        raise unless url.is_a?(Url)
+        raise "url must be a Url object" unless url.is_a?(Url)
         
         @url = url
         @html = html
