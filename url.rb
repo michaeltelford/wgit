@@ -19,17 +19,17 @@ class Url < String
         true
     end
     
+    def self.relative_link?(link)
+        link_host = URI.split(link)[2]
+        link_host.to_s.strip.empty?
+    end
+    
     def to_uri
         @uri
     end
     
     def to_host
         @uri.host
-    end
-    
-    def self.relative_link?(link)
-        link_host = URI.split(link)[2]
-        link_host.to_s.strip.empty?
     end
     
     def concat(link)
