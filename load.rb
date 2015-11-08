@@ -1,0 +1,5 @@
+load 'main.rb'
+load 'crawler.rb'
+load 'documents.rb'
+load 'url.rb'
+load 'document.rb'

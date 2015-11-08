@@ -4,7 +4,8 @@ require_relative 'crawler'
 require 'fileutils'
 
 # Script which sets up a crawler and saves the indexed docs to the file system.
-if __FILE__ == $0
+
+def main
     # Prepare the file system.
     tmp = ENV['TMPDIR']
     dir = tmp + "crawler/"
@@ -14,11 +15,12 @@ if __FILE__ == $0
     
     # Init the urls to crawl.
     urls = ["https://en.wikipedia.org/wiki/Main_Page", "https://en.wikipedia.org/wiki/Antonov_An-12"]
-    puts "Using urls: #{urls}"
     
     # Init the crawler.
     crawler = Crawler.new
-    crawler.urls = urls
+    #crawler.urls = urls
+    crawler << "http://www.belfastcommunityacupuncture.com"
+    puts "Using urls: #{crawler.urls}"
     
     # Crawl and provide a block for writing to the file system.
     count = 0
@@ -28,12 +30,20 @@ if __FILE__ == $0
         name = url.to_host.split('/').join('.') + ".html"
         File.open(dir + name, 'w') { |f| f.write(doc.html) }
         count += 1
-        puts "Created file: #{name} for url: #{url.to_url}"
+        puts "Created file: #{name} for url: #{url}"
     end
     
     puts "Finished. Crawled and created file(s) for #{count} url(s)."
     
     docs.each do |doc|
-        puts doc.to_hash(false)
+        puts "\nPrinting details about #{doc.url}"
+        #puts doc.to_hash(false)
+        puts doc.length
     end
+    
+    docs
+end
+
+if __FILE__ == $0
+    main
 end

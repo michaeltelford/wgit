@@ -1,16 +1,17 @@
+require_relative 'url'
 require 'nokogiri'
 
 # @author Michael Telford
 # Class modeling a HTML web document.
 class Document
-    # Element list contains all text (currently only text) elements from:
-    # https://developer.mozilla.org/en-US/docs/Web/HTML/Element
     TEXT_ELEMENTS = [:dd, :div, :dl, :dt, :figcaption, :figure, :hr, :li, 
-                     :main, :ol, :p, :pre, :ul]
+                     :main, :ol, :p, :pre, :ul, :span]
     
 	attr_reader :url, :html, :title, :author, :keywords, :links, :text
 	
 	def initialize(url, html)
+        raise unless url.is_a?(Url)
+        
         @url = url
         @html = html
 		
@@ -23,16 +24,41 @@ class Document
         init_text(doc)
 	end
     
-    def to_hash(include_html = true)
-        Hash[instance_variables.map do |name| 
-            next if not include_html and name == "@html"
-            [name[1..-1], instance_variable_get(name)]
-        end]
+    def stats
+        hash = {}
+        instance_variables.each do |var|
+            # Add up the total bytes of text.
+            if var == :@text
+                count = 0
+                @text.each { |t| count = count + t.length }
+                hash[var[1..-1]] = count
+            # Else take the #length method return value.
+            else
+                next unless instance_variable_get(var).respond_to?(:length)
+                hash[var[1..-1]] = instance_variable_get(var).send(:length)
+            end
+        end
+        hash
     end
     
-	def save
-		yield self
-	end
+    def to_hash(include_html = true)
+        hash = {}
+        instance_variables.each do |var|
+            next if not include_html and var == :@html
+            hash[var[1..-1]] = instance_variable_get(var)
+        end
+        hash
+    end
+    
+    def search_text(text)
+        results = []
+        @text.each do |t|
+            if match = t.match(Regexp.new(text))
+                results << match.string
+            end
+        end
+        results
+    end
 	
 	private
     
@@ -42,7 +68,7 @@ class Document
         el_xpath = "//%s/text()"
         TEXT_ELEMENTS.each_with_index do |el, i|
             xpath += " | " unless i == 0
-            xpath += el_xpath %[el]
+            xpath += el_xpath % [el]
         end
         xpath
     end
@@ -82,6 +108,12 @@ class Document
     def init_links(doc)
         xpath = "//a/@href"
         init_var(doc, xpath, :@links, false)
+        if @links.is_a?(Array)
+            @links.reject! { |l| l.empty? or l == "/" }
+            @links.map do |link| 
+                link.replace(@url.concat(link)) if Url.relative_link?(link)
+            end
+        end
     end
     
     def init_text(doc)
@@ -92,4 +124,7 @@ class Document
             @text.reject! { |t| t.empty? }
         end
     end
+    
+    alias :length :stats
+    alias :count :stats
 end

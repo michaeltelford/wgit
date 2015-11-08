@@ -13,7 +13,6 @@ class Documents < Hash
     #end
     
     def filter!(urls)
-        #urls = urls - self.keys
         urls.reject! { |url| keys.include?(url) }
     end
 end

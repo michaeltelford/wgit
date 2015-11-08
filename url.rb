@@ -3,56 +3,40 @@ require 'uri'
 # @author Michael Telford
 # Class modeling a web based URL.
 class Url < String
-    
     def initialize(url)
-        url = Url.to_url(url)
-		Url.validate(url)
+        Url.validate(url)
+        @uri = URI(url)
         super
     end
     
-	def self.to_url(host)
-        url = host.dup.strip
-		unless host.start_with?("http://") or host.start_with?("https://")
-			url = "http://" + url
-		end
-		unless host.end_with?("/")
-			url = url + "/"
-		end
-		url
-	end
-	
-	def self.validate(url)
-		if URI.regexp.match(url).nil?
-			raise "Invalid url: #{url}"
-		end
-		true
-	end
-    
-	def to_url
-		url = self.dup.strip
-		unless self.start_with?("http://") or self.start_with?("https://")
-			url = "http://" + url
-		end
-		unless self.end_with?("/")
-			url = url + "/"
-		end
-		url
-	end
-	
-	def to_host
-		url = self.dup.strip
-		if self.start_with?("http://")
-			url = url[7..-1]
-        elsif self.start_with?("https://")
-			url = url[8..-1]
-		end
-		if self.end_with?("/")
-			url = url[0..-2]
-		end
-		url
+    def self.validate(url)
+        unless url.start_with?("http://") or url.start_with?("https://")
+            raise "Invalid url (missing protocol prefix): #{url}"
+        end
+        if URI.regexp.match(url).nil?
+            raise "Invalid url: #{url}"
+        end
+        true
     end
-	
-	def save
-		yield self
-	end
+    
+    def to_uri
+        @uri
+    end
+    
+    def to_host
+        @uri.host
+    end
+    
+    def self.relative_link?(link)
+        link_host = URI.split(link)[2]
+        link_host.to_s.strip.empty?
+    end
+    
+    def concat(link)
+        puts "Concatting #{self} with #{link}"
+        url = self.dup
+        url.chop! if url.end_with?("/")
+        link = link[1..-1] if link.start_with?("/")
+        url += ("/" + link)
+    end
 end
