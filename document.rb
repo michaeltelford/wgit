@@ -23,6 +23,22 @@ class Document
         init_links(doc)
         init_text(doc)
 	end
+	
+	def internal_links
+		internals = []
+		@links.each do |link|
+			internals << link if link.start_with?(@url)
+		end
+		internals
+	end
+	
+	def external_links
+		externals = []
+		@links.each do |link|
+			externals << link unless link.start_with?(@url)
+		end
+		externals
+	end
     
     def stats
         hash = {}

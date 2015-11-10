@@ -7,7 +7,7 @@ require 'fileutils'
 
 def main
     # Prepare the file system.
-    tmp = ENV['TMPDIR']
+    tmp = ENV['TMPDIR'] ? ENV['TMPDIR'] : ENV['TEMP']
     dir = tmp + "crawler/"
     FileUtils.remove_dir(dir) if Dir.exists?(dir)
     Dir.mkdir(dir)
