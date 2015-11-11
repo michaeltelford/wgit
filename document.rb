@@ -25,19 +25,11 @@ class Document
 	end
 	
 	def internal_links
-		internals = []
-		@links.each do |link|
-			internals << link if link.start_with?(@url)
-		end
-		internals
+		@links.reject { |link| not link.start_with?(@url) }
 	end
 	
 	def external_links
-		externals = []
-		@links.each do |link|
-			externals << link unless link.start_with?(@url)
-		end
-		externals
+		@links.reject { |link| link.start_with?(@url) }
 	end
     
     def stats
@@ -66,7 +58,7 @@ class Document
         hash
     end
     
-    def search_text(text)
+    def search(text)
         results = []
         @text.each do |t|
             if match = t.match(Regexp.new(text))
@@ -143,4 +135,5 @@ class Document
     
     alias :length :stats
     alias :count :stats
+	alias :to_h :to_hash
 end
