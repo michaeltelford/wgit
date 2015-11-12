@@ -14,12 +14,15 @@ def main
     puts "Using dir: #{dir}"
     
     # Init the urls to crawl.
-    urls = ["https://en.wikipedia.org/wiki/Main_Page", "https://en.wikipedia.org/wiki/Antonov_An-12"]
+    urls = [
+        "http://www.belfastcommunityacupuncture.com", 
+        "https://en.wikipedia.org/wiki/Main_Page", 
+        "https://en.wikipedia.org/wiki/Antonov_An-12"
+    ]
     
     # Init the crawler.
     crawler = Crawler.new
-    #crawler.urls = urls
-    crawler << "http://www.belfastcommunityacupuncture.com"
+    crawler.urls = urls
     puts "Using urls: #{crawler.urls}"
     
     # Crawl and provide a block for writing to the file system.
@@ -38,7 +41,7 @@ def main
     docs.each do |doc|
         puts "\nPrinting details about #{doc.url}"
         #puts doc.to_hash(false)
-        puts doc.length
+        puts doc.stats
     end
     
     docs

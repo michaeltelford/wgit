@@ -24,6 +24,13 @@ class Url < String
         link_host.to_s.strip.empty?
     end
     
+    def self.prefix_protocol!(url, secure = false)
+        unless url.start_with?("http://") or url.start_with?("https://")
+            url.replace("http://#{url}") unless secure
+            url.replace("https://#{url}") if secure
+        end
+    end
+    
     def to_uri
         @uri
     end
