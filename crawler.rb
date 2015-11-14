@@ -53,7 +53,7 @@ class Crawler
         doc
 	end
     
-    private
+private
     
     # Add the document to the hash for later processing
     # or let the block process it here and now.

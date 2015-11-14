@@ -68,7 +68,7 @@ class Document
         results
     end
 	
-	private
+private
     
     def text_elements_xpath
         xpath = ""
@@ -107,9 +107,10 @@ class Document
 	def init_keywords(doc)
         xpath = "//meta[@name='keywords']/@content"
         init_var(doc, xpath, :@keywords)
-        if @keywords.is_a?(Array)
+        if @keywords.is_a?(String)
             @keywords = @keywords.split(",")
             @keywords.map { |keyword| keyword.strip! }
+            @keywords.uniq!
         end
 	end
     
@@ -118,8 +119,10 @@ class Document
         init_var(doc, xpath, :@links, false)
         if @links.is_a?(Array)
             @links.reject! { |l| l.empty? or l == "/" }
-            @links.map do |link| 
+            @links.uniq!
+            @links.map! do |link|
                 link.replace(@url.concat(link)) if Url.relative_link?(link)
+                Url.new(link, @url)
             end
         end
     end
@@ -128,8 +131,9 @@ class Document
         xpath = text_elements_xpath
         init_var(doc, xpath, :@text, false)
         if @text.is_a?(Array)
-            @text.map { |t| t.strip! }
-            @text.reject! { |t| t.empty? }
+            @text.map! { |t| t.strip! }
+            @text.reject! { |t| not t.respond_to?(:empty?) or t.empty? }
+            @text.uniq!
         end
     end
     

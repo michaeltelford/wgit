@@ -3,10 +3,13 @@ require 'uri'
 # @author Michael Telford
 # Class modeling a web based URL.
 class Url < String
-    def initialize(url)
+    attr_reader :source
+    
+    def initialize(url, source = nil)
         Url.validate(url)
         @uri = URI(url)
-        super
+        @source = source
+        super(url)
     end
     
     def self.validate(url)
