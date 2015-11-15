@@ -8,8 +8,6 @@ require "mongo"
 # @author Michael Telford
 # Class modeling a DB connection and search engine related functionality.
 class Database
-    attr_reader :client
-    
     def initialize
         address = "#{CONNECTION_DETAILS[:host]}:#{CONNECTION_DETAILS[:port]}"
         @client = Mongo::Client.new([address], 
@@ -53,11 +51,25 @@ class Database
     
     # Retreive Data.
     
-    # limit = 0 returns all uncrawled urls.
-    def get_uncrawled_urls(limit = 0)
+    # A limit of 0 returns all uncrawled urls.
+    def get_urls(limit = 0, crawled = false)
     end
-    
-    def search(text, data = [:text])
+
+    # Searches against the indexed docs in the DB for the given text.
+    #
+    # @param text [String] the text to search the data against.
+    # @param data [Array] the doc data fields to search against.
+    # @param exact_search [Boolean] whether multiple words 
+    # should be searched for separately.
+    # @param whole_word [Boolean] whether each word in text is allowed to 
+    # form part of others.
+    # @param case_sensitive [Boolean] whether upper or lower case matters.
+    # 
+    # @return [Hash] representing the search results. Each key is the doc 
+    # url and each value is an Array containing the matching text snippets 
+    # for that doc.
+    def search(text, data = [:text], exact_search = false, 
+               whole_word = false, case_sensitive = false)
     end
     
     def stats

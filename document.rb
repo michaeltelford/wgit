@@ -35,11 +35,12 @@ class Document
     def stats
         hash = {}
         instance_variables.each do |var|
-            # Add up the total bytes of text.
+            # Add up the total bytes of text as well as the length.
             if var == :@text
                 count = 0
                 @text.each { |t| count = count + t.length }
-                hash[var[1..-1]] = count
+                hash["text_length"] = @text.length
+                hash["text_bytes"] = count
             # Else take the #length method return value.
             else
                 next unless instance_variable_get(var).respond_to?(:length)
@@ -69,6 +70,16 @@ class Document
     end
 	
 private
+
+    def process!(array)
+        raise "array param must respond to map" unless array.is_a?(Array)
+        array.map! do |str|
+            raise "value must be a String" unless str.is_a?(String)
+            str.strip
+        end
+        array.reject! { |str| str.empty? }
+        array.uniq!
+    end
     
     def text_elements_xpath
         xpath = ""
@@ -107,19 +118,18 @@ private
 	def init_keywords(doc)
         xpath = "//meta[@name='keywords']/@content"
         init_var(doc, xpath, :@keywords)
-        if @keywords.is_a?(String)
+        unless @keywords.nil?
             @keywords = @keywords.split(",")
-            @keywords.map { |keyword| keyword.strip! }
-            @keywords.uniq!
+            process!(@keywords)
         end
 	end
     
     def init_links(doc)
         xpath = "//a/@href"
         init_var(doc, xpath, :@links, false)
-        if @links.is_a?(Array)
-            @links.reject! { |l| l.empty? or l == "/" }
-            @links.uniq!
+        unless @links.nil?
+            process!(@links)
+            @links.reject! { |l| l == "/" }
             @links.map! do |link|
                 link.replace(@url.concat(link)) if Url.relative_link?(link)
                 Url.new(link, @url)
@@ -130,10 +140,8 @@ private
     def init_text(doc)
         xpath = text_elements_xpath
         init_var(doc, xpath, :@text, false)
-        if @text.is_a?(Array)
-            @text.map! { |t| t.strip! }
-            @text.reject! { |t| not t.respond_to?(:empty?) or t.empty? }
-            @text.uniq!
+        unless @text.nil?
+            process!(@text)
         end
     end
     
