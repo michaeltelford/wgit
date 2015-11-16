@@ -21,7 +21,7 @@ class Database
     def insert_url(url)
         raise "url must be a Url" unless url.is_a?(Url)
         url = Model.url(url, url.source)
-        insert(:urls, url)
+        create(:urls, url)
     end
     
     def insert_urls(urls)
@@ -30,7 +30,7 @@ class Database
             raise "urls must contain Url objects" unless url.is_a?(Url)
             Model.url(url, url.source)
         end
-        insert(:urls, urls)
+        create(:urls, urls)
     end
     
     def insert_doc(doc)
@@ -38,7 +38,7 @@ class Database
             raise "doc must be a Document or a Hash (from Document#to_hash)"
         end
         doc = Model.document(doc) unless doc.is_a?(Hash)
-        insert(:documents, doc)
+        create(:documents, doc)
     end
     
     def insert_docs(docs)
@@ -46,13 +46,16 @@ class Database
         docs = docs.map do |url, doc|
             Model.document(doc) unless doc.is_a?(Hash)
         end
-        insert(:documents, docs)
+        create(:documents, docs)
     end
     
     # Retreive Data.
     
     # A limit of 0 returns all uncrawled urls.
-    def get_urls(limit = 0, crawled = false)
+    def get_urls(limit = 0, crawled = false, &block)
+        query = {:crawled => crawled}
+        sort = {:date_added => 1}
+        retrieve(:urls, query, sort, limit, &block)
     end
 
     # Searches against the indexed docs in the DB for the given text.
@@ -82,7 +85,7 @@ class Database
     
 private
     
-    def insert(collection, data)
+    def create(collection, data)
         if data.is_a?(Hash) # Single doc.
             data.merge!(Model.common_insert_data)
             result = @client[collection.to_sym].insert_one(data)
@@ -95,5 +98,16 @@ private
         else
             raise "data must be a Hash or an Array of Hash's"
         end
+    end
+    
+    def retrieve(collection, query, sort = {}, limit = 0, &block)
+        res = @client[collection].find(query).limit(limit).sort(sort)
+        return res if block.nil?
+        length = 0 # We count here rather than asking the DB via res.count.
+        res.each do |doc|
+            block.call(doc)
+            length += 1
+        end
+        length
     end
 end

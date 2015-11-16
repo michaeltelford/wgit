@@ -50,7 +50,7 @@ class Document
         hash
     end
     
-    def to_hash(include_html = true)
+    def to_h(include_html = true)
         hash = {}
         instance_variables.each do |var|
             next if not include_html and var == :@html
@@ -147,5 +147,5 @@ private
     
     alias :length :stats
     alias :count :stats
-	alias :to_h :to_hash
+	alias :to_hash :to_h
 end
