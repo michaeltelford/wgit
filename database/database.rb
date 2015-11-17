@@ -20,7 +20,7 @@ class Database
     
     def insert_url(url)
         raise "url must be a Url" unless url.is_a?(Url)
-        url = Model.url(url, url.source)
+        url = Model.url(url)
         create(:urls, url)
     end
     

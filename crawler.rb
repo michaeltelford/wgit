@@ -48,6 +48,7 @@ class Crawler
 	def crawl_url(url = @urls[0], &block)
 		markup = fetch(url)
         return nil if markup.nil?
+        url.crawled = true
         doc = Document.new(url, markup)
         block.call(url, doc) unless block.nil?
         doc

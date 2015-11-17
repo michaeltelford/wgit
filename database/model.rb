@@ -1,28 +1,22 @@
+require_relative '../utils'
+
 # @author Michael Telford
 # Module containing the DB data model structure.
 module Model
-    def self.url(url, source = nil, crawled = false, date_crawled = nil)
-        {
-            :url            => url,
-            :source         => source,
-            :crawled        => crawled,
-            :date_crawled   => date_crawled
-        }
+    def self.url(url)
+        raise "url must respond to to_h" unless url.respond_to?(:to_h)
+        url.to_h
     end
     
     def self.document(doc)
-        raise "doc must respond to to_hash" unless doc.respond_to?(:to_hash)
-        doc.to_hash(false)
+        raise "doc must respond to to_h" unless doc.respond_to?(:to_h)
+        doc.to_h(false)
     end
     
     def self.common_insert_data
         {
-            :date_added     => Model.time_stamp,
-            :date_modified  => Model.time_stamp
+            :date_added     => Utils.time_stamp,
+            :date_modified  => Utils.time_stamp
         }
-    end
-    
-    def self.time_stamp
-        Time.new.strftime("%Y-%m-%d %H:%M:%S").to_s
     end
 end

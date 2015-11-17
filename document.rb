@@ -1,4 +1,5 @@
 require_relative 'url'
+require_relative 'utils'
 require 'nokogiri'
 
 # @author Michael Telford
@@ -51,12 +52,8 @@ class Document
     end
     
     def to_h(include_html = true)
-        hash = {}
-        instance_variables.each do |var|
-            next if not include_html and var == :@html
-            hash[var[1..-1]] = instance_variable_get(var)
-        end
-        hash
+        ignore = include_html ? [] : [:@html]
+        Utils.to_h(self, ignore)
     end
     
     def search(text)

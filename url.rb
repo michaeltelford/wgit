@@ -1,14 +1,17 @@
+require_relative 'utils'
 require 'uri'
 
 # @author Michael Telford
 # Class modeling a web based URL.
 class Url < String
-    attr_reader :source
+    attr_accessor :source, :crawled, :date_crawled
     
-    def initialize(url, source = nil)
+    def initialize(url, source = nil, crawled = false, date_crawled = nil)
         Url.validate(url)
         @uri = URI(url)
         @source = source
+        @crawled = crawled
+        @date_crawled = date_crawled
         super(url)
     end
     
@@ -29,8 +32,11 @@ class Url < String
     
     def self.prefix_protocol!(url, secure = false)
         unless url.start_with?("http://") or url.start_with?("https://")
-            url.replace("http://#{url}") unless secure
-            url.replace("https://#{url}") if secure
+            if secure
+                url.replace("https://#{url}")
+            else
+                url.replace("http://#{url}")
+            end
         end
     end
     
@@ -42,10 +48,18 @@ class Url < String
         @uri.host
     end
     
+    def to_h
+        ignore = [:@uri]
+        h = Utils.to_h(self, ignore)
+        Hash[h.to_a.insert(0, ["url", self])] # Insert url at position 0.
+    end
+    
     def concat(link)
         url = self.dup
         url.chop! if url.end_with?("/")
         link = link[1..-1] if link.start_with?("/")
         url + "/" + link
     end
+    
+    alias :to_hash :to_h
 end
