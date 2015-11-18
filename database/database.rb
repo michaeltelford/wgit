@@ -14,6 +14,7 @@ class Database
                                     :database => CONNECTION_DETAILS[:db],
                                     :user => CONNECTION_DETAILS[:uname],
                                     :password => CONNECTION_DETAILS[:pword])
+        Mongo::Logger.logger = nil
     end
     
     # Create Data.
@@ -75,7 +76,13 @@ class Database
                whole_word = false, case_sensitive = false)
     end
     
+    # Returns a Mongo object which can be used like a Hash to retrive values.
     def stats
+        @client.command(:dbStats => 0).documents[0]
+    end
+    
+    def length
+        stats[:dataSize]
     end
     
     # Update Data.
@@ -110,4 +117,7 @@ private
         end
         length
     end
+    
+    alias :to_h :stats
+    alias :count :length
 end
