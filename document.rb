@@ -11,7 +11,8 @@ class Document
 	attr_reader :url, :html, :title, :author, :keywords, :links, :text
 	
 	def initialize(url, html)
-        raise "url must be a Url object" unless url.is_a?(Url)
+        Utils.is_a?(url, Url, "url must be a Url object")
+        Utils.is_a?(html, String, "html must be a String object")
         
         @url = url
         @html = html
@@ -59,7 +60,7 @@ class Document
     def search(text)
         results = []
         @text.each do |t|
-            if match = t.match(Regexp.new(text))
+            if match = t.match(Regexp.new(text, Regexp::IGNORECASE))
                 results << match.string
             end
         end
@@ -69,9 +70,9 @@ class Document
 private
 
     def process!(array)
-        raise "array param must respond to map" unless array.is_a?(Array)
+        Utils.is_a?(array, Array, "array param must respond to map")
         array.map! do |str|
-            raise "value must be a String" unless str.is_a?(String)
+            Utils.is_a?(str, String, "value must be a String")
             str.strip
         end
         array.reject! { |str| str.empty? }

@@ -13,4 +13,25 @@ module Utils
         end
         hash
     end
+    
+    def self.is_a?(obj, type_or_types, msg = nil)
+        if type_or_types.respond_to?(:each)
+            type_or_types.each do |type|
+                return true if obj.is_a?(type)
+            end
+            if msg.nil?
+                raise "obj.is_a?(#{type_or_types}) must be true"
+            else
+                raise msg
+            end
+        else
+            type = type_or_types
+            if (msg.nil?)
+                raise "obj.is_a?(#{type}) must be true" unless obj.is_a?(type)
+            else
+                raise msg unless obj.is_a?(type)
+            end
+        end
+        true
+    end
 end

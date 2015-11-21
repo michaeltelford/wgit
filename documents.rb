@@ -8,7 +8,7 @@ class Documents < Hash
     def []=(url, value)
         url.strip!
         raise "Url already exists" if self.has_key?(url)
-        raise "value must be a Document object" unless value.is_a?(Document)
+        Utils.is_a?(value, Document, "value must be a Document object")
         super
     end
     

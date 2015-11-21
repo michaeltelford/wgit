@@ -1,26 +1,45 @@
-require_relative "../documents"
-require_relative "../document"
-require_relative "../url"
-require_relative "mongo_connection_details"
-require_relative "model"
-require "mongo"
+require_relative '../documents'
+require_relative '../document'
+require_relative '../url'
+require_relative 'mongo_connection_details'
+require_relative 'model'
+require 'mongo'
 
 # @author Michael Telford
 # Class modeling a DB connection and search engine related functionality.
 class Database
+    LOG_FILE_PATH = "database/mongo_log.txt"
+    
     def initialize
+        logger = Logger.new(LOG_FILE_PATH)
         address = "#{CONNECTION_DETAILS[:host]}:#{CONNECTION_DETAILS[:port]}"
         @client = Mongo::Client.new([address], 
                                     :database => CONNECTION_DETAILS[:db],
                                     :user => CONNECTION_DETAILS[:uname],
-                                    :password => CONNECTION_DETAILS[:pword])
-        Mongo::Logger.logger = nil
+                                    :password => CONNECTION_DETAILS[:pword],
+                                    :logger => logger)
     end
     
     # Create Data.
     
+    def insert(data)
+        if data.is_a?(Url)
+            insert_url(data)
+        elsif data.is_a?(Document)
+            insert_doc(data)
+        elsif data.respond_to?(:map)
+            if data[0].is_a?(Url)
+                insert_urls(data)
+            else
+                insert_docs(data)
+            end
+        else
+            raise "data class/type not currently supported"
+        end
+    end
+    
     def insert_url(url)
-        raise "url must be a Url" unless url.is_a?(Url)
+        Utils.is_a?(url, Url, "url must be a Url")
         url = Model.url(url)
         create(:urls, url)
     end
@@ -28,16 +47,15 @@ class Database
     def insert_urls(urls)
         return insert_url(urls) unless urls.respond_to?(:map)
         urls = urls.map do |url|
-            raise "urls must contain Url objects" unless url.is_a?(Url)
-            Model.url(url, url.source)
+            Utils.is_a?(url, Url, "urls must contain Url objects")
+            Model.url(url)
         end
         create(:urls, urls)
     end
     
     def insert_doc(doc)
-        unless doc.is_a?(Document) or doc.is_a?(Hash)
-            raise "doc must be a Document or a Hash (from Document#to_hash)"
-        end
+        Utils.is_a?(doc, [Document, Hash], 
+            "doc must be a Document or a Hash (from Document#to_hash)")
         doc = Model.document(doc) unless doc.is_a?(Hash)
         create(:documents, doc)
     end
@@ -53,7 +71,7 @@ class Database
     # Retreive Data.
     
     # A limit of 0 returns all uncrawled urls.
-    def get_urls(limit = 0, crawled = false, &block)
+    def get_urls(crawled = false, limit = 0, &block)
         query = {:crawled => crawled}
         sort = {:date_added => 1}
         retrieve(:urls, query, sort, limit, &block)
@@ -63,7 +81,7 @@ class Database
     #
     # @param text [String] the text to search the data against.
     # @param data [Array] the doc data fields to search against.
-    # @param exact_search [Boolean] whether multiple words 
+    # @param whole_sentence [Boolean] whether multiple words 
     # should be searched for separately.
     # @param whole_word [Boolean] whether each word in text is allowed to 
     # form part of others.
@@ -72,7 +90,7 @@ class Database
     # @return [Hash] representing the search results. Each key is the doc 
     # url and each value is an Array containing the matching text snippets 
     # for that doc.
-    def search(text, data = [:text], exact_search = false, 
+    def search(text, data = [:text], whole_sentence = false, 
                whole_word = false, case_sensitive = false)
     end
     
@@ -91,17 +109,38 @@ class Database
     end
     
 private
+
+    def write_succeeded?(result, count = 1)
+        case result.class.to_s
+        # Single create result.
+        when "Mongo::Operation::Write::Insert::Result"
+            result.documents[0][:err].nil?
+        # Multiple create result.
+        when "Mongo::BulkWrite::Result"
+            result.inserted_count == count
+        else
+            raise "result class not currently supported"
+        end
+    end
     
     def create(collection, data)
-        if data.is_a?(Hash) # Single doc.
+        # Single doc.
+        if data.is_a?(Hash)
             data.merge!(Model.common_insert_data)
             result = @client[collection.to_sym].insert_one(data)
-        elsif data.is_a?(Array) # Multiple docs.
+            raise "DB write failed" unless write_succeeded?(result)
+            result
+        # Multiple docs.
+        elsif data.is_a?(Array)
             data.map! do |data_hash|
-                raise "data_hash must be a Hash" unless data_hash.is_a?(Hash)
+                Utils.is_a?(data_hash, Hash, "data must be an Array of Hash's")
                 data_hash.merge(Model.common_insert_data)
             end
             result = @client[collection.to_sym].insert_many(data)
+            unless write_succeeded?(result, data.length)
+                raise "DB write(s) failed"
+            end
+            result
         else
             raise "data must be a Hash or an Array of Hash's"
         end
@@ -111,13 +150,13 @@ private
         res = @client[collection].find(query).limit(limit).sort(sort)
         return res if block.nil?
         length = 0 # We count here rather than asking the DB via res.count.
-        res.each do |doc|
-            block.call(doc)
+        res.each do |obj|
+            block.call(obj)
             length += 1
         end
         length
     end
     
-    alias :to_h :stats
     alias :count :length
+    alias :size :length
 end

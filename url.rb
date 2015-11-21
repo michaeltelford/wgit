@@ -62,4 +62,5 @@ class Url < String
     end
     
     alias :to_hash :to_h
+    alias :host :to_host
 end

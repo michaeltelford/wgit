@@ -38,8 +38,6 @@ def main
     puts "Finished. Crawled and created file(s) for #{count} url(s)."
     
     docs.each do |url, doc|
-        puts "\nPrinting details about #{url}"
-        #puts doc.to_hash(false)
         puts doc.stats
     end
     
