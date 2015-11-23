@@ -105,12 +105,22 @@ class Database
     
     # Update Data.
     
-    def update_crawled_url(url)
+    def update_crawled_urls(url_or_urls)
+        Utils.is_a?(url_or_urls, Url, "A Url or Array of Urls is expected")
+        if url_or_urls.respond_to?(:each)
+            single = false
+            selection = { :url => { "$in" => url_or_urls } }
+        else
+            single = true
+            selection = { :url => url_or_urls }
+        end
+        update = { "$set" => { :crawled => true } }
+        update(single, :urls, selection, update) # { upsert: true|false }
     end
     
 private
 
-    def write_succeeded?(result, count = 1)
+    def write_succeeded?(result, count = 1, multi = false)
         case result.class.to_s
         # Single create result.
         when "Mongo::Operation::Write::Insert::Result"
@@ -118,6 +128,13 @@ private
         # Multiple create result.
         when "Mongo::BulkWrite::Result"
             result.inserted_count == count
+        # Single and multiple update result.
+        when "Mongo::Operation::Write::Update::LegacyResult"
+            if multi
+                result.n == count
+            else
+                result.documents[0][:err].nil?
+            end
         else
             raise "result class not currently supported"
         end
@@ -128,7 +145,7 @@ private
         if data.is_a?(Hash)
             data.merge!(Model.common_insert_data)
             result = @client[collection.to_sym].insert_one(data)
-            raise "DB write failed" unless write_succeeded?(result)
+            raise "DB write (insert) failed" unless write_succeeded?(result)
             result
         # Multiple docs.
         elsif data.is_a?(Array)
@@ -147,16 +164,29 @@ private
     end
     
     def retrieve(collection, query, sort = {}, limit = 0, &block)
-        res = @client[collection].find(query).limit(limit).sort(sort)
-        return res if block.nil?
+        result = @client[collection].find(query).limit(limit).sort(sort)
+        return result if block.nil?
         length = 0 # We count here rather than asking the DB via res.count.
-        res.each do |obj|
+        result.each do |obj|
             block.call(obj)
             length += 1
         end
         length
     end
     
+    def update(single, collection, selection, update)
+        if single
+            result = @client[collection.to_sym].update_one(selection, update)
+            raise "DB write (update) failed" unless write_succeeded?(result)
+        else
+            result = @client[collection.to_sym].update_many(selection, update)
+            raise "DB write (update) failed" unless write_succeeded?(result)
+        end
+        result.n
+    end
+    
     alias :count :length
     alias :size :length
+    alias :urls :get_urls
+    alias :update_crawled_url :update_crawled_urls
 end

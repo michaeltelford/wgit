@@ -14,7 +14,18 @@ module Utils
         hash
     end
     
-    def self.is_a?(obj, type_or_types, msg = nil)
+    def self.is_a?(obj_or_objs, type_or_types, msg = nil)
+        if obj_or_objs.respond_to?(:each)
+            obj_or_objs.each do |obj|
+                return false unless is_type?(obj, type_or_types, msg)
+            end
+            true
+        else
+            is_type?(obj_or_objs, type_or_types, msg)
+        end
+    end
+
+    def self.is_type?(obj, type_or_types, msg = nil)
         if type_or_types.respond_to?(:each)
             type_or_types.each do |type|
                 return true if obj.is_a?(type)
@@ -34,4 +45,6 @@ module Utils
         end
         true
     end
+    
+    private_class_method :is_type?
 end
