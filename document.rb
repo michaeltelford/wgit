@@ -52,7 +52,7 @@ class Document
         hash
     end
     
-    def to_h(include_html = true)
+    def to_h(include_html = false)
         ignore = include_html ? [] : [:@html]
         Utils.to_h(self, ignore)
     end

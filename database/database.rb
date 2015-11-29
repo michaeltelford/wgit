@@ -54,7 +54,9 @@ class Database
             "doc_or_docs must be (or contain) a 
             Document or a Hash (from Document#to_h)")
         unless doc_or_docs.respond_to?(:each)
-            doc_or_docs = Model.document(doc_or_docs) unless doc.is_a?(Hash)
+            unless doc_or_docs.is_a?(Hash)
+                doc_or_docs = Model.document(doc_or_docs)
+            end
         else
             doc_or_docs = doc_or_docs.map do |doc|
                 Model.document(doc) unless doc.is_a?(Hash)
@@ -101,17 +103,19 @@ class Database
     # Update Data.
     
     def update_url(url)
-        Utils.is_a?(url_or_urls, Url, "A Url or Array of Urls is expected")
-        if url_or_urls.respond_to?(:each)
-            single = false
-            selection = { :url => { "$in" => url_or_urls } }
-        else
-            single = true
-            selection = { :url => url_or_urls }
-        end
-        data = { :crawled => true }.merge!(Model.common_update_data)
-        update = { "$set" => data }
-        update(single, :urls, selection, update) # { upsert: true|false }
+        Utils.is_a?([url], Url)
+        selection = { :url => url }
+        url_hash = Model.url(url).merge(Model.common_update_data)
+        update = { "$set" => url_hash }
+        update(true, :urls, selection, update)
+    end
+    
+    def update_doc(doc)
+        Utils.is_a?([doc], Document)
+        selection = { :url => doc.url }
+        doc_hash = Model.document(doc).merge(Model.common_update_data)
+        update = { "$set" => doc_hash }
+        update(true, :documents, selection, update)
     end
     
 private
@@ -190,5 +194,4 @@ private
     alias :insert_url :insert_urls
     alias :insert_doc :insert_docs
     alias :urls :get_urls
-    alias :update_crawled_url :update_crawled_urls
 end

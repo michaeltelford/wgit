@@ -1,7 +1,6 @@
 load 'main.rb'
 load 'crawler.rb'
 load 'url.rb'
-load 'documents.rb'
 load 'document.rb'
 load 'utils.rb'
 load 'database/database.rb'

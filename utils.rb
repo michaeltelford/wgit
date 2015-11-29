@@ -40,7 +40,7 @@ module Utils
             end
             unless match
                 if msg.nil?
-                    raise "obj.is_a?(#{type_or_types}) must be true"
+                    raise "Expecting: #{type_or_types}"
                 else
                     raise msg
                 end
@@ -49,7 +49,7 @@ module Utils
             type = type_or_types
             unless obj.is_a?(type)
                 if (msg.nil?)
-                    raise "obj.is_a?(#{type}) must be true"
+                    raise "Expecting: #{type}"
                 else
                     raise msg
                 end

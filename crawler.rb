@@ -35,10 +35,10 @@ class Crawler
 			urls.each do |url|
                 handle_crawl_block(url, &block)
 			end
+            urls
 		else
             handle_crawl_block(urls, &block)
 		end
-        urls
 	end
 	
 	# Crawl the url and return the response document.
