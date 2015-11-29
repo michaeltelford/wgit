@@ -1,4 +1,3 @@
-require_relative '../documents'
 require_relative '../document'
 require_relative '../url'
 require_relative 'mongo_connection_details'
@@ -24,9 +23,9 @@ class Database
     
     def insert(data)
         if data.is_a?(Url)
-            insert_url(data)
+            insert_urls(data)
         elsif data.is_a?(Document)
-            insert_doc(data)
+            insert_docs(data)
         elsif data.respond_to?(:map)
             if data[0].is_a?(Url)
                 insert_urls(data)
@@ -38,34 +37,30 @@ class Database
         end
     end
     
-    def insert_url(url)
-        Utils.is_a?(url, Url, "url must be a Url")
-        url = Model.url(url)
-        create(:urls, url)
-    end
-    
-    def insert_urls(urls)
-        return insert_url(urls) unless urls.respond_to?(:map)
-        urls = urls.map do |url|
-            Utils.is_a?(url, Url, "urls must contain Url objects")
-            Model.url(url)
+    def insert_urls(url_or_urls)
+        Utils.is_a?(url_or_urls, Url, "url must be a Url")
+        unless url_or_urls.respond_to?(:map)
+            url_or_urls = Model.url(url_or_urls)
+        else
+            url_or_urls = url_or_urls.map do |url|
+                Model.url(url)
+            end
         end
-        create(:urls, urls)
+        create(:urls, url_or_urls)
     end
     
-    def insert_doc(doc)
-        Utils.is_a?(doc, [Document, Hash], 
-            "doc must be a Document or a Hash (from Document#to_hash)")
-        doc = Model.document(doc) unless doc.is_a?(Hash)
-        create(:documents, doc)
-    end
-    
-    def insert_docs(docs)
-        return insert_doc(docs) unless docs.is_a?(Documents)
-        docs = docs.map do |url, doc|
-            Model.document(doc) unless doc.is_a?(Hash)
+    def insert_docs(doc_or_docs)
+        Utils.is_a?(doc_or_docs, [Document, Hash], 
+            "doc_or_docs must be (or contain) a 
+            Document or a Hash (from Document#to_h)")
+        unless doc_or_docs.respond_to?(:each)
+            doc_or_docs = Model.document(doc_or_docs) unless doc.is_a?(Hash)
+        else
+            doc_or_docs = doc_or_docs.map do |doc|
+                Model.document(doc) unless doc.is_a?(Hash)
+            end
         end
-        create(:documents, docs)
+        create(:documents, doc_or_docs)
     end
     
     # Retreive Data.
@@ -105,7 +100,7 @@ class Database
     
     # Update Data.
     
-    def update_crawled_urls(url_or_urls)
+    def update_url(url)
         Utils.is_a?(url_or_urls, Url, "A Url or Array of Urls is expected")
         if url_or_urls.respond_to?(:each)
             single = false
@@ -114,7 +109,8 @@ class Database
             single = true
             selection = { :url => url_or_urls }
         end
-        update = { "$set" => { :crawled => true } }
+        data = { :crawled => true }.merge!(Model.common_update_data)
+        update = { "$set" => data }
         update(single, :urls, selection, update) # { upsert: true|false }
     end
     
@@ -141,6 +137,7 @@ private
     end
     
     def create(collection, data)
+        Utils.is_a?(data, Hash, "data must be an Array of Hash's")
         # Single doc.
         if data.is_a?(Hash)
             data.merge!(Model.common_insert_data)
@@ -150,7 +147,6 @@ private
         # Multiple docs.
         elsif data.is_a?(Array)
             data.map! do |data_hash|
-                Utils.is_a?(data_hash, Hash, "data must be an Array of Hash's")
                 data_hash.merge(Model.common_insert_data)
             end
             result = @client[collection.to_sym].insert_many(data)
@@ -164,7 +160,8 @@ private
     end
     
     def retrieve(collection, query, sort = {}, limit = 0, &block)
-        result = @client[collection].find(query).limit(limit).sort(sort)
+        Utils.is_a?(query, Hash, "query must be a Hash")
+        result = @client[collection.to_sym].find(query).limit(limit).sort(sort)
         return result if block.nil?
         length = 0 # We count here rather than asking the DB via res.count.
         result.each do |obj|
@@ -174,19 +171,24 @@ private
         length
     end
     
+    # NOTE: The Model.common_update_data should be merged in the calling 
+    # method as the update param can be bespoke due to its nature.
     def update(single, collection, selection, update)
+        Utils.is_a?([selection, update], Hash, 
+            "selection and update must each be a Hash")
         if single
             result = @client[collection.to_sym].update_one(selection, update)
-            raise "DB write (update) failed" unless write_succeeded?(result)
         else
             result = @client[collection.to_sym].update_many(selection, update)
-            raise "DB write (update) failed" unless write_succeeded?(result)
         end
+        raise "DB write (update) failed" unless write_succeeded?(result)
         result.n
     end
     
     alias :count :length
     alias :size :length
+    alias :insert_url :insert_urls
+    alias :insert_doc :insert_docs
     alias :urls :get_urls
     alias :update_crawled_url :update_crawled_urls
 end

@@ -70,7 +70,7 @@ class Document
 private
 
     def process!(array)
-        Utils.is_a?(array, Array, "array param must respond to map")
+        Utils.is_a?([array], Array, "array param must be an Array")
         array.map! do |str|
             Utils.is_a?(str, String, "value must be a String")
             str.strip

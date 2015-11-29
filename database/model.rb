@@ -16,7 +16,13 @@ module Model
     def self.common_insert_data
         {
             :date_added     => Utils.time_stamp,
-            :date_modified  => Utils.time_stamp
+            :date_modified  => Utils.time_stamp,
+        }
+    end
+    
+    def self.common_update_data
+        {
+            :date_modified  => Utils.time_stamp,
         }
     end
 end

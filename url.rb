@@ -40,6 +40,11 @@ class Url < String
         end
     end
     
+    def crawled=(bool)
+        @crawled = bool
+        @date_crawled = Utils.time_stamp if bool
+    end
+    
     def to_uri
         @uri
     end

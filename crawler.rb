@@ -1,5 +1,4 @@
 require_relative 'url'
-require_relative 'documents'
 require_relative 'document'
 require 'net/http' # requires 'uri'
 
@@ -17,7 +16,7 @@ class Crawler
         raise "urls must #respond_to? :each" unless urls.respond_to?(:each)
         @urls = []
         urls.each do |url|
-            @urls << Url.new(url)
+            add_url(url)
         end
     end
     
@@ -26,13 +25,12 @@ class Crawler
     end
     
     def <<(url)
-        @urls = [] if @urls.nil?
-        @urls << Url.new(url)
+        add_url(url)
     end
 	
 	def crawl_urls(urls = @urls, &block)
         raise "No urls to crawl" if urls.nil? or urls.length < 1
-        @docs = {}
+        @docs = []
 		if urls.respond_to?(:each)
 			urls.each do |url|
                 handle_crawl_block(url, &block)
@@ -60,7 +58,7 @@ private
     # or let the block process it here and now.
     def handle_crawl_block(url, &block)
         if block.nil?
-		    @docs[url] = crawl_url(url)
+		    @docs << crawl_url(url)
         else
             crawl_url(url, &block)
         end
@@ -70,6 +68,15 @@ private
         Net::HTTP.get(url.to_uri)
     rescue SocketError
         nil
+    end
+    
+    def add_url(url)
+        @urls = [] if @urls.nil?
+        if url.is_a?(Url)
+            @urls << url
+        else
+            @urls << Url.new(url)
+        end
     end
     
     alias :crawl :crawl_urls

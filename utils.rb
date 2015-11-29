@@ -14,33 +14,45 @@ module Utils
         hash
     end
     
+    # NOTE: If the obj_or_objs is an Array and you want to check for an array 
+    # rather than the objects within then you need place the array obj inside 
+    # an array e.g. Utils.is_a?([array], Array)
+    # Otherwise each array element is checked against type_or_types.
     def self.is_a?(obj_or_objs, type_or_types, msg = nil)
-        if obj_or_objs.respond_to?(:each)
+        if obj_or_objs.is_a?(Array)
             obj_or_objs.each do |obj|
-                return false unless is_type?(obj, type_or_types, msg)
+                is_type?(obj, type_or_types, msg)
             end
-            true
         else
             is_type?(obj_or_objs, type_or_types, msg)
         end
+        true
     end
 
     def self.is_type?(obj, type_or_types, msg = nil)
         if type_or_types.respond_to?(:each)
+            match = false
             type_or_types.each do |type|
-                return true if obj.is_a?(type)
+                if obj.is_a?(type)
+                    match = true
+                    break
+                end
             end
-            if msg.nil?
-                raise "obj.is_a?(#{type_or_types}) must be true"
-            else
-                raise msg
+            unless match
+                if msg.nil?
+                    raise "obj.is_a?(#{type_or_types}) must be true"
+                else
+                    raise msg
+                end
             end
         else
             type = type_or_types
-            if (msg.nil?)
-                raise "obj.is_a?(#{type}) must be true" unless obj.is_a?(type)
-            else
-                raise msg unless obj.is_a?(type)
+            unless obj.is_a?(type)
+                if (msg.nil?)
+                    raise "obj.is_a?(#{type}) must be true"
+                else
+                    raise msg
+                end
             end
         end
         true
