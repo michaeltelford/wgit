@@ -102,12 +102,22 @@ class Database
     
     # Update Data.
     
+    def update(data)
+        if data.is_a?(Url)
+            update_url(data)
+        elsif data.is_a?(Document)
+            update_doc(data)
+        else
+            raise "data class/type not currently supported"
+        end
+    end
+    
     def update_url(url)
         Utils.is_a?([url], Url)
         selection = { :url => url }
         url_hash = Model.url(url).merge(Model.common_update_data)
         update = { "$set" => url_hash }
-        update(true, :urls, selection, update)
+        _update(true, :urls, selection, update)
     end
     
     def update_doc(doc)
@@ -115,7 +125,7 @@ class Database
         selection = { :url => doc.url }
         doc_hash = Model.document(doc).merge(Model.common_update_data)
         update = { "$set" => doc_hash }
-        update(true, :documents, selection, update)
+        _update(true, :documents, selection, update)
     end
     
 private
@@ -177,7 +187,7 @@ private
     
     # NOTE: The Model.common_update_data should be merged in the calling 
     # method as the update param can be bespoke due to its nature.
-    def update(single, collection, selection, update)
+    def _update(single, collection, selection, update)
         Utils.is_a?([selection, update], Hash, 
             "selection and update must each be a Hash")
         if single
