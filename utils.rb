@@ -14,22 +14,35 @@ module Utils
         hash
     end
     
-    # NOTE: If the obj_or_objs is an Array and you want to check for an array 
-    # rather than the objects within then you need place the array obj inside 
-    # an array e.g. Utils.is_a?([array], Array)
-    # Otherwise each array element is checked against type_or_types.
-    def self.is_a?(obj_or_objs, type_or_types, msg = nil)
+    # obj_or_objs will have its type or its elements types (if it's an 
+    # Enumerator) checked and return true if the type matches type_or_types or 
+    # one of its listed types if it's an Enumerator).
+    # 
+    # Therefore if you want to check for an array use: 
+    # Utils.assert_type? [arr], Array
+    # The arr elements will not be checked because arr is inside an array.
+    # Likewise to check for a String use:
+    # Utils.assert_type? [str], String
+    # 
+    # To check for a Url or Array containing only Urls use: 
+    # Utils.assert_type? url_or_urls, Url
+    # arr will not have its type checked because its an Array, only its 
+    # elements, each of which must be a Url.
+    # 
+    # If there isn't a match then an exception is thrown. The exception 
+    # message is msg if provided or the default one.
+    def self.assert_type?(obj_or_objs, type_or_types, msg = nil)
         if obj_or_objs.is_a?(Array)
             obj_or_objs.each do |obj|
-                is_type?(obj, type_or_types, msg)
+                _assert_type?(obj, type_or_types, msg)
             end
         else
-            is_type?(obj_or_objs, type_or_types, msg)
+            _assert_type?(obj_or_objs, type_or_types, msg)
         end
         true
     end
 
-    def self.is_type?(obj, type_or_types, msg = nil)
+    def self._assert_type?(obj, type_or_types, msg = nil)
         if type_or_types.respond_to?(:each)
             match = false
             type_or_types.each do |type|
@@ -58,5 +71,5 @@ module Utils
         true
     end
     
-    private_class_method :is_type?
+    private_class_method :_assert_type?
 end

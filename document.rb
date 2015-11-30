@@ -11,13 +11,17 @@ class Document
 	attr_reader :url, :html, :title, :author, :keywords, :links, :text
 	
 	def initialize(url, html)
-        Utils.is_a?(url, Url, "url must be a Url object")
-        Utils.is_a?(html, String, "html must be a String object")
+        Utils.assert_type?([url], Url)
+        Utils.assert_type?([html], String)
         
         @url = url
         @html = html
 		
-        doc = Nokogiri::HTML(html)
+        doc = Nokogiri::HTML(html) do |config|
+            # TODO: Remove #'s below when running in production.
+            #config.options = Nokogiri::XML::ParseOptions::STRICT | 
+            #                 Nokogiri::XML::ParseOptions::NONET
+        end
 		
         init_title(doc)
 		init_author(doc)
@@ -70,9 +74,8 @@ class Document
 private
 
     def process!(array)
-        Utils.is_a?([array], Array, "array param must be an Array")
+        Utils.assert_type?(array, String)
         array.map! do |str|
-            Utils.is_a?(str, String, "value must be a String")
             str.strip
         end
         array.reject! { |str| str.empty? }

@@ -9,7 +9,7 @@ class Crawler
 
 	def initialize(*urls)
 		self.urls = urls unless urls.nil?
-        @docs = Documents.new
+        @docs = []
 	end
     
     def urls=(urls)
@@ -21,7 +21,7 @@ class Crawler
     end
     
     def [](*urls)
-        self.urls = urls
+        self.urls = urls unless urls.nil?
     end
     
     def <<(url)
@@ -48,7 +48,7 @@ class Crawler
         return nil if markup.nil?
         url.crawled = true
         doc = Document.new(url, markup)
-        block.call(url, doc) unless block.nil?
+        block.call(doc) unless block.nil?
         doc
 	end
     

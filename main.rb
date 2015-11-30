@@ -13,26 +13,26 @@ $urls = [
 ]
 
 def main
-    dir = init_file_system
+    #init_file_system
+    init_db
     
     # Init the crawler.
     crawler = Crawler.new
     crawler.urls = $urls
     puts "Using urls: #{crawler.urls}"
     
-    # Crawl and provide a block for writing to the file system.
+    # Crawl and provide a block for writing to the data source.
     count = 0
     $docs = []
     
-    crawler.crawl do |url, doc|
+    crawler.crawl do |doc|
         $docs << doc
-        name = url.host.split('/').join('.') + ".html"
-        File.open(dir + name, 'w') { |f| f.write(doc.html) }
+        #write_to_file_system(doc)
+        write_to_db(doc)
         count += 1
-        puts "Created file: #{name} for url: #{url}"
     end
     
-    puts "Finished. Crawled and created file(s) for #{count} url(s)."
+    puts "Finished. Crawled and saved data for #{count} url(s)."
 end
 
 # Prepare the file system.
@@ -42,7 +42,28 @@ def init_file_system
     FileUtils.remove_dir(dir) if Dir.exists?(dir)
     Dir.mkdir(dir)
     puts "Using dir: #{dir}"
-    dir
+    $dir = dir
+end
+
+# Prepare the DB.
+def init_db
+    $db = Database.new
+    $db.insert $urls
+    puts "Inserted #{$urls.length} urls into the database."
+end
+
+# Save the doc to the file system.
+def write_to_file_system(doc)
+    name = doc.url.host.split('/').join('.') + ".html"
+    File.open($dir + name, 'w') { |f| f.write(doc.html) }
+    puts "Created file: #{name} for url: #{doc.url}"
+end
+
+# Save the doc to the database.
+def write_to_db(doc)
+    $db.insert(doc)
+    $db.update_url(doc.url)
+    puts "Saved document for url: #{doc.url}"
 end
 
 if __FILE__ == $0
