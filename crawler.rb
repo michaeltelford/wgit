@@ -1,5 +1,6 @@
 require_relative 'url'
 require_relative 'document'
+require_relative 'utils'
 require 'net/http' # requires 'uri'
 
 # @author Michael Telford

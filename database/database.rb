@@ -1,5 +1,6 @@
 require_relative '../document'
 require_relative '../url'
+require_relative '../utils'
 require_relative 'mongo_connection_details'
 require_relative 'model'
 require 'mongo'
@@ -16,7 +17,8 @@ class Database
                                     :database => CONNECTION_DETAILS[:db],
                                     :user => CONNECTION_DETAILS[:uname],
                                     :password => CONNECTION_DETAILS[:pword],
-                                    :logger => logger)
+                                    :logger => logger,
+                                    :truncate_logs => false)
     end
     
     # Create Data.
