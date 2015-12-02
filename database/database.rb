@@ -10,8 +10,6 @@ require 'mongo'
 class Database
     LOG_FILE_PATH = "database/mongo_log.txt"
     
-    attr_reader :client
-    
     def initialize
         logger = Logger.new(LOG_FILE_PATH)
         address = "#{CONNECTION_DETAILS[:host]}:#{CONNECTION_DETAILS[:port]}"
