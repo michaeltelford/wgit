@@ -10,6 +10,8 @@ require 'mongo'
 class Database
     LOG_FILE_PATH = "database/mongo_log.txt"
     
+    attr_reader :client
+    
     def initialize
         logger = Logger.new(LOG_FILE_PATH)
         address = "#{CONNECTION_DETAILS[:host]}:#{CONNECTION_DETAILS[:port]}"
@@ -71,7 +73,11 @@ class Database
     def get_urls(crawled = false, limit = 0, &block)
         query = {:crawled => crawled}
         sort = {:date_added => 1}
-        retrieve(:urls, query, sort, limit, &block)
+        result = retrieve(:urls, query, sort, limit, &block)
+        if result.respond_to?(:map)
+            result = result.map { |url_doc| Url.new(url_doc) }
+        end
+        result
     end
 
     # Searches against the indexed docs in the DB for the given text.

@@ -1,2 +1,3 @@
 Update main.rb to recursively crawl urls.
 Think about how to only crawl a single site.
+Update Url and Document init methods to parse Mongo objects then use that in the DB methods.

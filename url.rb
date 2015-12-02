@@ -6,7 +6,17 @@ require 'uri'
 class Url < String
     attr_accessor :source, :crawled, :date_crawled
     
-    def initialize(url, source = nil, crawled = false, date_crawled = nil)
+    def initialize(url_or_doc, source = nil, crawled = false, date_crawled = nil)
+        if (url_or_doc.is_a?(String))
+            url = url_or_doc
+        else
+            # Init from a mongo collection document.
+            url = url_or_doc[:url]
+            source = url_or_doc[:source]
+            crawled = url_or_doc[:crawled]
+            crawled = false if crawled.nil?
+            date_crawled = url_or_doc[:date_crawled]
+        end
         Url.validate(url)
         @uri = URI(url)
         @source = source
