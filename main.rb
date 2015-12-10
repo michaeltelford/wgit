@@ -22,20 +22,20 @@ def main
     puts "Using urls: #{crawler.urls}"
     
     # Crawl and provide a block for writing to the data source.
-    count = 0
     $docs = []
-    
+    urls_count = 0
     crawler.crawl do |doc|
         $docs << doc
-        #write_to_file_system(doc)
-        write_to_db(doc)
-        count += 1
+        #write_doc_to_file_system(doc)
+        write_doc_to_db(doc)
+        urls_count += write_urls_to_db(doc)
     end
     
-    puts "Finished. Crawled and saved data for #{count} url(s)."
+    puts "Crawled and saved docs for #{$docs.length} url(s)."
+    puts "Found and saved #{urls_count} url(s)."
+    puts "Finished."
 end
 
-# Prepare the file system.
 def init_file_system
     tmp = ENV['TMPDIR'] ? ENV['TMPDIR'] : ENV['TEMP']
     dir = tmp + "crawler/"
@@ -45,25 +45,38 @@ def init_file_system
     $dir = dir
 end
 
-# Prepare the DB.
 def init_db
     $db = Database.new
     $db.insert $urls
     puts "Inserted #{$urls.length} urls into the database."
 end
 
-# Save the doc to the file system.
-def write_to_file_system(doc)
+def write_doc_to_file_system(doc)
     name = doc.url.host.split('/').join('.') + ".html"
     File.open($dir + name, 'w') { |f| f.write(doc.html) }
     puts "Created file: #{name} for url: #{doc.url}"
 end
 
-# Save the doc to the database.
-def write_to_db(doc)
+def write_doc_to_db(doc)
     $db.insert(doc)
     $db.update_url(doc.url)
     puts "Saved document for url: #{doc.url}"
+end
+
+# The unique url index on the urls collection prevents duplicate inserts.
+def write_urls_to_db(doc, internal_only = false)
+    links = internal_only ? doc.internal_links : doc.links
+    count = 0
+    links.each do |url|
+        puts "Inserting url: #{url}"
+        begin
+            $db.insert(Url.new(url, doc.url))
+            count += 1
+        rescue
+            puts "Url already exists: #{url}"
+        end
+    end
+    count
 end
 
 if __FILE__ == $0
