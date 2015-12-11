@@ -52,7 +52,11 @@ class Url < String
     
     def crawled=(bool)
         @crawled = bool
-        @date_crawled = Utils.time_stamp if bool
+        if bool
+            @date_crawled = Utils.time_stamp
+        else
+            @date_crawled = nil
+        end
     end
     
     def to_uri

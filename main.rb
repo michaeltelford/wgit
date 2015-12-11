@@ -6,60 +6,35 @@ require 'fileutils'
 # Script which sets up a crawler and saves the indexed docs to a data source.
 # @author Michael Telford
 
-# Init the urls to crawl.
-$urls = [
-    Url.new("http://www.belfastcommunityacupuncture.com"),
-    Url.new("http://www.altitudejunkies.com/index.html"),
-]
+MAX_DATA_SIZE = 10485760 # 10MB
 
 def main
-    #init_file_system
-    init_db
-    
-    # Init the crawler.
-    crawler = Crawler.new
-    crawler.urls = $urls
-    puts "Using urls: #{crawler.urls}"
-    
-    # Crawl and provide a block for writing to the data source.
-    $docs = []
-    urls_count = 0
-    crawler.crawl do |doc|
-        $docs << doc
-        #write_doc_to_file_system(doc)
-        write_doc_to_db(doc)
-        urls_count += write_urls_to_db(doc)
-    end
-    
-    puts "Crawled and saved docs for #{$docs.length} url(s)."
-    puts "Found and saved #{urls_count} url(s)."
-    puts "Finished."
-end
-
-def init_file_system
-    tmp = ENV['TMPDIR'] ? ENV['TMPDIR'] : ENV['TEMP']
-    dir = tmp + "crawler/"
-    FileUtils.remove_dir(dir) if Dir.exists?(dir)
-    Dir.mkdir(dir)
-    puts "Using dir: #{dir}"
-    $dir = dir
-end
-
-def init_db
     $db = Database.new
-    $db.insert $urls
-    puts "Inserted #{$urls.length} urls into the database."
-end
-
-def write_doc_to_file_system(doc)
-    name = doc.url.host.split('/').join('.') + ".html"
-    File.open($dir + name, 'w') { |f| f.write(doc.html) }
-    puts "Created file: #{name} for url: #{doc.url}"
+    crawler = Crawler.new
+    
+    while $db.stats[:dataSize] < MAX_DATA_SIZE do
+        puts "Database size: #{$db.stats[:dataSize]}"
+        crawler.urls = $db.get_urls
+        break if crawl.urls.length < 1
+        puts "Starting crawl loop for: #{crawler.urls}"
+        
+        docs_count = 0
+        urls_count = 0
+    
+        crawler.crawl do |doc|
+            write_doc_to_db(doc)
+            docs_count += 1
+            urls_count += write_urls_to_db(doc)
+        end
+    
+        puts "Crawled and saved docs for #{docs_count} url(s)."
+        puts "Found and saved #{urls_count} url(s)."
+    end
 end
 
 def write_doc_to_db(doc)
     $db.insert(doc)
-    $db.update_url(doc.url)
+    $db.update_url(doc.url) # Updates url crawled = true.
     puts "Saved document for url: #{doc.url}"
 end
 
@@ -67,13 +42,15 @@ end
 def write_urls_to_db(doc, internal_only = false)
     links = internal_only ? doc.internal_links : doc.links
     count = 0
-    links.each do |url|
-        puts "Inserting url: #{url}"
-        begin
-            $db.insert(Url.new(url, doc.url))
-            count += 1
-        rescue
-            puts "Url already exists: #{url}"
+    if links.respond_to?(:each)
+        links.each do |url|
+            begin
+                $db.insert(url)
+                count += 1
+                puts "Inserted url: #{url}"
+            rescue
+                puts "Url already exists: #{url}"
+            end
         end
     end
     count

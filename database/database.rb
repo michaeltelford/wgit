@@ -75,7 +75,8 @@ class Database
         if result.respond_to?(:map)
             result = result.map { |url_doc| Url.new(url_doc) }
         end
-        result
+        return result if block.nil?
+        result.each { |url| block.call(url) }
     end
 
     # Searches against the indexed docs in the DB for the given text.
