@@ -53,7 +53,7 @@ class Crawler
         doc
 	end
     
-private
+#private
     
     # Add the document to the hash for later processing
     # or let the block process it here and now.
@@ -66,9 +66,12 @@ private
     end
     
     def fetch(url)
-        Net::HTTP.get(url.to_uri)
-    rescue SocketError
-        nil
+        res = Net::HTTP.get_response(url.to_uri)
+        if res.is_a?(Net::HTTPSuccess)
+            res.body
+        else
+            nil
+        end
     end
     
     def add_url(url)
