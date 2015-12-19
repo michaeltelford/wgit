@@ -12,10 +12,10 @@ def main
     $db = Database.new
     crawler = Crawler.new
     
-    while $db.stats[:dataSize] < MAX_DATA_SIZE do
-        puts "Database size: #{$db.stats[:dataSize]}"
+    while $db.length < MAX_DATA_SIZE do
+        puts "Database size: #{$db.length}"
         crawler.urls = $db.get_urls
-        break if crawl.urls.length < 1
+        break if crawler.urls.length < 1
         puts "Starting crawl loop for: #{crawler.urls}"
         
         docs_count = 0
@@ -34,7 +34,7 @@ end
 
 def write_doc_to_db(doc)
     $db.insert(doc)
-    $db.update_url(doc.url) # Updates url crawled = true.
+    $db.update(doc.url) # Updates url crawled = true.
     puts "Saved document for url: #{doc.url}"
 end
 

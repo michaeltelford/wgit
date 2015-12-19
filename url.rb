@@ -35,6 +35,17 @@ class Url < String
         true
     end
     
+    def self.valid?(url)
+        valid = true
+        unless url.start_with?("http://") or url.start_with?("https://")
+            valid = false
+        end
+        if URI.regexp.match(url).nil?
+            valid = false
+        end
+        valid
+    end
+    
     def self.relative_link?(link)
         link_host = URI.split(link)[2]
         link_host.to_s.strip.empty?

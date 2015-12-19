@@ -44,7 +44,7 @@ class Document
             # Add up the total bytes of text as well as the length.
             if var == :@text
                 count = 0
-                @text.each { |t| count = count + t.length }
+                @text.each { |t| count += t.length }
                 hash["text_length"] = @text.length
                 hash["text_bytes"] = count
             # Else take the #length method return value.
@@ -130,11 +130,17 @@ private
         init_var(doc, xpath, :@links, false)
         unless @links.nil?
             process!(@links)
-            @links.reject! { |l| l == "/" }
+            @links.reject! { |link| link == "/" }
             @links.map! do |link|
                 link.replace(@url.concat(link)) if Url.relative_link?(link)
-                Url.new(link, @url)
+                Url.prefix_protocol!(link) unless Url.valid?(link)
+                if Url.valid?(link)
+                    Url.new(link, @url)
+                else
+                    nil
+                end
             end
+            @links.reject! { |link| link.nil? }
         end
     end
     
