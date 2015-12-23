@@ -1,7 +1,6 @@
 
 Main
 ----
-When crawling check that the http code is '200 - OK' before initializing the doc.
 Fix the base url issue we're currently having.
 
 Other
