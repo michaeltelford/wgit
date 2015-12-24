@@ -29,21 +29,27 @@ class Crawler
         add_url(url)
     end
 	
+    # Returns the last crawled doc.
+    # Yields each doc to the provided block or adds the docs to @docs.
 	def crawl_urls(urls = @urls, &block)
         raise "No urls to crawl" if urls.nil? or urls.length < 1
         @docs = []
 		if urls.respond_to?(:each)
 			urls.each do |url|
-                handle_crawl_block(url, &block)
+                doc = handle_crawl_block(url, &block)
 			end
-            urls
 		else
-            handle_crawl_block(urls, &block)
+            doc = handle_crawl_block(urls, &block)
 		end
+        if doc.nil?
+            @docs.last
+        else
+            doc
+        end
 	end
 	
 	# Crawl the url and return the response document.
-    # Also yield if a block is provided.
+    # Also yield(doc) if a block is provided.
 	def crawl_url(url = @urls[0], &block)
 		markup = fetch(url)
         return nil if markup.nil?
@@ -53,13 +59,50 @@ class Crawler
         doc
 	end
     
-#private
+    # Crawls an entire site by recursively going through its internal_links.
+    # Also yield(doc) for each crawled doc if a block is provided.
+    # Returns an array of external urls collected from the site.
+    def crawl_site(base_url, &block)
+        doc = crawl_url(base_url, &block)
+        return nil if doc.nil?
+        
+        crawled_urls  = []
+        external_urls = []
+        internal_urls = doc.internal_links
+        
+        if internal_urls.nil? or internal_urls.length == 0
+            return external_urls
+        end
+        
+        loop do
+            unless internal_urls.uniq.nil?
+                internal_urls.uniq!
+            end
+            
+            urls = internal_urls - crawled_urls
+            break if urls.length < 1
+            
+            puts "Crawling: #{urls}"
+            urls.each do |url|
+                doc = crawl_url(Url.new(base_url.concat(url)), &block)
+                crawled_urls << url
+                next if doc.nil?
+                internal_urls = internal_urls.concat(doc.internal_links)
+                external_urls = external_urls.concat(doc.external_links)
+            end
+        end
+        
+        external_urls.uniq
+    end
     
-    # Add the document to the hash for later processing
+private
+    
+    # Add the document to the @docs array for later processing
     # or let the block process it here and now.
     def handle_crawl_block(url, &block)
         if block.nil?
 		    @docs << crawl_url(url)
+            nil
         else
             crawl_url(url, &block)
         end
@@ -72,6 +115,8 @@ class Crawler
         else
             nil
         end
+    rescue
+        nil
     end
     
     def add_url(url)

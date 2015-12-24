@@ -31,11 +31,30 @@ class Document
 	end
 	
 	def internal_links
-		@links.reject { |link| not link.start_with?(@url) }
+		@links.reject do |link| 
+            begin
+                not link.relative_link?
+            rescue
+                true
+            end
+        end
 	end
+    
+    def internal_full_links
+        internal_links.map! do |link|
+            link.replace("/" + link) unless link[0] == "/"
+            @url + link
+        end
+    end
 	
 	def external_links
-		@links.reject { |link| link.start_with?(@url) }
+		@links.reject do |link| 
+            begin
+                link.relative_link?
+            rescue
+                true
+            end
+        end
 	end
     
     def stats
@@ -75,9 +94,7 @@ private
 
     def process!(array)
         Utils.assert_type?(array, String)
-        array.map! do |str|
-            str.strip
-        end
+        array.map! { |str| str.strip }
         array.reject! { |str| str.empty? }
         array.uniq!
     end
@@ -131,16 +148,7 @@ private
         unless @links.nil?
             process!(@links)
             @links.reject! { |link| link == "/" }
-            @links.map! do |link|
-                link.replace(@url.concat(link)) if Url.relative_link?(link)
-                Url.prefix_protocol!(link) unless Url.valid?(link)
-                if Url.valid?(link)
-                    Url.new(link, @url)
-                else
-                    nil
-                end
-            end
-            @links.reject! { |link| link.nil? }
+            @links.map! { |link| Url.new(link) }
         end
     end
     

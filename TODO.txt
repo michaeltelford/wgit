@@ -1,8 +1,9 @@
 
 Main
 ----
-Fix the base url issue we're currently having.
+Update main to use the crawl_site func.
+Test crawler and fill a given size of the DB.
+Develop the search func.
 
 Other
 -----
-Think about how to only crawl a single site.
