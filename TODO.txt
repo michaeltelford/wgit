@@ -1,9 +1,8 @@
 
 Main
 ----
-Update main to use the crawl_site func.
-Test crawler and fill a given size of the DB.
 Develop the search func.
 
 Other
 -----
+Add logging functionality (possibly use the mongo logger).

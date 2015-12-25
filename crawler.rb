@@ -34,6 +34,7 @@ class Crawler
 	def crawl_urls(urls = @urls, &block)
         raise "No urls to crawl" if urls.nil? or urls.length < 1
         @docs = []
+        doc = nil
 		if urls.respond_to?(:each)
 			urls.each do |url|
                 doc = handle_crawl_block(url, &block)
@@ -82,7 +83,6 @@ class Crawler
             urls = internal_urls - crawled_urls
             break if urls.length < 1
             
-            puts "Crawling: #{urls}"
             urls.each do |url|
                 doc = crawl_url(Url.new(base_url.concat(url)), &block)
                 crawled_urls << url

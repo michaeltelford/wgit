@@ -1,51 +1,66 @@
 #!/usr/bin/env ruby
 
 require_relative 'crawler'
+require_relative 'database/database'
 require 'fileutils'
 
 # Script which sets up a crawler and saves the indexed docs to a data source.
 # @author Michael Telford
 
+NUM_SITES_TO_CRAWL = -1 # Use -1 for infinite crawling.
 MAX_DATA_SIZE = 10485760 # 10MB
+DB = Database.new
 
 def main
-    $db = Database.new
     crawler = Crawler.new
+    loop_count = 0
     
-    while $db.length < MAX_DATA_SIZE do
-        puts "Database size: #{$db.length}"
-        crawler.urls = $db.get_urls
+    while DB.length < MAX_DATA_SIZE do
+        break if loop_count == NUM_SITES_TO_CRAWL
+        loop_count += 1
+        
+        puts "Database size: #{DB.length}"
+        crawler.urls = DB.get_urls
         break if crawler.urls.length < 1
         puts "Starting crawl loop for: #{crawler.urls}"
         
         docs_count = 0
         urls_count = 0
-    
-        crawler.crawl do |doc|
-            write_doc_to_db(doc)
-            docs_count += 1
-            urls_count += write_urls_to_db(doc)
+        
+        crawler.urls.each do |url|
+            site_docs_count = 0
+            ext_links = crawler.crawl_site(url) do |doc|
+                write_doc_to_db(doc)
+                docs_count += 1
+                site_docs_count += 1
+            end
+            urls_count += write_urls_to_db(ext_links)
+            puts "Crawled and saved #{site_docs_count} docs for the site: #{url}"
         end
     
-        puts "Crawled and saved docs for #{docs_count} url(s)."
-        puts "Found and saved #{urls_count} url(s)."
+        puts "Crawled and saved docs for #{docs_count} url(s) overall for this iteration."
+        puts "Found and saved #{urls_count} external url(s) for the next iteration."
     end
 end
 
+# The unique url index on the documents collection prevents duplicate inserts.
+# Having crawled the doc, its url.crawled now equals true which gets updated.
 def write_doc_to_db(doc)
-    $db.insert(doc)
-    $db.update(doc.url) # Updates url crawled = true.
+    DB.insert(doc)
     puts "Saved document for url: #{doc.url}"
+rescue
+    puts "Document already exists: #{doc.url}"
+ensure
+    DB.update(doc.url) == 1
 end
 
 # The unique url index on the urls collection prevents duplicate inserts.
-def write_urls_to_db(doc, internal_only = false)
-    links = internal_only ? doc.internal_links : doc.links
+def write_urls_to_db(urls)
     count = 0
-    if links.respond_to?(:each)
-        links.each do |url|
+    if urls.respond_to?(:each)
+        urls.each do |url|
             begin
-                $db.insert(url)
+                DB.insert(url)
                 count += 1
                 puts "Inserted url: #{url}"
             rescue

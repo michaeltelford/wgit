@@ -31,7 +31,7 @@ class Document
 	end
 	
 	def internal_links
-		@links.reject do |link| 
+		@links.reject do |link|
             begin
                 not link.relative_link?
             rescue
@@ -41,14 +41,14 @@ class Document
 	end
     
     def internal_full_links
-        internal_links.map! do |link|
+        internal_links.map do |link|
             link.replace("/" + link) unless link[0] == "/"
             @url + link
         end
     end
 	
 	def external_links
-		@links.reject do |link| 
+		@links.reject do |link|
             begin
                 link.relative_link?
             rescue
@@ -148,7 +148,14 @@ private
         unless @links.nil?
             process!(@links)
             @links.reject! { |link| link == "/" }
-            @links.map! { |link| Url.new(link) }
+            @links.map! do |link|
+                begin
+                    Url.new(link)
+                rescue
+                    nil
+                end
+            end
+            @links.reject! { |link| link.nil? }
         end
     end
     

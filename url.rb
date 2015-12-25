@@ -79,11 +79,6 @@ class Url < String
         url + "/" + link
     end
     
-    # URI.split("http://www.google.co.uk/about.html") returns the following:
-    # array[2]: "www.google.co.uk", array[5]: "/about.html"
-    # This means that all external links in a page are expected to have a 
-    # protocol prefix e.g. "http://", otherwise the link is treated as an 
-    # internal link (regardless of whether it is valid or not).
     def relative_link?
         Url.relative_link?(self)
     end
