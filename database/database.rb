@@ -10,6 +10,9 @@ require 'mongo'
 class Database
     LOG_FILE_PATH = "database/mongo_log.txt"
     
+    ### TEMP LINE FOR TESTING. ###
+    attr_reader :client
+    
     def initialize
         logger = Logger.new(LOG_FILE_PATH)
         address = "#{CONNECTION_DETAILS[:host]}:#{CONNECTION_DETAILS[:port]}"
@@ -68,10 +71,10 @@ class Database
     # Retreive Data.
     
     # A limit of 0 returns all uncrawled urls.
-    def get_urls(crawled = false, limit = 0, &block)
+    def get_urls(crawled = false, limit = 0, skip = 0, &block)
         query = {:crawled => crawled}
         sort = {:date_added => 1}
-        result = retrieve(:urls, query, sort, limit, &block)
+        result = retrieve(:urls, query, sort, limit, skip, &block)
         if result.respond_to?(:map)
             result = result.map { |url_doc| Url.new(url_doc) }
         end
@@ -93,7 +96,13 @@ class Database
     # url and each value is an Array containing the matching text snippets 
     # for that doc.
     def search(text, data = [:text], whole_sentence = false, 
-               whole_word = false, case_sensitive = false)
+               whole_word = false, case_sensitive = false,
+               sort = {}, limit = 10, skip = 0)
+        search_command = { :text => "documents", :search => text }
+        result = @client.command(search_command)
+        results = result.first[:results] # Contains all matching mongo docs.
+        return nil if results.nil?
+        results
     end
     
     # Returns a Mongo object which can be used like a Hash to retrive values.
@@ -178,11 +187,12 @@ private
         end
     end
     
-    def retrieve(collection, query, sort = {}, limit = 0, &block)
+    def retrieve(collection, query, sort = {}, limit = 0, skip = 0, &block)
         Utils.assert_type?([query], Hash)
-        result = @client[collection.to_sym].find(query).limit(limit).sort(sort)
+        result = @client[collection.to_sym].find(query)
+                 .skip(skip).limit(limit).sort(sort)
         return result if block.nil?
-        length = 0 # We count here rather than asking the DB via res.count.
+        length = 0 # We count here rather than asking the DB via result.count.
         result.each do |obj|
             block.call(obj)
             length += 1

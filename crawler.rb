@@ -72,7 +72,7 @@ class Crawler
         internal_urls = doc.internal_links
         
         if internal_urls.nil? or internal_urls.length == 0
-            return external_urls
+            return doc.external_links
         end
         
         loop do
@@ -84,11 +84,15 @@ class Crawler
             break if urls.length < 1
             
             urls.each do |url|
-                doc = crawl_url(Url.new(base_url.concat(url)), &block)
+                doc = crawl_url(base_url.concat(url), &block)
                 crawled_urls << url
                 next if doc.nil?
-                internal_urls = internal_urls.concat(doc.internal_links)
-                external_urls = external_urls.concat(doc.external_links)
+                unless doc.internal_links.nil?
+                    internal_urls = internal_urls.concat(doc.internal_links)
+                end
+                unless doc.external_links.nil?
+                    external_urls = external_urls.concat(doc.external_links)
+                end
             end
         end
         

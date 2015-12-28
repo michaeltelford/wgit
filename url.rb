@@ -76,7 +76,7 @@ class Url < String
         url = host
         url.chop! if url.end_with?("/")
         link = link[1..-1] if link.start_with?("/")
-        url + "/" + link
+        Url.new(url + "/" + link)
     end
     
     def relative_link?

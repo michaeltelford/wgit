@@ -31,6 +31,7 @@ class Document
 	end
 	
 	def internal_links
+        return nil if @links.nil?
 		@links.reject do |link|
             begin
                 not link.relative_link?
@@ -48,6 +49,7 @@ class Document
     end
 	
 	def external_links
+        return nil if @links.nil?
 		@links.reject do |link|
             begin
                 link.relative_link?
