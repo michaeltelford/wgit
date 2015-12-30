@@ -7,7 +7,7 @@ require 'fileutils'
 # Script which sets up a crawler and saves the indexed docs to a data source.
 # @author Michael Telford
 
-NUM_SITES_TO_CRAWL = -1 # Use -1 for infinite crawling.
+NUM_SITES_TO_CRAWL = 1 # Use -1 for infinite crawling.
 MAX_DATA_SIZE = 10485760 # 10MB
 DB = Database.new
 
@@ -30,9 +30,10 @@ def main
         crawler.urls.each do |url|
             site_docs_count = 0
             ext_links = crawler.crawl_site(url) do |doc|
-                write_doc_to_db(doc)
-                docs_count += 1
-                site_docs_count += 1
+                if write_doc_to_db(doc)
+                    docs_count += 1
+                    site_docs_count += 1
+                end
             end
             urls_count += write_urls_to_db(ext_links)
             puts "Crawled and saved #{site_docs_count} docs for the site: #{url}"
@@ -48,10 +49,13 @@ end
 def write_doc_to_db(doc)
     DB.insert(doc)
     puts "Saved document for url: #{doc.url}"
+    res = true
 rescue
     puts "Document already exists: #{doc.url}"
+    res = false
 ensure
-    DB.update(doc.url) == 1
+    DB.update(doc.url)
+    res
 end
 
 # The unique url index on the urls collection prevents duplicate inserts.

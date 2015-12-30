@@ -64,6 +64,8 @@ class Crawler
     # Also yield(doc) for each crawled doc if a block is provided.
     # Returns an array of external urls collected from the site.
     def crawl_site(base_url, &block)
+        Utils.assert_type?([base_url], Url)
+        
         doc = crawl_url(base_url, &block)
         return nil if doc.nil?
         
@@ -80,12 +82,12 @@ class Crawler
                 internal_urls.uniq!
             end
             
-            urls = internal_urls - crawled_urls
-            break if urls.length < 1
+            links = internal_urls - crawled_urls
+            break if links.length < 1
             
-            urls.each do |url|
-                doc = crawl_url(base_url.concat(url), &block)
-                crawled_urls << url
+            links.each do |link|
+                doc = crawl_url(Url.concat(base_url.to_base, link), &block)
+                crawled_urls << link
                 next if doc.nil?
                 unless doc.internal_links.nil?
                     internal_urls = internal_urls.concat(doc.internal_links)
@@ -113,6 +115,7 @@ private
     end
     
     def fetch(url)
+        raise unless url.respond_to?(:to_uri)
         res = Net::HTTP.get_response(url.to_uri)
         if res.is_a?(Net::HTTPSuccess)
             res.body

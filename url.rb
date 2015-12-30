@@ -97,7 +97,19 @@ class Url < String
     end
     
     def to_host
-        @uri.host
+        Url.new(@uri.host)
+    end
+    
+    def to_base
+        if Url.relative_link?(self)
+            raise "The relative link cannot have a base URL: #{self}"
+        end
+        url_segs = URI.split(self)
+        if url_segs[0].nil? or url_segs[2].nil? or url_segs[2].empty?
+            raise "Both a protocol and host are needed: #{self}"
+        end
+        base = "#{url_segs[0]}://#{url_segs[2]}"
+        Url.new(base)
     end
     
     def to_h
@@ -108,4 +120,6 @@ class Url < String
     
     alias :to_hash :to_h
     alias :host :to_host
+    alias :base :to_base
+    alias :internal_link? :relative_link?
 end

@@ -92,17 +92,13 @@ class Database
     # form part of others.
     # @param case_sensitive [Boolean] whether upper or lower case matters.
     # 
-    # @return [Hash] representing the search results. Each key is the doc 
-    # url and each value is an Array containing the matching text snippets 
-    # for that doc.
-    def search(text, data = [:text], whole_sentence = false, 
+    # @return [Array] of search result objects.
+    def search(text, whole_sentence = false, 
                whole_word = false, case_sensitive = false,
                sort = {}, limit = 10, skip = 0)
         search_command = { :text => "documents", :search => text }
         result = @client.command(search_command)
-        results = result.first[:results] # Contains all matching mongo docs.
-        return nil if results.nil?
-        results
+        result.first[:results] # Array containing all matching mongo docs.
     end
     
     # Returns a Mongo object which can be used like a Hash to retrive values.

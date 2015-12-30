@@ -6,3 +6,13 @@ Develop the search func.
 Other
 -----
 Add logging functionality (possibly use the mongo logger).
+
+Issues
+------
+If you crawl a base url and there is a link to its index file a duplicate doc
+gets crawled and inserted into the DB because the base url and base/index point
+to the same document.  One solution is to insert the doc html into the DB and
+setup a unique index on the html field so the duplication will be picked up 
+during the insert and the second doc won't be inserted.  This is potentially 
+ineffecient as the duplicate url is still crawled but at least the doc won't
+be saved to the DB and therefore won't result in a duplicate search result.
