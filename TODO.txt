@@ -1,7 +1,8 @@
 
 Main
 ----
-Develop the search func.
+Check the search func. as an "everest" search isn't returning the everest.html page.
+Think about other sorting algorithms to be implemented.
 
 Other
 -----

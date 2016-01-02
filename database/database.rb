@@ -102,8 +102,10 @@ class Database
         query = { :$text => { :$search => text } }
         results = retrieve(:documents, query, sort, limit, skip, &block)
         return nil if results.count < 1
-        results.map do |doc|
-            #
+        results.map do |mongo_doc|
+            doc = Document.new(mongo_doc)
+            doc.search!(text)
+            doc
         end
     end
     

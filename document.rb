@@ -3,31 +3,43 @@ require_relative 'utils'
 require 'nokogiri'
 
 # @author Michael Telford
-# Class modeling a HTML web document.
+# Class modeling a HTML web document. Also doubles as a search result.
 class Document
     TEXT_ELEMENTS = [:dd, :div, :dl, :dt, :figcaption, :figure, :hr, :li, 
                      :main, :ol, :p, :pre, :ul, :span]
     
 	attr_reader :url, :html, :title, :author, :keywords, :links, :text
 	
-	def initialize(url, html)
-        Utils.assert_type?([url], Url)
-        Utils.assert_type?([html], String)
+	def initialize(url_or_doc, html = nil)
+        if (url_or_doc.is_a?(String))
+            Utils.assert_type?([url], Url)
+            Utils.assert_type?([html], String)
         
-        @url = url
-        @html = html
+            @url = url
+            @html = html
 		
-        doc = Nokogiri::HTML(html) do |config|
-            # TODO: Remove #'s below when running in production.
-            #config.options = Nokogiri::XML::ParseOptions::STRICT | 
-            #                 Nokogiri::XML::ParseOptions::NONET
+            doc = Nokogiri::HTML(html) do |config|
+                # TODO: Remove #'s below when running in production.
+                #config.options = Nokogiri::XML::ParseOptions::STRICT | 
+                #                 Nokogiri::XML::ParseOptions::NONET
+            end
+		
+            init_title(doc)
+    		init_author(doc)
+    		init_keywords(doc)
+            init_links(doc)
+            init_text(doc)
+        else
+            # Init from a mongo collection document.
+            @url = Url.new(url_or_doc[:url])
+            @html = url_or_doc[:html]
+            @title = url_or_doc[:title]
+            @author = url_or_doc[:author]
+            @keywords = url_or_doc[:keywords]
+            @text = url_or_doc[:text]
+            @links = url_or_doc[:links]
+            @links.map! { |link| Url.new(link) } if @links.respond_to?(:map!)
         end
-		
-        init_title(doc)
-		init_author(doc)
-		init_keywords(doc)
-        init_links(doc)
-        init_text(doc)
 	end
 	
 	def internal_links
@@ -45,7 +57,7 @@ class Document
         return nil if internal_links.nil?
         internal_links.map do |link|
             link.replace("/" + link) unless link.start_with?("/")
-            @url + link
+            @url.to_base + link
         end
     end
 	
@@ -91,6 +103,11 @@ class Document
             end
         end
         results
+    end
+    
+    # Sets @text = the search results.
+    def search!(text)
+        @text = search(text)
     end
 	
 private
