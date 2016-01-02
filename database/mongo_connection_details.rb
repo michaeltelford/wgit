@@ -1,9 +1,7 @@
 CONNECTION_DETAILS = {
-    :host           => "127.0.0.1",
-    :port           => "27017",
+    :host           => "ds037205.mongolab.com",
+    :port           => "37205",
     :db             => "crawler",
-    :uname          => "admin",
-    :pword          => "R5jUKv1fessb"
+    :uname          => "rubyapp",
+    :pword          => "R5jUKv1fessb",
 }
-
-# Connection URL: mongodb://$OPENSHIFT_MONGODB_DB_HOST:$OPENSHIFT_MONGODB_DB_PORT/

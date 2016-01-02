@@ -51,7 +51,7 @@ class Crawler
 	
 	# Crawl the url and return the response document.
     # Also yield(doc) if a block is provided.
-	def crawl_url(url = @urls[0], &block)
+	def crawl_url(url = @urls.first, &block)
 		markup = fetch(url)
         return nil if markup.nil?
         url.crawled = true
@@ -62,7 +62,8 @@ class Crawler
     
     # Crawls an entire site by recursively going through its internal_links.
     # Also yield(doc) for each crawled doc if a block is provided.
-    # Returns an array of external urls collected from the site.
+    # A block is the only way to interact with the crawled docs.
+    # Returns a unique array of external urls collected from the site.
     def crawl_site(base_url, &block)
         Utils.assert_type?([base_url], Url)
         

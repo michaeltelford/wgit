@@ -10,7 +10,7 @@ require 'mongo'
 class Database
     LOG_FILE_PATH = "database/mongo_log.txt"
     
-    ### TEMP LINE FOR TESTING. ###
+    ### TODO: REMOVE TEMP LINE FOR TESTING. ###
     attr_reader :client
     
     def initialize
@@ -32,7 +32,7 @@ class Database
         elsif data.is_a?(Document)
             insert_docs(data)
         elsif data.respond_to?(:map)
-            if data[0].is_a?(Url)
+            if data.first.is_a?(Url)
                 insert_urls(data)
             else
                 insert_docs(data)
@@ -74,34 +74,40 @@ class Database
     def get_urls(crawled = false, limit = 0, skip = 0, &block)
         query = {:crawled => crawled}
         sort = {:date_added => 1}
-        result = retrieve(:urls, query, sort, limit, skip, &block)
-        if result.respond_to?(:map)
-            result = result.map { |url_doc| Url.new(url_doc) }
+        results = retrieve(:urls, query, sort, limit, skip, &block)
+        if results.respond_to?(:map)
+            results = results.map { |url_doc| Url.new(url_doc) }
         end
-        return result if block.nil?
-        result.each { |url| block.call(url) }
+        return results if block.nil?
+        results.each { |url| block.call(url) }
     end
 
     # Searches against the indexed docs in the DB for the given text.
+    # The searched fields are decided by the text index setup against the 
+    # documents collection. Currently we search against the following fields:
+    # "author", "keywords", "title" and "text".
     #
     # @param text [String] the text to search the data against.
-    # @param data [Array] the doc data fields to search against.
     # @param whole_sentence [Boolean] whether multiple words 
     # should be searched for separately.
     # @param whole_word [Boolean] whether each word in text is allowed to 
     # form part of others.
     # @param case_sensitive [Boolean] whether upper or lower case matters.
+    # TODO: Update documentation (especially the parameters).
     # 
     # @return [Array] of search result objects.
     def search(text, whole_sentence = false, 
                whole_word = false, case_sensitive = false,
-               sort = {}, limit = 10, skip = 0)
-        search_command = { :text => "documents", :search => text }
-        result = @client.command(search_command)
-        result.first[:results] # Array containing all matching mongo docs.
+               sort = {}, limit = 10, skip = 0, &block)
+        query = { :$text => { :$search => text } }
+        results = retrieve(:documents, query, sort, limit, skip, &block)
+        return nil if results.count < 1
+        results.map do |doc|
+            #
+        end
     end
     
-    # Returns a Mongo object which can be used like a Hash to retrive values.
+    # Returns a Mongo object which can be used like a Hash to retrieve values.
     def stats
         @client.command(:dbStats => 0).documents[0]
     end
@@ -144,19 +150,20 @@ private
         case result.class.to_s
         # Single create result.
         when "Mongo::Operation::Write::Insert::Result"
-            result.documents[0][:err].nil?
+            result.documents.first[:err].nil?
         # Multiple create result.
         when "Mongo::BulkWrite::Result"
             result.inserted_count == count
         # Single and multiple update result.
-        when "Mongo::Operation::Write::Update::LegacyResult"
+        when "Mongo::Operation::Write::Update::Result", # MongoDB 3.0
+             "Mongo::Operation::Write::Update::LegacyResult" # MongoDB 2.4
             if multi
                 result.n == count
             else
-                result.documents[0][:err].nil?
+                result.documents.first[:err].nil?
             end
         else
-            raise "result class not currently supported"
+            raise "Result class not currently supported: #{result.class.to_s}"
         end
     end
     

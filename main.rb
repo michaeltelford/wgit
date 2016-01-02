@@ -21,7 +21,10 @@ def main
         
         puts "Database size: #{DB.length}"
         crawler.urls = DB.get_urls
-        break if crawler.urls.length < 1
+        if crawler.urls.length < 1
+            puts "No urls to crawl, exiting."
+            break
+        end
         puts "Starting crawl loop for: #{crawler.urls}"
         
         docs_count = 0

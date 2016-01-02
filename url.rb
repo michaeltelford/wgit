@@ -3,8 +3,8 @@ require 'uri'
 
 # @author Michael Telford
 # Class modeling a web based URL.
-# Can be an internal link e.g. "about.html" or a full URL e.g. 
-# "http://www.google.co.uk".
+# Can be an internal link e.g. "about.html" 
+# or a full URL e.g. "http://www.google.co.uk".
 class Url < String
     attr_accessor :crawled, :date_crawled
     
@@ -23,8 +23,10 @@ class Url < String
         super(url)
     end
     
-    # Should only used if the Url is a full URL and not an internal link.
     def self.validate(url)
+        if Url.relative_link?(url)
+            raise "Invalid url (relative link): #{url}"
+        end
         unless url.start_with?("http://") or url.start_with?("https://")
             raise "Invalid url (missing protocol prefix): #{url}"
         end
@@ -33,20 +35,17 @@ class Url < String
         end
     end
     
-    # Should only used if the Url is a full URL and not an internal link.
     def self.valid?(url)
-        valid = true
-        unless url.start_with?("http://") or url.start_with?("https://")
-            valid = false
-        end
-        if URI.regexp.match(url).nil?
-            valid = false
-        end
-        valid
+        Url.validate(url)
+        true
+    rescue
+        false
     end
     
-    # Should only used if the Url is a full URL and not an internal link.
     def self.prefix_protocol!(url, https = false)
+        if Url.relative_link?(url)
+            raise "Invalid url (relative link): #{url}"
+        end
         unless url.start_with?("http://") or url.start_with?("https://")
             if https
                 url.replace("https://#{url}")
@@ -102,7 +101,7 @@ class Url < String
     
     def to_base
         if Url.relative_link?(self)
-            raise "The relative link cannot have a base URL: #{self}"
+            raise "A relative link doesn't have a base URL: #{self}"
         end
         url_segs = URI.split(self)
         if url_segs[0].nil? or url_segs[2].nil? or url_segs[2].empty?

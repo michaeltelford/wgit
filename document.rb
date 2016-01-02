@@ -42,8 +42,9 @@ class Document
 	end
     
     def internal_full_links
+        return nil if internal_links.nil?
         internal_links.map do |link|
-            link.replace("/" + link) unless link[0] == "/"
+            link.replace("/" + link) unless link.start_with?("/")
             @url + link
         end
     end
