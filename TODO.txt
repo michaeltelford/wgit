@@ -1,8 +1,8 @@
 
 Main
 ----
-Check the search func. as an "everest" search isn't returning the everest.html page.
-Think about other sorting algorithms to be implemented.
+Think about implementing a custom search algorithm in MongoDB using JS 
+stored procs. 
 
 Other
 -----
@@ -15,5 +15,5 @@ gets crawled and inserted into the DB because the base url and base/index point
 to the same document.  One solution is to insert the doc html into the DB and
 setup a unique index on the html field so the duplication will be picked up 
 during the insert and the second doc won't be inserted.  This is potentially 
-ineffecient as the duplicate url is still crawled but at least the doc won't
+inefficient as the duplicate url is still crawled but at least the doc won't
 be saved to the DB and therefore won't result in a duplicate search result.

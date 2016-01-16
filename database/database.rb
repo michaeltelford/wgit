@@ -107,6 +107,8 @@ class Database
             doc.search!(text)
             doc
         end
+        results.sort_by! { |doc| doc.text.length }
+        results.reverse! # Most hits first.
     end
     
     # Returns a Mongo object which can be used like a Hash to retrieve values.
