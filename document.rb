@@ -12,10 +12,10 @@ class Document
 	
 	def initialize(url_or_doc, html = nil)
         if (url_or_doc.is_a?(String))
-            Utils.assert_type?([url], Url)
+            Utils.assert_type?([url_or_doc], Url)
             Utils.assert_type?([html], String)
         
-            @url = url
+            @url = url_or_doc
             @html = html
 		
             doc = Nokogiri::HTML(html) do |config|

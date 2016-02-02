@@ -12,5 +12,6 @@ Manual steps to be performed on a MongoDB instance
 	"keywords": "text",
 	"title": "text"
 }
+5) Add the JS stored procedures from source.
 
 Done.

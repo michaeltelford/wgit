@@ -53,7 +53,7 @@ module Utils
             end
             unless match
                 if msg.nil?
-                    raise "Expecting: #{type_or_types}"
+                    raise "Expecting: #{type_or_types}, Got: #{obj.class}"
                 else
                     raise msg
                 end
@@ -62,7 +62,7 @@ module Utils
             type = type_or_types
             unless obj.is_a?(type)
                 if (msg.nil?)
-                    raise "Expecting: #{type}"
+                    raise "Expecting: #{type}, Got: #{obj.class}"
                 else
                     raise msg
                 end

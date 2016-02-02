@@ -10,7 +10,7 @@ require 'mongo'
 class Database
     LOG_FILE_PATH = "database/mongo_log.txt"
     
-    ### TODO: REMOVE TEMP LINE FOR TESTING. ###
+    ### TODO: REMOVE TEMP LINE, FOR DEV ONLY. ###
     attr_reader :client
     
     def initialize
@@ -72,8 +72,8 @@ class Database
     
     # A limit of 0 returns all uncrawled urls.
     def get_urls(crawled = false, limit = 0, skip = 0, &block)
-        query = {:crawled => crawled}
-        sort = {:date_added => 1}
+        crawled.nil? ? query = {} : query = { :crawled => crawled }
+        sort = { :date_added => 1 }
         results = retrieve(:urls, query, sort, limit, skip, &block)
         if results.respond_to?(:map)
             results = results.map { |url_doc| Url.new(url_doc) }
@@ -99,16 +99,14 @@ class Database
     def search(text, whole_sentence = false, 
                whole_word = false, case_sensitive = false,
                sort = {}, limit = 10, skip = 0, &block)
-        query = { :$text => { :$search => text } }
-        results = retrieve(:documents, query, sort, limit, skip, &block)
-        return nil if results.count < 1
-        results.map do |mongo_doc|
-            doc = Document.new(mongo_doc)
-            doc.search!(text)
-            doc
-        end
-        results.sort_by! { |doc| doc.text.length }
-        results.reverse! # Most hits first.
+        # NOTES: nolock: true means multiple queries can be run at the same 
+        # time, this is safe since our JS is read only. 
+        # You can't run eval() on sharded collections, eval() can be run on 
+        # sharded clusters but is not recommended by the mongodb docs. 
+        
+        # Call Stored JS.
+        # result = db.client.command({:$eval => "function(x,y) { return sum(x, y); }", args: [5, 20], nolock: true})
+        # result.documents.first["retval"] # Retrieve the return value.
     end
     
     # Returns a Mongo object which can be used like a Hash to retrieve values.

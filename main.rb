@@ -2,7 +2,6 @@
 
 require_relative 'crawler'
 require_relative 'database/database'
-require 'fileutils'
 
 # Script which sets up a crawler and saves the indexed docs to a data source.
 # @author Michael Telford
@@ -21,6 +20,7 @@ def main
         
         puts "Database size: #{DB.length}"
         crawler.urls = DB.get_urls
+
         if crawler.urls.length < 1
             puts "No urls to crawl, exiting."
             break
