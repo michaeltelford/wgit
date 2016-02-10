@@ -107,6 +107,10 @@ class Database
         # Call Stored JS.
         # result = db.client.command({:$eval => "function(x,y) { return sum(x, y); }", args: [5, 20], nolock: true})
         # result.documents.first["retval"] # Retrieve the return value.
+        
+        # Stored JS.
+        # db.system.js.save({"_id":"search", "value":"function(){}"});
+        # db.eval("function(x,y) { return sum(x, y); }", 23, 1);
     end
     
     # Returns a Mongo object which can be used like a Hash to retrieve values.

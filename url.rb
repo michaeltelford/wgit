@@ -42,7 +42,7 @@ class Url < String
         false
     end
     
-    def self.prefix_protocol!(url, https = false)
+    def self.prefix_protocol(url, https = false)
         if Url.relative_link?(url)
             raise "Invalid url (relative link): #{url}"
         end

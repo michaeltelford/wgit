@@ -112,7 +112,7 @@ class Document
 	
 private
 
-    def process!(array)
+    def process(array)
         Utils.assert_type?(array, String)
         array.map! { |str| str.strip }
         array.reject! { |str| str.empty? }
@@ -158,7 +158,7 @@ private
         init_var(doc, xpath, :@keywords)
         unless @keywords.nil?
             @keywords = @keywords.split(",")
-            process!(@keywords)
+            process(@keywords)
         end
 	end
     
@@ -166,7 +166,7 @@ private
         xpath = "//a/@href"
         init_var(doc, xpath, :@links, false)
         unless @links.nil?
-            process!(@links)
+            process(@links)
             @links.reject! { |link| link == "/" }
             @links.map! do |link|
                 begin
@@ -183,7 +183,7 @@ private
         xpath = text_elements_xpath
         init_var(doc, xpath, :@text, false)
         unless @text.nil?
-            process!(@text)
+            process(@text)
         end
     end
     
