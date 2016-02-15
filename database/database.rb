@@ -82,6 +82,8 @@ class Database
         results.each { |url| block.call(url) }
     end
 
+    # TODO: Update documentation (especially the parameters).
+    #
     # Searches against the indexed docs in the DB for the given text.
     # The searched fields are decided by the text index setup against the 
     # documents collection. Currently we search against the following fields:
@@ -93,24 +95,30 @@ class Database
     # @param whole_word [Boolean] whether each word in text is allowed to 
     # form part of others.
     # @param case_sensitive [Boolean] whether upper or lower case matters.
-    # TODO: Update documentation (especially the parameters).
     # 
     # @return [Array] of search result objects.
-    def search(text, whole_sentence = false, 
-               whole_word = false, case_sensitive = false,
-               sort = {}, limit = 10, skip = 0, &block)
-        # NOTES: nolock: true means multiple queries can be run at the same 
-        # time, this is safe since our JS is read only. 
-        # You can't run eval() on sharded collections, eval() can be run on 
-        # sharded clusters but is not recommended by the mongodb docs. 
+    def search(text, limit = 10, skip = 0,
+               case_sensitive = false, whole_word = false, 
+               whole_sentence = false, &block)
+        text.strip!
+        text.replace("\"" + text + "\"") if whole_sentence
         
-        # Call Stored JS.
-        # result = db.client.command({:$eval => "function(x,y) { return sum(x, y); }", args: [5, 20], nolock: true})
-        # result.documents.first["retval"] # Retrieve the return value.
+        # The textScore sorts based on the most search hits.
+        # We use the textScore hash as a sort and a projection below.
+        sort_proj = { :score => { :$meta => "textScore" } }
+        query = {
+            :$text => { 
+                :$search => text,
+                #:$caseSensitive => case_sensitive, # 3.0+ only.
+            }
+        }
+        results = retrieve(:documents, query, sort_proj, sort_proj, 
+                           limit, skip, &block)
         
-        # Stored JS.
-        # db.system.js.save({"_id":"search", "value":"function(){}"});
-        # db.eval("function(x,y) { return sum(x, y); }", 23, 1);
+        return nil if results.count < 1
+        results.map do |mongo_doc|
+            Document.new(mongo_doc)
+        end
     end
     
     # Returns a Mongo object which can be used like a Hash to retrieve values.
@@ -196,9 +204,10 @@ private
         end
     end
     
-    def retrieve(collection, query, sort = {}, limit = 0, skip = 0, &block)
+    def retrieve(collection, query, sort = {}, projection = {}, 
+                 limit = 0, skip = 0, &block)
         Utils.assert_type?([query], Hash)
-        result = @client[collection.to_sym].find(query)
+        result = @client[collection.to_sym].find(query).projection(projection)
                  .skip(skip).limit(limit).sort(sort)
         return result if block.nil?
         length = 0 # We count here rather than asking the DB via result.count.

@@ -1,12 +1,12 @@
 
 Main
 ----
-Think about implementing a custom search algorithm in MongoDB using JS 
-stored procs. 
+#
 
 Other
 -----
 Add logging functionality (possibly use the mongo logger).
+Change the Document attr's to return an empty array rather than nil.
 
 Issues
 ------

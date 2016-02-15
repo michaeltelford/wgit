@@ -53,8 +53,8 @@ class Crawler
     # Also yield(doc) if a block is provided.
 	def crawl_url(url = @urls.first, &block)
 		markup = fetch(url)
-        return nil if markup.nil?
         url.crawled = true
+        return nil if markup.nil?
         doc = Document.new(url, markup)
         block.call(doc) unless block.nil?
         doc

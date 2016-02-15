@@ -1,7 +1,7 @@
 
-DB_PROVIDER = :OpenShift
+DB_PROVIDER = :MongoLabs
 
-# OpenShift
+# OpenShift, MongoDB 2.4
 if DB_PROVIDER == :OpenShift
     CONNECTION_DETAILS = {
         :host           => "127.0.0.1",
@@ -10,7 +10,7 @@ if DB_PROVIDER == :OpenShift
         :uname          => "admin",
         :pword          => "R5jUKv1fessb"
     }
-# MongoLabs
+# MongoLabs, MongoDB 3.0
 elsif DB_PROVIDER == :MongoLabs
     CONNECTION_DETAILS = {
         :host           => "ds037205.mongolab.com",

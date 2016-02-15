@@ -8,7 +8,7 @@ class Document
     TEXT_ELEMENTS = [:dd, :div, :dl, :dt, :figcaption, :figure, :hr, :li, 
                      :main, :ol, :p, :pre, :ul, :span]
     
-	attr_reader :url, :html, :title, :author, :keywords, :links, :text
+	attr_reader :url, :html, :title, :author, :keywords, :links, :text, :score
 	
 	def initialize(url_or_doc, html = nil)
         if (url_or_doc.is_a?(String))
@@ -29,6 +29,7 @@ class Document
     		init_keywords(doc)
             init_links(doc)
             init_text(doc)
+            # :score is only init from a mongo doc.
         else
             # Init from a mongo collection document.
             @url = Url.new(url_or_doc[:url])
@@ -39,6 +40,7 @@ class Document
             @text = url_or_doc[:text]
             @links = url_or_doc[:links]
             @links.map! { |link| Url.new(link) } if @links.respond_to?(:map!)
+            @score = url_or_doc[:score].nil? ? 0 : url_or_doc[:score]
         end
 	end
 	
@@ -105,7 +107,6 @@ class Document
         results
     end
     
-    # Sets @text = the search results.
     def search!(text)
         @text = search(text)
     end
