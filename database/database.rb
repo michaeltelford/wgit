@@ -74,7 +74,7 @@ class Database
     def get_urls(crawled = false, limit = 0, skip = 0, &block)
         crawled.nil? ? query = {} : query = { :crawled => crawled }
         sort = { :date_added => 1 }
-        results = retrieve(:urls, query, sort, limit, skip, &block)
+        results = retrieve(:urls, query, sort, {}, limit, skip, &block)
         if results.respond_to?(:map)
             results = results.map { |url_doc| Url.new(url_doc) }
         end
@@ -97,25 +97,19 @@ class Database
     # @param case_sensitive [Boolean] whether upper or lower case matters.
     # 
     # @return [Array] of search result objects.
-    def search(text, limit = 10, skip = 0,
-               case_sensitive = false, whole_word = false, 
-               whole_sentence = false, &block)
+    def search(text, whole_sentence = false, limit = 10, skip = 0, &block)
         text.strip!
         text.replace("\"" + text + "\"") if whole_sentence
         
         # The textScore sorts based on the most search hits.
         # We use the textScore hash as a sort and a projection below.
         sort_proj = { :score => { :$meta => "textScore" } }
-        query = {
-            :$text => { 
-                :$search => text,
-                #:$caseSensitive => case_sensitive, # 3.0+ only.
-            }
-        }
+        #:$caseSensitive => case_sensitive, # 3.2+ only.
+        query = { :$text => { :$search => text } }
         results = retrieve(:documents, query, sort_proj, sort_proj, 
                            limit, skip, &block)
         
-        return nil if results.count < 1
+        return [] if results.count < 1
         results.map do |mongo_doc|
             Document.new(mongo_doc)
         end
