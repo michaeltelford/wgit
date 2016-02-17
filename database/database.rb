@@ -82,19 +82,18 @@ class Database
         results.each { |url| block.call(url) }
     end
 
-    # TODO: Update documentation (especially the parameters).
-    #
     # Searches against the indexed docs in the DB for the given text.
     # The searched fields are decided by the text index setup against the 
     # documents collection. Currently we search against the following fields:
     # "author", "keywords", "title" and "text".
     #
     # @param text [String] the text to search the data against.
-    # @param whole_sentence [Boolean] whether multiple words 
-    # should be searched for separately.
-    # @param whole_word [Boolean] whether each word in text is allowed to 
-    # form part of others.
-    # @param case_sensitive [Boolean] whether upper or lower case matters.
+    # @param whole_sentence [Boolean] whether multiple words should be 
+    # searched for separately.
+    # @param limit [Fixnum] the max length/count of the results array.
+    # @param skip [Fixnum] the number of results to skip, starting with the 
+    # most relevant based upon the textScore of the search. 
+    # @param block [Block] a block which is passed each result if provided. 
     # 
     # @return [Array] of search result objects.
     def search(text, whole_sentence = false, limit = 10, skip = 0, &block)
@@ -204,12 +203,9 @@ private
         result = @client[collection.to_sym].find(query).projection(projection)
                  .skip(skip).limit(limit).sort(sort)
         return result if block.nil?
-        length = 0 # We count here rather than asking the DB via result.count.
         result.each do |obj|
             block.call(obj)
-            length += 1
         end
-        length
     end
     
     # NOTE: The Model.common_update_data should be merged in the calling 
