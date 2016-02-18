@@ -14,12 +14,12 @@ def main
     crawler = Crawler.new
     loop_count = 0
     
-    while DB.length < MAX_DATA_SIZE do
+    while DB.size < MAX_DATA_SIZE do
         break if loop_count == NUM_SITES_TO_CRAWL
         loop_count += 1
         
-        puts "Database size: #{DB.length}"
-        crawler.urls = DB.get_urls
+        puts "Database size: #{DB.size}"
+        crawler.urls = DB.urls
 
         if crawler.urls.length < 1
             puts "No urls to crawl, exiting."

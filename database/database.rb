@@ -10,8 +10,8 @@ require 'mongo'
 class Database
     LOG_FILE_PATH = "database/mongo_log.txt"
     
-    ### TODO: REMOVE TEMP LINE, FOR DEV ONLY. ###
-    attr_reader :client
+    ### TODO: COMMENT OUT BELOW LINE, ITS FOR DEV ONLY. ###
+    #attr_reader :client
     
     def initialize
         logger = Logger.new(LOG_FILE_PATH)
@@ -71,7 +71,7 @@ class Database
     # Retreive Data.
     
     # A limit of 0 returns all uncrawled urls.
-    def get_urls(crawled = false, limit = 0, skip = 0, &block)
+    def urls(crawled = false, limit = 0, skip = 0, &block)
         crawled.nil? ? query = {} : query = { :crawled => crawled }
         sort = { :date_added => 1 }
         results = retrieve(:urls, query, sort, {}, limit, skip, &block)
@@ -95,23 +95,21 @@ class Database
     # most relevant based upon the textScore of the search. 
     # @param block [Block] a block which is passed each result if provided. 
     # 
-    # @return [Array] of search result objects.
+    # @return [Array] of Document objects representing the search results.
     def search(text, whole_sentence = false, limit = 10, skip = 0, &block)
         text.strip!
         text.replace("\"" + text + "\"") if whole_sentence
         
         # The textScore sorts based on the most search hits.
         # We use the textScore hash as a sort and a projection below.
+        # :$caseSensitive => case_sensitive, # 3.2+ only.
         sort_proj = { :score => { :$meta => "textScore" } }
-        #:$caseSensitive => case_sensitive, # 3.2+ only.
         query = { :$text => { :$search => text } }
         results = retrieve(:documents, query, sort_proj, sort_proj, 
                            limit, skip, &block)
         
         return [] if results.count < 1
-        results.map do |mongo_doc|
-            Document.new(mongo_doc)
-        end
+        results.map { |mongo_doc| Document.new(mongo_doc) }
     end
     
     # Returns a Mongo object which can be used like a Hash to retrieve values.
@@ -119,7 +117,7 @@ class Database
         @client.command(:dbStats => 0).documents[0]
     end
     
-    def length
+    def size
         stats[:dataSize]
     end
     
@@ -203,9 +201,7 @@ private
         result = @client[collection.to_sym].find(query).projection(projection)
                  .skip(skip).limit(limit).sort(sort)
         return result if block.nil?
-        result.each do |obj|
-            block.call(obj)
-        end
+        result.each { |obj| block.call(obj) }
     end
     
     # NOTE: The Model.common_update_data should be merged in the calling 
@@ -221,9 +217,8 @@ private
         result.n
     end
     
-    alias :count :length
-    alias :size :length
+    alias :count :size
+    alias :length :size
     alias :insert_url :insert_urls
     alias :insert_doc :insert_docs
-    alias :urls :get_urls
 end

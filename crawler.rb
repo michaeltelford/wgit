@@ -32,7 +32,7 @@ class Crawler
     # Returns the last crawled doc.
     # Yields each doc to the provided block or adds the docs to @docs.
 	def crawl_urls(urls = @urls, &block)
-        raise "No urls to crawl" if urls.nil? or urls.length < 1
+        raise "No urls to crawl" if urls.nil? or urls.empty?
         @docs = []
         doc = nil
 		if urls.respond_to?(:each)
@@ -63,7 +63,8 @@ class Crawler
     # Crawls an entire site by recursively going through its internal_links.
     # Also yield(doc) for each crawled doc if a block is provided.
     # A block is the only way to interact with the crawled docs.
-    # Returns a unique array of external urls collected from the site.
+    # Returns a unique array of external urls collected from the site
+    # or nil if the base_url could not be crawled successfully.
     def crawl_site(base_url, &block)
         Utils.assert_type?([base_url], Url)
         
@@ -74,7 +75,7 @@ class Crawler
         external_urls = []
         internal_urls = doc.internal_links
         
-        if internal_urls.nil? or internal_urls.length == 0
+        if internal_urls.empty?
             return doc.external_links
         end
         
@@ -90,10 +91,10 @@ class Crawler
                 doc = crawl_url(Url.concat(base_url.to_base, link), &block)
                 crawled_urls << link
                 next if doc.nil?
-                unless doc.internal_links.nil?
+                unless doc.internal_links.empty?
                     internal_urls = internal_urls.concat(doc.internal_links)
                 end
-                unless doc.external_links.nil?
+                unless doc.external_links.empty?
                     external_urls = external_urls.concat(doc.external_links)
                 end
             end

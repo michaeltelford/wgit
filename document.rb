@@ -6,7 +6,7 @@ require 'nokogiri'
 # Class modeling a HTML web document. Also doubles as a search result.
 class Document
     TEXT_ELEMENTS = [:dd, :div, :dl, :dt, :figcaption, :figure, :hr, :li, 
-                     :main, :ol, :p, :pre, :ul, :span]
+                     :main, :ol, :p, :pre, :span, :ul]
     
 	attr_reader :url, :html, :title, :author, :keywords, :links, :text, :score
 	
@@ -40,12 +40,12 @@ class Document
             @text = url_or_doc[:text]
             @links = url_or_doc[:links]
             @links.map! { |link| Url.new(link) } if @links.respond_to?(:map!)
-            @score = url_or_doc[:score].nil? ? 0 : url_or_doc[:score]
+            @score = url_or_doc[:score].nil? ? 0.0 : url_or_doc[:score]
         end
 	end
 	
 	def internal_links
-        return nil if @links.nil?
+        return [] if @links.nil?
 		@links.reject do |link|
             begin
                 not link.relative_link?
@@ -56,7 +56,7 @@ class Document
 	end
     
     def internal_full_links
-        return nil if internal_links.nil?
+        return [] if internal_links.empty?
         internal_links.map do |link|
             link.replace("/" + link) unless link.start_with?("/")
             @url.to_base + link
@@ -64,7 +64,7 @@ class Document
     end
 	
 	def external_links
-        return nil if @links.nil?
+        return [] if @links.empty?
 		@links.reject do |link|
             begin
                 link.relative_link?
@@ -157,35 +157,32 @@ private
 	def init_keywords(doc)
         xpath = "//meta[@name='keywords']/@content"
         init_var(doc, xpath, :@keywords)
-        unless @keywords.nil?
-            @keywords = @keywords.split(",")
-            process(@keywords)
-        end
+        return [] if @keywords.nil?
+        @keywords = @keywords.split(",")
+        process(@keywords)
 	end
     
     def init_links(doc)
         xpath = "//a/@href"
         init_var(doc, xpath, :@links, false)
-        unless @links.nil?
-            process(@links)
-            @links.reject! { |link| link == "/" }
-            @links.map! do |link|
-                begin
-                    Url.new(link)
-                rescue
-                    nil
-                end
+        return [] if @links.nil?
+        process(@links)
+        @links.reject! { |link| link == "/" }
+        @links.map! do |link|
+            begin
+                Url.new(link)
+            rescue
+                nil
             end
-            @links.reject! { |link| link.nil? }
         end
+        @links.reject! { |link| link.nil? }
     end
     
     def init_text(doc)
         xpath = text_elements_xpath
         init_var(doc, xpath, :@text, false)
-        unless @text.nil?
-            process(@text)
-        end
+        return [] if @text.nil?
+        process(@text)
     end
     
     alias :length :stats
