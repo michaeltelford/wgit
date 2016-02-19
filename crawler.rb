@@ -66,7 +66,7 @@ class Crawler
     # Returns a unique array of external urls collected from the site
     # or nil if the base_url could not be crawled successfully.
     def crawl_site(base_url, &block)
-        Utils.assert_type?([base_url], Url)
+        Utils.assert_type([base_url], Url)
         
         doc = crawl_url(base_url, &block)
         return nil if doc.nil?

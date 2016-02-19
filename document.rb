@@ -12,8 +12,8 @@ class Document
 	
 	def initialize(url_or_doc, html = nil)
         if (url_or_doc.is_a?(String))
-            Utils.assert_type?([url_or_doc], Url)
-            Utils.assert_type?([html], String)
+            Utils.assert_type([url_or_doc], Url)
+            Utils.assert_type([html], String)
         
             @url = url_or_doc
             @html = html
@@ -36,10 +36,10 @@ class Document
             @html = url_or_doc[:html]
             @title = url_or_doc[:title]
             @author = url_or_doc[:author]
-            @keywords = url_or_doc[:keywords]
-            @text = url_or_doc[:text]
-            @links = url_or_doc[:links]
-            @links.map! { |link| Url.new(link) } if @links.respond_to?(:map!)
+            @keywords = url_or_doc[:keywords].nil? ? [] : url_or_doc[:keywords]
+            @text = url_or_doc[:text].nil? ? [] : url_or_doc[:text]
+            @links = url_or_doc[:links].nil? ? [] : url_or_doc[:links] 
+            @links.map! { |link| Url.new(link) }
             @score = url_or_doc[:score].nil? ? 0.0 : url_or_doc[:score]
         end
 	end
@@ -97,11 +97,15 @@ class Document
         Utils.to_h(self, ignore)
     end
     
-    def search(text)
+    def search(text, sentence_length = 80)
         results = []
         @text.each do |t|
             if match = t.match(Regexp.new(text, Regexp::IGNORECASE))
-                results << match.string
+                index = match.string.index(text)
+                next if index.nil?
+                start = index - (sentence_length / 2)
+                finish = index + (sentence_length / 2)
+                results << match.string[start..finish].strip
             end
         end
         results
@@ -114,7 +118,7 @@ class Document
 private
 
     def process(array)
-        Utils.assert_type?(array, String)
+        Utils.assert_type(array, String)
         array.map! { |str| str.strip }
         array.reject! { |str| str.empty? }
         array.uniq!

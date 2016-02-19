@@ -6,6 +6,7 @@ Main
 Other
 -----
 Add logging functionality (possibly use the mongo logger).
+Think about potentially updating the crawler (main.rb) to be multi threaded.
 
 Issues
 ------

@@ -43,7 +43,7 @@ class Database
     end
     
     def insert_urls(url_or_urls)
-        Utils.assert_type?(url_or_urls, Url)
+        Utils.assert_type(url_or_urls, Url)
         unless url_or_urls.respond_to?(:map)
             url_or_urls = Model.url(url_or_urls)
         else
@@ -55,7 +55,7 @@ class Database
     end
     
     def insert_docs(doc_or_docs)
-        Utils.assert_type?(doc_or_docs, [Document, Hash])
+        Utils.assert_type(doc_or_docs, [Document, Hash])
         unless doc_or_docs.respond_to?(:each)
             unless doc_or_docs.is_a?(Hash)
                 doc_or_docs = Model.document(doc_or_docs)
@@ -112,6 +112,12 @@ class Database
         results.map { |mongo_doc| Document.new(mongo_doc) }
     end
     
+    def search_and_print(text, whole_sentence = false, limit = 10, 
+                         skip = 0, sentence_length = 80, &block)
+        results = search(text, whole_sentence, limit, skip, &block)
+        Utils.print_search_results(results, text, sentence_length)
+    end
+    
     # Returns a Mongo object which can be used like a Hash to retrieve values.
     def stats
         @client.command(:dbStats => 0).documents[0]
@@ -134,7 +140,7 @@ class Database
     end
     
     def update_url(url)
-        Utils.assert_type?([url], Url)
+        Utils.assert_type([url], Url)
         selection = { :url => url }
         url_hash = Model.url(url).merge(Model.common_update_data)
         update = { "$set" => url_hash }
@@ -142,7 +148,7 @@ class Database
     end
     
     def update_doc(doc)
-        Utils.assert_type?([doc], Document)
+        Utils.assert_type([doc], Document)
         selection = { :url => doc.url }
         doc_hash = Model.document(doc).merge(Model.common_update_data)
         update = { "$set" => doc_hash }
@@ -173,7 +179,7 @@ private
     end
     
     def create(collection, data)
-        Utils.assert_type?(data, Hash)
+        Utils.assert_type(data, Hash)
         # Single doc.
         if data.is_a?(Hash)
             data.merge!(Model.common_insert_data)
@@ -197,7 +203,7 @@ private
     
     def retrieve(collection, query, sort = {}, projection = {}, 
                  limit = 0, skip = 0, &block)
-        Utils.assert_type?([query], Hash)
+        Utils.assert_type([query], Hash)
         result = @client[collection.to_sym].find(query).projection(projection)
                  .skip(skip).limit(limit).sort(sort)
         return result if block.nil?
@@ -207,7 +213,7 @@ private
     # NOTE: The Model.common_update_data should be merged in the calling 
     # method as the update param can be bespoke due to its nature.
     def _update(single, collection, selection, update)
-        Utils.assert_type?([selection, update], Hash)
+        Utils.assert_type([selection, update], Hash)
         if single
             result = @client[collection.to_sym].update_one(selection, update)
         else
