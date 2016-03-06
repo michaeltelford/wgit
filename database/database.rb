@@ -87,7 +87,12 @@ class Database
     # documents collection. Currently we search against the following fields:
     # "author", "keywords", "title" and "text".
     #
-    # @param text [String] the text to search the data against.
+    # The MongoDB search ranks/sorts the results in order (highest first) based 
+    # upon each documents textScore which records the number of text hits. We 
+    # then store this textScore in each Document object for use elsewhere if 
+    # needed. 
+    #
+    # @param text [String] the value to search the data against.
     # @param whole_sentence [Boolean] whether multiple words should be 
     # searched for separately.
     # @param limit [Fixnum] the max length/count of the results array.
@@ -111,11 +116,12 @@ class Database
         return [] if results.count < 1
         results.map { |mongo_doc| Document.new(mongo_doc) }
     end
-    
-    def search_and_print(text, whole_sentence = false, limit = 10, 
+
+    # Performs a search and pretty_prints the results.
+    def search_p(text, whole_sentence = false, limit = 10, 
                          skip = 0, sentence_length = 80, &block)
         results = search(text, whole_sentence, limit, skip, &block)
-        Utils.print_search_results(results, text, sentence_length)
+        Utils.printf_search_results(results, text, false, sentence_length)
     end
     
     # Returns a Mongo object which can be used like a Hash to retrieve values.

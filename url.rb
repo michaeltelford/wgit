@@ -25,7 +25,7 @@ class Url < String
     
     def self.validate(url)
         if Url.relative_link?(url)
-            raise "Invalid url (relative link): #{url}"
+            raise "Invalid url (or a relative link): #{url}"
         end
         unless url.start_with?("http://") or url.start_with?("https://")
             raise "Invalid url (missing protocol prefix): #{url}"
@@ -80,6 +80,10 @@ class Url < String
     
     def relative_link?
         Url.relative_link?(self)
+    end
+    
+    def valid?
+        Url.valid?(self)
     end
     
     def concat(link)

@@ -97,18 +97,39 @@ class Document
         Utils.to_h(self, ignore)
     end
     
+    # Searches against the Document#text for the given search text.
+    # The number of search hits for each sentenence are recorded internally 
+    # and used to rank/sort the search results before being returned. Where 
+    # the Database#search method search all documents for the most hits this 
+    # method search each documents text for the most hits. 
+    #
+    # Each search result comprises of a sentence of a given length (based on 
+    # the sentence_length parameter). The algorithm ensures that the search 
+    # value is at the centre of the sentence and that there is at 
+    # least one instance of the search text value in the sentence. 
+    #
+    # @param text [String] the value to search the document text against.
+    # @param sentence_length [Fixnum] the length of each search result 
+    # sentence. 
+    # 
+    # @return [Array] of String objects representing the search results.
     def search(text, sentence_length = 80)
-        results = []
-        @text.each do |t|
-            if match = t.match(Regexp.new(text, Regexp::IGNORECASE))
-                index = match.string.index(text)
-                next if index.nil?
+        results = {}
+        regex = Regexp.new(text, Regexp::IGNORECASE)
+        
+        @text.each do |sentence|
+            hits = sentence.scan(regex).count
+            if hits > 0
+                index = sentence.index(regex)
                 start = index - (sentence_length / 2)
                 finish = index + (sentence_length / 2)
-                results << match.string[start..finish].strip
+                results[sentence[start..finish].strip] = hits
             end
         end
-        results
+        
+        return [] if results.empty?
+        results = Hash[results.sort_by { |k, v| v }]
+        results.keys.reverse
     end
     
     def search!(text)
