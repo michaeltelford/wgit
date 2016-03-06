@@ -73,14 +73,13 @@ module Utils
     
     # Prints out the search results in a search engine page format.
     def self.printf_search_results(results, text = nil, case_sensitive = false,
-                                  sentence_length = 80, keyword_count = 5)
+                                   sentence_length = 80, keyword_count = 5)
         keyword_count -= 1 # Because Array's are zero indexed.
         results.each do |doc|
             sentence = if text.nil?
                           nil
                        else
                           sentence = doc.search(text, 
-                                                case_sensitive, 
                                                 sentence_length).first
                           if sentence.nil?
                               nil
