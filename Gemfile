@@ -7,3 +7,11 @@ ruby '2.2.2'
 # networking until I upgraded my installed version of Ruby, so beware!
 gem 'nokogiri'
 gem 'mongo'
+
+group :development do
+    gem 'yard'
+end
+
+group :test do
+    gem 'minitest'
+end
