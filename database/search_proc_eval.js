@@ -1,1 +1,0 @@
-db.eval("function(text, limit, skip, case_sensitive, whole_sentenance, whole_word, sort) { return search(text, limit, skip, case_sensitive, whole_sentenance, whole_word, sort); }", "everest");

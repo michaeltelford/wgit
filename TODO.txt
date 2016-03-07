@@ -1,7 +1,9 @@
 
 Main
 ----
-#
+Create Gem scaffolding for project.
+Create an executable with some basic CLI func.
+Unit test all functionality.
 
 Other
 -----

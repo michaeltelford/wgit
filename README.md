@@ -1,1 +1,1 @@
-Crawler is a WWW indexer or 'spider' which crawls URL's and retrieves their page contents for later use.
+Crawler is a WWW indexer or 'spider' which crawls URL's and retrieves their page contents for later use.  Also included in this package is a means to search indexed documents stored in the database. 
