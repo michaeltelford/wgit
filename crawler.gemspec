@@ -7,7 +7,8 @@ Gem::Specification.new do |s|
   s.authors     = ["Michael Telford"]
   s.email       = "michael.telford@live.com"
   s.files       = Dir["./lib/*.rb", "./lib/crawler/*.rb"]
-  #s.executables << ""
+  s.executables << "crawl"
+  s.executables << "search"
   #s.homepage    = 'http://rubygems.org/gems/crawler'
   s.license     = 'MIT'
 end

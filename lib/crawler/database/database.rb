@@ -8,7 +8,7 @@ require 'mongo'
 # @author Michael Telford
 # Class modeling a DB connection and search engine related functionality.
 class Database
-    LOG_FILE_PATH = "database/mongo_log.txt"
+    LOG_FILE_PATH = "mongo_log.txt"
     
     ### TODO: COMMENT OUT BELOW LINE, ITS FOR DEV ONLY. ###
     #attr_reader :client

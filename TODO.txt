@@ -1,12 +1,12 @@
 
 Main
 ----
-Create Gem scaffolding for project.
 Create an executable with some basic CLI func.
 Unit test all functionality.
 
 Other
 -----
+Think about an overall name. How about 'pinch'?
 Add logging functionality (possibly use the mongo logger).
 Think about potentially updating the crawler (main.rb) to be multi threaded.
 

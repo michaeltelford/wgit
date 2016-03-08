@@ -1,5 +1,0 @@
-#!/usr/bin/env ruby
-
-require 'crawler'
-
-#ARGV[0] - Access exe arguments with ARGV array.

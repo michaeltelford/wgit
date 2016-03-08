@@ -1,0 +1,17 @@
+
+Manual steps to be performed on a MongoDB instance
+--------------------------------------------------
+
+1) Create collections for: 'documents' and 'urls'.
+2) Add a unique index for the 'url' field to both collections.
+3) Enable 'textSearchEnabled' in the DB's configuration.
+4) Create a text search index for the 'documents' collection using:
+{
+	"text": "text",
+	"author": "text",
+	"keywords": "text",
+	"title": "text"
+}
+5) Add the JS stored procedures from source.
+
+Done.

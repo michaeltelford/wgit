@@ -7,6 +7,7 @@ ruby '2.2.2'
 # networking until I upgraded my installed version of Ruby, so beware!
 gem 'nokogiri'
 gem 'mongo'
+gem 'net/http' # requires the 'uri' gem within.
 
 group :development do
     gem 'yard'

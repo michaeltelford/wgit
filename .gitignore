@@ -1,3 +1,5 @@
-database/mongo_log.txt
 .DS_Store
 .bundle
+mongo_log.txt
+doc
+.yardoc

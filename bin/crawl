@@ -1,0 +1,12 @@
+#!/usr/bin/env ruby
+
+require 'crawler'
+
+HELP = 
+'Command examples:
+crawl http://www.google.co.uk -> Crawls the google url and saves it to the database
+crawl -s http://www.google.co.uk -> Crawls the entire google site based upon its internal links
+crawl -d http://www.google.co.uk -> Crawls the google url and saves the HTML document to the downloads folder
+crawl -sd http://www.google.co.uk ~/path/to/dir -> Crawls the entire google site and saves the documents to the database and to the specified directory path'
+
+#ARGV[0] - Access exe arguments with ARGV array.
