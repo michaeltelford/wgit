@@ -8,6 +8,7 @@ ruby '2.2.2'
 gem 'nokogiri'
 gem 'mongo'
 gem 'net/http' # requires the 'uri' gem within.
+gem 'fileutils'
 
 group :development do
     gem 'yard'
