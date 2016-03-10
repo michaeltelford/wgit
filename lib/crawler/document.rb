@@ -81,15 +81,19 @@ class Document
             if var == :@text
                 count = 0
                 @text.each { |t| count += t.length }
-                hash["text_length"] = @text.length
-                hash["text_bytes"] = count
+                hash[:text_length] = @text.length
+                hash[:text_bytes] = count
             # Else take the #length method return value.
             else
                 next unless instance_variable_get(var).respond_to?(:length)
-                hash[var[1..-1]] = instance_variable_get(var).send(:length)
+                hash[var[1..-1].to_sym] = instance_variable_get(var).send(:length)
             end
         end
         hash
+    end
+    
+    def size
+        stats[:html]
     end
     
     def to_h(include_html = false)
@@ -182,7 +186,7 @@ private
 	def init_keywords(doc)
         xpath = "//meta[@name='keywords']/@content"
         init_var(doc, xpath, :@keywords)
-        return [] if @keywords.nil?
+        return @keywords = [] unless @keywords
         @keywords = @keywords.split(",")
         process(@keywords)
 	end
@@ -190,7 +194,7 @@ private
     def init_links(doc)
         xpath = "//a/@href"
         init_var(doc, xpath, :@links, false)
-        return [] if @links.nil?
+        return @links = [] unless @links
         process(@links)
         @links.reject! { |link| link == "/" }
         @links.map! do |link|
@@ -206,11 +210,9 @@ private
     def init_text(doc)
         xpath = text_elements_xpath
         init_var(doc, xpath, :@text, false)
-        return [] if @text.nil?
+        return @text = [] unless @text
         process(@text)
     end
     
-    alias :length :stats
-    alias :count :stats
 	alias :to_hash :to_h
 end
