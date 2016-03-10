@@ -1,4 +1,4 @@
-load 'lib/crawler/main.rb'
+load 'lib/crawler/main.rb' # Not the symlink main.rb
 load 'lib/crawler/crawler.rb'
 load 'lib/crawler/url.rb'
 load 'lib/crawler/document.rb'

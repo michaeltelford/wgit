@@ -1,6 +1,7 @@
 
 Main
 ----
+Move utils methods (all?) into a module.
 Create an executable with some basic CLI func.
 Unit test all functionality.
 
