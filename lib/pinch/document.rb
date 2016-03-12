@@ -163,7 +163,7 @@ private
     def init_var(doc, xpath, var, first_result = true)
 		raise unless doc.respond_to?(:xpath)
 		results = doc.xpath(xpath)        
-        unless results.nil? or results.empty?
+        unless results.nil? || results.empty?
             result = if first_result
                          results.first.content
                      else

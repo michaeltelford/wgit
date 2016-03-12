@@ -1,1 +1,1 @@
-Crawler is a WWW indexer or 'spider' which crawls URL's and retrieves their page contents for later use.  Also included in this package is a means to search indexed documents stored in the database. 
+Pinch is a WWW indexer or 'spider' which crawls URL's and retrieves their page contents for later use.  Also included in this package is a means to search indexed documents stored in a database. Therefore this library provides the main components of a WWW search engine.  You can also use Pinch to copy entire websites or web pages.  

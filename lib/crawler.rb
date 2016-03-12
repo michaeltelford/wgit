@@ -1,7 +1,0 @@
-require_relative 'crawler/crawler'
-require_relative 'crawler/url'
-require_relative 'crawler/document'
-require_relative 'crawler/utils'
-require_relative 'crawler/database/database'
-require_relative 'crawler/database/model'
-require_relative 'crawler/database/mongo_connection_details'

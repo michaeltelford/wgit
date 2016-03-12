@@ -1,14 +1,13 @@
 Gem::Specification.new do |s|
-  s.name        = 'crawler'
+  s.name        = 'pinch'
   s.version     = '0.1.0'
   s.date        = '2016-03-07'
-  s.summary     = "Crawler is a simple web indexer and searcher."
-  s.description = "Crawler provides the main components of a search engine, a web indexer and a database searcher."
+  s.summary     = "Pinch is a simple web indexer and searcher."
+  s.description = "Pinch is a WWW indexer or 'spider' which crawls URL's and retrieves their page contents for later use.  Also included in this package is a means to search indexed documents stored in a database. Therefore this library provides the main components of a WWW search engine.  You can also use Pinch to copy entire websites or web pages."
   s.authors     = ["Michael Telford"]
   s.email       = "michael.telford@live.com"
-  s.files       = Dir["./lib/*.rb", "./lib/crawler/*.rb", "./lib/crawler/database/*.rb"]
-  s.executables << "crawl"
-  s.executables << "search"
-  s.homepage    = 'http://rubygems.org/gems/crawler'
+  s.files       = Dir["./lib/*.rb", "./lib/pinch/*.rb", "./lib/pinch/database/*.rb"]
+  s.executables << "pinch"
+  s.homepage    = 'http://rubygems.org/gems/pinch'
   s.license     = 'MIT'
 end
