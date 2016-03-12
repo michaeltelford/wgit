@@ -1,9 +1,10 @@
 
 Main
 ----
+Check whats in gem and update files to include the tests.
 Move utils methods (all?) into a module AND look for an class type assert gem.
-Create an executable with some basic CLI func.
 Unit test all functionality.
+Create an executable with some basic CLI func.
 
 Other
 -----

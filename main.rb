@@ -1,1 +1,1 @@
-./lib/crawler/main.rb
+./lib/pinch/main.rb

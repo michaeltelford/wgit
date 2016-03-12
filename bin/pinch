@@ -2,25 +2,48 @@
 
 require 'pinch'
 
+CRAWL_HELP = 
+'Crawl url(s) and save them to your database making them instantly searchable.
+
+Crawl command examples:
+crawl http://www.google.co.uk -> Crawls the google url and saves it to the 
+database
+crawl -s http://www.google.co.uk -> Crawls the entire google site based upon 
+its internal links, also saves any external links to the database'
+
 SEARCH_HELP = 
-'Command examples:
+'Search any crawled documents stored in your database.
+
+Search command examples:
 search everest -> Searches for the word everest
 search everest himalayas -> Searches for the words everest and himalayas
 search "everest expeditions" -> Searches for the sentence "everest expeditions"
 Note: All searches are case insensitive.'
 
-CRAWL_HELP = 
-'Command examples:
-crawl http://www.google.co.uk -> Crawls the google url and saves it to the 
-database
-crawl -s http://www.google.co.uk -> Crawls the entire google site based upon 
-its internal links
-crawl -d http://www.google.co.uk -> Crawls the google url and saves the HTML 
-document to the downloads folder
-crawl -sd http://www.google.co.uk ~/path/to/dir -> Crawls the entire google 
-site and saves the documents to the database and to the specified directory path
-crawl -sd http://www.google.co.uk ~/path/to/dir -> Crawls the entire google 
-site and saves the documents to the database and to the specified directory path'
+PINCH_HELP = 
+'Pinch a webpage or entire site and save it to the file system.
+
+Pinch command examples:
+pinch http://www.google.co.uk -> Crawls the google url and saves the HTML 
+document as well as all locally linked files (CSS, JS etc.) to the downloads 
+folder
+pinch http://www.google.co.uk /path/to/dir -> Same as above but saves to the 
+specified directory
+pinch -s http://www.google.co.uk -> Crawls the entire google site and saves the 
+resulting files (HTML, CSS, JS etc.) to the downloads folder (or your specified
+directory)'
+
+HELP = 
+"
+Below is some helpful information for using Pinch:
+
+#{CRAWL_HELP}
+
+#{SEARCH_HELP}
+
+#{PINCH_HELP}
+
+"
 
 #ARGV[0] - Access exe arguments with ARGV array.
 puts HELP
