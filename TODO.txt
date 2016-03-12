@@ -1,13 +1,13 @@
 
 Main
 ----
-Check whats in gem and update files to include the tests.
 Move utils methods (all?) into a module AND look for an class type assert gem.
 Unit test all functionality.
 Create an executable with some basic CLI func.
 
 Other
 -----
+Find out how to run built in tests on an installed gem?
 Add logging functionality (possibly use the mongo logger).
 Think about potentially updating the crawler (main.rb) to be multi threaded.
 
