@@ -1,6 +1,7 @@
 require_relative '../document'
 require_relative '../url'
 require_relative '../utils'
+require_relative '../assertable'
 require_relative 'mongo_connection_details'
 require_relative 'model'
 require 'mongo'
@@ -8,6 +9,8 @@ require 'mongo'
 # @author Michael Telford
 # Class modeling a DB connection and search engine related functionality.
 class Database
+    include Assertable
+    
     # Is relative to the root project folder, not this file. 
     LOG_FILE_PATH = "misc/mongo_log.txt"
     
@@ -44,10 +47,11 @@ class Database
     end
     
     def insert_urls(url_or_urls)
-        Utils.assert_type(url_or_urls, Url)
         unless url_or_urls.respond_to?(:map)
+            assert_type(url_or_urls, Url)
             url_or_urls = Model.url(url_or_urls)
         else
+            assert_arr_types(url_or_urls, Url)
             url_or_urls = url_or_urls.map do |url|
                 Model.url(url)
             end
@@ -56,12 +60,13 @@ class Database
     end
     
     def insert_docs(doc_or_docs)
-        Utils.assert_type(doc_or_docs, [Document, Hash])
-        unless doc_or_docs.respond_to?(:each)
+        unless doc_or_docs.respond_to?(:map)
+            assert_type(doc_or_docs, [Document, Hash])
             unless doc_or_docs.is_a?(Hash)
                 doc_or_docs = Model.document(doc_or_docs)
             end
         else
+            assert_arr_types(doc_or_docs, [Document, Hash])
             doc_or_docs = doc_or_docs.map do |doc|
                 Model.document(doc) unless doc.is_a?(Hash)
             end
@@ -147,7 +152,7 @@ class Database
     end
     
     def update_url(url)
-        Utils.assert_type([url], Url)
+        assert_type(url, Url)
         selection = { :url => url }
         url_hash = Model.url(url).merge(Model.common_update_data)
         update = { "$set" => url_hash }
@@ -155,7 +160,7 @@ class Database
     end
     
     def update_doc(doc)
-        Utils.assert_type([doc], Document)
+        assert_type(doc, Document)
         selection = { :url => doc.url }
         doc_hash = Model.document(doc).merge(Model.common_update_data)
         update = { "$set" => doc_hash }
@@ -186,7 +191,7 @@ private
     end
     
     def create(collection, data)
-        Utils.assert_type(data, Hash)
+        assert_type(data, [Hash, Array])
         # Single doc.
         if data.is_a?(Hash)
             data.merge!(Model.common_insert_data)
@@ -195,6 +200,7 @@ private
             result
         # Multiple docs.
         elsif data.is_a?(Array)
+            assert_arr_types(data, Hash)
             data.map! do |data_hash|
                 data_hash.merge(Model.common_insert_data)
             end
@@ -210,7 +216,7 @@ private
     
     def retrieve(collection, query, sort = {}, projection = {}, 
                  limit = 0, skip = 0, &block)
-        Utils.assert_type([query], Hash)
+        assert_type(query, Hash)
         result = @client[collection.to_sym].find(query).projection(projection)
                  .skip(skip).limit(limit).sort(sort)
         return result if block.nil?
@@ -220,7 +226,7 @@ private
     # NOTE: The Model.common_update_data should be merged in the calling 
     # method as the update param can be bespoke due to its nature.
     def _update(single, collection, selection, update)
-        Utils.assert_type([selection, update], Hash)
+        assert_arr_types([selection, update], Hash)
         if single
             result = @client[collection.to_sym].update_one(selection, update)
         else

@@ -1,10 +1,13 @@
 require_relative 'url'
 require_relative 'utils'
+require_relative 'assertable'
 require 'nokogiri'
 
 # @author Michael Telford
 # Class modeling a HTML web document. Also doubles as a search result.
 class Document
+    include Assertable
+    
     TEXT_ELEMENTS = [:dd, :div, :dl, :dt, :figcaption, :figure, :hr, :li, 
                      :main, :ol, :p, :pre, :span, :ul]
     
@@ -12,8 +15,8 @@ class Document
 	
 	def initialize(url_or_doc, html = nil)
         if (url_or_doc.is_a?(String))
-            Utils.assert_type([url_or_doc], Url)
-            Utils.assert_type([html], String)
+            assert_type(url_or_doc, Url)
+            html ||= ""
         
             @url = url_or_doc
             @html = html
@@ -101,6 +104,10 @@ class Document
         Utils.to_h(self, ignore)
     end
     
+    def empty?
+        html.strip.empty?
+    end
+    
     # Searches against the Document#text for the given search text.
     # The number of search hits for each sentenence are recorded internally 
     # and used to rank/sort the search results before being returned. Where 
@@ -143,7 +150,7 @@ class Document
 private
 
     def process(array)
-        Utils.assert_type(array, String)
+        assert_arr_types(array, String)
         array.map! { |str| str.strip }
         array.reject! { |str| str.empty? }
         array.uniq!

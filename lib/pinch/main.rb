@@ -31,13 +31,19 @@ def main
         urls_count = 0
         
         crawler.urls.each do |url|
+            url.crawled = true
+            raise unless DB.update(url) > 0
+            
             site_docs_count = 0
             ext_links = crawler.crawl_site(url) do |doc|
-                if write_doc_to_db(doc)
-                    docs_count += 1
-                    site_docs_count += 1
+                unless doc.empty?
+                    if write_doc_to_db(doc)
+                        docs_count += 1
+                        site_docs_count += 1
+                    end
                 end
             end
+            
             urls_count += write_urls_to_db(ext_links)
             puts "Crawled and saved #{site_docs_count} docs for the site: #{url}"
         end
@@ -48,17 +54,13 @@ def main
 end
 
 # The unique url index on the documents collection prevents duplicate inserts.
-# Having crawled the doc, its url.crawled now equals true which gets updated.
 def write_doc_to_db(doc)
     DB.insert(doc)
     puts "Saved document for url: #{doc.url}"
-    res = true
-rescue
+    true
+rescue Mongo::Error::OperationFailure
     puts "Document already exists: #{doc.url}"
-    res = false
-ensure
-    DB.update(doc.url)
-    res
+    false
 end
 
 # The unique url index on the urls collection prevents duplicate inserts.
@@ -70,7 +72,7 @@ def write_urls_to_db(urls)
                 DB.insert(url)
                 count += 1
                 puts "Inserted url: #{url}"
-            rescue
+            rescue Mongo::Error::OperationFailure
                 puts "Url already exists: #{url}"
             end
         end

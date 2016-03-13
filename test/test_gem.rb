@@ -8,6 +8,6 @@ class TestGem < Minitest::Test
     
     # Test the pinch.rb loads the API correctly.
     def test_require
-        assert_equal true, require('pinch')
+        assert require('pinch')
     end
 end

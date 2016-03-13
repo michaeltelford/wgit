@@ -1,11 +1,14 @@
 require_relative 'url'
 require_relative 'document'
 require_relative 'utils'
+require_relative 'assertable'
 require 'net/http' # requires 'uri'
 
 # @author Michael Telford
 # Crawler class provides a means of crawling web URL's.
 class Crawler
+    include Assertable
+    
 	attr_reader :urls, :docs
 
 	def initialize(*urls)
@@ -29,10 +32,11 @@ class Crawler
         add_url(url)
     end
 	
+    # Crawls individual urls, not entire sites.
     # Returns the last crawled doc.
-    # Yields each doc to the provided block or adds the docs to @docs.
+    # Yields each doc to the provided block or adds each doc to @docs.
 	def crawl_urls(urls = @urls, &block)
-        raise "No urls to crawl" if urls.nil? or urls.empty?
+        raise "No urls to crawl" unless urls
         @docs = []
         doc = nil
 		if urls.respond_to?(:each)
@@ -42,22 +46,18 @@ class Crawler
 		else
             doc = handle_crawl_block(urls, &block)
 		end
-        if doc.nil?
-            @docs.last
-        else
-            doc
-        end
+        doc ? doc : @docs.last
 	end
 	
-	# Crawl the url and return the response document.
-    # Also yield(doc) if a block is provided.
+	# Crawl the url and return the response document or nil.
+    # Also yield(doc) if a block is provided. The doc is passed to the block 
+    # regardless of the crawl success so the doc.url can be used if needed. 
 	def crawl_url(url = @urls.first, &block)
 		markup = fetch(url)
         url.crawled = true
-        return nil if markup.nil?
         doc = Document.new(url, markup)
         block.call(doc) unless block.nil?
-        doc
+        markup ? doc : nil
 	end
     
     # Crawls an entire site by recursively going through its internal_links.
@@ -66,7 +66,7 @@ class Crawler
     # Returns a unique array of external urls collected from the site
     # or nil if the base_url could not be crawled successfully.
     def crawl_site(base_url, &block)
-        Utils.assert_type([base_url], Url)
+        assert_type(base_url, Url)
         
         doc = crawl_url(base_url, &block)
         return nil if doc.nil?
@@ -130,7 +130,7 @@ private
     
     def add_url(url)
         @urls = [] if @urls.nil?
-        if url.is_a?(Url)
+        if url.instance_of?(Url)
             @urls << url
         else
             @urls << Url.new(url)
