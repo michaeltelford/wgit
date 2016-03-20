@@ -57,7 +57,7 @@ class Crawler
         url.crawled = true
         doc = Document.new(url, markup)
         block.call(doc) unless block.nil?
-        markup ? doc : nil
+        doc.empty? ? nil : doc
 	end
     
     # Crawls an entire site by recursively going through its internal_links.

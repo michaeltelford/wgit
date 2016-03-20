@@ -10,7 +10,7 @@ module Utils
         hash = {}
         obj.instance_variables.each do |var|
             next if ignore.include?(var)
-            hash[var[1..-1]] = obj.instance_variable_get(var)
+            hash[var[1..-1].to_sym] = obj.instance_variable_get(var)
         end
         hash
     end
@@ -23,8 +23,7 @@ module Utils
             sentence = if text.nil?
                           nil
                        else
-                          sentence = doc.search(text, 
-                                                sentence_length).first
+                          sentence = doc.search(text, sentence_length).first
                           if sentence.nil?
                               nil
                           else
