@@ -55,9 +55,11 @@ module Assertable
         obj
     end
     
-    alias :types :assert_types
+    alias :assert_type :assert_types
     alias :type :assert_types
-    alias :arr_types :assert_arr_types
+    alias :types :assert_types
+    alias :assert_arr_type :assert_arr_types
     alias :arr_type :assert_arr_types
+    alias :arr_types :assert_arr_types
     alias :respond_to :assert_respond_to
 end

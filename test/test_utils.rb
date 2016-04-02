@@ -1,8 +1,11 @@
 require "minitest/autorun"
+require_relative "test_helper"
 require_relative "../lib/pinch/utils"
 
 # @author Michael Telford
 class TestUtils < Minitest::Test
+    include TestHelper
+    
     def setup
         # Runs before every test.
         @person = Person.new
@@ -13,10 +16,10 @@ class TestUtils < Minitest::Test
     end
     
     def test_to_h
-        h = Utils.to_h @person, [:@height]
-        assert_equal @to_h_result, h
-    rescue RuntimeError => ex
-        flunk ex.message
+        flunk_ex self do
+            h = Utils.to_h @person, [:@height]
+            assert_equal @to_h_result, h
+        end
     end
 end
 

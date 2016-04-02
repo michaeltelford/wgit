@@ -9,7 +9,7 @@ class Document
     include Assertable
     
     TEXT_ELEMENTS = [:dd, :div, :dl, :dt, :figcaption, :figure, :hr, :li, 
-                     :main, :ol, :p, :pre, :span, :ul]
+                     :main, :ol, :p, :pre, :span, :ul, :h1, :h2, :h3, :h4, :h5]
     
 	attr_reader :url, :html, :title, :author, :keywords, :links, :text, :score
 	
@@ -40,9 +40,9 @@ class Document
             @title = url_or_doc[:title]
             @author = url_or_doc[:author]
             @keywords = url_or_doc[:keywords].nil? ? [] : url_or_doc[:keywords]
-            @text = url_or_doc[:text].nil? ? [] : url_or_doc[:text]
             @links = url_or_doc[:links].nil? ? [] : url_or_doc[:links] 
             @links.map! { |link| Url.new(link) }
+            @text = url_or_doc[:text].nil? ? [] : url_or_doc[:text]
             @score = url_or_doc[:score].nil? ? 0.0 : url_or_doc[:score]
         end
 	end
@@ -222,4 +222,5 @@ private
     end
     
 	alias :to_hash :to_h
+    alias :relative_links :internal_links
 end

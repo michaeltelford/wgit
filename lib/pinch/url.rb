@@ -42,10 +42,9 @@ class Url < String
         false
     end
     
+    # Modifies the receiver url by prefixing it with a protocol.
+    # Returns the url whether its been modified or not.
     def self.prefix_protocol(url, https = false)
-        if Url.relative_link?(url)
-            raise "Invalid url (relative link): #{url}"
-        end
         unless url.start_with?("http://") or url.start_with?("https://")
             if https
                 url.replace("https://#{url}")
@@ -53,10 +52,11 @@ class Url < String
                 url.replace("http://#{url}")
             end
         end
+        url
     end
     
     # URI.split("http://www.google.co.uk/about.html") returns the following:
-    # array[2]: "www.google.co.uk", array[5]: "/about.html"
+    # array[2]: "www.google.co.uk", array[5]: "/about.html".
     # This means that all external links in a page are expected to have a 
     # protocol prefix e.g. "http://", otherwise the link is treated as an 
     # internal link (regardless of whether it is valid or not).
@@ -99,10 +99,14 @@ class Url < String
         @uri
     end
     
+    # Given http://www.google.co.uk/about.html, www.google.co.uk is returned.
     def to_host
         Url.new(@uri.host)
     end
     
+    # URI.split("http://www.google.co.uk/about.html") returns the following:
+    # array[0]: "http://", array[2]: "www.google.co.uk".
+    # Returns array[0] + array[2] e.g. http://www.google.co.uk.
     def to_base
         if Url.relative_link?(self)
             raise "A relative link doesn't have a base URL: #{self}"
@@ -118,7 +122,7 @@ class Url < String
     def to_h
         ignore = [:@uri]
         h = Utils.to_h(self, ignore)
-        Hash[h.to_a.insert(0, ["url", self])] # Insert url at position 0.
+        Hash[h.to_a.insert(0, [:url, self])] # Insert url at position 0.
     end
     
     alias :to_hash :to_h

@@ -3,6 +3,7 @@ Main
 ----
 Unit test all functionality.
 Create an executable with some basic CLI func.
+Create a RoR app for the search engine front end.
 
 Other
 -----
