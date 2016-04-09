@@ -32,11 +32,11 @@ class Document
     		init_keywords(doc)
             init_links(doc)
             init_text(doc)
-            # :score is only init from a mongo doc.
+            @score = 0.0
         else
             # Init from a mongo collection document.
             @url = Url.new(url_or_doc[:url])
-            @html = url_or_doc[:html]
+            @html = url_or_doc[:html].nil? ? "" : url_or_doc[:html]
             @title = url_or_doc[:title]
             @author = url_or_doc[:author]
             @keywords = url_or_doc[:keywords].nil? ? [] : url_or_doc[:keywords]
@@ -89,7 +89,8 @@ class Document
             # Else take the #length method return value.
             else
                 next unless instance_variable_get(var).respond_to?(:length)
-                hash[var[1..-1].to_sym] = instance_variable_get(var).send(:length)
+                hash[var[1..-1].to_sym] = 
+                                    instance_variable_get(var).send(:length)
             end
         end
         hash
@@ -112,29 +113,32 @@ class Document
     # The number of search hits for each sentenence are recorded internally 
     # and used to rank/sort the search results before being returned. Where 
     # the Database#search method search all documents for the most hits this 
-    # method search each documents text for the most hits. 
+    # method searches each documents text for the most hits. 
     #
-    # Each search result comprises of a sentence of a given length (based on 
-    # the sentence_length parameter). The algorithm ensures that the search 
-    # value is at the centre of the sentence and that there is at 
-    # least one instance of the search text value in the sentence. 
+    # Each search result comprises of a sentence of a given length. The length 
+    # will be based on the sentence_limit parameter or the full length of the 
+    # original sentence, which ever is less. The algorithm obviously ensures 
+    # that the search value is visible somewher in the sentence.
     #
     # @param text [String] the value to search the document text against.
-    # @param sentence_length [Fixnum] the length of each search result 
+    # @param sentence_limit [Fixnum] the length of each search result 
     # sentence. 
     # 
     # @return [Array] of String objects representing the search results.
-    def search(text, sentence_length = 80)
+    def search(text, sentence_limit = 80)
+        raise "A search value must be provided" if text.empty?
+        raise "The sentence length value must be even" if sentence_limit.odd?
+        
         results = {}
         regex = Regexp.new(text, Regexp::IGNORECASE)
         
         @text.each do |sentence|
             hits = sentence.scan(regex).count
             if hits > 0
+                sentence.strip!
                 index = sentence.index(regex)
-                start = index - (sentence_length / 2)
-                finish = index + (sentence_length / 2)
-                results[sentence[start..finish].strip] = hits
+                Utils.format_sentence_length(sentence, index, sentence_limit)
+                results[sentence] = hits
             end
         end
         
@@ -154,6 +158,25 @@ private
         array.map! { |str| str.strip }
         array.reject! { |str| str.empty? }
         array.uniq!
+    end
+    
+    # Modifies internal links by removing this doc's base or host url if 
+    # present. http://www.google.co.uk/about.html (with or without the 
+    # protocol prefix) will become about.html meaning it'll appear within 
+    # internal_links.
+    def process_internal_links(links)
+        links.each do |link|
+            host_or_base = if link.start_with?("http")
+                               url.base
+                           else
+                               url.host
+                           end
+            if link.start_with?(host_or_base)
+                link.sub!(host_or_base, "")
+                link.replace(link[1..-1]) if link.start_with?("/")
+                link.strip!
+            end
+        end
     end
     
     def text_elements_xpath
@@ -212,6 +235,7 @@ private
             end
         end
         @links.reject! { |link| link.nil? }
+        process_internal_links(@links)
     end
     
     def init_text(doc)

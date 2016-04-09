@@ -10,10 +10,8 @@ class TestLoad < Minitest::Test
     end
     
     def test_load
-        flunk_ex self do
-            # TODO: Supress the load output.
-            #assert load 'load.rb'
-            raise LoadError, "TODO: test_load with suppressed output"
-        end
+        # TODO: Supress the load output by writing it to a file.
+        #assert load 'load.rb'
+        raise LoadError, "TODO: test_load with suppressed output"
     end
 end

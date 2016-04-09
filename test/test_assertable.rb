@@ -15,9 +15,8 @@ class TestAssertable < Minitest::Test
     end
     
     def test_assert_types_pass
-        flunk_ex self do
-            assert_equal @s, assert_types(@s, String)
-        end
+        assert_equal @s, assert_types(@s, String)
+        assert_equal @a, assert_types(@a, [Array, String])
     end
     
     def test_assert_types_fail
@@ -25,15 +24,7 @@ class TestAssertable < Minitest::Test
             assert_types @s, Fixnum
         end
         assert_equal "Expected: Fixnum, Actual: String", ex.message
-    end
-    
-    def test_assert_types_pass_2
-        flunk_ex self do
-            assert_equal @a, assert_types(@a, [Array, String])
-        end
-    end
-    
-    def test_assert_types_fail_2
+        
         ex = assert_raises RuntimeError do
             assert_types @a, [TrueClass, Fixnum], "An Array is expected"
         end
@@ -41,9 +32,7 @@ class TestAssertable < Minitest::Test
     end
     
     def test_assert_arr_types_pass
-        flunk_ex self do
-            assert_equal @a2, assert_arr_types(@a2, [Fixnum, TrueClass, String])
-        end
+        assert_equal @a2, assert_arr_types(@a2, [Fixnum, TrueClass, String])
     end
     
     def test_assert_arr_types_fail
@@ -55,10 +44,8 @@ class TestAssertable < Minitest::Test
     end
     
     def test_assert_respond_to_pass
-        flunk_ex self do
-            objs = [@s, @a]
-            assert_equal objs, assert_respond_to(objs, [:equal?, :include?])
-        end
+        objs = [@s, @a]
+        assert_equal objs, assert_respond_to(objs, [:equal?, :include?])
     end
     
     def test_assert_respond_to_fail

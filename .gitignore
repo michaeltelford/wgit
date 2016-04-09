@@ -4,3 +4,4 @@ mongo_log.txt
 doc
 .yardoc
 pinch-*.gem
+/nbproject/private/nbproject

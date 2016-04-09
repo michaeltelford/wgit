@@ -16,10 +16,48 @@ class TestUtils < Minitest::Test
     end
     
     def test_to_h
-        flunk_ex self do
-            h = Utils.to_h @person, [:@height]
-            assert_equal @to_h_result, h
-        end
+        h = Utils.to_h @person, [:@height]
+        assert_equal @to_h_result, h
+    end
+    
+    def test_each
+        str = ["hello", "goodbye"]
+        Utils.each(str) { |el| el.replace(el + 1.to_s) }
+        assert_equal ["hello1", "goodbye1"], str
+        
+        str = "hello"
+        Utils.each(str) { |el| el.replace(el + 1.to_s) }
+        assert_equal "hello1", str
+    end
+    
+    def p_debug
+        flunk "TODO: Send output to a file and assert the contents"
+    end
+    
+    def test_format_sentence_length
+        sentence_limit = 10
+        
+        # Short sentence.
+        sentence = "For what"
+        result = Utils.format_sentence_length sentence, 2, sentence_limit
+        assert_equal sentence, result
+        
+        # Long sentence: index near start.
+        sentence = "For what of the flower if not for soil beneath it?"
+        result = Utils.format_sentence_length sentence.dup, 5, sentence_limit
+        assert_equal "For what o", result
+        
+        # Long sentence: index near end.
+        result = Utils.format_sentence_length sentence.dup, 48, sentence_limit
+        assert_equal "eneath it?", result
+        
+        # Long sentence: index near middle.
+        result = Utils.format_sentence_length sentence.dup, 23, sentence_limit
+        assert_equal "ower if no", result
+    end
+    
+    def test_printf_search_results
+        flunk "TODO: Send output to a file and assert the contents"
     end
 end
 
