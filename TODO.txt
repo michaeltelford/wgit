@@ -1,9 +1,9 @@
 
 Main
 ----
-Unit test all functionality
-Create an executable with some basic CLI func.
+Unit test all functionality.
 Create a RoR app for the search engine front end.
+Create an executable with some basic CLI func.
 
 Other
 -----
