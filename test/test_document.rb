@@ -82,6 +82,9 @@ Minitest framework."
             "tests.html",
             "/contents"
         ], doc.internal_links
+        
+        doc = Document.new @url, "<p>Hello World!</p>"
+        assert_empty doc.internal_links
     end
     
     def test_internal_full_links
@@ -93,6 +96,9 @@ Minitest framework."
             "#{@url}/tests.html",
             "#{@url}/contents"
         ], doc.internal_full_links
+        
+        doc = Document.new @url, "<p>Hello World!</p>"
+        assert_empty doc.internal_full_links
     end
     
     def test_external_links
@@ -103,6 +109,9 @@ Minitest framework."
             "http://www.bing.com",
             "https://duckduckgo.com",
         ], doc.external_links
+        
+        doc = Document.new @url, "<p>Hello World!</p>"
+        assert_empty doc.external_links
     end
     
     def test_stats

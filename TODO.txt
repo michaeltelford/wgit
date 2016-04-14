@@ -2,6 +2,7 @@
 Main
 ----
 Unit test all functionality.
+Use Utils#each where possible across project.
 Create a RoR app for the search engine front end.
 Create an executable with some basic CLI func.
 

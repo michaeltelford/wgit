@@ -11,6 +11,6 @@ class TestMain < Minitest::Test
     
     def test_main
         # TODO: Refactor main into lib and bin exec, then unit test.
-        raise "TODO: Refactor main into lib and bin exec, then unit test"
+        flunk "TODO: Refactor main into lib and bin exec, then unit test"
     end
 end

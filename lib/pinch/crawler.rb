@@ -17,11 +17,8 @@ class Crawler
 	end
     
     def urls=(urls)
-        raise "urls must #respond_to? :each" unless urls.respond_to?(:each)
         @urls = []
-        urls.each do |url|
-            add_url(url)
-        end
+        Utils.each(urls) { |url| add_url(url) }
     end
     
     def [](*urls)
@@ -39,13 +36,7 @@ class Crawler
         raise "No urls to crawl" unless urls
         @docs = []
         doc = nil
-		if urls.respond_to?(:each)
-			urls.each do |url|
-                doc = handle_crawl_block(url, &block)
-			end
-		else
-            doc = handle_crawl_block(urls, &block)
-		end
+        Utils.each(urls) { |url| doc = handle_crawl_block(url, &block) }
         doc ? doc : @docs.last
 	end
 	
@@ -65,7 +56,7 @@ class Crawler
     # A block is the only way to interact with the crawled docs.
     # Returns a unique array of external urls collected from the site
     # or nil if the base_url could not be crawled successfully.
-    def crawl_site(base_url, &block)
+    def crawl_site(base_url = @urls.first, &block)
         assert_type(base_url, Url)
         
         doc = crawl_url(base_url, &block)
@@ -75,9 +66,7 @@ class Crawler
         external_urls = []
         internal_urls = doc.internal_links
         
-        if internal_urls.empty?
-            return doc.external_links
-        end
+        return doc.external_links if internal_urls.empty?
         
         loop do
             unless internal_urls.uniq.nil?
@@ -91,12 +80,8 @@ class Crawler
                 doc = crawl_url(Url.concat(base_url.to_base, link), &block)
                 crawled_urls << link
                 next if doc.nil?
-                unless doc.internal_links.empty?
-                    internal_urls = internal_urls.concat(doc.internal_links)
-                end
-                unless doc.external_links.empty?
-                    external_urls = external_urls.concat(doc.external_links)
-                end
+                internal_urls.concat(doc.internal_links)
+                external_urls.concat(doc.external_links)
             end
         end
         

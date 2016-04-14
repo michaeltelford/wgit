@@ -48,7 +48,7 @@ class Document
 	end
 	
 	def internal_links
-        return [] if @links.nil?
+        return [] if @links.empty?
 		@links.reject do |link|
             begin
                 not link.relative_link?

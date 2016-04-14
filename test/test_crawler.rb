@@ -38,6 +38,9 @@ class TestCrawler < Minitest::Test
         
         c.urls = @url_str
         assert_urls c
+        
+        c.urls = "https://duckduckgo.com"
+        assert_equal ["https://duckduckgo.com"], c.urls
     end
     
     def test_square_brackets
@@ -109,7 +112,18 @@ class TestCrawler < Minitest::Test
     end
     
     def test_crawl_site
-        #
+        url = "https://duckduckgo.com"
+        c = Crawler.new url
+        ext_links = c.crawl_site do |doc|
+            puts doc.url
+            refute doc.empty?
+            assert doc.url.start_with?(url)
+        end
+        refute_empty ext_links
+        assert_equal ext_links.length, ext_links.uniq.length
+        
+        c = Crawler.new "http://doesntexist123"
+        assert_nil c.crawl_site
     end
     
     private
