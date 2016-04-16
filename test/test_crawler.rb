@@ -112,15 +112,16 @@ class TestCrawler < Minitest::Test
     end
     
     def test_crawl_site
-        url = "https://duckduckgo.com"
+        url = Url.new "http://www.swifttransporttraining.com"
         c = Crawler.new url
         ext_links = c.crawl_site do |doc|
-            puts doc.url
             refute doc.empty?
             assert doc.url.start_with?(url)
+            assert doc.url.crawled?
         end
         refute_empty ext_links
-        assert_equal ext_links.length, ext_links.uniq.length
+        assert_equal ext_links.uniq.length, ext_links.length
+        assert url.crawled?
         
         c = Crawler.new "http://doesntexist123"
         assert_nil c.crawl_site

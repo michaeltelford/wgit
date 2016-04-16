@@ -62,7 +62,7 @@ class Document
         return [] if internal_links.empty?
         internal_links.map do |link|
             link.replace("/" + link) unless link.start_with?("/")
-            @url.to_base + link
+            Url.new(@url.to_base + link)
         end
     end
 	

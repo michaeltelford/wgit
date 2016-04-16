@@ -104,11 +104,7 @@ private
     def fetch(url)
         raise unless url.respond_to?(:to_uri)
         res = Net::HTTP.get_response(url.to_uri)
-        if res.is_a?(Net::HTTPSuccess)
-            res.body
-        else
-            nil
-        end
+        res.body.empty? ? nil : res.body
     rescue
         nil
     end

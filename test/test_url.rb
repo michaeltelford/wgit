@@ -65,6 +65,7 @@ class TestUrl < Minitest::Test
         url = Url.new @url_str
         url.crawled = true
         assert url.crawled
+        assert url.crawled?
     end
     
     def test_to_uri

@@ -82,6 +82,7 @@ Minitest framework."
             "tests.html",
             "/contents"
         ], doc.internal_links
+        assert doc.internal_links.all? { |link| link.instance_of?(Url) }
         
         doc = Document.new @url, "<p>Hello World!</p>"
         assert_empty doc.internal_links
@@ -96,6 +97,7 @@ Minitest framework."
             "#{@url}/tests.html",
             "#{@url}/contents"
         ], doc.internal_full_links
+        assert doc.internal_full_links.all? { |link| link.instance_of?(Url) }
         
         doc = Document.new @url, "<p>Hello World!</p>"
         assert_empty doc.internal_full_links
@@ -107,8 +109,9 @@ Minitest framework."
             "http://www.google.co.uk",
             "http://www.yahoo.com",
             "http://www.bing.com",
-            "https://duckduckgo.com",
+            "https://duckduckgo.com"
         ], doc.external_links
+        assert doc.external_links.all? { |link| link.instance_of?(Url) }
         
         doc = Document.new @url, "<p>Hello World!</p>"
         assert_empty doc.external_links

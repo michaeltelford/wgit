@@ -95,6 +95,10 @@ class Url < String
         @date_crawled = bool ? Utils.time_stamp : nil
     end
     
+    def crawled?
+        crawled
+    end
+    
     def to_uri
         @uri
     end
