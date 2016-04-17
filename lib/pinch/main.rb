@@ -7,7 +7,7 @@ require_relative 'database/database'
 # @author Michael Telford
 
 NUM_SITES_TO_CRAWL = 1 # Use -1 for infinite crawling.
-MAX_DATA_SIZE = 10485760 # 10MB
+MAX_DATA_SIZE = 104857600 # 100MB
 DB = Database.new
 
 def main

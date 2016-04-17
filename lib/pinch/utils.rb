@@ -95,7 +95,9 @@ module Utils
                           end
                        end
             puts doc.title
-            puts doc.keywords[0..keyword_count] unless doc.keywords.empty?
+            unless doc.keywords.empty?
+                puts doc.keywords[0..keyword_count].join(", ")
+            end
             puts sentence unless sentence.nil?
             puts doc.url
             puts

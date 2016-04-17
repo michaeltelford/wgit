@@ -153,9 +153,16 @@ class Document
 	
 private
 
-    def process(array)
+    def process_str(str)
+        str.encode!('UTF-8', 'UTF-8', :invalid => :replace)
+        str.strip!
+    end
+
+    def process_arr(array)
         assert_arr_types(array, String)
-        array.map! { |str| str.strip }
+        array.map! do |str|
+            process_str(str)
+        end
         array.reject! { |str| str.empty? }
         array.uniq!
     end
@@ -206,11 +213,13 @@ private
 	def init_title(doc)
         xpath = "//title"
         init_var(doc, xpath, :@title)
+        process_str(@title)
 	end
 	
 	def init_author(doc)
         xpath = "//meta[@name='author']/@content"
         init_var(doc, xpath, :@author)
+        process_str(@author)
 	end
 	
 	def init_keywords(doc)
@@ -218,14 +227,14 @@ private
         init_var(doc, xpath, :@keywords)
         return @keywords = [] unless @keywords
         @keywords = @keywords.split(",")
-        process(@keywords)
+        process_arr(@keywords)
 	end
     
     def init_links(doc)
         xpath = "//a/@href"
         init_var(doc, xpath, :@links, false)
         return @links = [] unless @links
-        process(@links)
+        process_arr(@links)
         @links.reject! { |link| link == "/" }
         @links.map! do |link|
             begin
@@ -242,7 +251,7 @@ private
         xpath = text_elements_xpath
         init_var(doc, xpath, :@text, false)
         return @text = [] unless @text
-        process(@text)
+        process_arr(@text)
     end
     
 	alias :to_hash :to_h

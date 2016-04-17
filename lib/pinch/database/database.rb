@@ -88,6 +88,8 @@ class Database
         results.each { |url| block.call(url) }
     end
 
+    # Currently all searches are case insensitive.
+    #
     # Searches against the indexed docs in the DB for the given text.
     # The searched fields are decided by the text index setup against the 
     # documents collection. Currently we search against the following fields:
@@ -123,7 +125,7 @@ class Database
         results.map { |mongo_doc| Document.new(mongo_doc) }
     end
 
-    # Performs a search and pretty_prints the results.
+    # Performs a search and pretty prints the results.
     def search_p(text, whole_sentence = false, limit = 10, 
                          skip = 0, sentence_length = 80, &block)
         results = search(text, whole_sentence, limit, skip, &block)

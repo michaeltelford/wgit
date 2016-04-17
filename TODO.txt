@@ -3,11 +3,13 @@ Main
 ----
 Unit test all functionality.
 Use Utils#each where possible across project.
+Check for uses of @var instead of var in classes.
 Create a RoR app for the search engine front end.
 Create an executable with some basic CLI func.
 
 Other
 -----
+Check if Document::TEXT_ELEMENTS is expansive enough.
 Find out how to run built in tests on an installed gem?
 Think about how we store DB connection details, is it right?
 Put all classes in a single module called Pinch e.g. Pinch::Url etc. - See 
@@ -24,3 +26,4 @@ setup a unique index on the html field so the duplication will be picked up
 during the insert and the second doc won't be inserted.  This is potentially 
 inefficient as the duplicate url is still crawled but at least the doc won't
 be saved to the DB and therefore won't result in a duplicate search result.
+The disadvantage is that you'd have to store the html which can take up space.
