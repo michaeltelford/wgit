@@ -9,6 +9,7 @@ Create an executable with some basic CLI func.
 
 Other
 -----
+Think about ignoring non html documents/urls e.g. http://server/image.jpg etc.
 Check if Document::TEXT_ELEMENTS is expansive enough.
 Find out how to run built in tests on an installed gem?
 Think about how we store DB connection details, is it right?

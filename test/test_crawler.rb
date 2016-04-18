@@ -22,11 +22,11 @@ class TestCrawler < Minitest::Test
         assert_empty c.docs
         assert_empty c.urls
         
-        c = Crawler.new *@url_str
+        c = Crawler.new(*@url_str)
         assert_empty c.docs
         assert_urls c        
         
-        c = Crawler.new *@urls
+        c = Crawler.new(*@urls)
         assert_empty c.docs
         assert_urls c
     end
@@ -66,35 +66,35 @@ class TestCrawler < Minitest::Test
         c = Crawler.new
         i = 0
         urls = @urls.dup
-        doc = c.crawl_urls urls do |doc|
+        document = c.crawl_urls urls do |doc|
             assert_crawl_output c, doc, urls[i]
             i += 1
         end
-        assert_crawl_output c, doc, urls.last
+        assert_crawl_output c, document, urls.last
         
         urls = @urls.dup
-        c = Crawler.new *urls
+        c = Crawler.new(*urls)
         i = 0
-        doc = c.crawl_urls do |doc|
+        document = c.crawl_urls do |doc|
             assert_crawl_output c, doc, c.urls[i]
             i += 1
         end
-        assert_crawl_output c, doc, urls.last
+        assert_crawl_output c, document, urls.last
         
         c = Crawler.new
         url = @urls.dup.first
-        doc = c.crawl_urls url do |doc|
+        document = c.crawl_urls url do |doc|
             assert_crawl_output c, doc, url
         end
-        assert_crawl_output c, doc, url
+        assert_crawl_output c, document, url
         
         c = Crawler.new
         url = Url.new("doesnt_exist")
-        doc = c.crawl_urls url do |doc|
+        document = c.crawl_urls url do |doc|
             assert doc.empty?
             assert url.crawled
         end
-        assert_nil doc
+        assert_nil document
     end
     
     def test_crawl_url
@@ -102,7 +102,7 @@ class TestCrawler < Minitest::Test
         url = @urls.first.dup
         assert_crawl c, url
         
-        c = Crawler.new *@urls.dup
+        c = Crawler.new(*@urls.dup)
         assert_crawl c
         
         url = Url.new("doesnt_exist")
@@ -136,11 +136,11 @@ class TestCrawler < Minitest::Test
     
     def assert_crawl(crawler, url = nil)
         if url
-            doc = crawler.crawl_url(url) { |doc| assert doc.title }
+            document = crawler.crawl_url(url) { |doc| assert doc.title }
         else
-            doc = crawler.crawl_url { |doc| assert doc.title }
+            document = crawler.crawl_url { |doc| assert doc.title }
         end
-        assert_crawl_output crawler, doc, url
+        assert_crawl_output crawler, document, url
     end
     
     def assert_crawl_output(crawler, doc, url = nil)

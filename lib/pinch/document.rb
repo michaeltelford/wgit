@@ -156,13 +156,12 @@ private
     def process_str(str)
         str.encode!('UTF-8', 'UTF-8', :invalid => :replace)
         str.strip!
+        str # This is required to return the str, do not remove.
     end
 
     def process_arr(array)
         assert_arr_types(array, String)
-        array.map! do |str|
-            process_str(str)
-        end
+        array.map! { |str| process_str(str) }
         array.reject! { |str| str.empty? }
         array.uniq!
     end
@@ -172,7 +171,7 @@ private
     # protocol prefix) will become about.html meaning it'll appear within 
     # internal_links.
     def process_internal_links(links)
-        links.each do |link|
+        links.map! do |link|
             host_or_base = if link.start_with?("http")
                                url.base
                            else
@@ -183,6 +182,7 @@ private
                 link.replace(link[1..-1]) if link.start_with?("/")
                 link.strip!
             end
+            link
         end
     end
     
@@ -213,13 +213,13 @@ private
 	def init_title(doc)
         xpath = "//title"
         init_var(doc, xpath, :@title)
-        process_str(@title)
+        process_str(@title) unless @title.nil?
 	end
 	
 	def init_author(doc)
         xpath = "//meta[@name='author']/@content"
         init_var(doc, xpath, :@author)
-        process_str(@author)
+        process_str(@author) unless @author.nil?
 	end
 	
 	def init_keywords(doc)
