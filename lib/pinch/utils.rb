@@ -36,15 +36,17 @@ module Utils
 
     # Formats the sentence (modifies the receiver) and returns its value.
     # The length will be based on the sentence_limit parameter or the full
-    # length of the original sentence, which ever is less. The algorithm
-    # obviously ensures that the search value is visible somewhere in the
-    # sentence.
+    # length of the original sentence, which ever is less. The full sentence
+    # is returned if the sentence_limit is 0. The algorithm obviously ensures 
+    # that the search value is visible somewhere in the sentence.
     def self.format_sentence_length(sentence, index, sentence_limit)
         raise "A sentence value must be provided" if sentence.empty?
         raise "The sentence length value must be even" if sentence_limit.odd?
         if index < 0 or index > sentence.length
-            raise "Incorrect index value"
+            raise "Incorrect index value: #{index}"
         end
+        
+        return sentence if sentence_limit == 0
 
         start = 0
         finish = sentence.length
@@ -71,9 +73,7 @@ module Utils
                 finish = sentence.length
             end
 
-            if sentence[start..(finish - 1)].length != sentence_limit
-                raise
-            end
+            raise if sentence[start..(finish - 1)].length != sentence_limit
         end
 
         sentence.replace(sentence[start..(finish - 1)])

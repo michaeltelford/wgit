@@ -2,6 +2,7 @@ require "minitest/autorun"
 require_relative "test_helper"
 require_relative "../lib/pinch/url"
 require_relative "../lib/pinch/crawler"
+require "byebug"
 
 # @author Michael Telford
 class TestCrawler < Minitest::Test
@@ -109,10 +110,16 @@ class TestCrawler < Minitest::Test
         doc = c.crawl_url url
         assert_nil doc
         assert url.crawled
+        
+        # Test String instead of Url instance.
+        url = "http://www.bing.com"
+        assert_raises RuntimeError do
+            c.crawl_url url
+        end
     end
     
     def test_crawl_site
-        url = Url.new "http://www.swifttransporttraining.com"
+        url = Url.new "http://www.belfastpilates.co.uk"
         c = Crawler.new url
         ext_links = c.crawl_site do |doc|
             refute doc.empty?

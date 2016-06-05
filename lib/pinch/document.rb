@@ -28,8 +28,8 @@ class Document
             end
 		
             init_title(doc)
-    		init_author(doc)
-    		init_keywords(doc)
+    		    init_author(doc)
+    		    init_keywords(doc)
             init_links(doc)
             init_text(doc)
             @score = 0.0
@@ -211,49 +211,54 @@ private
     end
 	
 	def init_title(doc)
-        xpath = "//title"
-        init_var(doc, xpath, :@title)
-        process_str(@title) unless @title.nil?
+    @title = nil
+    xpath = "//title"
+    init_var(doc, xpath, :@title)
+    process_str(@title) unless @title.nil?
 	end
 	
 	def init_author(doc)
-        xpath = "//meta[@name='author']/@content"
-        init_var(doc, xpath, :@author)
-        process_str(@author) unless @author.nil?
+    @author = nil
+    xpath = "//meta[@name='author']/@content"
+    init_var(doc, xpath, :@author)
+    process_str(@author) unless @author.nil?
 	end
 	
 	def init_keywords(doc)
-        xpath = "//meta[@name='keywords']/@content"
-        init_var(doc, xpath, :@keywords)
-        return @keywords = [] unless @keywords
-        @keywords = @keywords.split(",")
-        process_arr(@keywords)
+    @keywords = nil
+    xpath = "//meta[@name='keywords']/@content"
+    init_var(doc, xpath, :@keywords)
+    return @keywords = [] unless @keywords
+    @keywords = @keywords.split(",")
+    process_arr(@keywords)
 	end
     
     def init_links(doc)
-        xpath = "//a/@href"
-        init_var(doc, xpath, :@links, false)
-        return @links = [] unless @links
-        process_arr(@links)
-        @links.reject! { |link| link == "/" }
-        @links.map! do |link|
-            begin
-                Url.new(link)
-            rescue
-                nil
-            end
+      @links = nil
+      xpath = "//a/@href"
+      init_var(doc, xpath, :@links, false)
+      return @links = [] unless @links
+      process_arr(@links)
+      @links.reject! { |link| link == "/" }
+      @links.map! do |link|
+        begin
+          Url.new(link)
+        rescue
+          nil
         end
-        @links.reject! { |link| link.nil? }
-        process_internal_links(@links)
+      end
+      @links.reject! { |link| link.nil? }
+      process_internal_links(@links)
     end
     
     def init_text(doc)
-        xpath = text_elements_xpath
-        init_var(doc, xpath, :@text, false)
-        return @text = [] unless @text
-        process_arr(@text)
+      @text = nil
+      xpath = text_elements_xpath
+      init_var(doc, xpath, :@text, false)
+      return @text = [] unless @text
+      process_arr(@text)
     end
     
 	alias :to_hash :to_h
-    alias :relative_links :internal_links
+  alias :relative_links :internal_links
 end

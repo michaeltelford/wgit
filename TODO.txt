@@ -2,7 +2,10 @@
 Main
 ----
 Unit test all functionality.
+Put all classes in a single module called Pinch e.g. Pinch::Url etc. - See 
+MiniTest documentation for a similar example.  This prevents naming conflicts. 
 Use Utils#each where possible across project.
+Use super if possible when overriding getter and setters.
 Check for uses of @var instead of var in classes.
 Create a RoR app for the search engine front end.
 Create an executable with some basic CLI func.
@@ -11,12 +14,16 @@ Other
 -----
 Think about ignoring non html documents/urls e.g. http://server/image.jpg etc.
 Check if Document::TEXT_ELEMENTS is expansive enough.
-Find out how to run built in tests on an installed gem?
 Think about how we store DB connection details, is it right?
-Put all classes in a single module called Pinch e.g. Pinch::Url etc. - See 
-MiniTest documentation for a similar example.  This prevents naming conflicts. 
 Add logging functionality (possibly use the mongo logger).
 Think about potentially updating the crawler (main.rb) to be multi threaded.
+
+Gem Publishing
+--------------
+Remove the DB details.
+Check all tests are passing with minimal STDOUT noise.
+Run 'yard' to update documentation.
+Build gem from gemspec, install and test it manually.
 
 Issues
 ------

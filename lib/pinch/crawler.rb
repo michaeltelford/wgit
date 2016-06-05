@@ -44,11 +44,12 @@ class Crawler
     # Also yield(doc) if a block is provided. The doc is passed to the block 
     # regardless of the crawl success so the doc.url can be used if needed. 
 	def crawl_url(url = @urls.first, &block)
+    assert_type(url, Url)
 		markup = fetch(url)
-        url.crawled = true
-        doc = Document.new(url, markup)
-        block.call(doc) unless block.nil?
-        doc.empty? ? nil : doc
+    url.crawled = true
+    doc = Document.new(url, markup)
+    block.call(doc) unless block.nil?
+    doc.empty? ? nil : doc
 	end
     
     # Crawls an entire site by recursively going through its internal_links.
@@ -94,7 +95,7 @@ private
     # or let the block process it here and now.
     def handle_crawl_block(url, &block)
         if block.nil?
-		    @docs << crawl_url(url)
+		        @docs << crawl_url(url)
             nil
         else
             crawl_url(url, &block)
@@ -119,4 +120,5 @@ private
     end
     
     alias :crawl :crawl_urls
+    alias :crawl_r :crawl_site
 end

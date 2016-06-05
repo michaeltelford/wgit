@@ -39,7 +39,7 @@ class TestUtils < Minitest::Test
         
         # Short sentence.
         sentence = "For what"
-        result = Utils.format_sentence_length sentence, 2, sentence_limit
+        result = Utils.format_sentence_length sentence.dup, 2, sentence_limit
         assert_equal sentence, result
         
         # Long sentence: index near start.
@@ -54,6 +54,13 @@ class TestUtils < Minitest::Test
         # Long sentence: index near middle.
         result = Utils.format_sentence_length sentence.dup, 23, sentence_limit
         assert_equal "ower if no", result
+        
+        # Return full sentence.
+        sentence = "For what of the flower if not for soil beneath it?\
+                    For what of the flower if not for soil beneath it?\
+                    For what of the flower if not for soil beneath it?"
+        result = Utils.format_sentence_length sentence.dup, 5, 0
+        assert_equal sentence, result
     end
     
     def test_printf_search_results

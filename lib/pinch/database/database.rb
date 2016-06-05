@@ -81,9 +81,7 @@ class Database
         crawled.nil? ? query = {} : query = { :crawled => crawled }
         sort = { :date_added => 1 }
         results = retrieve(:urls, query, sort, {}, limit, skip, &block)
-        if results.respond_to?(:map)
-            results = results.map { |url_doc| Url.new(url_doc) }
-        end
+        results.map! { |url_doc| Url.new(url_doc) }
         return results if block.nil?
         results.each { |url| block.call(url) }
     end
