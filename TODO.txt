@@ -12,6 +12,7 @@ Create an executable with some basic CLI func.
 
 Other
 -----
+Sort tab formatting to be consistenent throughou (with 2 space tabs).
 Think about ignoring non html documents/urls e.g. http://server/image.jpg etc.
 Check if Document::TEXT_ELEMENTS is expansive enough.
 Think about how we store DB connection details, is it right?

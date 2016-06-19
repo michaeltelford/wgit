@@ -162,6 +162,12 @@ Minitest framework."
         assert_equal @search_results, doc.text
     end
     
+    def test_xpath
+        doc = Document.new @url, @html
+        results = doc.xpath("//title")
+        assert_equal @mongo_doc_dup[:title], results.first.content
+    end
+    
     private
     
     def assert_doc(doc)

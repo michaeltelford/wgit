@@ -21,17 +21,17 @@ class Document
             @url = url_or_doc
             @html = html
 		
-            doc = Nokogiri::HTML(html) do |config|
+            @doc = Nokogiri::HTML(html) do |config|
                 # TODO: Remove #'s below when running in production.
                 #config.options = Nokogiri::XML::ParseOptions::STRICT | 
                 #                 Nokogiri::XML::ParseOptions::NONET
             end
 		
-            init_title(doc)
-    		    init_author(doc)
-    		    init_keywords(doc)
-            init_links(doc)
-            init_text(doc)
+            init_title
+    		    init_author
+    		    init_keywords
+            init_links
+            init_text
             @score = 0.0
         else
             # Init from a mongo collection document.
@@ -102,6 +102,7 @@ class Document
     
     def to_h(include_html = false)
         ignore = include_html ? [] : [:@html]
+        ignore << :@doc # Always ignore :@doc
         Utils.to_h(self, ignore)
     end
     
@@ -147,8 +148,18 @@ class Document
         results.keys.reverse
     end
     
+    # Performs a text search (see search for details) but assigns the results 
+    # to the @text instance variable. This can be used for sub search 
+    # functionality. Note that there is no way of getting the original text 
+    # back however. 
     def search!(text)
         @text = search(text)
+    end
+    
+    # Uses Nokogiri's xpath method to search the doc's html and return the 
+    # results. 
+    def xpath(xpath)
+  		@doc.xpath(xpath)
     end
 	
 private
@@ -197,9 +208,8 @@ private
         xpath
     end
     
-    def init_var(doc, xpath, var, first_result = true)
-		raise unless doc.respond_to?(:xpath)
-		results = doc.xpath(xpath)        
+    def init_var(xpath, var, first_result = true)
+		results = @doc.xpath(xpath)        
         unless results.nil? || results.empty?
             result = if first_result
                          results.first.content
@@ -210,33 +220,33 @@ private
         end
     end
 	
-	def init_title(doc)
+	def init_title
     @title = nil
     xpath = "//title"
-    init_var(doc, xpath, :@title)
+    init_var(xpath, :@title)
     process_str(@title) unless @title.nil?
 	end
 	
-	def init_author(doc)
+	def init_author
     @author = nil
     xpath = "//meta[@name='author']/@content"
-    init_var(doc, xpath, :@author)
+    init_var(xpath, :@author)
     process_str(@author) unless @author.nil?
 	end
 	
-	def init_keywords(doc)
+	def init_keywords
     @keywords = nil
     xpath = "//meta[@name='keywords']/@content"
-    init_var(doc, xpath, :@keywords)
+    init_var(xpath, :@keywords)
     return @keywords = [] unless @keywords
     @keywords = @keywords.split(",")
     process_arr(@keywords)
 	end
     
-    def init_links(doc)
+    def init_links
       @links = nil
       xpath = "//a/@href"
-      init_var(doc, xpath, :@links, false)
+      init_var(xpath, :@links, false)
       return @links = [] unless @links
       process_arr(@links)
       @links.reject! { |link| link == "/" }
@@ -251,14 +261,15 @@ private
       process_internal_links(@links)
     end
     
-    def init_text(doc)
+    def init_text
       @text = nil
       xpath = text_elements_xpath
-      init_var(doc, xpath, :@text, false)
+      init_var(xpath, :@text, false)
       return @text = [] unless @text
       process_arr(@text)
     end
     
 	alias :to_hash :to_h
   alias :relative_links :internal_links
+  alias :relative_full_links :internal_full_links
 end

@@ -31,11 +31,11 @@ url = Url.new "https://wikileaks.org/What-is-Wikileaks.html"
 html = crawler.crawl url
 html.stats # => {:url=>44, :html=>28133, :title=>17, :keywords=>0, :links=>35, :text_length=>67, :text_bytes=>13735}
 
+html.class # => Pinch::Document
+Document.instance_methods(false).sort # => [:author, :empty?, :external_links, :html, :internal_full_links, :internal_links, :keywords, :links, :relative_links, :score, :search, :search!, :size, :stats, :text, :title, :to_h, :to_hash, :url, :xpath]
+
 results = html.search "corruption"
 results.first # => "ial materials involving war, spying and corruption. It has so far published more"
-
-html.class # => Pinch::Document
-Document.instance_methods(false).sort # => [:author, :empty?, :external_links, :html, :internal_full_links, :internal_links, :keywords, :links, :relative_links, :score, :search, :search!, :size, :stats, :text, :title, :to_h, :to_hash, :url]
 ```
 
 ## Development

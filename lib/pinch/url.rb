@@ -95,10 +95,6 @@ class Url < String
         @date_crawled = bool ? Utils.time_stamp : nil
     end
     
-    def crawled?
-        crawled
-    end
-    
     def to_uri
         @uri
     end
@@ -133,4 +129,5 @@ class Url < String
     alias :host :to_host
     alias :base :to_base
     alias :internal_link? :relative_link?
+    alias :crawled? :crawled
 end
