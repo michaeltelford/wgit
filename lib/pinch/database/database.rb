@@ -8,6 +8,7 @@ require 'mongo'
 
 # @author Michael Telford
 # Class modeling a DB connection and search engine related functionality.
+# The most common methods are: insert, update, urls, search, stats, size. 
 class Database
     include Assertable
     
@@ -76,7 +77,8 @@ class Database
     
     # Retreive Data.
     
-    # A limit of 0 returns all uncrawled urls.
+    # A limit of 0 means all urls are returned.
+    # A crawled parameter value of nil returns all urls.
     def urls(crawled = false, limit = 0, skip = 0, &block)
         crawled.nil? ? query = {} : query = { :crawled => crawled }
         sort = { :date_added => 1 }

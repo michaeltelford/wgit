@@ -10,7 +10,7 @@ NUM_SITES_TO_CRAWL = 1 # Use -1 for infinite crawling.
 MAX_DATA_SIZE = 104857600 # 100MB
 DB = Database.new
 
-def main
+def crawl_the_web
     crawler = Crawler.new
     loop_count = 0
     
@@ -81,5 +81,5 @@ def write_urls_to_db(urls)
 end
 
 if __FILE__ == $0
-    main
+    crawl_the_web
 end

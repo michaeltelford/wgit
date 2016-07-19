@@ -243,31 +243,31 @@ private
     process_arr(@keywords)
 	end
     
-    def init_links
-      @links = nil
-      xpath = "//a/@href"
-      init_var(xpath, :@links, false)
-      return @links = [] unless @links
-      process_arr(@links)
-      @links.reject! { |link| link == "/" }
-      @links.map! do |link|
-        begin
-          Url.new(link)
-        rescue
-          nil
-        end
+  def init_links
+    @links = nil
+    xpath = "//a/@href"
+    init_var(xpath, :@links, false)
+    return @links = [] unless @links
+    process_arr(@links)
+    @links.reject! { |link| link == "/" }
+    @links.map! do |link|
+      begin
+        Url.new(link)
+      rescue
+        nil
       end
-      @links.reject! { |link| link.nil? }
-      process_internal_links(@links)
     end
-    
-    def init_text
-      @text = nil
-      xpath = text_elements_xpath
-      init_var(xpath, :@text, false)
-      return @text = [] unless @text
-      process_arr(@text)
-    end
+    @links.reject! { |link| link.nil? }
+    process_internal_links(@links)
+  end
+  
+  def init_text
+    @text = nil
+    xpath = text_elements_xpath
+    init_var(xpath, :@text, false)
+    return @text = [] unless @text
+    process_arr(@text)
+  end
     
 	alias :to_hash :to_h
   alias :relative_links :internal_links

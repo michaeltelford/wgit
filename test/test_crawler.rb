@@ -2,7 +2,6 @@ require "minitest/autorun"
 require_relative "test_helper"
 require_relative "../lib/pinch/url"
 require_relative "../lib/pinch/crawler"
-require "byebug"
 
 # @author Michael Telford
 class TestCrawler < Minitest::Test
