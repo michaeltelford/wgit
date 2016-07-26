@@ -1,5 +1,5 @@
 require "minitest/autorun"
-require_relative "test_helper"
+require_relative "helpers/test_helper"
 require_relative "../lib/pinch/url"
 require_relative "../lib/pinch/document"
 
@@ -10,7 +10,7 @@ class TestDocument < Minitest::Test
     def setup
         # Runs before every test.
         @url = Url.new("http://www.mytestsite.com")
-        @html = File.read("test/test_doc.html")
+        @html = File.read("test/helpers/test_doc.html")
         @mongo_doc_dup = { 
             :url => @url, 
             :html => @html,

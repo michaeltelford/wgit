@@ -1,0 +1,30 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    bson (4.1.1)
+    byebug (9.0.5)
+    mini_portile2 (2.1.0)
+    minitest (5.9.0)
+    mongo (2.2.5)
+      bson (~> 4.0)
+    nokogiri (1.6.8)
+      mini_portile2 (~> 2.1.0)
+      pkg-config (~> 1.1.7)
+    pkg-config (1.1.7)
+    yard (0.9.0)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  byebug
+  minitest
+  mongo (~> 2.1)
+  nokogiri
+  yard
+
+RUBY VERSION
+   ruby 2.2.2p95
+
+BUNDLED WITH
+   1.12.5

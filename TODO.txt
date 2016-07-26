@@ -2,6 +2,7 @@
 Main
 ----
 Unit test all functionality.
+Rename 'pinch' to 'wgit' (the gem name has been reserved already).
 Database.rb -> Change urls to return all urls and create urls_crawled and 
 urls_uncrawled.
 Put all classes in a single module called Pinch e.g. Pinch::Url etc. - See 
@@ -9,7 +10,7 @@ MiniTest documentation for a similar example.  This prevents naming conflicts.
 Use Utils#each where possible across project.
 Use super if possible when overriding getter and setters.
 Check for uses of @var instead of var in classes.
-Append '.freeze' to all constants (removes warnings) and see if load.rb breaks.
+Append '.freeze' to all constants where they shouldn't be changed.
 Create a RoR app for the search engine front end.
 Create an executable with some basic CLI func.
 
@@ -24,9 +25,10 @@ Think about potentially updating the crawler (main.rb) to be multi threaded.
 
 Gem Publishing
 --------------
-Remove the DB details and ensure 'attr_reader :client' is commented out.
+Remove the DB details - VERY IMPORTANT!
+Run 'rake compile' and ensure no warnings/errors.
 Check all tests are passing with minimal STDOUT noise.
-Run 'yard' to update documentation.
+Run 'yard' to update documentation and test README Usage works. 
 Build gem from gemspec, install and test it manually.
 Commit, tag and push it to the Git origin remote.
 Upload the gem to rubygems.org.

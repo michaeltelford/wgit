@@ -70,12 +70,10 @@ class Crawler
         return doc.external_links if internal_urls.empty?
         
         loop do
-            unless internal_urls.uniq.nil?
-                internal_urls.uniq!
-            end
+            internal_urls.uniq! unless internal_urls.uniq.nil?
             
             links = internal_urls - crawled_urls
-            break if links.length < 1
+            break if links.empty?
             
             links.each do |link|
                 doc = crawl_url(Url.concat(base_url.to_base, link), &block)
@@ -94,7 +92,7 @@ private
     # Add the document to the @docs array for later processing
     # or let the block process it here and now.
     def handle_crawl_block(url, &block)
-        if block.nil?
+        if not block_given?
 		        @docs << crawl_url(url)
             nil
         else

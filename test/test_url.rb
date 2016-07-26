@@ -1,5 +1,5 @@
 require "minitest/autorun"
-require_relative "test_helper"
+require_relative "helpers/test_helper"
 require_relative "../lib/pinch/url"
 
 # @author Michael Telford

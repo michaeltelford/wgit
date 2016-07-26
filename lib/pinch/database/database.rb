@@ -15,9 +15,6 @@ class Database
     # Is relative to the root project folder, not this file. 
     LOG_FILE_PATH = "misc/mongo_log.txt"
     
-    ### TODO: COMMENT OUT BELOW LINE, ITS FOR DEV ONLY. ###
-    #attr_reader :client
-    
     def initialize
         logger = Logger.new(LOG_FILE_PATH)
         address = "#{CONNECTION_DETAILS[:host]}:#{CONNECTION_DETAILS[:port]}"
