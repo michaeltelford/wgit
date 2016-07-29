@@ -26,7 +26,7 @@ class Database
                                     :truncate_logs => false)
     end
     
-    # Create Data.
+    ### Create Data ###
     
     def insert(data)
         if data.is_a?(Url)
@@ -72,17 +72,25 @@ class Database
         create(:documents, doc_or_docs)
     end
     
-    # Retreive Data.
+    ### Retrieve Data ###
     
+    # A crawled parameter value of nil (the default) returns all urls.
     # A limit of 0 means all urls are returned.
-    # A crawled parameter value of nil returns all urls.
-    def urls(crawled = false, limit = 0, skip = 0, &block)
-        crawled.nil? ? query = {} : query = { :crawled => crawled }
-        sort = { :date_added => 1 }
-        results = retrieve(:urls, query, sort, {}, limit, skip, &block)
-        results.map! { |url_doc| Url.new(url_doc) }
-        return results if block.nil?
-        results.each { |url| block.call(url) }
+    def urls(crawled = nil, limit = 0, skip = 0, &block)
+      crawled.nil? ? query = {} : query = { :crawled => crawled }
+      sort = { :date_added => 1 }
+      results = retrieve(:urls, query, sort, {}, limit, skip)
+      results.map! { |url_doc| Url.new(url_doc) }
+      return results unless block_given?
+      results.each { |url| block.call(url) }
+    end
+    
+    def crawled_urls(limit = 0, skip = 0, &block)
+      urls(true, limit, skip, &block)
+    end
+    
+    def uncrawled_urls(limit = 0, skip = 0, &block)
+      urls(false, limit, skip, &block)
     end
 
     # Currently all searches are case insensitive.
@@ -138,7 +146,7 @@ class Database
         stats[:dataSize]
     end
     
-    # Update Data.
+    ### Update Data ###
     
     def update(data)
         if data.is_a?(Url)

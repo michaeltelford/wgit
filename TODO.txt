@@ -25,7 +25,7 @@ Think about potentially updating the crawler (main.rb) to be multi threaded.
 
 Gem Publishing
 --------------
-Remove the DB details - VERY IMPORTANT!
+Remove the DB authentication details - VERY IMPORTANT!
 Run 'rake compile' and ensure no warnings/errors.
 Check all tests are passing with minimal STDOUT noise.
 Run 'yard' to update documentation and test README Usage works. 

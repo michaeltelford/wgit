@@ -1,12 +1,14 @@
+require_relative "database_default_data"
+require_relative "mongo_connection_details"
 require 'mongo'
-require_relative "test_helper"
-require_relative "test_database_default_data"
-require_relative "../../lib/pinch/database/mongo_connection_details"
 
 # @author Michael Telford
-# Helper class for the Database tests to help seed and clear data. 
+# Helper class for the Database to seed and clear data. Used for testing and 
+# development. Because this class queries the DB it is difficult to test 
+# therefore it doesn't currently have unit tests. This class was originally 
+# developed to assist in testing database.rb.
 # The main methods include: clear, seed, num_records, url?, doc?
-module TestDatabaseHelper
+module DatabaseHelper
   
   # Log path is relative to the root project folder, not this file. 
   log_file_path = "misc/test_mongo_log.txt".freeze
@@ -44,8 +46,8 @@ module TestDatabaseHelper
   # Returns the number of seeded/inserted documents in the DB. 
   # Code example:
   # seed do
-  #   url({ url: "http://www.google.co.uk" })
-  #   doc({ url: "https://www.myserver.org", html: "<html></html>" })
+  #   url(url: "http://www.google.co.uk")
+  #   doc(url: "https://www.myserver.org", html: "<html></html>")
   #   url 3   # Seeds 3 of the default url records.
   #   doc     # Seeds 1 of the default doc records.
   # end
@@ -98,7 +100,7 @@ private
     if hash_or_int and hash_or_int.is_a?(Hash)
       @@urls << hash_or_int
     else
-      hash_or_int.times { @@urls << TestDatabaseDefaultData.default_url }
+      hash_or_int.times { @@urls << DatabaseDefaultData.default_url }
     end
   end
   
@@ -106,7 +108,7 @@ private
     if hash_or_int and hash_or_int.is_a?(Hash)
       @@docs << hash_or_int
     else
-      hash_or_int.times { @@docs << TestDatabaseDefaultData.default_doc }
+      hash_or_int.times { @@docs << DatabaseDefaultData.default_doc }
     end
   end
   

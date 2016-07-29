@@ -7,4 +7,8 @@ load 'lib/pinch/assertable.rb'
 load 'lib/pinch/database/database.rb'
 load 'lib/pinch/database/model.rb'
 load 'lib/pinch/database/mongo_connection_details.rb'
-load 'test/helpers/test_database_helper.rb'
+load 'lib/pinch/database/database_helper.rb'
+load 'lib/pinch/database/database_default_data.rb'
+
+include Assertable
+include DatabaseHelper

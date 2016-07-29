@@ -6,3 +6,4 @@ doc
 pinch-*.gem
 /nbproject/private/nbproject
 .byebug_history
+test_mongo_log.txt

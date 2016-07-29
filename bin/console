@@ -1,0 +1,20 @@
+#!/usr/bin/env ruby
+
+require 'irb'
+require 'bundler/setup'
+
+# Load the most recent code into the session.
+# Note: The cwd is the project root, not the bin folder.
+load 'load.rb'
+
+# Seed some fixture data for the session.
+# TODO.
+
+# Start the REPL session.
+puts "\nStarting an interactive session to play, do great things..."
+puts "To see your code changes restart the console or type 'load \"load.rb\"'.\n\n"
+IRB.start
+puts "Interactive session complete, hope you had a good one!"
+
+# Do any post pry cleanup tasks here...
+# TODO.

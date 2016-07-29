@@ -48,7 +48,7 @@ class Crawler
 		markup = fetch(url)
     url.crawled = true
     doc = Document.new(url, markup)
-    block.call(doc) unless block.nil?
+    block.call(doc) if block_given?
     doc.empty? ? nil : doc
 	end
     

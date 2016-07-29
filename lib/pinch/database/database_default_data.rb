@@ -2,9 +2,9 @@ require 'securerandom'
 
 # Module containing the default url and doc objects for database testing. 
 # We use an uuid on the url's because they have unique indexes against them. 
-module TestDatabaseDefaultData
+module DatabaseDefaultData
 
-  def TestDatabaseDefaultData.default_url
+  def self.default_url
     {
       "url": "http://www.google.co.uk/#{SecureRandom.uuid}",
       "crawled": false,
@@ -14,7 +14,7 @@ module TestDatabaseDefaultData
     }
   end
 
-  def TestDatabaseDefaultData.default_doc
+  def self.default_doc
     {
       "url": "http://altitudejunkies.com/everest.html/#{SecureRandom.uuid}",
       "title": "Altitude Junkies | Everest",
