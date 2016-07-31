@@ -4,7 +4,7 @@ require 'securerandom'
 # We use an uuid on the url's because they have unique indexes against them. 
 module DatabaseDefaultData
 
-  def self.default_url
+  def self.url
     {
       "url": "http://www.google.co.uk/#{SecureRandom.uuid}",
       "crawled": false,
@@ -14,7 +14,7 @@ module DatabaseDefaultData
     }
   end
 
-  def self.default_doc
+  def self.doc
     {
       "url": "http://altitudejunkies.com/everest.html/#{SecureRandom.uuid}",
       "title": "Altitude Junkies | Everest",

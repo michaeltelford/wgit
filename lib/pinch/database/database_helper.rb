@@ -24,7 +24,7 @@ module DatabaseHelper
   @@urls = []
   @@docs = []
     
-  # Returns the number of deleted records.                         
+  # Returns the number of deleted records.
   def clear_urls
     @@client[:urls].delete_many({}).n
   end
@@ -96,20 +96,32 @@ accept duplicate urls. Exception message: #{ex.message}"
   
 private
 
-  def url(hash_or_int = 1)
-    if hash_or_int and hash_or_int.is_a?(Hash)
-      @@urls << hash_or_int
+  def url(hashes_or_int = 1)
+    if hashes_or_int and hash_or_array?(hashes_or_int)
+      if hashes_or_int.is_a?(Hash)
+        @@urls << hashes_or_int
+      else
+        @@urls.concat(hashes_or_int)
+      end
     else
-      hash_or_int.times { @@urls << DatabaseDefaultData.default_url }
+      hashes_or_int.times { @@urls << DatabaseDefaultData.url }
     end
   end
   
-  def doc(hash_or_int = 1)
-    if hash_or_int and hash_or_int.is_a?(Hash)
-      @@docs << hash_or_int
+  def doc(hashes_or_int = 1)
+    if hashes_or_int and hash_or_array?(hashes_or_int)
+      if hashes_or_int.is_a?(Hash)
+        @@docs << hashes_or_int
+      else
+        @@docs.concat(hashes_or_int)
+      end
     else
-      hash_or_int.times { @@docs << DatabaseDefaultData.default_doc }
+      hashes_or_int.times { @@docs << DatabaseDefaultData.doc }
     end
+  end
+  
+  def hash_or_array?(obj)
+    obj.is_a?(Hash) or obj.is_a?(Array)
   end
   
   alias_method :nuke, :clear
@@ -117,4 +129,6 @@ private
   alias_method :document?, :doc?
   alias_method :num_documents, :num_docs
   alias_method :clear_documents, :clear_docs
+  alias_method :urls, :url
+  alias_method :docs, :doc
 end

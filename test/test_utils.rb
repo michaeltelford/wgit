@@ -2,12 +2,24 @@ require "minitest/autorun"
 require_relative "helpers/test_helper"
 require_relative "../lib/pinch/utils"
 
+# We use a class rather than a Struct because a Struct instance doesn't
+# have instance_variables which Utils.to_h uses. 
+# @author Michael Telford
+class Person
+    attr_accessor :name, :age, :height
+    def initialize
+        @name = "Bob"
+        @age = 45
+        @height = "5'11"
+    end
+end
+
 # @author Michael Telford
 class TestUtils < Minitest::Test
     include TestHelper
     
+    # Runs before every test.
     def setup
-        # Runs before every test.
         @person = Person.new
         @to_h_result = {
             :name => "Bob",
@@ -28,10 +40,6 @@ class TestUtils < Minitest::Test
         str = "hello"
         Utils.each(str) { |el| el.replace(el + 1.to_s) }
         assert_equal "hello1", str
-    end
-    
-    def p_debug
-        flunk "TODO: Send output to a file and assert the contents"
     end
     
     def test_format_sentence_length
@@ -65,14 +73,5 @@ class TestUtils < Minitest::Test
     
     def test_printf_search_results
         flunk "TODO: Send output to a file and assert the contents"
-    end
-end
-
-class Person
-    attr_accessor :name, :age, :height
-    def initialize
-        @name = "Bob"
-        @age = 45
-        @height = "5'11"
     end
 end

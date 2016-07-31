@@ -3,7 +3,7 @@
 require_relative 'crawler'
 require_relative 'database/database'
 
-# Script which sets up a crawler and saves the indexed docs to a data source.
+# Script which sets up a crawler and saves the indexed docs to a database.
 # @author Michael Telford
 
 NUM_SITES_TO_CRAWL = 1 # Use -1 for infinite crawling.
@@ -14,12 +14,9 @@ def crawl_the_web
     crawler = Crawler.new
     loop_count = 0
     
-    while DB.size < MAX_DATA_SIZE do
-        break if loop_count == NUM_SITES_TO_CRAWL
-        loop_count += 1
-        
-        puts "Database size: #{DB.size}"
-        crawler.urls = DB.urls
+    while DB.size < MAX_DATA_SIZE and loop_count < NUM_SITES_TO_CRAWL do
+        puts "Current database size: #{DB.size}"
+        crawler.urls = DB.uncrawled_urls
 
         if crawler.urls.length < 1
             puts "No urls to crawl, exiting."
@@ -31,21 +28,27 @@ def crawl_the_web
         urls_count = 0
         
         crawler.urls.each do |url|
-            url.crawled = true
-            raise unless DB.update(url) > 0
-            
-            site_docs_count = 0
-            ext_links = crawler.crawl_site(url) do |doc|
-                unless doc.empty?
-                    if write_doc_to_db(doc)
-                        docs_count += 1
-                        site_docs_count += 1
-                    end
-                end
-            end
-            
-            urls_count += write_urls_to_db(ext_links)
-            puts "Crawled and saved #{site_docs_count} docs for the site: #{url}"
+          if loop_count >= NUM_SITES_TO_CRAWL
+            puts "Max number of sites to crawl reached, exiting."
+            return
+          end
+          loop_count += 1
+          
+          url.crawled = true
+          raise unless DB.update(url) > 0
+          
+          site_docs_count = 0
+          ext_links = crawler.crawl_site(url) do |doc|
+              unless doc.empty?
+                  if write_doc_to_db(doc)
+                      docs_count += 1
+                      site_docs_count += 1
+                  end
+              end
+          end
+          
+          urls_count += write_urls_to_db(ext_links)
+          puts "Crawled and saved #{site_docs_count} docs for the site: #{url}"
         end
     
         puts "Crawled and saved docs for #{docs_count} url(s) overall for this iteration."

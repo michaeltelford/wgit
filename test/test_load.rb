@@ -5,13 +5,12 @@ require_relative "helpers/test_helper"
 class TestLoad < Minitest::Test
     include TestHelper
     
+    # Runs before every test.
     def setup
-        # Runs before every test.
     end
     
     def test_load
         # TODO: Supress the load output by writing it to a file.
-        #assert load 'load.rb'
-        flunk "TODO: test_load with suppressed output"
+        assert load 'load.rb'
     end
 end

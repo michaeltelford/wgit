@@ -33,14 +33,14 @@ class Database
             insert_urls(data)
         elsif data.is_a?(Document)
             insert_docs(data)
-        elsif data.respond_to?(:map)
+        elsif data.respond_to?(:first)
             if data.first.is_a?(Url)
                 insert_urls(data)
             else
                 insert_docs(data)
             end
         else
-            raise "data class/type not currently supported"
+            raise "data is not in the correct format (all Url's or Document's)"
         end
     end
     
@@ -80,7 +80,8 @@ class Database
       crawled.nil? ? query = {} : query = { :crawled => crawled }
       sort = { :date_added => 1 }
       results = retrieve(:urls, query, sort, {}, limit, skip)
-      results.map! { |url_doc| Url.new(url_doc) }
+      # results.respond_to? :map! is false so we use map and overwrite the var.
+      results = results.map { |url_doc| Url.new(url_doc) }
       return results unless block_given?
       results.each { |url| block.call(url) }
     end
@@ -111,28 +112,31 @@ class Database
     # @param limit [Fixnum] the max length/count of the results array.
     # @param skip [Fixnum] the number of results to skip, starting with the 
     # most relevant based upon the textScore of the search. 
-    # @param block [Block] a block which is passed each result if provided. 
+    # @param block [Block] a block which if provided is passed to each result. 
     # 
     # @return [Array] of Document objects representing the search results.
     def search(text, whole_sentence = false, limit = 10, skip = 0, &block)
-        text.strip!
-        text.replace("\"" + text + "\"") if whole_sentence
-        
-        # The textScore sorts based on the most search hits.
-        # We use the textScore hash as a sort and a projection below.
-        # :$caseSensitive => case_sensitive, # 3.2+ only.
-        sort_proj = { :score => { :$meta => "textScore" } }
-        query = { :$text => { :$search => text } }
-        results = retrieve(:documents, query, sort_proj, sort_proj, 
-                           limit, skip, &block)
-        
-        return [] if results.count < 1
-        results.map { |mongo_doc| Document.new(mongo_doc) }
+      text.strip!
+      text.replace("\"" + text + "\"") if whole_sentence
+      
+      # The textScore sorts based on the most search hits.
+      # We use the textScore hash as a sort and a projection below.
+      # :$caseSensitive => case_sensitive, # 3.2+ only.
+      sort_proj = { :score => { :$meta => "textScore" } }
+      query = { :$text => { :$search => text } }
+      results = retrieve(:documents, query, sort_proj, sort_proj, 
+                         limit, skip)
+      
+      return [] if results.count < 1
+      # results.respond_to? :map! is false so we use map and overwrite the var.
+      results = results.map { |mongo_doc| Document.new(mongo_doc) }
+      return results unless block_given?
+      results.each { |doc| block.call(doc) }
     end
 
     # Performs a search and pretty prints the results.
     def search_p(text, whole_sentence = false, limit = 10, 
-                         skip = 0, sentence_length = 80, &block)
+                 skip = 0, sentence_length = 80, &block)
         results = search(text, whole_sentence, limit, skip, &block)
         Utils.printf_search_results(results, text, false, sentence_length)
     end
@@ -149,29 +153,29 @@ class Database
     ### Update Data ###
     
     def update(data)
-        if data.is_a?(Url)
-            update_url(data)
-        elsif data.is_a?(Document)
-            update_doc(data)
-        else
-            raise "data class/type not currently supported"
-        end
+      if data.is_a?(Url)
+        update_url(data)
+      elsif data.is_a?(Document)
+        update_doc(data)
+      else
+        raise "data is not in the correct format (all Url's or Document's)"
+      end
     end
     
     def update_url(url)
-        assert_type(url, Url)
-        selection = { :url => url }
-        url_hash = Model.url(url).merge(Model.common_update_data)
-        update = { "$set" => url_hash }
-        _update(true, :urls, selection, update)
+      assert_type(url, Url)
+      selection = { :url => url }
+      url_hash = Model.url(url).merge(Model.common_update_data)
+      update = { "$set" => url_hash }
+      _update(true, :urls, selection, update)
     end
     
     def update_doc(doc)
-        assert_type(doc, Document)
-        selection = { :url => doc.url }
-        doc_hash = Model.document(doc).merge(Model.common_update_data)
-        update = { "$set" => doc_hash }
-        _update(true, :documents, selection, update)
+      assert_type(doc, Document)
+      selection = { :url => doc.url }
+      doc_hash = Model.document(doc).merge(Model.common_update_data)
+      update = { "$set" => doc_hash }
+      _update(true, :documents, selection, update)
     end
     
 private
@@ -203,8 +207,10 @@ private
         if data.is_a?(Hash)
             data.merge!(Model.common_insert_data)
             result = @client[collection.to_sym].insert_one(data)
-            raise "DB write (insert) failed" unless write_succeeded?(result)
-            result
+            unless write_succeeded?(result)
+              raise "DB write (insert) failed"
+            end
+            result.n
         # Multiple docs.
         elsif data.is_a?(Array)
             assert_arr_types(data, Hash)
@@ -215,19 +221,17 @@ private
             unless write_succeeded?(result, data.length)
                 raise "DB write(s) failed"
             end
-            result
+            result.inserted_count
         else
             raise "data must be a Hash or an Array of Hash's"
         end
     end
     
     def retrieve(collection, query, sort = {}, projection = {}, 
-                 limit = 0, skip = 0, &block)
+                 limit = 0, skip = 0)
         assert_type(query, Hash)
-        result = @client[collection.to_sym].find(query).projection(projection)
-                 .skip(skip).limit(limit).sort(sort)
-        return result if block.nil?
-        result.each { |obj| block.call(obj) }
+        @client[collection.to_sym].find(query).projection(projection)
+                                  .skip(skip).limit(limit).sort(sort)
     end
     
     # NOTE: The Model.common_update_data should be merged in the calling 

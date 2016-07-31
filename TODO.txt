@@ -2,26 +2,30 @@
 Main
 ----
 Unit test all functionality.
-Rename 'pinch' to 'wgit' (the gem name has been reserved already).
+Rename 'pinch' to 'wgit' (the gem name has been reserved already), then rename 
+the repo on bitbucket and manage with CircleCI. 
 Database.rb -> Change urls to return all urls and create urls_crawled and 
 urls_uncrawled.
 Put all classes in a single module called Pinch e.g. Pinch::Url etc. - See 
 MiniTest documentation for a similar example.  This prevents naming conflicts. 
-Use Utils#each where possible across project.
-Use super if possible when overriding getter and setters.
-Check for uses of @var instead of var in classes.
-Append '.freeze' to all constants where they shouldn't be changed.
+Merge the good bits of 'bundle gem' output into this project e.g. rake tasks. 
 Create a RoR app for the search engine front end.
 Create an executable with some basic CLI func.
 
 Other
 -----
+Replace individual require's with a require 'pinch.rb'/'wgit.rb'.
+Use Utils#each where possible across project.
+Use super if possible when overriding getter and setters.
+Check for uses of @var instead of var in classes.
+Append '.freeze' to all constants where they shouldn't be changed.
 Sort tab formatting to be consistenent throughout (with 2 space tabs).
 Think about ignoring non html documents/urls e.g. http://server/image.jpg etc.
 Check if Document::TEXT_ELEMENTS is expansive enough.
 Think about how we store DB connection details, is it right?
 Add logging functionality (possibly use the mongo logger).
 Think about potentially updating the crawler (main.rb) to be multi threaded.
+Think about potentially using DB._update's update_many func.
 
 Gem Publishing
 --------------
@@ -29,8 +33,9 @@ Remove the DB authentication details - VERY IMPORTANT!
 Run 'rake compile' and ensure no warnings/errors.
 Check all tests are passing with minimal STDOUT noise.
 Run 'yard' to update documentation and test README Usage works. 
+Increase the version number (gemspec or VERSION.rb?)
 Build gem from gemspec, install and test it manually.
-Commit, tag and push it to the Git origin remote.
+Commit, tag (with version #) and push it to the Git origin remote.
 Upload the gem to rubygems.org.
 
 Issues

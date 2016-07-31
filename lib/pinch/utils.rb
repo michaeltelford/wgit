@@ -24,15 +24,6 @@ module Utils
             yield obj_or_objs
         end
     end
-    
-    # Prints keys and values. Useful for debugging.
-    def self.p_debug(debug_hash)
-        debug_hash.each do |k, v|
-            puts "#{k}: #{v}"
-        end
-        puts
-        debug_hash.values
-    end
 
     # Formats the sentence (modifies the receiver) and returns its value.
     # The length will be based on the sentence_limit parameter or the full

@@ -9,7 +9,7 @@ class TestMain < Minitest::Test
         # Runs before every test.
     end
     
-    def test_main
+    def test_crawl_the_web
         # TODO: Refactor main into lib and bin exec, then unit test.
         flunk "TODO: Refactor main into lib and bin exec, then unit test"
     end
