@@ -12,6 +12,7 @@ require_relative "../lib/pinch/database/database_default_data"
 # The classes Url and Document are required types for some Database logic.
 # WARNING: The DB is cleared down prior to each test run.
 class TestDatabase < Minitest::Test
+  include TestHelper
   include Assertable
   include DatabaseHelper
   
@@ -71,12 +72,19 @@ class TestDatabase < Minitest::Test
   end
   
   def test_urls
+    db = Database.new
+    
+    # Test empty urls result.
+    assert_empty_array db.urls
+    assert_empty_array db.crawled_urls
+    assert_empty_array db.uncrawled_urls
+    
+    # Seed url data to the DB.
     # Url 1 crawled == true, Url 2 & 3 crawled == false.
     @urls.first.crawled = true
     @urls.map! { |url| url.to_h }
     seed { urls @urls }
     
-    db = Database.new
     urls = db.urls
     crawled_urls = db.crawled_urls
     uncrawled_urls = db.uncrawled_urls
@@ -102,6 +110,9 @@ class TestDatabase < Minitest::Test
     seed { docs doc_hashes }
     
     db = Database.new
+    
+    # Test no results.
+    assert_empty_array db.search "doesn't_exist_123"
     
     # Test whole_sentence = false.
     results = db.search search_text
@@ -159,5 +170,11 @@ private
       @title = value
     end
     doc.title = title
+  end
+  
+  # Assertion helper method.
+  def assert_empty_array(array)
+    assert_type array, Array
+    assert_empty array
   end
 end

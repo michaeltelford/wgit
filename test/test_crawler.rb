@@ -118,19 +118,20 @@ class TestCrawler < Minitest::Test
     end
     
     def test_crawl_site
-        url = Url.new "http://www.belfastpilates.co.uk"
-        c = Crawler.new url
-        ext_links = c.crawl_site do |doc|
-            refute doc.empty?
-            assert doc.url.start_with?(url)
-            assert doc.url.crawled?
-        end
-        refute_empty ext_links
-        assert_equal ext_links.uniq.length, ext_links.length
-        assert url.crawled?
-        
-        c = Crawler.new "http://doesntexist123"
-        assert_nil c.crawl_site
+      # Test largish site.
+      url = Url.new "http://www.belfastpilates.co.uk"
+      c = Crawler.new url
+      assert_crawl_site c
+      
+      # Test site with externals only on the index page.
+      url = Url.new "http://darrenbor.land"
+      c = Crawler.new url
+      assert_crawl_site c
+      
+      # Test that an invalid url returns nil.
+      url = Url.new "http://doesntexist_123"
+      c = Crawler.new url
+      assert_nil c.crawl_site
     end
     
     private
@@ -147,6 +148,17 @@ class TestCrawler < Minitest::Test
             document = crawler.crawl_url { |doc| assert doc.title }
         end
         assert_crawl_output crawler, document, url
+    end
+    
+    def assert_crawl_site(crawler)
+      ext_links = crawler.crawl_site do |doc|
+          refute doc.empty?
+          assert doc.url.start_with?(crawler.urls.first.to_base)
+          assert doc.url.crawled?
+      end
+      refute_empty ext_links
+      assert_equal ext_links.uniq.length, ext_links.length
+      assert crawler.urls.first.crawled?
     end
     
     def assert_crawl_output(crawler, doc, url = nil)

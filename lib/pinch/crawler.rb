@@ -64,10 +64,10 @@ class Crawler
         return nil if doc.nil?
         
         crawled_urls  = []
-        external_urls = []
+        external_urls = doc.external_links
         internal_urls = doc.internal_links
         
-        return doc.external_links if internal_urls.empty?
+        return doc.external_links.uniq if internal_urls.empty?
         
         loop do
             internal_urls.uniq! unless internal_urls.uniq.nil?

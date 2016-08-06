@@ -1,4 +1,5 @@
 require_relative 'pinch/crawler'
+require_relative 'pinch/web_crawler'
 require_relative 'pinch/url'
 require_relative 'pinch/document'
 require_relative 'pinch/utils'

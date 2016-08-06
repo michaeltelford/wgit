@@ -1,1 +1,0 @@
-./lib/pinch/main.rb

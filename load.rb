@@ -1,5 +1,5 @@
-load 'lib/pinch/main.rb' # Not the root level symlink main.rb
 load 'lib/pinch/crawler.rb'
+load 'lib/pinch/web_crawler.rb'
 load 'lib/pinch/url.rb'
 load 'lib/pinch/document.rb'
 load 'lib/pinch/utils.rb'

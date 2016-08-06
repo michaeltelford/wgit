@@ -271,5 +271,8 @@ private
     
 	alias :to_hash :to_h
   alias :relative_links :internal_links
+  alias :relative_urls :internal_links
   alias :relative_full_links :internal_full_links
+  alias :relative_full_urls :internal_full_links
+  alias :external_urls :external_links
 end

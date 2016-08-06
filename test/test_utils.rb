@@ -22,8 +22,8 @@ class TestUtils < Minitest::Test
     def setup
         @person = Person.new
         @to_h_result = {
-            :name => "Bob",
-            :age => 45
+            name: "Bob",
+            age: 45
         }
     end
     

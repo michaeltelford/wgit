@@ -80,6 +80,7 @@ class Database
       crawled.nil? ? query = {} : query = { :crawled => crawled }
       sort = { :date_added => 1 }
       results = retrieve(:urls, query, sort, {}, limit, skip)
+      return [] if results.count < 1
       # results.respond_to? :map! is false so we use map and overwrite the var.
       results = results.map { |url_doc| Url.new(url_doc) }
       return results unless block_given?
