@@ -7,31 +7,35 @@ require_relative 'database/database'
 module Wgit
   
   # Convience method to crawl the World Wide Web.
-  # The default value (-1) for num_sites_to_crawl is unrestricted.
+  # The default value (-1) for max_sites_to_crawl is unrestricted.
   # The default max_data_size is 1GB.
-  def self.crawl_the_web(num_sites_to_crawl = -1, max_data_size = 1048576000)
+  def self.crawl_the_web(max_sites_to_crawl = -1, max_data_size = 1048576000)
     db = Database.new
-    web_crawler = WebCrawler.new(db, num_sites_to_crawl, max_data_size)
+    web_crawler = WebCrawler.new(db, max_sites_to_crawl, max_data_size)
     web_crawler.crawl_the_web
   end
 
-  # Module and underlying class which sets up a crawler and saves the indexed 
+  # Class which sets up a crawler and saves the indexed 
   # docs to a database. Will crawl the web forever if you let it :-)
   class WebCrawler
-    attr_accessor :num_sites_to_crawl, :max_data_size
+    attr_accessor :max_sites_to_crawl, :max_data_size
     attr_reader :crawler, :db
     
-    def initialize(database, num_sites_to_crawl, max_data_size)
+    def initialize(database, max_sites_to_crawl, max_data_size)
       @crawler = Crawler.new
       @db = database
-      @num_sites_to_crawl = num_sites_to_crawl
+      @max_sites_to_crawl = max_sites_to_crawl
       @max_data_size = max_data_size
     end
     
     def crawl_the_web
+      if max_sites_to_crawl < 0
+        puts "Crawling until the database has been filled or it runs out of \
+urls to crawl (which might be never)."
+      end
       loop_count = 0
       
-      while db.size < max_data_size and loop_count < num_sites_to_crawl do
+      while keep_crawling?(loop_count) do
           puts "Current database size: #{db.size}"
           crawler.urls = db.uncrawled_urls
 
@@ -45,12 +49,13 @@ module Wgit
           urls_count = 0
       
           crawler.urls.each do |url|
-            if loop_count >= num_sites_to_crawl
-              puts "Reached max number of sites to crawl, exiting."
+            unless keep_crawling?(loop_count)
+              puts "Reached max number of sites to crawl or database \
+capacity, exiting."
               return
             end
             loop_count += 1
-        
+
             url.crawled = true
             raise unless db.update(url) == 1
         
@@ -65,17 +70,32 @@ module Wgit
             end
         
             urls_count += write_urls_to_db(ext_links)
-            puts "Crawled and saved #{site_docs_count} docs for the site: #{url}"
+            puts "Crawled and saved #{site_docs_count} docs for the \
+site: #{url}"
           end
   
-          puts "Crawled and saved docs for #{docs_count} url(s) overall for this iteration."
-          puts "Found and saved #{urls_count} external url(s) for the next iteration."
+          puts "Crawled and saved docs for #{docs_count} url(s) overall for \
+this iteration."
+          puts "Found and saved #{urls_count} external url(s) for the next \
+iteration."
       end
     end
   
     private
 
-    # The unique url index on the documents collection prevents duplicate inserts.
+    # Keep crawling or not based on DB size and current loop interation.
+    def keep_crawling?(loop_count)
+      return false if db.size >= max_data_size
+      # If max_sites_to_crawl is -1 for example then crawl away.
+      if max_sites_to_crawl < 0
+        true
+      else
+        loop_count < max_sites_to_crawl
+      end
+    end
+
+    # The unique url index on the documents collection prevents duplicate 
+    # inserts.
     def write_doc_to_db(doc)
         db.insert(doc)
         puts "Saved document for url: #{doc.url}"

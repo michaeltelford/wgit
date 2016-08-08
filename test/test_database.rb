@@ -18,7 +18,7 @@ class TestDatabase < Minitest::Test
   
   # Runs before every test.
   def setup
-    clear
+    clear_db
     @url = Url.new(DatabaseDefaultData.url)
     @doc = Document.new(DatabaseDefaultData.doc)
     num_records = 3

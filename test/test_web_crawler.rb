@@ -11,7 +11,7 @@ class TestWebCrawler < Minitest::Test
     
     # Runs before every test.
     def setup
-      clear
+      clear_db
     end
     
     def test_crawl_the_web
@@ -19,7 +19,7 @@ class TestWebCrawler < Minitest::Test
       seed { url url: url_str, crawled: false }
       
       # Crawl only one site.
-      Wgit.crawl_the_web(1)
+      Wgit.crawl_the_web 1
       
       # Assert that crawled gets updated.
       refute url? url: url_str, crawled: false

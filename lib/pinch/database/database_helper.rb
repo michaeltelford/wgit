@@ -7,7 +7,7 @@ require 'mongo'
 # development. Because this class queries the DB it is difficult to test 
 # therefore it doesn't currently have unit tests. This class was originally 
 # developed to assist in testing database.rb.
-# The main methods include: clear, seed, num_records, url?, doc?
+# The main methods include: clear_db (nuke), seed, num_records, url?, doc?
 module DatabaseHelper
   
   # Log path is relative to the root project folder, not this file. 
@@ -35,7 +35,7 @@ module DatabaseHelper
   end
   
   # Returns the number of deleted records.
-  def clear
+  def clear_db
     clear_urls + clear_docs
   end
   
@@ -124,7 +124,7 @@ private
     obj.is_a?(Hash) or obj.is_a?(Array)
   end
   
-  alias_method :nuke, :clear
+  alias_method :nuke, :clear_db
   alias_method :document, :doc
   alias_method :document?, :doc?
   alias_method :num_documents, :num_docs

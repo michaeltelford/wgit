@@ -123,7 +123,7 @@ class TestCrawler < Minitest::Test
       c = Crawler.new url
       assert_crawl_site c
       
-      # Test site with externals only on the index page.
+      # Test small site with externals only on the index page.
       url = Url.new "http://darrenbor.land"
       c = Crawler.new url
       assert_crawl_site c

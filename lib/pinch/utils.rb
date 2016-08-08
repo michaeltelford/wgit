@@ -71,9 +71,22 @@ module Utils
     end
 
     # Prints out the search results in a search engine page format.
+    # Most of the params are passed to Document#search - see class docs. 
+    # The steam param decides where the printf output is written to, and 
+    # therefore must respond_to? :puts
+    # The format for each result is:
+    #
+    # Title
+    # Keywords (if there are some)
+    # Text Snippet (showing the searched for text if provided)
+    # Url
+    # <empty_line>
     def self.printf_search_results(results, text = nil, case_sensitive = false,
-                                   sentence_length = 80, keyword_count = 5)
+                                   sentence_length = 80, keyword_count = 5, 
+                                   stream = Kernel)
+        raise "stream must respond_to? :puts" unless stream.respond_to? :puts
         keyword_count -= 1 # Because Array's are zero indexed.
+        
         results.each do |doc|
             sentence = if text.nil?
                           nil
@@ -85,13 +98,13 @@ module Utils
                               sentence.strip.empty? ? nil : sentence
                           end
                        end
-            puts doc.title
+            stream.puts doc.title
             unless doc.keywords.empty?
-                puts doc.keywords[0..keyword_count].join(", ")
+                stream.puts doc.keywords[0..keyword_count].join(", ")
             end
-            puts sentence unless sentence.nil?
-            puts doc.url
-            puts
+            stream.puts sentence unless sentence.nil?
+            stream.puts doc.url
+            stream.puts
         end
         nil
     end

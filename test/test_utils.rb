@@ -1,6 +1,8 @@
 require "minitest/autorun"
 require_relative "helpers/test_helper"
 require_relative "../lib/pinch/utils"
+require_relative "../lib/pinch/document"
+require_relative "../lib/pinch/database/database_default_data"
 
 # We use a class rather than a Struct because a Struct instance doesn't
 # have instance_variables which Utils.to_h uses. 
@@ -72,6 +74,56 @@ class TestUtils < Minitest::Test
     end
     
     def test_printf_search_results
-        flunk "TODO: Send output to a file and assert the contents"
+      # Setup the test results data.
+      search_text = "Everest"
+      results = []
+      5.times do
+        doc_hash = DatabaseDefaultData.doc
+        doc_hash[:url] = "http://altitudejunkies.com/everest.html"
+        results << Document.new(doc_hash)
+      end
+      
+      # Setup the temp file to write the printf output to.
+      file_name = SecureRandom.uuid.split("-").last
+      file_path = "#{Dir.tmpdir}/#{file_name}.txt"
+      file = File.new file_path, "w+"
+      
+      Utils.printf_search_results results, search_text, false, 80, 5, file
+      file.close
+      
+      # Assert the file contents against the expected output.
+      text = IO.readlines(file_path).join
+      assert_equal printf_expected_output, text
+    end
+    
+    private
+    
+    def printf_expected_output
+      "Altitude Junkies | Everest
+Everest, Highest Peak, High Altitude, Altitude Junkies
+e Summit for the hugely successful IMAX Everest film from the 1996 spring season
+http://altitudejunkies.com/everest.html
+
+Altitude Junkies | Everest
+Everest, Highest Peak, High Altitude, Altitude Junkies
+e Summit for the hugely successful IMAX Everest film from the 1996 spring season
+http://altitudejunkies.com/everest.html
+
+Altitude Junkies | Everest
+Everest, Highest Peak, High Altitude, Altitude Junkies
+e Summit for the hugely successful IMAX Everest film from the 1996 spring season
+http://altitudejunkies.com/everest.html
+
+Altitude Junkies | Everest
+Everest, Highest Peak, High Altitude, Altitude Junkies
+e Summit for the hugely successful IMAX Everest film from the 1996 spring season
+http://altitudejunkies.com/everest.html
+
+Altitude Junkies | Everest
+Everest, Highest Peak, High Altitude, Altitude Junkies
+e Summit for the hugely successful IMAX Everest film from the 1996 spring season
+http://altitudejunkies.com/everest.html
+
+"
     end
 end
