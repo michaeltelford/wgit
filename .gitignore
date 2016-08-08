@@ -1,9 +1,9 @@
+/nbproject/private/nbproject
 .DS_Store
 .bundle
-mongo_log.txt
 doc
 .yardoc
 pinch-*.gem
-/nbproject/private/nbproject
 .byebug_history
-test_mongo_log.txt
+**/mongo_log.txt
+**/test_mongo_log.txt
