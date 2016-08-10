@@ -5,7 +5,7 @@ require_relative "../lib/pinch/assertable"
 # @author Michael Telford
 class TestAssertable < Minitest::Test
     include TestHelper
-    include Assertable
+    include Wgit::Assertable
     
     def setup
         # Runs before every test.

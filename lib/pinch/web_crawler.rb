@@ -10,8 +10,8 @@ module Wgit
   # The default value (-1) for max_sites_to_crawl is unrestricted.
   # The default max_data_size is 1GB.
   def self.crawl_the_web(max_sites_to_crawl = -1, max_data_size = 1048576000)
-    db = Database.new
-    web_crawler = WebCrawler.new(db, max_sites_to_crawl, max_data_size)
+    db = Wgit::Database.new
+    web_crawler = Wgit::WebCrawler.new(db, max_sites_to_crawl, max_data_size)
     web_crawler.crawl_the_web
   end
 
@@ -22,7 +22,7 @@ module Wgit
     attr_reader :crawler, :db
     
     def initialize(database, max_sites_to_crawl, max_data_size)
-      @crawler = Crawler.new
+      @crawler = Wgit::Crawler.new
       @db = database
       @max_sites_to_crawl = max_sites_to_crawl
       @max_data_size = max_data_size

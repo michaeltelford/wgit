@@ -1,5 +1,5 @@
 Gem::Specification.new do |s|
-  s.name        = 'pinch'
+  s.name        = 'wgit'
   s.version     = '0.1.0'
   s.date        = '2016-03-07'
   s.summary     = "Pinch is a simple web copier, indexer and searcher."
@@ -7,7 +7,7 @@ Gem::Specification.new do |s|
   s.authors     = ["Michael Telford"]
   s.email       = "michael.telford@live.com"
   s.files       = Dir["./lib/**/*.rb"]
-  s.executables << "pinch"
-  s.homepage    = 'http://rubygems.org/gems/pinch'
+  #s.executables << "pinch"
+  s.homepage    = 'http://rubygems.org/gems/wgit'
   s.license     = 'MIT'
 end

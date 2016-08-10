@@ -14,25 +14,25 @@ class TestCrawler < Minitest::Test
             "https://duckduckgo.com",
             "http://www.bing.com"
         ]
-        @urls = @url_str.map { |s| Url.new(s) }
+        @urls = @url_str.map { |s| Wgit::Url.new(s) }
     end
     
     def test_initialise
-        c = Crawler.new
+        c = Wgit::Crawler.new
         assert_empty c.docs
         assert_empty c.urls
         
-        c = Crawler.new(*@url_str)
+        c = Wgit::Crawler.new(*@url_str)
         assert_empty c.docs
         assert_urls c        
         
-        c = Crawler.new(*@urls)
+        c = Wgit::Crawler.new(*@urls)
         assert_empty c.docs
         assert_urls c
     end
     
     def test_urls=
-        c = Crawler.new
+        c = Wgit::Crawler.new
         c.urls = @urls
         assert_urls c
         
@@ -44,7 +44,7 @@ class TestCrawler < Minitest::Test
     end
     
     def test_square_brackets
-        c = Crawler.new
+        c = Wgit::Crawler.new
         c[*@urls]
         assert_urls c
         
@@ -53,7 +53,7 @@ class TestCrawler < Minitest::Test
     end
     
     def test_double_chevron
-        c = Crawler.new
+        c = Wgit::Crawler.new
         c << @urls.first
         assert_urls c, @urls.first(1)
         
@@ -63,8 +63,10 @@ class TestCrawler < Minitest::Test
     end
     
     def test_crawl_urls
-        c = Crawler.new
+        c = Wgit::Crawler.new
         i = 0
+        
+        # Test array of urls as parameter.
         urls = @urls.dup
         document = c.crawl_urls urls do |doc|
             assert_crawl_output c, doc, urls[i]
@@ -72,8 +74,9 @@ class TestCrawler < Minitest::Test
         end
         assert_crawl_output c, document, urls.last
         
+        # Test array of urls as instance var.
         urls = @urls.dup
-        c = Crawler.new(*urls)
+        c = Wgit::Crawler.new(*urls)
         i = 0
         document = c.crawl_urls do |doc|
             assert_crawl_output c, doc, c.urls[i]
@@ -81,31 +84,40 @@ class TestCrawler < Minitest::Test
         end
         assert_crawl_output c, document, urls.last
         
-        c = Crawler.new
+        # Test one url as parameter.
+        c = Wgit::Crawler.new
         url = @urls.dup.first
         document = c.crawl_urls url do |doc|
             assert_crawl_output c, doc, url
         end
         assert_crawl_output c, document, url
         
-        c = Crawler.new
-        url = Url.new("doesnt_exist")
+        # Test invalid url.
+        c = Wgit::Crawler.new
+        url = Wgit::Url.new("doesnt_exist")
         document = c.crawl_urls url do |doc|
             assert doc.empty?
             assert url.crawled
         end
         assert_nil document
+        
+        # Test no block given.
+        urls = @urls.dup
+        document = c.crawl_urls urls
+        assert_crawl_output c, document, urls.last
+        assert_equal urls.length, c.docs.length
+        assert_equal urls, c.docs.map { |doc| doc.url }
     end
     
     def test_crawl_url
-        c = Crawler.new
+        c = Wgit::Crawler.new
         url = @urls.first.dup
         assert_crawl c, url
         
-        c = Crawler.new(*@urls.dup)
+        c = Wgit::Crawler.new(*@urls.dup)
         assert_crawl c
         
-        url = Url.new("doesnt_exist")
+        url = Wgit::Url.new("doesnt_exist")
         doc = c.crawl_url url
         assert_nil doc
         assert url.crawled
@@ -119,18 +131,18 @@ class TestCrawler < Minitest::Test
     
     def test_crawl_site
       # Test largish site.
-      url = Url.new "http://www.belfastpilates.co.uk"
-      c = Crawler.new url
+      url = Wgit::Url.new "http://www.belfastpilates.co.uk"
+      c = Wgit::Crawler.new url
       assert_crawl_site c
       
       # Test small site with externals only on the index page.
-      url = Url.new "http://darrenbor.land"
-      c = Crawler.new url
+      url = Wgit::Url.new "http://darrenbor.land"
+      c = Wgit::Crawler.new url
       assert_crawl_site c
       
       # Test that an invalid url returns nil.
-      url = Url.new "http://doesntexist_123"
-      c = Crawler.new url
+      url = Wgit::Url.new "http://doesntexist_123"
+      c = Wgit::Crawler.new url
       assert_nil c.crawl_site
     end
     

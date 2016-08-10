@@ -7,9 +7,10 @@ gem 'nokogiri', '~> 1.6'
 gem 'mongo', '~> 2.1'
 
 group :development do
-    gem 'yard', '~> 0.9'
-    gem 'byebug', '~> 9.0'
+    gem 'yard'
+    gem 'byebug'
     gem 'minitest', '~> 5.9'
+    gem 'pry'
 end
 
 group :production do

@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 
 require 'irb'
+require 'pry'
 require 'bundler/setup'
 
 # Define a method to facilitate the loading changes.
@@ -12,13 +13,16 @@ end
 # Load the most recent code into the session.
 reload
 
-# Seed some fixture data for the session (must be instance vars).
-#@url = Url.new "https://rubygems.org"
+# Seed some fixture data for the session (must be instance vars for irb).
+#@url = Wgit::Url.new "https://rubygems.org"
 
 # Start the REPL session.
 puts "\nStarting an interactive session to play, do great things..."
-puts "To load your code changes type 'reload'.\n\n"
-IRB.start
+puts "To load your code changes type 'reload', see the DatabaseHelper module for DB interaction commands.\n\n"
+
+#IRB.start
+binding.pry
+
 puts "Interactive session complete, hope you had a good one!"
 
 # Do any post REPL cleanup tasks here...

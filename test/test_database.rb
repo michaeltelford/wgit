@@ -13,30 +13,34 @@ require_relative "../lib/pinch/database/database_default_data"
 # WARNING: The DB is cleared down prior to each test run.
 class TestDatabase < Minitest::Test
   include TestHelper
-  include Assertable
-  include DatabaseHelper
+  include Wgit::Assertable
+  include Wgit::DatabaseHelper
   
   # Runs before every test.
   def setup
     clear_db
-    @url = Url.new(DatabaseDefaultData.url)
-    @doc = Document.new(DatabaseDefaultData.doc)
+    @url = Wgit::Url.new(Wgit::DatabaseDefaultData.url)
+    @doc = Wgit::Document.new(Wgit::DatabaseDefaultData.doc)
     num_records = 3
     @urls = []
-    num_records.times { @urls << Url.new(DatabaseDefaultData.url) }
+    num_records.times do
+      @urls << Wgit::Url.new(Wgit::DatabaseDefaultData.url)
+    end
     @docs = []
-    num_records.times { @docs << Document.new(DatabaseDefaultData.doc) }
+    num_records.times do 
+      @docs << Wgit::Document.new(Wgit::DatabaseDefaultData.doc)
+    end
   end
   
   def test_initialize_connects_to_db
-    Database.new
+    Wgit::Database.new
     pass
   rescue
     flunk
   end
   
   def test_insert_urls
-    db = Database.new
+    db = Wgit::Database.new
     
     # Insert 1 url.
     num_inserted = db.insert @url
@@ -54,7 +58,7 @@ class TestDatabase < Minitest::Test
   end
   
   def test_insert_docs
-    db = Database.new
+    db = Wgit::Database.new
     
     # Insert 1 doc.
     num_inserted = db.insert @doc
@@ -72,7 +76,7 @@ class TestDatabase < Minitest::Test
   end
   
   def test_urls
-    db = Database.new
+    db = Wgit::Database.new
     
     # Test empty urls result.
     assert_empty_array db.urls
@@ -109,7 +113,7 @@ class TestDatabase < Minitest::Test
     doc_hashes = @docs.map { |doc| doc.to_h }
     seed { docs doc_hashes }
     
-    db = Database.new
+    db = Wgit::Database.new
     
     # Test no results.
     assert_empty_array db.search "doesn't_exist_123"
@@ -127,14 +131,14 @@ class TestDatabase < Minitest::Test
   end
   
   def test_stats
-    db = Database.new
+    db = Wgit::Database.new
     stats = db.stats
     refute_nil stats
     refute stats.empty?
   end
   
   def test_size
-    db = Database.new
+    db = Wgit::Database.new
     size = db.size
     refute_nil size
     assert_type size, Float
@@ -143,7 +147,7 @@ class TestDatabase < Minitest::Test
   def test_update_url
     seed { url @url.to_h }
     @url.crawled = true
-    db = Database.new
+    db = Wgit::Database.new
     result = db.update @url
     assert_equal 1, result
     assert url? @url.to_h
@@ -154,7 +158,7 @@ class TestDatabase < Minitest::Test
     title = "Climb Everest!"
     seed { doc @doc.to_h }
     set_doc_title(@doc, title)
-    db = Database.new
+    db = Wgit::Database.new
     result = db.update @doc
     assert_equal 1, result
     assert doc? @doc.to_h

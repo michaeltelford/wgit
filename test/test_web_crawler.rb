@@ -7,7 +7,7 @@ require_relative "../lib/pinch/database/database_helper"
 # WARNING: The DB is cleared down prior to each test run.
 class TestWebCrawler < Minitest::Test
     include TestHelper
-    include DatabaseHelper
+    include Wgit::DatabaseHelper
     
     # Runs before every test.
     def setup

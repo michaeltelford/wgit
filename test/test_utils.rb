@@ -5,7 +5,7 @@ require_relative "../lib/pinch/document"
 require_relative "../lib/pinch/database/database_default_data"
 
 # We use a class rather than a Struct because a Struct instance doesn't
-# have instance_variables which Utils.to_h uses. 
+# have instance_variables which Wgit::Utils.to_h uses. 
 # @author Michael Telford
 class Person
     attr_accessor :name, :age, :height
@@ -30,17 +30,17 @@ class TestUtils < Minitest::Test
     end
     
     def test_to_h
-        h = Utils.to_h @person, [:@height]
+        h = Wgit::Utils.to_h @person, [:@height]
         assert_equal @to_h_result, h
     end
     
     def test_each
         str = ["hello", "goodbye"]
-        Utils.each(str) { |el| el.replace(el + 1.to_s) }
+        Wgit::Utils.each(str) { |el| el.replace(el + 1.to_s) }
         assert_equal ["hello1", "goodbye1"], str
         
         str = "hello"
-        Utils.each(str) { |el| el.replace(el + 1.to_s) }
+        Wgit::Utils.each(str) { |el| el.replace(el + 1.to_s) }
         assert_equal "hello1", str
     end
     
@@ -49,27 +49,31 @@ class TestUtils < Minitest::Test
         
         # Short sentence.
         sentence = "For what"
-        result = Utils.format_sentence_length sentence.dup, 2, sentence_limit
+        result = 
+          Wgit::Utils.format_sentence_length sentence.dup, 2, sentence_limit
         assert_equal sentence, result
         
         # Long sentence: index near start.
         sentence = "For what of the flower if not for soil beneath it?"
-        result = Utils.format_sentence_length sentence.dup, 5, sentence_limit
+        result = 
+          Wgit::Utils.format_sentence_length sentence.dup, 5, sentence_limit
         assert_equal "For what o", result
         
         # Long sentence: index near end.
-        result = Utils.format_sentence_length sentence.dup, 48, sentence_limit
+        result = 
+          Wgit::Utils.format_sentence_length sentence.dup, 48, sentence_limit
         assert_equal "eneath it?", result
         
         # Long sentence: index near middle.
-        result = Utils.format_sentence_length sentence.dup, 23, sentence_limit
+        result = 
+          Wgit::Utils.format_sentence_length sentence.dup, 23, sentence_limit
         assert_equal "ower if no", result
         
         # Return full sentence.
         sentence = "For what of the flower if not for soil beneath it?\
                     For what of the flower if not for soil beneath it?\
                     For what of the flower if not for soil beneath it?"
-        result = Utils.format_sentence_length sentence.dup, 5, 0
+        result = Wgit::Utils.format_sentence_length sentence.dup, 5, 0
         assert_equal sentence, result
     end
     
@@ -78,9 +82,9 @@ class TestUtils < Minitest::Test
       search_text = "Everest"
       results = []
       5.times do
-        doc_hash = DatabaseDefaultData.doc
+        doc_hash = Wgit::DatabaseDefaultData.doc
         doc_hash[:url] = "http://altitudejunkies.com/everest.html"
-        results << Document.new(doc_hash)
+        results << Wgit::Document.new(doc_hash)
       end
       
       # Setup the temp file to write the printf output to.
@@ -88,7 +92,7 @@ class TestUtils < Minitest::Test
       file_path = "#{Dir.tmpdir}/#{file_name}.txt"
       file = File.new file_path, "w+"
       
-      Utils.printf_search_results results, search_text, false, 80, 5, file
+      Wgit::Utils.printf_search_results results, search_text, false, 80, 5, file
       file.close
       
       # Assert the file contents against the expected output.
