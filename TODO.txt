@@ -1,8 +1,6 @@
 
 Main
 ----
-Put all classes in a single module called Pinch e.g. Pinch::Url etc. - See 
-MiniTest documentation for a similar example.  This prevents naming conflicts. 
 Rename 'pinch' to 'wgit' (the gem name has been reserved already), then rename 
 the repo on bitbucket and manage with CircleCI. 
 Merge the good bits of 'bundle gem' output into this project e.g. rake tasks. 
