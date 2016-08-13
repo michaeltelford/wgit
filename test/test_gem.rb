@@ -9,8 +9,8 @@ class TestGem < Minitest::Test
         # Runs before every test.
     end
     
-    # Test the pinch.rb file loads the API correctly.
+    # Test the wgit.rb file loads the API correctly.
     def test_require
-        assert require('pinch')
+        assert require('wgit')
     end
 end

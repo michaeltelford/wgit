@@ -1,6 +1,6 @@
 require "minitest/autorun"
 require_relative "helpers/test_helper"
-require_relative "../lib/pinch/assertable"
+require_relative "../lib/wgit/assertable"
 
 # @author Michael Telford
 class TestAssertable < Minitest::Test

@@ -1,7 +1,7 @@
 require "minitest/autorun"
 require_relative "helpers/test_helper"
-require_relative "../lib/pinch/web_crawler"
-require_relative "../lib/pinch/database/database_helper"
+require_relative "../lib/wgit/web_crawler"
+require_relative "../lib/wgit/database/database_helper"
 
 # @author Michael Telford
 # WARNING: The DB is cleared down prior to each test run.

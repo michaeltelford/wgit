@@ -1,8 +1,8 @@
 require "minitest/autorun"
 require_relative "helpers/test_helper"
-require_relative "../lib/pinch/utils"
-require_relative "../lib/pinch/document"
-require_relative "../lib/pinch/database/database_default_data"
+require_relative "../lib/wgit/utils"
+require_relative "../lib/wgit/document"
+require_relative "../lib/wgit/database/database_default_data"
 
 # We use a class rather than a Struct because a Struct instance doesn't
 # have instance_variables which Wgit::Utils.to_h uses. 

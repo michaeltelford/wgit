@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-require 'pinch'
+require 'wgit'
 
 CRAWL_HELP = 
 'Crawl url(s) and save them to your database making them instantly searchable.
@@ -21,21 +21,21 @@ search "everest expeditions" -> Searches for the sentence "everest expeditions"
 Note: All searches are case insensitive.'
 
 PINCH_HELP = 
-'Pinch a webpage or entire site and save it to the file system.
+'Wgit a webpage or entire site and save it to the file system.
 
-Pinch command examples:
-pinch http://www.google.co.uk -> Crawls the google url and saves the HTML 
+Wgit command examples:
+wgit http://www.google.co.uk -> Crawls the google url and saves the HTML 
 document as well as all locally linked files (CSS, JS etc.) to the downloads 
 folder
-pinch http://www.google.co.uk /path/to/dir -> Same as above but saves to the 
+wgit http://www.google.co.uk /path/to/dir -> Same as above but saves to the 
 specified directory
-pinch -s http://www.google.co.uk -> Crawls the entire google site and saves the 
+wgit -s http://www.google.co.uk -> Crawls the entire google site and saves the 
 resulting files (HTML, CSS, JS etc.) to the downloads folder (or your specified
 directory)'
 
 HELP = 
 "
-Below is some helpful information for using Pinch:
+Below is some helpful information for using Wgit:
 
 #{CRAWL_HELP}
 

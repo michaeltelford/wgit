@@ -1,7 +1,7 @@
 require "minitest/autorun"
 require_relative "helpers/test_helper"
-require_relative "../lib/pinch/url"
-require_relative "../lib/pinch/crawler"
+require_relative "../lib/wgit/url"
+require_relative "../lib/wgit/crawler"
 
 # @author Michael Telford
 class TestCrawler < Minitest::Test

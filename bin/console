@@ -4,8 +4,8 @@ require 'irb'
 require 'pry'
 require 'bundler/setup'
 
-# Define a method to facilitate the loading changes.
-# Note: The cwd is the project root, not the bin folder.
+# Define a method to facilitate the loading of changes.
+# NOTE: The CWD is the project root, not the bin folder.
 def reload
   load 'load.rb'
 end
@@ -14,7 +14,7 @@ end
 reload
 
 # Seed some fixture data for the session (must be instance vars for irb).
-#@url = Wgit::Url.new "https://rubygems.org"
+#@url = Url.new "https://rubygems.org"
 
 # Start the REPL session.
 puts "\nStarting an interactive session to play, do great things..."

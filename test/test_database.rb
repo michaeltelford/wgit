@@ -1,11 +1,11 @@
 require "minitest/autorun"
 require_relative "helpers/test_helper"
-require_relative "../lib/pinch/assertable"
-require_relative "../lib/pinch/url"
-require_relative "../lib/pinch/document"
-require_relative "../lib/pinch/database/database"
-require_relative "../lib/pinch/database/database_helper"
-require_relative "../lib/pinch/database/database_default_data"
+require_relative "../lib/wgit/assertable"
+require_relative "../lib/wgit/url"
+require_relative "../lib/wgit/document"
+require_relative "../lib/wgit/database/database"
+require_relative "../lib/wgit/database/database_helper"
+require_relative "../lib/wgit/database/database_default_data"
 
 # @author Michael Telford
 # Test class for the Database methods.

@@ -1,7 +1,7 @@
 require "minitest/autorun"
 require_relative "helpers/test_helper"
-require_relative "../lib/pinch/url"
-require_relative "../lib/pinch/document"
+require_relative "../lib/wgit/url"
+require_relative "../lib/wgit/document"
 
 # @author Michael Telford
 class TestDocument < Minitest::Test
@@ -31,7 +31,7 @@ class TestDocument < Minitest::Test
             :text => [
                 "Howdy!", "Welcome to my site, I hope you like what you \
 see and enjoy browsing the various randomness.", "This page is \
-primarily for testing the Ruby code used in Pinch with the \
+primarily for testing the Ruby code used in Wgit with the \
 Minitest framework.", "Minitest rocks!! It's simplicity \
 and power matches the Ruby language in which it's developed."
             ],
@@ -50,7 +50,7 @@ and power matches the Ruby language in which it's developed."
         @search_results = [
             "Minitest rocks!! It's simplicity and power matches the Ruby \
 language in which it", 
-            "s primarily for testing the Ruby code used in Pinch with the \
+            "s primarily for testing the Ruby code used in Wgit with the \
 Minitest framework."
         ]
     end
