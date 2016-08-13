@@ -1,0 +1,8 @@
+machine:
+
+  timezone:
+    UK
+		
+	ruby:
+	    version:
+	      2.2.2
