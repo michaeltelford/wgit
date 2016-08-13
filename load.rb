@@ -10,5 +10,6 @@ load 'lib/pinch/database/mongo_connection_details.rb'
 load 'lib/pinch/database/database_helper.rb'
 load 'lib/pinch/database/database_default_data.rb'
 
-include Wgit::Assertable
-include Wgit::DatabaseHelper
+include Wgit # Remove the name space around code for development purposes.
+include Assertable
+include DatabaseHelper
