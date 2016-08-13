@@ -7,7 +7,7 @@ Gem::Specification.new do |s|
   s.authors     = ["Michael Telford"]
   s.email       = "michael.telford@live.com"
   s.files       = Dir["./lib/**/*.rb"]
-  #s.executables << "pinch"
+  #s.executables << "wgit"
   s.homepage    = 'http://rubygems.org/gems/wgit'
   s.license     = 'MIT'
 end
