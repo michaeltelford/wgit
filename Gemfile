@@ -7,10 +7,10 @@ gem 'nokogiri', '~> 1.6.8'
 gem 'mongo', '~> 2.2.5'
 
 group :development do
-    gem 'yard'
-    gem 'byebug'
-    gem 'minitest', '~> 5.9.0'
-    gem 'pry'
+  gem 'minitest', '~> 5.9.0'
+  gem 'yard'
+  gem 'byebug'
+  gem 'pry'
 end
 
 group :production do
