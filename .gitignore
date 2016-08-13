@@ -3,7 +3,7 @@
 .bundle
 doc
 .yardoc
-pinch-*.gem
+wgit-*.gem
 .byebug_history
 **/mongo_log.txt
 **/test_mongo_log.txt
