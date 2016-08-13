@@ -1,7 +1,7 @@
 machine:
 
   timezone:
-    UK
+    Europe/London
 
   ruby:
     version:
