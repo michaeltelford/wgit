@@ -1,5 +1,7 @@
 # Wgit
 
+Wgit is wget on steroids with an easy to use API.
+
 Wgit is a WWW indexer or 'spider' which crawls URL's and retrieves their page contents for later use. Also included in this package is a means to search indexed documents stored in a database. Therefore this library provides the main components of a WWW search engine. You can also use Wgit to copy entire websites or web page's HTML. 
 
 ## Installation
@@ -42,7 +44,7 @@ results.first # => "ial materials involving war, spying and corruption. It has s
 
 Currently there is no executable provided with Wgit however...
 
-In future versions of Wgit a 'wgit' executable will be provided as part of the gem. This executable will provide the capability to crawl a Url from the command line just like wget but you'll be able to do much more like recursively crawl entire sites and easily store the resulting markup in a Database. 
+In future versions of Wgit a `wgit` executable will be provided as part of the gem. This executable will provide the capability to crawl a Url from the command line just like wget but you'll be able to do much more like recursively crawl entire sites and easily store the resulting markup in a Database. 
 
 ## Development
 

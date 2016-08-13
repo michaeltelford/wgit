@@ -1,8 +1,6 @@
-wgit
+
 Main
 ----
-Rename 'wgit' to 'wgit' (the gem name has been reserved already), then rename 
-the repo on bitbucket and manage with CircleCI. 
 Merge the good bits of 'bundle gem' output into this project e.g. rake tasks. 
 Create a RoR app for the search engine front end.
 Create an executable with some basic CLI func.

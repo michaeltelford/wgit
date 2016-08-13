@@ -1,15 +1,15 @@
 source 'https://rubygems.org'
 
-ruby '~> 2.2'
+ruby '~> 2.2.2'
 # mongo db version: 3.0
 
-gem 'nokogiri', '~> 1.6'
-gem 'mongo', '~> 2.1'
+gem 'nokogiri', '~> 1.6.8'
+gem 'mongo', '~> 2.2.5'
 
 group :development do
     gem 'yard'
     gem 'byebug'
-    gem 'minitest', '~> 5.9'
+    gem 'minitest', '~> 5.9.0'
     gem 'pry'
 end
 

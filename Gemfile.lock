@@ -25,9 +25,9 @@ PLATFORMS
 
 DEPENDENCIES
   byebug
-  minitest (~> 5.9)
-  mongo (~> 2.1)
-  nokogiri (~> 1.6)
+  minitest (~> 5.9.0)
+  mongo (~> 2.2.5)
+  nokogiri (~> 1.6.8)
   pry
   yard
 
