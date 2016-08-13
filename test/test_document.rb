@@ -39,18 +39,18 @@ and power matches the Ruby language in which it's developed."
         }
         @stats = {
             :url => 25, 
-            :html => 929, 
+            :html => 928, 
             :title => 15, 
             :author => 15, 
             :keywords => 3, 
             :links => 9, 
             :text_length => 4, 
-            :text_bytes => 281
+            :text_bytes => 280
         }
         @search_results = [
             "Minitest rocks!! It's simplicity and power matches the Ruby \
 language in which it", 
-            "s primarily for testing the Ruby code used in Wgit with the \
+            "is primarily for testing the Ruby code used in Wgit with the \
 Minitest framework."
         ]
     end
@@ -74,33 +74,35 @@ Minitest framework."
     end
     
     def test_internal_links
-        doc = Wgit::Document.new @url, @html
-        assert_equal [
-            "security.html",
-            "about.html",
-            "/contact.html",
-            "tests.html",
-            "/contents"
-        ], doc.internal_links
-        assert doc.internal_links.all? { |link| link.instance_of?(Url) }
-        
-        doc = Wgit::Document.new @url, "<p>Hello World!</p>"
-        assert_empty doc.internal_links
+      doc = Wgit::Document.new @url, @html
+      assert_equal [
+          "security.html",
+          "about.html",
+          "/contact.html",
+          "tests.html",
+          "/contents"
+      ], doc.internal_links
+      assert doc.internal_links.all? { |link| link.instance_of?(Wgit::Url) }
+      
+      doc = Wgit::Document.new @url, "<p>Hello World!</p>"
+      assert_empty doc.internal_links
     end
     
     def test_internal_full_links
-        doc = Wgit::Document.new @url, @html
-        assert_equal [
-            "#{@url}/security.html",
-            "#{@url}/about.html",
-            "#{@url}/contact.html",
-            "#{@url}/tests.html",
-            "#{@url}/contents"
-        ], doc.internal_full_links
-        assert doc.internal_full_links.all? { |link| link.instance_of?(Url) }
-        
-        doc = Wgit::Document.new @url, "<p>Hello World!</p>"
-        assert_empty doc.internal_full_links
+      doc = Wgit::Document.new @url, @html
+      assert_equal [
+          "#{@url}/security.html",
+          "#{@url}/about.html",
+          "#{@url}/contact.html",
+          "#{@url}/tests.html",
+          "#{@url}/contents"
+      ], doc.internal_full_links
+      assert doc.internal_full_links.all? do |link| 
+        link.instance_of?(Wgit::Url)
+      end
+      
+      doc = Wgit::Document.new @url, "<p>Hello World!</p>"
+      assert_empty doc.internal_full_links
     end
     
     def test_external_links
@@ -111,7 +113,7 @@ Minitest framework."
             "http://www.bing.com",
             "https://duckduckgo.com"
         ], doc.external_links
-        assert doc.external_links.all? { |link| link.instance_of?(Url) }
+        assert doc.external_links.all? { |link| link.instance_of?(Wgit::Url) }
         
         doc = Wgit::Document.new @url, "<p>Hello World!</p>"
         assert_empty doc.external_links

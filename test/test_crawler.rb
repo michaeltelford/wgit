@@ -149,7 +149,7 @@ class TestCrawler < Minitest::Test
     private
     
     def assert_urls(crawler, urls = @urls)
-        assert crawler.urls.all? { |url| url.instance_of?(Url) }
+        assert crawler.urls.all? { |url| url.instance_of?(Wgit::Url) }
         assert_equal urls, crawler.urls
     end
     

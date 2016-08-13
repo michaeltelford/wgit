@@ -94,15 +94,15 @@ class TestDatabase < Minitest::Test
     uncrawled_urls = db.uncrawled_urls
     
     # Test urls.
-    assert_arr_types urls, Url
+    assert_arr_types urls, Wgit::Url
     assert_equal 3, urls.count
     
     # Test crawled_urls
-    assert_arr_types crawled_urls, Url
+    assert_arr_types crawled_urls, Wgit::Url
     assert_equal 1, crawled_urls.count
     
     # Test uncrawled_urls.
-    assert_arr_types uncrawled_urls, Url
+    assert_arr_types uncrawled_urls, Wgit::Url
     assert_equal 2, uncrawled_urls.count
   end
   
@@ -120,12 +120,12 @@ class TestDatabase < Minitest::Test
     
     # Test whole_sentence = false.
     results = db.search search_text
-    assert_arr_types results, Document
+    assert_arr_types results, Wgit::Document
     assert_equal @docs.count, results.count
     
     # Test whole_sentence = true.
     results = db.search search_text, true
-    assert_arr_types results, Document
+    assert_arr_types results, Wgit::Document
     assert_equal 1, results.count
     assert_equal @docs.last.url, results.last.url
   end
