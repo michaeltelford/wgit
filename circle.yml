@@ -15,4 +15,5 @@ general:
 test:
 
   override:
+    - bundle install
     - bundle exec rake test
