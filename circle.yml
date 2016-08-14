@@ -11,3 +11,8 @@ general:
 
   build_dir: 
     test
+
+test:
+
+  override:
+    - bundle exec rake test
