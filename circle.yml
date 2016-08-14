@@ -6,3 +6,5 @@ machine:
   ruby:
     version:
       2.2.2
+
+  build_dir: test
