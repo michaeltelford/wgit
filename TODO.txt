@@ -1,7 +1,6 @@
 
 Main
 ----
-Merge the good bits of 'bundle gem' output into this project e.g. rake tasks. 
 Create a RoR app for the search engine front end.
 Create an executable with some basic CLI func.
 Add a mechanism for easily extending the DB model for other DB's.

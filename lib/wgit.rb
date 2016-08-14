@@ -1,3 +1,4 @@
+require_relative 'wgit/version'
 require_relative 'wgit/crawler'
 require_relative 'wgit/web_crawler'
 require_relative 'wgit/url'

@@ -1,3 +1,6 @@
+# Development script which loads (any code changes) when called. 
+
+load 'lib/wgit/version.rb'
 load 'lib/wgit/crawler.rb'
 load 'lib/wgit/web_crawler.rb'
 load 'lib/wgit/url.rb'
