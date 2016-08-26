@@ -9,7 +9,8 @@ require 'mongo'
 module Wgit
 
   # @author Michael Telford
-  # Class modeling a DB connection and search engine related functionality.
+  # Class modeling a DB connection and CRUD operations for the Url and 
+  # Document collections.
   # The most common methods are: insert, update, urls, search, stats, size. 
   class Database
     include Assertable
@@ -18,16 +19,20 @@ module Wgit
     LOG_FILE_PATH = "misc/mongo_log.txt"
   
     def initialize
+      conn_details = Wgit::CONNECTION_DETAILS
+      if conn_details.empty?
+        raise "Wgit::CONNECTION_DETAILS must be defined and include :host, 
+:port, :db, :uname, :pword for a database connection to be established."
+      end
+      
       logger = Logger.new(LOG_FILE_PATH)
-      address = 
-        "#{Wgit::CONNECTION_DETAILS[:host]}:#{Wgit::CONNECTION_DETAILS[:port]}"
-      @@client = Mongo::Client.new(
-                             [address], 
-                             :database => Wgit::CONNECTION_DETAILS[:db],
-                             :user => Wgit::CONNECTION_DETAILS[:uname],
-                             :password => Wgit::CONNECTION_DETAILS[:pword],
-                             :logger => logger,
-                             :truncate_logs => false)
+      address = "#{conn_details[:host]}:#{conn_details[:port]}"
+      @@client = Mongo::Client.new([address], 
+                                   :database => conn_details[:db],
+                                   :user => conn_details[:uname],
+                                   :password => conn_details[:pword],
+                                   :logger => logger,
+                                   :truncate_logs => false)
     end
   
     ### Create Data ###

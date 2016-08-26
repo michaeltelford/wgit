@@ -46,3 +46,9 @@ during the insert and the second doc won't be inserted.  This is potentially
 inefficient as the duplicate url is still crawled but at least the doc won't
 be saved to the DB and therefore won't result in a duplicate search result.
 The disadvantage is that you'd have to store the html which can take up space.
+
+If you search the DB for a word and get say 3 docs back, it means that the 
+word is present in the doc somewhere (see the text search index). If you 
+then search those 3 docs for the same word we are searching the text, not the 
+title etc. This means you could end up with at least one of those docs which 
+does not have a valid text line for displaying in the results. An issue?

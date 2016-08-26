@@ -3,6 +3,13 @@ lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require 'wgit/version'
 
+# List any files that should NOT be packaged in the built gem. 
+# The full file path should be provided e.g. "./lib/wgit/file.rb"
+reject_files = [
+  "./lib/wgit/database/database_default_data.rb", 
+  "./lib/wgit/database/database_helper.rb"
+]
+
 Gem::Specification.new do |s|
   s.name          = 'wgit'
   s.version       = Wgit::VERSION
@@ -12,7 +19,7 @@ Gem::Specification.new do |s|
   s.authors       = ["Michael Telford"]
   s.email         = "michael.telford@live.com"
   s.require_paths = ["lib"]
-  s.files         = Dir["./lib/**/*.rb"]
+  s.files         = Dir["./lib/**/*.rb"] - reject_files
   #s.executables << "wgit"
   s.homepage      = 'http://rubygems.org/gems/wgit'
   s.license       = 'MIT'

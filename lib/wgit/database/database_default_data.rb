@@ -3,7 +3,7 @@ require 'securerandom'
 module Wgit
 
   # Module containing the default url and doc objects for database testing. 
-  # We use an uuid on the url's because they have unique indexes against them. 
+  # We use an uuid on the url's because they have unique indexes. 
   module DatabaseDefaultData
 
     def self.url

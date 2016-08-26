@@ -8,19 +8,25 @@ module Wgit
   # Helper class for the Database to seed and clear data. Used for testing and 
   # development. Because this class queries the DB it is difficult to test 
   # therefore it doesn't currently have unit tests. This class was originally 
-  # developed to assist in testing database.rb.
+  # developed to assist in testing database.rb and is in essence tested by the 
+  # database tests themselves. 
   # The main methods include: clear_db (nuke), seed, num_records, url?, doc?
   module DatabaseHelper
+    conn_details = Wgit::CONNECTION_DETAILS
+    if conn_details.empty?
+      raise "Wgit::CONNECTION_DETAILS must be defined and include :host, 
+:port, :db, :uname, :pword for a database connection to be established."
+    end
   
     # Log path is relative to the root project folder, not this file. 
     log_file_path = "misc/test_mongo_log.txt".freeze
     logger = Logger.new(log_file_path)
-    address = 
-      "#{Wgit::CONNECTION_DETAILS[:host]}:#{Wgit::CONNECTION_DETAILS[:port]}"
+    address = "#{conn_details[:host]}:#{conn_details[:port]}"
+      
     @@client = Mongo::Client.new([address], 
-                                 :database => Wgit::CONNECTION_DETAILS[:db],
-                                 :user => Wgit::CONNECTION_DETAILS[:uname],
-                                 :password => Wgit::CONNECTION_DETAILS[:pword],
+                                 :database => conn_details[:db],
+                                 :user => conn_details[:uname],
+                                 :password => conn_details[:pword],
                                  :logger => logger,
                                  :truncate_logs => false)
   

@@ -24,7 +24,7 @@ module Wgit
               @html = html
 		
               @doc = Nokogiri::HTML(html) do |config|
-                  # TODO: Remove #'s below when running in production.
+                  # TODO: Remove #'s below when crawling in production.
                   #config.options = Nokogiri::XML::ParseOptions::STRICT | 
                   #                 Nokogiri::XML::ParseOptions::NONET
               end
@@ -121,7 +121,7 @@ module Wgit
       # Each search result comprises of a sentence of a given length. The length 
       # will be based on the sentence_limit parameter or the full length of the 
       # original sentence, which ever is less. The algorithm obviously ensures 
-      # that the search value is visible somewher in the sentence.
+      # that the search value is visible somewhere in the sentence.
       #
       # @param text [String] the value to search the document text against.
       # @param sentence_limit [Fixnum] the length of each search result 
