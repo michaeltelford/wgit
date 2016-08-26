@@ -107,6 +107,11 @@ module Wgit
           ignore << :@doc # Always ignore :@doc
           Wgit::Utils.to_h(self, ignore)
       end
+      
+      # Shortcut for calling Document#html[range].
+      def [](range)
+        html[range]
+      end
     
       def empty?
           html.strip.empty?

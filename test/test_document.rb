@@ -143,6 +143,12 @@ Minitest framework."
         assert_equal hash, doc.to_h
     end
     
+    def test_square_brackets
+        range = 0..50
+        doc = Wgit::Document.new @url, @html
+        assert_equal @html[range], doc[range]
+    end
+    
     def test_empty?
         doc = Wgit::Document.new @url, @html
         refute doc.empty?

@@ -8,7 +8,7 @@ end
 desc "Run tests"
 task :default => :test
 
-desc "Compile all project Ruby files."
+desc "Compile all project Ruby files with warnings."
 task :compile do 
   paths = Dir["**/*.rb"]
   paths.each do |f|

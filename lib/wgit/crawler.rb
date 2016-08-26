@@ -7,7 +7,9 @@ require 'net/http' # requires 'uri'
 module Wgit
 
   # @author Michael Telford
-  # Crawler class provides a means of crawling web URL's.
+  # Crawler class provides a means of crawling web URL's. 
+  # Note that any redirects will not be followed for during crawling 
+  # functionality. 
   class Crawler
     include Assertable
     
