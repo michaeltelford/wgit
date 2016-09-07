@@ -85,6 +85,8 @@ module Wgit
   
     # A crawled parameter value of nil (the default) returns all urls.
     # A limit of 0 means all urls are returned.
+    # All urls are sorted by date_added ascending, in other words the first 
+    # url in the results is the first added. 
     def urls(crawled = nil, limit = 0, skip = 0, &block)
       crawled.nil? ? query = {} : query = { :crawled => crawled }
       
@@ -136,8 +138,7 @@ module Wgit
       # :$caseSensitive => case_sensitive, # 3.2+ only.
       sort_proj = { :score => { :$meta => "textScore" } }
       query = { :$text => { :$search => text } }
-      results = retrieve(:documents, query, sort_proj, sort_proj, 
-                         limit, skip)
+      results = retrieve(:documents, query, sort_proj, sort_proj, limit, skip)
     
       return [] if results.count < 1
       # results.respond_to? :map! is false so we use map and overwrite the var.
@@ -263,5 +264,6 @@ private
     alias :length :size
     alias :insert_url :insert_urls
     alias :insert_doc :insert_docs
+    alias :search_and_format :search_p
   end
 end

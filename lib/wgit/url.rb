@@ -100,6 +100,10 @@ module Wgit
       def to_uri
           @uri
       end
+      
+      def to_url
+        self
+      end
     
       # Given http://www.google.co.uk/about.html, www.google.co.uk is returned.
       def to_host

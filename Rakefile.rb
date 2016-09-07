@@ -24,12 +24,12 @@ task :RELEASE, [:remote] do |t, args|
     raise "Clear the CONNECTION_DETAILS before releasing the gem"
   else
     puts "Releasing gem version #{Wgit::VERSION}, using the #{args[:remote]} Git remote..."
-    get_input "Do you wan't to continue? (Y/n)"
+    confirm "Do you wan't to continue? (Y/n)"
     Rake::Task[:release].invoke args[:remote]
   end
 end
 
-def get_input(question)
+def confirm(question)
   puts question
   input = STDIN.gets.strip
   exit unless input == "Y"

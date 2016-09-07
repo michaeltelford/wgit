@@ -21,13 +21,18 @@ module Wgit
     attr_accessor :max_sites_to_crawl, :max_data_size
     attr_reader :crawler, :db
     
-    def initialize(database, max_sites_to_crawl, max_data_size)
+    def initialize(database, 
+                   max_sites_to_crawl = -1, 
+                   max_data_size = 1048576000)
       @crawler = Wgit::Crawler.new
       @db = database
       @max_sites_to_crawl = max_sites_to_crawl
       @max_data_size = max_data_size
     end
     
+    # Retrieves url's from the database and recursively crawls each site 
+    # storing their internal pages into the database and adding their external 
+    # url's to be crawled at a later date. 
     def crawl_the_web
       if max_sites_to_crawl < 0
         puts "Crawling until the database has been filled or it runs out of \

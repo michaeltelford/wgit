@@ -18,7 +18,8 @@ reload
 
 # Start the REPL session.
 puts "\nStarting an interactive session to play, do great things..."
-puts "To load your code changes type 'reload', see the DatabaseHelper module for DB interactions.\n\n"
+puts "To load your code changes type 'reload', see the DatabaseHelper module \
+for DB interaction methods.\n\n"
 
 #IRB.start
 binding.pry

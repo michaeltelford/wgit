@@ -1,4 +1,5 @@
 require "minitest/autorun"
+require 'minitest/pride'
 require_relative "helpers/test_helper"
 require_relative "../lib/wgit/url"
 
@@ -70,6 +71,12 @@ class TestUrl < Minitest::Test
     
     def test_to_uri
         assert_equal URI::HTTP, Wgit::Url.new(@url_str).to_uri.class
+    end
+    
+    def test_to_url
+      url = Wgit::Url.new @url_str
+      assert_equal url.object_id, url.to_url.object_id
+      assert_equal url, url.to_url
     end
     
     def test_to_host

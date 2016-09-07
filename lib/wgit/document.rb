@@ -108,6 +108,13 @@ module Wgit
           Wgit::Utils.to_h(self, ignore)
       end
       
+      # Override of the default == method, is equal if url and html both match.
+      # Use doc.object_id == other_doc.object_id for exact object comparison. 
+      def ==(other_doc)
+        return false unless other_doc.is_a? Wgit::Document
+        url == other_doc.url and html == other_doc.html
+      end
+      
       # Shortcut for calling Document#html[range].
       def [](range)
         html[range]

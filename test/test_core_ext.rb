@@ -1,4 +1,5 @@
 require "minitest/autorun"
+require 'minitest/pride'
 require_relative "helpers/test_helper"
 require_relative "../lib/wgit/assertable"
 require_relative "../lib/wgit/url"
@@ -18,5 +19,51 @@ class TestCoreExt < Minitest::Test
     url = s.to_url
     assert_type url, Wgit::Url
     assert_equal s, url
+  end
+  
+  def test_array_to_urls
+    url_strs = [
+    	"http://altitudejunkies.com", 
+    	"http://www.mountainmadness.com", 
+    	"http://www.adventureconsultants.com"
+    ]
+    urls = url_strs.to_urls
+    
+    assert url_strs.all? { |url| url.instance_of? String }
+    assert urls.all? { |url| url.instance_of? Wgit::Url }
+    
+    url_strs = [
+    	"http://altitudejunkies.com", 
+    	true, 
+    	"http://www.adventureconsultants.com"
+    ]
+    urls = url_strs.to_urls
+    
+    assert url_strs.first.instance_of? String
+    refute urls.all? { |url| url.instance_of? Wgit::Url }
+    assert urls.first.instance_of? Wgit::Url
+    assert urls[1].instance_of? TrueClass
+    assert urls.last.instance_of? Wgit::Url
+  end
+  
+  def test_array_to_urls!
+    urls = [
+    	"http://altitudejunkies.com", 
+    	"http://www.mountainmadness.com", 
+    	"http://www.adventureconsultants.com"
+    ].to_urls!
+    
+    assert urls.all? { |url| url.instance_of? Wgit::Url }
+    
+    urls = [
+    	"http://altitudejunkies.com", 
+    	true, 
+    	"http://www.adventureconsultants.com"
+    ].to_urls!
+    
+    refute urls.all? { |url| url.instance_of? Wgit::Url }
+    assert urls.first.instance_of? Wgit::Url
+    assert urls[1].instance_of? TrueClass
+    assert urls.last.instance_of? Wgit::Url
   end
 end

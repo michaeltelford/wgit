@@ -5,12 +5,13 @@ require 'mongo'
 module Wgit
 
   # @author Michael Telford
-  # Helper class for the Database to seed and clear data. Used for testing and 
-  # development. Because this class queries the DB it is difficult to test 
-  # therefore it doesn't currently have unit tests. This class was originally 
+  # Helper class for the Database to manipulate data. Used for testing and 
+  # development. This class isn't packaged in the gem and is for dev only so it 
+  # doesn't currently have unit tests. This class was originally 
   # developed to assist in testing database.rb and is in essence tested by the 
-  # database tests themselves. 
-  # The main methods include: clear_db (nuke), seed, num_records, url?, doc?
+  # database tests themselves as they use the helper methods. 
+  # The main methods include: clear_db (nuke), seed, num_records, num_urls, 
+  # num_docs, url?, doc?, index, search
   module DatabaseHelper
     conn_details = Wgit::CONNECTION_DETAILS
     if conn_details.empty?
@@ -101,6 +102,34 @@ module Wgit
     # Returns wether a doc exists with the given url field.
     def doc?(doc = {})
       not @@client[:documents].find(doc).none?
+    end
+    
+    # Helper method which takes a url and recursively indexes the site storing 
+    # the markup in the database. Use sensible url's e.g. not Amazon.co.uk. 
+    # We re-use the private methods of WebCrawler to handle error scenarios 
+    # and put statements when interacting with the database. 
+    def index(url, insert_externals = true)
+      crawler = Wgit::Crawler.new url
+      database = Wgit::Database.new
+      web_crawler = Wgit::WebCrawler.new database
+      
+      total_crawled = 0
+      
+      ext_urls = crawler.crawl_site do |doc|
+        inserted = web_crawler.send :write_doc_to_db, doc
+        total_crawled += 1 if inserted
+      end
+      
+      web_crawler.send :write_urls_to_db, ext_urls
+      
+      total_crawled
+    end
+    
+    # Searches the database Document collection for the given text, formats 
+    # and pretty prints the results for the command line. Mainly used for 
+    # ./bin/console. 
+    def search(query)
+      Database.new.search_p query
     end
   
   private

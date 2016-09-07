@@ -1,4 +1,5 @@
 require "minitest/autorun"
+require 'minitest/pride'
 
 # @author Michael Telford
 # Test helper module for unit tests.

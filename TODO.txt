@@ -27,14 +27,14 @@ Move '# Runs before every test.' above the test classes setup method.
 
 Gem Publishing
 --------------
-Remove the DB authentication details - VERY IMPORTANT!
 Run 'rake compile' and ensure no warnings/errors.
-Check all tests are passing.
-Run 'yard' to update documentation and test README Usage works. 
-Increase the version number (in version.rb).
+Run 'rake test' and ensure all tests are passing.
+Increment the version number (in version.rb).
+Remove the DB authentication details - VERY IMPORTANT!
+Run 'yard' to update documentation. 
 Build gem from gemspec, install and test it manually.
 Commit, tag (with version #) and push it to origin/master.
-Upload the gem to rubygems.org.
+Push/upload the gem to rubygems.org.
 
 Issues
 ------

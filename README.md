@@ -2,7 +2,7 @@
 
 Wgit is wget on steroids with an easy to use API.
 
-Wgit is a WWW indexer or 'spider' which crawls URL's and retrieves their page contents for later use. Also included in this package is a means to search indexed documents stored in a database. Therefore this library provides the main components of a WWW search engine. You can also use Wgit to copy entire website's HTML. 
+Wgit is a WWW indexer/scraper which crawls URL's and retrieves their page contents for later use. Also included in this package is a means to search indexed documents stored in a database. Therefore this library provides the main components of a WWW search engine. You can also use Wgit to copy entire website's HTML making it far more powerful than wget. The Wgit API is easily extendable allowing you to easily pull out the parts of a webpage that are important to you, the CSS or JS links for example. 
 
 ## Installation
 
@@ -20,7 +20,7 @@ Or install it yourself as:
 
     $ gem install wgit
 
-## Usage
+## Basic Usage
 
 Below shows an example of API usage in action and gives an idea of how you can use Wgit in your own code.
 
@@ -42,18 +42,29 @@ results.first # => "ial materials involving war, spying and corruption. It has s
 
 ## Practical Examples
 
-Below are some practical examples of Wgit in use. 
+Below are some practical examples of Wgit in use. You can copy and run the code for yourself. 
+Make sure to replace the CONNECTION_DETAILS with your own when using the Database example. 
 
-The below script downloads the contents of Facebook's (index page) first css link. 
+### WWW HTML Indexer
+
+See the Wgit::WebCrawler documentation and source code for an already built example of a WWW HTML 
+indexer. It will crawl any external url's (in the database) and index their markup 
+for later use, be it searching or otherwise. 
+
+### CSS Indexer
+
+The below script downloads the contents of Facebook's (index page's) first css link. 
 
 ```ruby
 require 'wgit'
-require 'wgit/core_ext' # => Provides the String#to_url method.
+require 'wgit/core_ext' # => Provides the String#to_url and Array#to_urls methods.
 
 crawler = Wgit::Crawler.new
 url = "https://www.facebook.com".to_url
 
 doc = crawler.crawl url
+
+# Provide your own xpath to search the HTML using Nokogiri.
 css_urls = doc.xpath "//link[@rel='stylesheet']/@href"
 
 css_urls.class # => Nokogiri::XML::NodeSet
@@ -63,12 +74,88 @@ css = crawler.crawl css_url.to_url
 css[0..50] # => ".UIContentTopper{padding:14px 0 0 17px;margin:50px "
 ```
 
-The below script downloads the contents of several webpages, pulls out their keywords and compares them.
-Such a file might be used by marketeers for SEO optimisation. 
+### Keyword Indexer (SEO Helper)
+
+The below script downloads the contents of several webpages, pulls out their keywords for comparison.
+Such a script might be used by marketers for SEO optimisation for example. 
 
 ```ruby
-#TODO
+require 'wgit'
+require 'wgit/core_ext' # => Provides the String#to_url and Array#to_urls methods.
+
+my_pages_keywords = ["altitude", "mountaineering", "adventure"]
+my_pages_missing_keywords = []
+
+competitor_urls = [
+	"http://altitudejunkies.com", 
+	"http://www.mountainmadness.com", 
+	"http://www.adventureconsultants.com"
+].to_urls
+
+crawler = Wgit::Crawler.new competitor_urls
+
+crawler.crawl do |doc|
+	puts "The keywords for #{doc.url} are: \n#{doc.keywords}\n\n"
+	my_pages_missing_keywords.concat(doc.keywords - my_pages_keywords)
+end
+
+puts "Your pages compared to your competitors are missing the following keywords:"
+puts my_pages_missing_keywords.uniq!
 ```
+### Database Example
+
+The below script shows how to use Wgit's database functionality (using MongoDB) to crawl and 
+search HTML documents. 
+
+Currently the only supported DBMS is MongoDB. See [mLab](https://mlab.com) for a free (small) 
+account or provide your own database instance. 
+
+```ruby
+require 'wgit'
+require 'wgit/core_ext' # => Provides the String#to_url and Array#to_urls methods.
+
+# Here we create our own document rather than crawl one. 
+doc = Wgit::Document.new(
+	"http://test-url.com".to_url, 
+	"<p>Some text to search for.</p><a href='http://www.google.co.uk'>Click me!</a>"
+)
+
+# Set your DB connection details.
+Wgit::CONNECTION_DETAILS = {
+  :host           => "<host_machine>",
+  :port           => "27017", # MongoDB's default port is shown here.
+  :db             => "<database_name>",
+  :uname          => "<username>",
+  :pword          => "<password>"
+}.freeze
+
+db = Wgit::Database.new
+db.insert doc
+
+# Searching the DB returns documents with 'hits'. 
+results = db.search "text"
+
+doc == results.first # => true
+
+# Searching a document returns text snippets with 'hits' within that document. 
+doc.search("text").first # => "Some text to search for."
+
+db.insert doc.external_links
+
+urls_to_crawl = db.uncrawled_urls # => Results will include doc.external_links. 
+```
+
+## Extending the API
+
+TODO. 
+
+## Notes
+
+Below are some notes to keep in mind when using Wgit:
+
+- All Url's should be prefixed with the appropiate protocol e.g. http://
+- Url redirects will not be followed and nil will be returned from the crawl. 
+- Currently the only supported DBMS is MongoDB. 
 
 ## Executable
 
@@ -78,13 +165,13 @@ In future versions of Wgit a `wgit` executable will be provided as part of the g
 
 ## Development
 
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake test` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
+After checking out the repo, run `./bin/setup` to install dependencies. Then, run `rake test` to run the tests. You can also run `./bin/console` for an interactive prompt that will allow you to experiment.
 
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake RELEASE[remote]` (remote being the correct Git remote), which will create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake RELEASE[remote]` (remote being the correct Git remote e.g. origin), which will create a git tag for the version, push any git commits and tags, and push the `*.gem` file to [rubygems.org](https://rubygems.org).
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/michaeltelford/wgit.
+Bug reports and pull requests are welcome on [GitHub](https://github.com/michaeltelford/wgit).
 
 ## License
 

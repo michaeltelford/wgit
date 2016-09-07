@@ -1,4 +1,5 @@
 require "minitest/autorun"
+require 'minitest/pride'
 require_relative "helpers/test_helper"
 
 # @author Michael Telford

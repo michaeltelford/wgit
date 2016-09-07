@@ -1,4 +1,5 @@
 require "minitest/autorun"
+require 'minitest/pride'
 require_relative "helpers/test_helper"
 require_relative "../lib/wgit/url"
 require_relative "../lib/wgit/document"
@@ -141,6 +142,15 @@ Minitest framework."
         doc = Wgit::Document.new @mongo_doc_dup
         hash[:score] = @mongo_doc_dup[:score]
         assert_equal hash, doc.to_h
+    end
+    
+    def test_double_equals
+        doc = Wgit::Document.new @url, @html
+        refute doc == Object.new
+        assert doc == doc.clone
+        refute doc.object_id == doc.clone.object_id
+        refute doc == Wgit::Document.new(Wgit::Url.new("#{@url}/index"), @html)
+        refute doc == Wgit::Document.new(@url, "#{@html}<?php echo 'Hello' ?>")
     end
     
     def test_square_brackets
