@@ -2,7 +2,9 @@
 
 Wgit is wget on steroids with an easy to use API.
 
-Wgit is a WWW indexer/scraper which crawls URL's and retrieves their page contents for later use. Also included in this package is a means to search indexed documents stored in a database. Therefore this library provides the main components of a WWW search engine. You can also use Wgit to copy entire website's HTML making it far more powerful than wget. The Wgit API is easily extendable allowing you to easily pull out the parts of a webpage that are important to you, the CSS or JS links for example. 
+Wgit is a WWW indexer/scraper which crawls URL's and retrieves their page contents for later use. Also included in this package is a means to search indexed documents stored in a database. Therefore this library provides the main components of a WWW search engine. You can also use Wgit to copy entire website's HTML making it far more powerful than wget. The Wgit API is easily extendable allowing you to easily pull out the parts of a webpage that are important to you, tables elements for example. 
+
+Wgit uses net/http to retrieve web pages and Nokogiri to process the resulting HTML markup. 
 
 ## Installation
 
@@ -60,7 +62,7 @@ require 'wgit'
 require 'wgit/core_ext' # => Provides the String#to_url and Array#to_urls methods.
 
 crawler = Wgit::Crawler.new
-url = "https://www.facebook.com".to_url
+url = "http://blog.carbonfive.com".to_url
 
 doc = crawler.crawl url
 
@@ -68,10 +70,10 @@ doc = crawler.crawl url
 css_urls = doc.xpath "//link[@rel='stylesheet']/@href"
 
 css_urls.class # => Nokogiri::XML::NodeSet
-css_url = css_urls.first.value # => "https://static.xx.fbcdn.net/rsrc.php/v3/yE/r/uqWZrDdEiFq.css"
+css_url = css_urls.first.value # => "http://blog.carbonfive.com/wp-content/plugins/advanced-responsive-video-embedder/public/advanced-responsive-video-embedder-public.css?ver=6.5.0"
 
 css = crawler.crawl css_url.to_url
-css[0..50] # => ".UIContentTopper{padding:14px 0 0 17px;margin:50px "
+css[0..50] # => ".arve-wrapper {\n\tmargin-bottom: 20px;\n\twidth: 100%;"
 ```
 
 ### Keyword Indexer (SEO Helper)
@@ -83,7 +85,7 @@ Such a script might be used by marketers for SEO optimisation for example.
 require 'wgit'
 require 'wgit/core_ext' # => Provides the String#to_url and Array#to_urls methods.
 
-my_pages_keywords = ["altitude", "mountaineering", "adventure"]
+my_pages_keywords = ["mountain climbing", "Everest"]
 my_pages_missing_keywords = []
 
 competitor_urls = [
@@ -92,7 +94,7 @@ competitor_urls = [
 	"http://www.adventureconsultants.com"
 ].to_urls
 
-crawler = Wgit::Crawler.new competitor_urls
+crawler = Wgit::Crawler.new(*competitor_urls)
 
 crawler.crawl do |doc|
 	puts "The keywords for #{doc.url} are: \n#{doc.keywords}\n\n"
@@ -100,7 +102,7 @@ crawler.crawl do |doc|
 end
 
 puts "Your pages compared to your competitors are missing the following keywords:"
-puts my_pages_missing_keywords.uniq!
+puts my_pages_missing_keywords.uniq! # => ["mountaineering school", "seven summits", "Kilimanjaro", "climb", "trekking", "mountain madness"]
 ```
 ### Database Example
 
@@ -113,10 +115,11 @@ account or provide your own database instance.
 ```ruby
 require 'wgit'
 require 'wgit/core_ext' # => Provides the String#to_url and Array#to_urls methods.
+require 'securerandom'
 
 # Here we create our own document rather than crawl one. 
 doc = Wgit::Document.new(
-	"http://test-url.com".to_url, 
+	"http://test-url.com/#{SecureRandom.uuid}".to_url, 
 	"<p>Some text to search for.</p><a href='http://www.google.co.uk'>Click me!</a>"
 )
 
@@ -135,7 +138,7 @@ db.insert doc
 # Searching the DB returns documents with 'hits'. 
 results = db.search "text"
 
-doc == results.first # => true
+doc.url == results.first.url # => true
 
 # Searching a document returns text snippets with 'hits' within that document. 
 doc.search("text").first # => "Some text to search for."
