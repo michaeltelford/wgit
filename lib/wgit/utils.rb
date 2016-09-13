@@ -17,6 +17,13 @@ module Wgit
           end
           hash
       end
+      
+      # Returns the model having removed non bson types (for use with MongoDB). 
+      def self.remove_non_bson_types(model_hash)
+        model_hash.reject do |k, v|
+          not v.respond_to? :bson_type
+        end
+      end
 
       # Improved each method which takes care of singleton and enumerable
       # objects. Yields one or more objects.

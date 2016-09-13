@@ -7,12 +7,14 @@ module Wgit
   module Model
       def self.url(url)
           raise "url must respond to to_h" unless url.respond_to?(:to_h)
-          url.to_h
+          model = url.to_h
+          Wgit::Utils.remove_non_bson_types(model)
       end
     
       def self.document(doc)
           raise "doc must respond to to_h" unless doc.respond_to?(:to_h)
-          doc.to_h(false)
+          model = doc.to_h(false)
+          Wgit::Utils.remove_non_bson_types(model)
       end
     
       def self.common_insert_data
