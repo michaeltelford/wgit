@@ -17,6 +17,7 @@ GEM
       coderay (~> 1.1.0)
       method_source (~> 0.8.1)
       slop (~> 3.4)
+    rake (12.3.0)
     slop (3.6.0)
     yard (0.9.0)
 
@@ -29,6 +30,7 @@ DEPENDENCIES
   mongo (~> 2.2.5)
   nokogiri (~> 1.6.8)
   pry
+  rake (~> 12.3.0)
   yard
 
 BUNDLED WITH

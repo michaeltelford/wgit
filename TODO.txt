@@ -7,23 +7,26 @@ Add a mechanism for easily extending the DB model for other DB's.
 
 Secondary
 ---------
+Update `gemspec` with: `s.required_ruby_version = '~> 2.4.0'`
 Think about ignoring non html documents/urls e.g. http://server/image.jpg etc.
 Check if Document::TEXT_ELEMENTS is expansive enough.
 Think about how we store DB connection details, is it right?
 Add logging functionality (possibly use the mongo logger?).
+Possibly use refine instead of core-ext?
 Think about potentially updating the WebCrawler to be multi threaded.
 Think about potentially using DB._update's update_many func.
 
 Refactoring
 -----------
+Add TOC to `README.md`
 Replace individual require's with a require 'wgit.rb'.
 Use Utils#each where possible across project.
 Use super if possible when overriding getter and setters.
 Check for uses of @var instead of var in classes.
 Append '.freeze' to all constants where they shouldn't be changed.
-Sort tab formatting to be consistenent throughout (with 2 space tabs).
-Check for and use Assertable func. in tests where possible. 
-Move '# Runs before every test.' above the test classes setup method. 
+Sort tab formatting to be consistent throughout (with 2 space tabs).
+Check for and use Assertable func. in tests where possible.
+Move '# Runs before every test.' above the test classes setup method.
 
 Gem Publishing
 --------------
@@ -31,8 +34,8 @@ Run 'rake compile' and ensure no warnings/errors.
 Run 'rake test' and ensure all tests are passing.
 Increment the version number (in version.rb).
 Remove the DB authentication details - VERY IMPORTANT!
-Run 'yard' to update documentation. 
-Build gem from gemspec, install and test it manually.
+Run `yard` to update documentation.
+Build gem from `gemspec`, install and test it manually.
 Commit, tag (with version #) and push it to origin/master.
 Push/upload the gem to rubygems.org.
 
@@ -41,14 +44,14 @@ Issues
 If you crawl a base url and there is a link to its index file a duplicate doc
 gets crawled and inserted into the DB because the base url and base/index point
 to the same document.  One solution is to insert the doc html into the DB and
-setup a unique index on the html field so the duplication will be picked up 
-during the insert and the second doc won't be inserted.  This is potentially 
+setup a unique index on the html field so the duplication will be picked up
+during the insert and the second doc won't be inserted.  This is potentially
 inefficient as the duplicate url is still crawled but at least the doc won't
 be saved to the DB and therefore won't result in a duplicate search result.
 The disadvantage is that you'd have to store the html which can take up space.
 
-If you search the DB for a word and get say 3 docs back, it means that the 
-word is present in the doc somewhere (see the text search index). If you 
-then search those 3 docs for the same word we are searching the text, not the 
-title etc. This means you could end up with at least one of those docs which 
+If you search the DB for a word and get say 3 docs back, it means that the
+word is present in the doc somewhere (see the text search index). If you
+then search those 3 docs for the same word we are searching the text, not the
+title etc. This means you could end up with at least one of those docs which
 does not have a valid text line for displaying in the results. An issue?
