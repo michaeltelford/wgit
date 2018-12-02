@@ -31,8 +31,5 @@ DEPENDENCIES
   pry
   yard
 
-RUBY VERSION
-   ruby 2.2.2p95
-
 BUNDLED WITH
-   1.12.5
+   1.15.1
