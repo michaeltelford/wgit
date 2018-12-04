@@ -1,6 +1,6 @@
 # Wgit
 
-Wgit is wget on steroids with an easy to use API.
+Wgit is wget on steroids with an easy to use API for web scraping and indexing.
 
 Wgit is a WWW indexer/scraper which crawls URL's and retrieves their page contents for later use. Also included in this package is a means to search indexed documents stored in a database. Therefore this library provides the main components of a WWW search engine. You can also use Wgit to copy entire website's HTML making it far more powerful than wget. The Wgit API is easily extendable allowing you to easily pull out the parts of a webpage that are important to you, the CSS or JS links for example. 
 
@@ -145,23 +145,89 @@ db.insert doc.external_links
 urls_to_crawl = db.uncrawled_urls # => Results will include doc.external_links. 
 ```
 
-## Extending the API
+## Extending The API
 
-TODO. 
+Indexing in Wgit is the means of pulling down parts of a web page and turning them into accessible document attributes/methods. For example, `Document#author` will return you the webpage's tag value of `meta[@name='author']`.
 
-Notes:
+By default, Wgit indexes what it thinks are the most important pieces of information from each webpage. This of course is often not enough given the nature of webpages and their differences from each other. Therefore there exists ways to extend the default indexing logic.
 
-- Any links should be mapped into Wgit::Url's, Url's are treated as Strings 
-when being inserted into the DB. 
-- Any object like a Nokogiri object will not be inserted into the DB, its up 
-to you to map each object to a native type e.g. String, Boolean etc. 
+There are two ways to extend the indexing behaviour of Wgit:
 
-## Notes
+1. Add the elements containing text that you're interested in to be indexed.
+2. Define custom indexers matched to specific elements that you're interested in.
+
+Below describes these two methods in more detail.
+
+### 1. Extending The Default Text Elements
+
+Wgit contains an array of `Document.text_elements` which are the default set of webpage elements containing text; which in turn are indexed and accessible via `Document#text`.
+
+If you'd like the text of additional webpage elements to be returned from `Document#text`, then you can do the following:
+
+```ruby
+# Let's add the text of links e.g. <a> tags.
+Wgit::Document.text_elements << :a
+
+# Our Document has a link whose's text we're interested in.
+doc = Wgit::Document.new(
+  "http://some_url.com".to_url, 
+  "<html><p>Hello world!</p>\
+<a href='https://made-up-link.com'>Click this link.</a></html>"
+)
+
+# Now all crawled Documents will contain all link text in Document#text.
+doc.text # => ["Hello world!", "Click this link."]
+```
+
+**Note**: This only works for textual page content. For more control over the indexed elements themselves, see below.
+
+### 2. Defining Custom Indexers/Elements
+
+If you want full control over the elements being indexed for your own purposes, then you'll need to define a custom indexer for each type of element that you're interested in.
+
+Once you have the indexed page element, accessed via a `Document` instance method, you can do with it as you wish e.g. obtain it's text value or manipulate the element etc. Since the returned types are plain Nokogiri objects, you have the full control that the Nokogiri gem gives you.
+
+Here's how to add a custom indexer for a page element:
+
+```ruby
+# Let's get all the page's table elements.
+Wgit::Document.define_extension(
+  :tables, # Document#tables will return the page's tables.
+  "//table", # The xpath to extract the tables.
+  singleton: false, # True returns the first table found, false returns them all.
+  text_content_only: false, # True returns a String of all the tables combined text, false returns the tables as Nokogiri objects (see below).
+)
+
+# Our Document has a table which we're interested in.
+doc = Wgit::Document.new(
+  "http://some_url.com".to_url, 
+  "<html><p>Hello world!</p>\
+<table><th>Header Text</th><th>Another Header</th></table></html>"
+)
+
+# Call our newly defined method to obtain the table data we're interested in.
+tables = doc.tables
+
+# Both the collection and each table within the collection are plain Nokogiri objects.
+tables.class # => Nokogiri::XML::NodeSet
+tables.first.class # => Nokogiri::XML::Element
+```
+
+For more information on what's possible with each Nokogiri object, see the documentation:
+
+https://www.rubydoc.info/github/sparklemotion/nokogiri
+
+**Extension Notes**:
+
+- Any links should be coerced into `Wgit::Url` objects, Url's are treated as Strings when being inserted into the DB. 
+- Any object like a Nokogiri object will not be inserted into the DB, its up to you to map each object to a native type e.g. String, Boolean etc. 
+
+## Usage Notes
 
 Below are some notes to keep in mind when using Wgit:
 
-- All Url's should be prefixed with the appropiate protocol e.g. http://
-- Url redirects will not be followed and nil will be returned from the crawl. 
+- All Url's should be prefixed with the appropiate protocol e.g. `http://`
+- Url redirects will not be followed and `nil` will be returned from the crawl. 
 - Currently the only supported DBMS is MongoDB. 
 
 ## Executable

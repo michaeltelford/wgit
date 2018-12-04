@@ -6,8 +6,6 @@ require_relative "../lib/wgit/document"
 require_relative "../lib/wgit/database/database"
 require_relative "../lib/wgit/database/database_helper"
 
-require "byebug"
-
 # @author Michael Telford
 # Tests the ability to extend the Wgit::Document functionality. 
 # WARNING: Certain tests will clear down the DB prior to the test run.
