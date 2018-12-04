@@ -25,14 +25,22 @@ class TestUtils < Minitest::Test
     def setup
         @person = Person.new
         @to_h_result = {
-            name: "Bob",
-            age: 45
+            "name" => "Bob",
+            "age" => 45
         }
     end
     
     def test_to_h
-        h = Wgit::Utils.to_h @person, [:@height]
+        h = Wgit::Utils.to_h @person, ["@height"]
         assert_equal @to_h_result, h
+    end
+
+    def test_to_h_with_symbols
+        h = Wgit::Utils.to_h @person, ["@height"], false
+        assert_equal({
+            name: "Bob",
+            age: 45
+        }, h)
     end
     
     def test_each
@@ -84,7 +92,7 @@ class TestUtils < Minitest::Test
       results = []
       5.times do
         doc_hash = Wgit::DatabaseDefaultData.doc
-        doc_hash[:url] = "http://altitudejunkies.com/everest.html"
+        doc_hash["url"] = "http://altitudejunkies.com/everest.html"
         results << Wgit::Document.new(doc_hash)
       end
       

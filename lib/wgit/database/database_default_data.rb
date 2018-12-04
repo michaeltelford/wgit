@@ -8,21 +8,21 @@ module Wgit
 
     def self.url
       {
-        "url": "http://www.google.co.uk/#{SecureRandom.uuid}",
-        "crawled": false,
-        "date_crawled": nil,
-        "date_added": "2016-04-17 14:33:16 +0100",
-        "date_modified": "2016-04-17 14:33:16 +0100"
+        "url" => "http://www.google.co.uk/#{SecureRandom.uuid}",
+        "crawled" => false,
+        "date_crawled" => nil,
+        "date_added" => "2016-04-17 14:33:16 +0100",
+        "date_modified" => "2016-04-17 14:33:16 +0100"
       }
     end
 
     def self.doc
       {
-        "url": "http://altitudejunkies.com/everest.html/#{SecureRandom.uuid}",
-        "title": "Altitude Junkies | Everest",
-        "author": "LTE Designs",
-        "keywords": ["Everest", "Highest Peak", "High Altitude", "Altitude Junkies"],
-        "links": [
+        "url" => "http://altitudejunkies.com/everest.html/#{SecureRandom.uuid}",
+        "title" => "Altitude Junkies | Everest",
+        "author" => "LTE Designs",
+        "keywords" => ["Everest", "Highest Peak", "High Altitude", "Altitude Junkies"],
+        "links" => [
             "index.html",
             "everest.html",
             "lhotse.html",
@@ -57,7 +57,7 @@ module Wgit
             "http://www.julbousa.com",
             "http://www.cascadedesigns.com/msr"
         ],
-        "text": [
+        "text" => [
             "Route",
             "Dates",
             "TBA",
@@ -191,9 +191,9 @@ module Wgit
             "|",
             "Copyright © 2006-2016 Altitude Junkies. All Rights Reserved"
         ],
-        "score": 0,
-        "date_added": "2016-04-17 14:33:16 +0100",
-        "date_modified": "2016-04-17 14:33:16 +0100"
+        "score" => 0,
+        "date_added" => "2016-04-17 14:33:16 +0100",
+        "date_modified" => "2016-04-17 14:33:16 +0100"
       }
     end
   end

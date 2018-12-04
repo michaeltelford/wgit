@@ -13,12 +13,12 @@ class TestDocument < Minitest::Test
         @url = Wgit::Url.new("http://www.mytestsite.com")
         @html = File.read("test/helpers/test_doc.html")
         @mongo_doc_dup = { 
-            :url => @url, 
-            :html => @html,
-            :title => "My Test Webpage",
-            :author => "Michael Telford",
-            :keywords => ["Minitest", "Ruby", "Test Document"],
-            :links => [
+            "url" => @url, 
+            "html" => @html,
+            "title" => "My Test Webpage",
+            "author" => "Michael Telford",
+            "keywords" => ["Minitest", "Ruby", "Test Document"],
+            "links" => [
                 "http://www.google.co.uk",
                 "security.html",
                 "about.html",
@@ -29,14 +29,14 @@ class TestDocument < Minitest::Test
                 "https://duckduckgo.com",
                 "/contents"
             ],
-            :text => [
+            "text" => [
                 "Howdy!", "Welcome to my site, I hope you like what you \
 see and enjoy browsing the various randomness.", "This page is \
 primarily for testing the Ruby code used in Wgit with the \
 Minitest framework.", "Minitest rocks!! It's simplicity \
 and power matches the Ruby language in which it's developed."
             ],
-            :score => 12.05
+            "score" => 12.05
         }
         @stats = {
             :url => 25, 
@@ -71,7 +71,7 @@ Minitest framework."
     def test_initialize_with_mongo_doc
         doc = Wgit::Document.new @mongo_doc_dup
         assert_doc doc
-        assert_equal @mongo_doc_dup[:score], doc.score
+        assert_equal @mongo_doc_dup["score"], doc.score
     end
     
     def test_internal_links
@@ -133,14 +133,14 @@ Minitest framework."
     def test_to_h
         doc = Wgit::Document.new @url, @html
         hash = @mongo_doc_dup.dup
-        hash[:score] = 0.0
+        hash["score"] = 0.0
         assert_equal hash, doc.to_h(true)
         
-        hash.delete(:html)
+        hash.delete("html")
         assert_equal hash, doc.to_h
         
         doc = Wgit::Document.new @mongo_doc_dup
-        hash[:score] = @mongo_doc_dup[:score]
+        hash["score"] = @mongo_doc_dup["score"]
         assert_equal hash, doc.to_h
     end
     
@@ -163,8 +163,11 @@ Minitest framework."
         doc = Wgit::Document.new @url, @html
         refute doc.empty?
         
-        @mongo_doc_dup.delete(:html)
+        @mongo_doc_dup.delete("html")
         doc = Wgit::Document.new @mongo_doc_dup
+        assert doc.empty?
+
+        doc = Wgit::Document.new @url, nil
         assert doc.empty?
     end
     
@@ -176,14 +179,15 @@ Minitest framework."
     
     def test_search!
         doc = Wgit::Document.new @url, @html
-        doc.search!("minitest")
+        orig_text = doc.text
+        assert_equal orig_text, doc.search!("minitest")
         assert_equal @search_results, doc.text
     end
     
     def test_xpath
         doc = Wgit::Document.new @url, @html
         results = doc.xpath("//title")
-        assert_equal @mongo_doc_dup[:title], results.first.content
+        assert_equal @mongo_doc_dup["title"], results.first.content
     end
     
     private
@@ -191,10 +195,10 @@ Minitest framework."
     def assert_doc(doc)
         assert_equal @url, doc.url
         assert_equal @html, doc.html
-        assert_equal @mongo_doc_dup[:title], doc.title
-        assert_equal @mongo_doc_dup[:author], doc.author
-        assert_equal @mongo_doc_dup[:keywords], doc.keywords
-        assert_equal @mongo_doc_dup[:links], doc.links
-        assert_equal @mongo_doc_dup[:text], doc.text
+        assert_equal @mongo_doc_dup["title"], doc.title
+        assert_equal @mongo_doc_dup["author"], doc.author
+        assert_equal @mongo_doc_dup["keywords"], doc.keywords
+        assert_equal @mongo_doc_dup["links"], doc.links
+        assert_equal @mongo_doc_dup["text"], doc.text
     end
 end

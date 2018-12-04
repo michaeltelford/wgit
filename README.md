@@ -2,7 +2,7 @@
 
 Wgit is wget on steroids with an easy to use API for web scraping and indexing.
 
-Wgit is a WWW indexer/scraper which crawls URL's and retrieves their page contents for later use. Also included in this package is a means to search indexed documents stored in a database. Therefore this library provides the main components of a WWW search engine. You can also use Wgit to copy entire website's HTML making it far more powerful than wget. The Wgit API is easily extendable allowing you to easily pull out the parts of a webpage that are important to you, the CSS or JS links for example. 
+Wgit is a WWW indexer/scraper which crawls URL's and retrieves their page contents for later use. Also included in this package is a means to search indexed documents stored in a database. Therefore this library provides the main components of a WWW search engine. You can also use Wgit to copy entire website's HTML making it far more powerful than wget. The Wgit API is easily extendable allowing you to easily pull out the parts of a webpage that are important to you, the external links or keywords for example.
 
 ## Installation
 
@@ -34,7 +34,13 @@ doc = crawler.crawl url
 doc.stats # => {:url=>44, :html=>28133, :title=>17, :keywords=>0, :links=>35, :text_length=>67, :text_bytes=>13735}
 
 doc.class # => Wgit::Document
-Wgit::Document.instance_methods(false).sort # => [:author, :empty?, :external_links, :external_urls, :html, :internal_full_links, :internal_links, :keywords, :links, :relative_full_links, :relative_full_urls, :relative_links, :relative_urls, :score, :search, :search!, :size, :stats, :text, :title, :to_h, :to_hash, :url, :xpath]
+Wgit::Document.instance_methods(false).sort # => [
+# :==, :[], :author, :doc, :empty?, :external_links, :external_urls,
+# :html, :internal_full_links, :internal_links, :keywords, :links, 
+# :relative_full_links, :relative_full_urls, :relative_links, 
+# :relative_urls, :score, :search, :search!, :size, :stats, :text, 
+# :title, :to_h, :to_hash, :url, :xpath
+#]
 
 results = doc.search "corruption"
 results.first # => "ial materials involving war, spying and corruption. It has so far published more"
@@ -95,8 +101,10 @@ competitor_urls = [
 crawler = Wgit::Crawler.new competitor_urls
 
 crawler.crawl do |doc|
-	puts "The keywords for #{doc.url} are: \n#{doc.keywords}\n\n"
-	my_pages_missing_keywords.concat(doc.keywords - my_pages_keywords)
+  if doc.keywords.respond_to? :-
+    puts "The keywords for #{doc.url} are: \n#{doc.keywords}\n\n"
+    my_pages_missing_keywords.concat(doc.keywords - my_pages_keywords)
+  end
 end
 
 puts "Your pages compared to your competitors are missing the following keywords:"
@@ -181,7 +189,7 @@ doc.text # => ["Hello world!", "Click this link."]
 
 **Note**: This only works for textual page content. For more control over the indexed elements themselves, see below.
 
-### 2. Defining Custom Indexers/Elements
+### 2. Defining Custom Indexers/Elements a.k.a Virtual Attributes
 
 If you want full control over the elements being indexed for your own purposes, then you'll need to define a custom indexer for each type of element that you're interested in.
 
@@ -238,7 +246,7 @@ In future versions of Wgit a `wgit` executable will be provided as part of the g
 
 ## Development
 
-After checking out the repo, run `./bin/setup` to install dependencies. Then, run `rake test` to run the tests. You can also run `./bin/console` for an interactive prompt that will allow you to experiment.
+After checking out the repo, run `./bin/setup` to install dependencies. Then, run `bundle exec rake test` to run the tests. You can also run `bundle exec ./bin/console` for an interactive prompt that will allow you to experiment.
 
 To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake RELEASE[remote]` (remote being the correct Git remote e.g. origin), which will create a git tag for the version, push any git commits and tags, and push the `*.gem` file to [rubygems.org](https://rubygems.org).
 

@@ -15,9 +15,9 @@ class TestUrl < Minitest::Test
         @url_str_link = "#{@url_str}#{@link}"
         @time_stamp = Time.new
         @mongo_doc_dup = { 
-            :url => @url_str, 
-            :crawled => true, 
-            :date_crawled => @time_stamp 
+            "url" => @url_str, 
+            "crawled" => true, 
+            "date_crawled" => @time_stamp 
         }
     end
     

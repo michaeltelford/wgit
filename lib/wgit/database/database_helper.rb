@@ -76,19 +76,24 @@ module Wgit
       
         @@urls.count + @@docs.count
       rescue Exception => ex
+        err_msg = ex.message
+        err_msg = ex.result["writeErrors"] if ex.respond_to?(:result)
         raise "Write to DB failed, remember that both urls and docs won't \
-  accept duplicate urls. Exception message: #{ex.message}"
+accept duplicate urls. Exception details: #{err_msg}"
       end
     end
   
+    # Returns the total number of URL records in the DB.
     def num_urls
       @@client[:urls].count
     end
   
+    # Returns the total number of Document records in the DB.
     def num_docs
       @@client[:documents].count
     end
   
+    # Returns the total number of records (urls + docs) in the DB.
     def num_records
       num_urls + num_docs
     end

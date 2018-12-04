@@ -34,10 +34,11 @@ class TestReadmeCodeExamples < Minitest::Test
       Wgit::Document.instance_methods(false).sort
        
       assert_equal [
-        :==, :[], :author, :empty?, :external_links, :external_urls, :html, 
-        :internal_full_links, :internal_links, :keywords, :links, :relative_full_links, 
-        :relative_full_urls, :relative_links, :relative_urls, :score, :search, 
-        :search!, :size, :stats, :text, :title, :to_h, :to_hash, :url, :xpath
+        :==, :[], :author, :doc, :empty?, :external_links, :external_urls,
+        :html, :internal_full_links, :internal_links, :keywords, :links, 
+        :relative_full_links, :relative_full_urls, :relative_links, 
+        :relative_urls, :score, :search, :search!, :size, :stats, :text, 
+        :title, :to_h, :to_hash, :url, :xpath
       ], Wgit::Document.instance_methods(false).sort
 
       results = doc.search "corruption"
@@ -54,7 +55,7 @@ class TestReadmeCodeExamples < Minitest::Test
       require 'wgit/core_ext'
 
       crawler = Wgit::Crawler.new
-      url = "http://blog.carbonfive.com".to_url
+      url = "https://blog.carbonfive.com/".to_url
 
       doc = crawler.crawl url
 
@@ -65,12 +66,12 @@ class TestReadmeCodeExamples < Minitest::Test
       assert_equal Nokogiri::XML::NodeSet, css_urls.class
       
       css_url = css_urls.first.value
-      assert css_url.start_with? "http://blog.carbonfive.com/wp-content/"
+      assert css_url.start_with? "https://blog.carbonfive.com/wp-content/"
 
       css = crawler.crawl css_url.to_url
       css[0..50]
       
-      assert_equal ".arve-wrapper {\n\tmargin-bottom: 20px;\n\twidth: 100%;", css[0..50]
+      assert_equal ".jetpack-simple-payments-wrapper {\n\tmargin-bottom: ", css[0..50]
     end
     
     def test_keyword_indexer
@@ -91,8 +92,10 @@ class TestReadmeCodeExamples < Minitest::Test
       # NOTE: We comment out any puts as we don't want to see the output during tests. 
 
       crawler.crawl do |doc|
-      	#puts "The keywords for #{doc.url} are: \n#{doc.keywords}\n\n"      	
-      	my_pages_missing_keywords.concat(doc.keywords - my_pages_keywords)
+        if doc.keywords.respond_to? :-
+          #puts "The keywords for #{doc.url} are: \n#{doc.keywords}\n\n"
+          my_pages_missing_keywords.concat(doc.keywords - my_pages_keywords)
+        end
       end
 
       #puts "Your pages compared to your competitors are missing the following keywords:"

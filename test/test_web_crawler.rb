@@ -16,7 +16,7 @@ class TestWebCrawler < Minitest::Test
     end
     
     def test_crawl_the_web
-      url_str = "http://darrenbor.land"
+      url_str = "https://motherfuckingwebsite.com/"
       seed { url url: url_str, crawled: false }
       
       # Crawl only one site.

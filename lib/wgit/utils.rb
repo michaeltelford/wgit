@@ -9,11 +9,14 @@ module Wgit
       end
 
       # Returns a hash created from obj's instance vars and values.
-      def self.to_h(obj, ignore = [])
+      # ignore should be an Array of Strings, not Symbols.
+      def self.to_h(obj, ignore = [], use_strings_as_keys = true)
           hash = {}
           obj.instance_variables.each do |var|
-              next if ignore.include?(var)
-              hash[var[1..-1].to_sym] = obj.instance_variable_get(var)
+              next if ignore.include?(var.to_s)
+              key = var.to_s[1..-1]
+              key = key.to_sym unless use_strings_as_keys
+              hash[key] = obj.instance_variable_get(var)
           end
           hash
       end

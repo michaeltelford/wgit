@@ -7,7 +7,7 @@ Add a mechanism for easily extending the DB model for other DB's.
 
 Secondary
 ---------
-Update `gemspec` with: `s.required_ruby_version = '~> 2.4.0'`
+Update Database#search & Document#search to have optional case sensitivity.
 Think about ignoring non html documents/urls e.g. http://server/image.jpg etc.
 Check if Document::TEXT_ELEMENTS is expansive enough.
 Think about how we store DB connection details, is it right?
@@ -19,10 +19,8 @@ Think about potentially using DB._update's update_many func.
 Refactoring
 -----------
 Add TOC to `README.md`
-Replace individual require's with a require 'wgit.rb'.
 Use Utils#each where possible across project.
 Use super if possible when overriding getter and setters.
-Check for uses of @var instead of var in classes.
 Append '.freeze' to all constants where they shouldn't be changed.
 Sort tab formatting to be consistent throughout (with 2 space tabs).
 Check for and use Assertable func. in tests where possible.

@@ -5,24 +5,28 @@ module Wgit
   
   # @author Michael Telford
   # Class modeling a web based URL.
-  # Can be an internal link e.g. "about.html" 
-  # or a full URL e.g. "http://www.google.co.uk".
+  # Can be an internal link e.g. "about.html" or a full URL 
+  # e.g. "http://www.google.co.uk".
   class Url < String
       attr_accessor :crawled, :date_crawled
     
-      def initialize(url_or_doc, crawled = false, date_crawled = nil)
-          if (url_or_doc.is_a?(String))
-              url = url_or_doc
-          else
-              # Init from a mongo collection document.
-              url = url_or_doc[:url]
-              crawled = url_or_doc[:crawled].nil? ? false : url_or_doc[:crawled]
-              date_crawled = url_or_doc[:date_crawled]
-          end
-          @uri = URI(url)
-          @crawled = crawled
-          @date_crawled = date_crawled
-          super(url)
+      def initialize(url_or_obj, crawled = false, date_crawled = nil)
+        # Init from a URL String.
+        if url_or_obj.is_a?(String)
+            url = url_or_obj
+        # Else init from a database object/document.
+        else
+            obj = url_or_obj
+            url = obj.fetch("url") # Should always be present.
+            crawled = obj.fetch("crawled", false)
+            date_crawled = obj["date_crawled"]
+        end
+        
+        @uri = URI(url)
+        @crawled = crawled
+        @date_crawled = date_crawled
+        
+        super(url)
       end
     
       def self.validate(url)
@@ -126,9 +130,9 @@ module Wgit
       end
     
       def to_h
-          ignore = [:@uri]
+          ignore = ["@uri"]
           h = Wgit::Utils.to_h(self, ignore)
-          Hash[h.to_a.insert(0, [:url, self])] # Insert url at position 0.
+          Hash[h.to_a.insert(0, ["url", self])] # Insert url at position 0.
       end
     
       alias :to_hash :to_h

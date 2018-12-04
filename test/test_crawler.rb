@@ -137,7 +137,7 @@ class TestCrawler < Minitest::Test
       assert_crawl_site c
       
       # Test small site with externals only on the index page.
-      url = Wgit::Url.new "http://darrenbor.land"
+      url = Wgit::Url.new "https://motherfuckingwebsite.com/"
       c = Wgit::Crawler.new url
       assert_crawl_site c
       

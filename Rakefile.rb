@@ -1,12 +1,17 @@
-require "bundler/gem_tasks"
+require 'bundler/gem_tasks'
 require 'rake/testtask'
 
 Rake::TestTask.new do |t|
   t.libs << 'test'
 end
 
-desc "Run tests"
-task :default => :test
+desc "Print help information"
+task :default => :help
+
+desc "Print help information"
+task :help do
+  system "bundle exec rake -D"
+end
 
 desc "Compile all project Ruby files with warnings."
 task :compile do 
