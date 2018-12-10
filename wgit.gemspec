@@ -23,7 +23,7 @@ Gem::Specification.new do |s|
   #s.executables          << "wgit"
   s.homepage              = 'http://rubygems.org/gems/wgit'
   s.license               = 'MIT'
-  s.required_ruby_version = '~> 2.0' # Only works with ruby 2.0.x
+  s.required_ruby_version = '~> 2.2' # Only works with ruby 2.2.x
   
   # Prevent pushing this gem to RubyGems.org. To allow pushes either set the 'allowed_push_host'
   # to allow pushing to a single host or delete this section to allow pushing to any host.
