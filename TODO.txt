@@ -10,7 +10,7 @@ Secondary
 Update Database#search & Document#search to have optional case sensitivity.
 Think about ignoring non html documents/urls e.g. http://server/image.jpg etc.
 Check if Document::TEXT_ELEMENTS is expansive enough.
-Think about how we store DB connection details, is it right?
+Remove CONNECTION_DETAILS and read in values from the ENV.
 Add logging functionality (possibly use the mongo logger?).
 Possibly use refine instead of core-ext?
 Think about potentially updating the WebCrawler to be multi threaded.

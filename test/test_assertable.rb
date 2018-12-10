@@ -3,13 +3,12 @@ require 'minitest/pride'
 require_relative "helpers/test_helper"
 require_relative "../lib/wgit/assertable"
 
-# @author Michael Telford
 class TestAssertable < Minitest::Test
     include TestHelper
     include Wgit::Assertable
     
+    # Runs before every test.
     def setup
-        # Runs before every test.
         @s  = "Hello World!"
         @a  = [1, 2, 3]
         @a2 = [1, true, "Boom!"]

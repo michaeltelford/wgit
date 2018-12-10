@@ -2,11 +2,11 @@
 
 Wgit is wget on steroids with an easy to use API for web scraping and indexing.
 
-Wgit is a WWW indexer/scraper which crawls URL's and retrieves their page contents for later use. Also included in this package is a means to search indexed documents stored in a database. Therefore this library provides the main components of a WWW search engine. You can also use Wgit to copy entire website's HTML making it far more powerful than wget. The Wgit API is easily extendable allowing you to easily pull out the parts of a webpage that are important to you, the external links or keywords for example.
+Wgit is a WWW indexer/scraper which crawls URL's and retrieves their page contents for later use. Also included in this gem is a means to search indexed documents stored in a database. Therefore this library provides the main components of a WWW search engine. You can also use Wgit to copy entire website's HTML making it far more powerful than wget. The Wgit API is easily extendable allowing you to easily pull out the parts of a webpage that are important to you, the external links or keywords for example.
 
 ## Installation
 
-Add this line to your application's Gemfile:
+Add this line to your application's `Gemfile`:
 
 ```ruby
 gem 'wgit'
@@ -31,7 +31,10 @@ crawler = Wgit::Crawler.new
 url = Wgit::Url.new "https://wikileaks.org/What-is-Wikileaks.html"
 
 doc = crawler.crawl url
-doc.stats # => {:url=>44, :html=>28133, :title=>17, :keywords=>0, :links=>35, :text_length=>67, :text_bytes=>13735}
+doc.stats # => {
+# :url=>44, :html=>28133, :title=>17, :keywords=>0,
+# :links=>35, :text_length=>67, :text_bytes=>13735
+#}
 
 doc.class # => Wgit::Document
 Wgit::Document.instance_methods(false).sort # => [
@@ -43,19 +46,17 @@ Wgit::Document.instance_methods(false).sort # => [
 #]
 
 results = doc.search "corruption"
-results.first # => "ial materials involving war, spying and corruption. It has so far published more"
+results.first # => "ial materials involving war, spying and corruption. 
+              #     It has so far published more"
 ```
 
 ## Practical Examples
 
-Below are some practical examples of Wgit in use. You can copy and run the code for yourself. 
-Make sure to replace the CONNECTION_DETAILS with your own when using the Database example. 
+Below are some practical examples of Wgit in use. You can copy and run the code for yourself. Make sure to replace the `CONNECTION_DETAILS` with your own when using the Database example. 
 
 ### WWW HTML Indexer
 
-See the Wgit::WebCrawler documentation and source code for an already built example of a WWW HTML 
-indexer. It will crawl any external url's (in the database) and index their markup 
-for later use, be it searching or otherwise. 
+See the `Wgit::WebCrawler` documentation and source code for an already built example of a WWW HTML indexer. It will crawl any external url's (in the database) and index their markup for later use, be it searching or otherwise. It will literally crawl the WWW forever if you let it!
 
 ### CSS Indexer
 
@@ -63,7 +64,7 @@ The below script downloads the contents of Facebook's (index page's) first css l
 
 ```ruby
 require 'wgit'
-require 'wgit/core_ext' # => Provides the String#to_url and Array#to_urls methods.
+require 'wgit/core_ext' # Provides the String#to_url and Enumerable#to_urls methods.
 
 crawler = Wgit::Crawler.new
 url = "https://www.facebook.com".to_url
@@ -82,12 +83,11 @@ css[0..50] # => ".UIContentTopper{padding:14px 0 0 17px;margin:50px "
 
 ### Keyword Indexer (SEO Helper)
 
-The below script downloads the contents of several webpages, pulls out their keywords for comparison.
-Such a script might be used by marketers for SEO optimisation for example. 
+The below script downloads the contents of several webpages and pulls out their keywords for comparison. Such a script might be used by marketeers for SEO optimisation for example. 
 
 ```ruby
 require 'wgit'
-require 'wgit/core_ext' # => Provides the String#to_url and Array#to_urls methods.
+require 'wgit/core_ext' # => Provides the String#to_url and Enumerable#to_urls methods.
 
 my_pages_keywords = ["altitude", "mountaineering", "adventure"]
 my_pages_missing_keywords = []
@@ -110,19 +110,19 @@ end
 puts "Your pages compared to your competitors are missing the following keywords:"
 puts my_pages_missing_keywords.uniq!
 ```
+
 ### Database Example
 
-The below script shows how to use Wgit's database functionality (using MongoDB) to crawl and 
-search HTML documents. 
+The below script shows how to use Wgit's database functionality (using MongoDB) to crawl and then search HTML documents. 
 
-Currently the only supported DBMS is MongoDB. See [mLab](https://mlab.com) for a free (small) 
-account or provide your own database instance. 
+Currently the only supported DBMS is MongoDB. See [mLab](https://mlab.com) for a free (small) account or provide your own database instance. 
 
 ```ruby
 require 'wgit'
-require 'wgit/core_ext' # => Provides the String#to_url and Array#to_urls methods.
+require 'wgit/core_ext' # => Provides the String#to_url and Enumerable#to_urls methods.
 
-# Here we create our own document rather than crawl one. 
+# Here we create our own document rather than crawling the web.
+# We pass the web page's URL and HTML Strings.
 doc = Wgit::Document.new(
 	"http://test-url.com".to_url, 
 	"<p>Some text to search for.</p><a href='http://www.google.co.uk'>Click me!</a>"
@@ -200,11 +200,14 @@ Here's how to add a custom indexer for a page element:
 ```ruby
 # Let's get all the page's table elements.
 Wgit::Document.define_extension(
-  :tables, # Document#tables will return the page's tables.
-  "//table", # The xpath to extract the tables.
-  singleton: false, # True returns the first table found, false returns them all.
-  text_content_only: false, # True returns a String of all the tables combined text, false returns the tables as Nokogiri objects (see below).
-)
+  :tables,                  # Document#tables will return the page's tables.
+  "//table",                # The xpath to extract the tables.
+  singleton: false,         # True returns the first table found, false returns all.
+  text_content_only: false, # True returns a String of all the tables combined text,
+                            # false returns the tables as Nokogiri objects (see below).
+) do |tables|
+  # Here we can manipulate the object(s) before they're set in Document#tables.
+end
 
 # Our Document has a table which we're interested in.
 doc = Wgit::Document.new(
@@ -217,38 +220,40 @@ doc = Wgit::Document.new(
 tables = doc.tables
 
 # Both the collection and each table within the collection are plain Nokogiri objects.
-tables.class # => Nokogiri::XML::NodeSet
-tables.first.class # => Nokogiri::XML::Element
+tables.class        # => Nokogiri::XML::NodeSet
+tables.first.class  # => Nokogiri::XML::Element
 ```
 
-For more information on what's possible with each Nokogiri object, see the documentation:
-
-https://www.rubydoc.info/github/sparklemotion/nokogiri
+For more information on what's possible with each Nokogiri object, see the [documentation](https://www.rubydoc.info/github/sparklemotion/nokogiri).
 
 **Extension Notes**:
 
-- Any links should be coerced into `Wgit::Url` objects, Url's are treated as Strings when being inserted into the DB. 
+- Any links should be mapped into `Wgit::Url` objects, Url's are treated as Strings when being inserted into the DB. 
 - Any object like a Nokogiri object will not be inserted into the DB, its up to you to map each object to a native type e.g. String, Boolean etc. 
 
 ## Usage Notes
 
 Below are some notes to keep in mind when using Wgit:
 
-- All Url's should be prefixed with the appropiate protocol e.g. `http://`
-- Url redirects will not be followed and `nil` will be returned from the crawl. 
-- Currently the only supported DBMS is MongoDB. 
+- All Url's must be prefixed with the appropiate protocol e.g. `http://`
+- Currently, Url redirects will not be followed and `nil` will be returned from the crawl. 
+- Currently, the only supported DBMS is MongoDB. 
 
 ## Executable
 
 Currently there is no executable provided with Wgit, however...
 
-In future versions of Wgit a `wgit` executable will be provided as part of the gem. This executable will provide the capability to crawl a Url from the command line just like wget but you'll be able to do much more like recursively crawl entire sites and easily store the resulting markup in a Database or to a file. 
+In future versions of Wgit, a `wgit` executable will be provided as part of the gem. This executable will provide the capability to crawl a URL from the command line just like wget but you'll be able to do much more like recursively crawl entire sites and easily store the resulting markup in a Database or to a file. 
 
 ## Development
 
-After checking out the repo, run `./bin/setup` to install dependencies. Then, run `bundle exec rake test` to run the tests. You can also run `bundle exec ./bin/console` for an interactive prompt that will allow you to experiment.
+For a full list of available Rake tasks, run `bundle exec rake help`. The most commonly used tasks are listed below...
 
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake RELEASE[remote]` (remote being the correct Git remote e.g. origin), which will create a git tag for the version, push any git commits and tags, and push the `*.gem` file to [rubygems.org](https://rubygems.org).
+After checking out the repo, run `./bin/setup` to install dependencies (requires `gem install bundler`). Then, run `bundle exec rake test` to run the tests. You can also run `bundle exec ./bin/console` for an interactive prompt that will allow you to experiment with the code.
+
+To generate code documentation run `bundle exec yard doc`. To browse the generated documentation run `bundle exec yard server -r`.
+
+To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake RELEASE[remote]` (remote being the correct Git remote e.g. `origin`), which will create a git tag for the version, push any git commits and tags, and push the `*.gem` file to [rubygems.org](https://rubygems.org).
 
 ## Contributing
 

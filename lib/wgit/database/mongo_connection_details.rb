@@ -1,5 +1,3 @@
-
-# @author Michael Telford
 module Wgit
   DB_PROVIDER = :MongoLabs.freeze
 

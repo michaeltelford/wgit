@@ -2,12 +2,11 @@ require "minitest/autorun"
 require 'minitest/pride'
 require_relative "helpers/test_helper"
 
-# @author Michael Telford
 class TestGem < Minitest::Test
   include TestHelper
   
+  # Runs before every test.
   def setup
-    # Runs before every test.
   end
   
   # Test the wgit.rb file loads the API correctly.

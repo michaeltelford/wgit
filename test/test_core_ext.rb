@@ -5,7 +5,6 @@ require_relative "../lib/wgit/assertable"
 require_relative "../lib/wgit/url"
 require_relative "../lib/wgit/core_ext"
 
-# @author Michael Telford
 class TestCoreExt < Minitest::Test
   include TestHelper
   include Wgit::Assertable

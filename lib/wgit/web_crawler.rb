@@ -3,24 +3,50 @@
 require_relative 'crawler'
 require_relative 'database/database'
 
-# @author Michael Telford
 module Wgit
   
-  # Convience method to crawl the World Wide Web.
-  # The default value (-1) for max_sites_to_crawl is unrestricted.
-  # The default max_data_size is 1GB.
+  # Convience method to crawl the World Wide Web using Wgit::WebCrawler.
+  # 
+  # @param max_sites_to_crawl [Integer] The number of separate and whole websites
+  #   to be crawled before the method exits. Defaults to -1 which means the
+  #   crawl will occur until manually stopped (Ctrl+C etc).
+  # @param max_data_size [Integer] The maximum amount of bytes that will be
+  #   scraped from the web (default is 1GB). Note, that this value is used to
+  #   determine when to stop crawling; it's not a guarantee of the max data
+  #   that will be obtained.
   def self.crawl_the_web(max_sites_to_crawl = -1, max_data_size = 1048576000)
     db = Wgit::Database.new
     web_crawler = Wgit::WebCrawler.new(db, max_sites_to_crawl, max_data_size)
     web_crawler.crawl_the_web
   end
 
-  # Class which sets up a crawler and saves the indexed 
-  # docs to a database. Will crawl the web forever if you let it :-)
+  # Class which sets up a crawler and saves the indexed docs to a database. 
+  # Will crawl the web forever if you let it!
   class WebCrawler
-    attr_accessor :max_sites_to_crawl, :max_data_size
-    attr_reader :crawler, :db
+    # The max number of sites to crawl before stopping.
+    attr_accessor :max_sites_to_crawl
+
+    # The current amount of crawled data must be below this before
+    # continuing to crawl a new site. Is not a max crawl gaurentee.
+    attr_accessor :max_data_size
+
+    # The crawler used to scrape the WWW.
+    attr_reader :crawler
     
+    # The database instance used to store Urls and Documents in.
+    attr_reader :db
+    
+    # Initialize the WebCrawler.
+    #
+    # @param database [Wgit::Database] The database instance (already
+    #   initialzed with the correct connection details etc).
+    # @param max_sites_to_crawl [Integer] How many separate and whole websites
+    #   will be crawled before the method exits. Defaults to -1 which means the
+    #   crawl will occur until manually stopped (Ctrl+C etc).
+    # @param max_data_size [Integer] The maximum amount of bytes that will be
+    #   scraped from the web. Note, that this value is used to determine when to
+    #   stop crawling; it is not a guarantee of the max data that'll be obtained.
+    # @return [Wgit::WebCrawler] The new initialized instance of WebCrawler.
     def initialize(database, 
                    max_sites_to_crawl = -1, 
                    max_data_size = 1048576000)
@@ -29,10 +55,11 @@ module Wgit
       @max_sites_to_crawl = max_sites_to_crawl
       @max_data_size = max_data_size
     end
-    
+
     # Retrieves url's from the database and recursively crawls each site 
     # storing their internal pages into the database and adding their external 
-    # url's to be crawled at a later date. 
+    # url's to be crawled at a later date. Puts out info on the crawl to STDOUT
+    # as it goes along.
     def crawl_the_web
       if max_sites_to_crawl < 0
         puts "Crawling until the database has been filled or it runs out of \
@@ -88,7 +115,7 @@ iteration."
   
     private
 
-    # Keep crawling or not based on DB size and current loop interation.
+    # Keep crawling or not based on DB size and current loop iteration.
     def keep_crawling?(loop_count)
       return false if db.size >= max_data_size
       # If max_sites_to_crawl is -1 for example then crawl away.

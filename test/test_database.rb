@@ -8,7 +8,6 @@ require_relative "../lib/wgit/database/database"
 require_relative "../lib/wgit/database/database_helper"
 require_relative "../lib/wgit/database/database_default_data"
 
-# @author Michael Telford
 # Test class for the Database methods.
 # The classes Url and Document are required types for some Database logic.
 # WARNING: The DB is cleared down prior to each test run.

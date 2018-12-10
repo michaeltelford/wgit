@@ -3,15 +3,14 @@ require_relative "mongo_connection_details"
 require 'mongo'
 
 module Wgit
-
-  # @author Michael Telford
+  
   # Helper class for the Database to manipulate data. Used for testing and 
-  # development. This class isn't packaged in the gem and is for dev only so it 
+  # development. This class isn't packaged in the gem and is for dev only so it
   # doesn't currently have unit tests. This class was originally 
-  # developed to assist in testing database.rb and is in essence tested by the 
+  # developed to assist in testing database.rb and is in essence tested by the
   # database tests themselves as they use the helper methods. 
-  # The main methods include: clear_db (nuke), seed, num_records, num_urls, 
-  # num_docs, url?, doc?, index, search
+  # The main methods include: :clear_db (:nuke), :seed, :num_records,
+  # :num_urls, :num_docs, :url?, :doc?, :index, :search
   module DatabaseHelper
     conn_details = Wgit::CONNECTION_DETAILS
     if conn_details.empty?
@@ -49,18 +48,18 @@ module Wgit
       clear_urls + clear_docs
     end
   
-    # Seeds what's in the block comprising of url and doc method calls
-    # (in this module). If anything other than a hash is given then the default 
+    # Seed what's in the block, comprising of url and doc method calls
+    # (in this module). If anything other than a hash is given then the default
     # hash is used. An integer can be used to specify how many of default 
     # objects should be seeded. One is the default. 
     # Returns the number of seeded/inserted documents in the DB. 
     # Code example:
-    # seed do
-    #   url(url: "http://www.google.co.uk")
-    #   doc(url: "https://www.myserver.org", html: "<html></html>")
-    #   url 3   # Seeds 3 of the default url records.
-    #   doc     # Seeds 1 of the default doc records.
-    # end
+    #   seed do
+    #     url(url: "http://www.google.co.uk")
+    #     doc(url: "https://www.myserver.org", html: "<html></html>")
+    #     url 3   # Seeds 3 of the default url records.
+    #     doc     # Seeds 1 of the default doc records.
+    #   end
     def seed(&block)
       raise "Must provide a block" unless block_given?
     
@@ -139,6 +138,8 @@ accept duplicate urls. Exception details: #{err_msg}"
   
   private
 
+    # DSL method used within the block passed to DatabaseHelper#seed.
+    # Seeds a Url into the DB.
     def url(hashes_or_int = 1)
       if hashes_or_int and hash_or_array?(hashes_or_int)
         if hashes_or_int.is_a?(Hash)
@@ -151,6 +152,8 @@ accept duplicate urls. Exception details: #{err_msg}"
       end
     end
   
+    # DSL method used within the block passed to DatabaseHelper#seed.
+    # Seeds a Document into the DB.
     def doc(hashes_or_int = 1)
       if hashes_or_int and hash_or_array?(hashes_or_int)
         if hashes_or_int.is_a?(Hash)
@@ -163,6 +166,7 @@ accept duplicate urls. Exception details: #{err_msg}"
       end
     end
   
+    # Returns whether or not the obj is a Hash or Array instance.
     def hash_or_array?(obj)
       obj.is_a?(Hash) or obj.is_a?(Array)
     end

@@ -1,18 +1,19 @@
-
 module Wgit
 
-  # @author Michael Telford
-  # Module containing assert methods including type checking which can be used 
-  # for asserting the integrity of method definitions etc. 
+  # Module containing assert methods including type checking which can be used
+  # for asserting the integrity of method definitions etc.
   module Assertable
       DEFAULT_TYPE_FAIL_MSG = "Expected: %s, Actual: %s"
       WRONG_METHOD_MSG = "arr must be Enumerable, use a different method"
       DEFAULT_DUCK_FAIL_MSG = "%s doesn't respond_to? %s"
     
-      # obj.instance_of? must return true for one of the types listed in 
-      # type_or_types or an exception is thrown using msg if provided. 
-      # type_or_types can be a single Class or an Enumerable of Class objects, 
-      # Strings and Symbols will not work. 
+      # Tests if the obj is of a given type.
+      #
+      # @param obj [Object] The Object to test.
+      # @param type_or_types [Type, Array<Type>] The type/types that obj must
+      #     belong to or an exception is thrown.
+      # @param msg [String] The raised RuntimeError message, if provided.
+      # @return [Object] The given obj on successful assertion.
       def assert_types(obj, type_or_types, msg = nil)
           msg ||= DEFAULT_TYPE_FAIL_MSG % [type_or_types, obj.class]
           if type_or_types.respond_to?(:any?)
@@ -25,19 +26,26 @@ module Wgit
       end
     
       # Each object within arr must match one of the types listed in 
-      # type_or_types or an exception is thrown using msg if provided. 
-      # type_or_types can be a single Class or an Enumerable of Class objects, 
-      # Strings and Symbols will not work. 
+      # type_or_types or an exception is raised using msg, if provided.
+      #
+      # @param arr [Enumerable#each] Enumerable of objects to type check.
+      # @param type_or_types [Type, Array<Type>] The allowed type(s).
+      # @param msg [String] The raised RuntimeError message, if provided.
+      # @return [Object] The given arr on successful assertion.
       def assert_arr_types(arr, type_or_types, msg = nil)
           raise WRONG_METHOD_MSG unless arr.respond_to?(:each)
           arr.each do |obj|
               assert_types(obj, type_or_types, msg)
           end
       end
-    
+
       # The obj_or_objs must respond_to? all of the given methods or an 
-      # Exception is raised using msg or a default message.
-      # Returns obj_or_objs on sucessful assertion.
+      # Exception is raised using msg, if provided.
+      #
+      # @param obj_or_objs [Object, Enumerable#each] The objects to duck check.
+      # @param methods [Array<Symbol>] The methods to :respond_to?.
+      # @param msg [String] The raised RuntimeError message, if provided.
+      # @return [Object] The given obj_or_objs on successful assertion.
       def assert_respond_to(obj_or_objs, methods, msg = nil)
           if obj_or_objs.respond_to?(:each)
               obj_or_objs.each do |obj|
@@ -51,6 +59,7 @@ module Wgit
     
       private
     
+      # obj must respond_to? all methods or an exception is raised.
       def _assert_respond_to(obj, methods, msg = nil)
           msg ||= DEFAULT_DUCK_FAIL_MSG % ["#{obj.class} (#{obj})", methods]
           match = methods.all? { |method| obj.respond_to?(method) }

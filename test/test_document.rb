@@ -4,12 +4,11 @@ require_relative "helpers/test_helper"
 require_relative "../lib/wgit/url"
 require_relative "../lib/wgit/document"
 
-# @author Michael Telford
 class TestDocument < Minitest::Test
     include TestHelper
     
+    # Runs before every test.
     def setup
-        # Runs before every test.
         @url = Wgit::Url.new("http://www.mytestsite.com")
         @html = File.read("test/helpers/test_doc.html")
         @mongo_doc_dup = { 

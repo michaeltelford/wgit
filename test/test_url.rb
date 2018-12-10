@@ -3,12 +3,11 @@ require 'minitest/pride'
 require_relative "helpers/test_helper"
 require_relative "../lib/wgit/url"
 
-# @author Michael Telford
 class TestUrl < Minitest::Test
     include TestHelper
     
+    # Runs before every test.
     def setup
-        # Runs before every test.
         @url_str = "http://www.google.co.uk"
         @bad_url_str = "my_server"
         @link = "/about.html"

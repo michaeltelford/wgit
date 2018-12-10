@@ -3,40 +3,57 @@ require_relative 'document'
 require_relative 'utils'
 require_relative 'assertable'
 require 'net/http' # requires 'uri'
- 
+
 module Wgit
 
-  # @author Michael Telford
-  # Crawler class provides a means of crawling web URL's. 
-  # Note that any redirects will not be followed for during crawling 
-  # functionality. 
+  # Crawler class provides a means of crawling web based URL's. 
+  # Note that currently all redirects will not be followed during a crawl.
   class Crawler
     include Assertable
     
-  	attr_reader :urls, :docs
+    # The urls to crawl.
+    attr_reader :urls
+      
+    # The docs of the crawled @urls.
+    attr_reader :docs
 
+    # Initializes the Crawler by setting the @urls and @docs.
+    #
+    # @param urls [Wgit::Url] The URLs to crawl.
   	def initialize(*urls)
-  		self.urls = urls unless urls.nil?
-      @docs = []
+        self.urls = urls unless urls.nil?
+        @docs = []
   	end
     
+    # Sets this Crawler's @urls.
+    #
+    # @param urls [Array<Wgit::Url>] The URLs to crawl.
     def urls=(urls)
         @urls = []
         Wgit::Utils.each(urls) { |url| add_url(url) }
     end
   
+    # Sets this Crawler's @urls.
+    #
+    # @param urls [Wgit::Url] The URLs to crawl.
     def [](*urls)
         self.urls = urls unless urls.nil?
     end
   
+    # Adds the url to this Crawler's @urls.
+    #
+    # @param url [Wgit::Url] A URL to crawl.
     def <<(url)
         add_url(url)
     end
 	
     # Crawls individual urls, not entire sites.
-    # Returns the last crawled doc.
-    # Yields each doc to the provided block or adds each doc to @docs
-    # which can be accessed by Crawler#docs after the method returns.
+    #
+    # @param urls [Array<Wgit::Url>] The URLs to crawl.
+    # @yield [doc] If provided, the block is given each crawled
+    #   Document. Otherwise each doc is added to @docs which can be accessed
+    #   by Crawler#docs after this method returns.
+    # @return [Wgit::Document] The last Document crawled.
   	def crawl_urls(urls = @urls, &block)
       raise "No urls to crawl" unless urls
       @docs = []
@@ -46,22 +63,29 @@ module Wgit
   	end
 	
   	# Crawl the url and return the response document or nil.
-    # Also yield(doc) if a block is provided. The doc is passed to the block 
-    # regardless of the crawl success so the doc.url can be used if needed. 
+    #
+    # @param url [Wgit::Document] The URL to crawl.
+    # @yield [doc] The crawled HTML Document regardless if the
+    #   crawl was successful or not. Therefore, the Document#url can be used.
+    # @return [Wgit::Document, nil] The crawled HTML Document or nil if the
+    #   crawl was unsuccessful.
   	def crawl_url(url = @urls.first, &block)
       assert_type(url, Url)
-  		markup = fetch(url)
+  	  markup = fetch(url)
       url.crawled = true
       doc = Wgit::Document.new(url, markup)
       block.call(doc) if block_given?
       doc.empty? ? nil : doc
   	end
-    
+
     # Crawls an entire site by recursively going through its internal_links.
-    # Also yield(doc) for each crawled doc if a block is provided.
-    # A block is the only way to interact with the crawled docs.
-    # Returns a unique array of external urls collected from the site
-    # or nil if the base_url could not be crawled successfully.
+    #
+    # @param base_url [Wgit::Url] The base URL of the website to be crawled.
+    # @yield [doc] Given each crawled Document/page of the site.
+    #   A block is the only way to interact with each crawled Document.
+    # @return [Array<Wgit::Url>, nil] Unique Array of external urls collected
+    #   from all of the site's pages or nil if the base_url could not be
+    #   crawled successfully.
     def crawl_site(base_url = @urls.first, &block)
       assert_type(base_url, Url)
     
@@ -94,8 +118,8 @@ module Wgit
     
   private
     
-    # Add the document to the @docs array for later processing
-    # or let the block process it here and now.
+    # Add the document to the @docs array for later processing or let the block
+    # process it here and now.
     def handle_crawl_block(url, &block)
         if not block_given?
 		        @docs << crawl_url(url)
@@ -106,9 +130,9 @@ module Wgit
     end
   
     # The fetch method performs a HTTP GET to obtain the HTML document.
-    # Invalid urls or any HTTP response that doesn't return a HTML body 
-    # will be ignored and nil will be returned.  This means that redirects
-    # etc. will not be followed. 
+    # Invalid urls or any HTTP response that doesn't return a HTML body will be
+    # ignored and nil will be returned.  This means that redirects etc. will
+    # not be followed.
     def fetch(url)
         raise unless url.respond_to?(:to_uri)
         res = Net::HTTP.get_response(url.to_uri)
@@ -117,6 +141,7 @@ module Wgit
         nil
     end
   
+    # Add the url to @urls ensuring it is cast to a Wgit::Url if necessary.
     def add_url(url)
         @urls = [] if @urls.nil?
         if url.instance_of?(Url)

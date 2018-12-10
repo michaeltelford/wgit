@@ -4,12 +4,11 @@ require_relative "helpers/test_helper"
 require_relative "../lib/wgit/url"
 require_relative "../lib/wgit/crawler"
 
-# @author Michael Telford
 class TestCrawler < Minitest::Test
     include TestHelper
     
+    # Runs before every test.
     def setup
-        # Runs before every test.
         @url_str = [
             "https://www.google.co.uk",
             "https://duckduckgo.com",

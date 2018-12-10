@@ -1,11 +1,12 @@
 require 'securerandom'
 
 module Wgit
-
-  # Module containing the default url and doc objects for database testing. 
-  # We use an uuid on the url's because they have unique indexes. 
+  
+  # Module containing the default url and doc objects for database testing.
+  # We use an uuid on the url fields in the DB because they are unique.
   module DatabaseDefaultData
 
+    # Returns a Hash representing a Url record in the DB.
     def self.url
       {
         "url" => "http://www.google.co.uk/#{SecureRandom.uuid}",
@@ -16,6 +17,7 @@ module Wgit
       }
     end
 
+    # Returns a Hash representing a Document record in the DB.
     def self.doc
       {
         "url" => "http://altitudejunkies.com/everest.html/#{SecureRandom.uuid}",

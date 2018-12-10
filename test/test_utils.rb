@@ -6,10 +6,10 @@ require_relative "../lib/wgit/document"
 require_relative "../lib/wgit/database/database_default_data"
 
 # We use a class rather than a Struct because a Struct instance doesn't
-# have instance_variables which Wgit::Utils.to_h uses. 
-# @author Michael Telford
+# have instance_variables which Wgit::Utils.to_h uses.
 class Person
     attr_accessor :name, :age, :height
+    
     def initialize
         @name = "Bob"
         @age = 45
@@ -17,7 +17,6 @@ class Person
     end
 end
 
-# @author Michael Telford
 class TestUtils < Minitest::Test
     include TestHelper
     

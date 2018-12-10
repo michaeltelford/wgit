@@ -2,11 +2,11 @@ require "minitest/autorun"
 require "minitest/pride"
 require_relative "helpers/test_helper"
 require_relative "../lib/wgit/core_ext"
+require_relative "../lib/wgit/crawler"
 require_relative "../lib/wgit/document"
 require_relative "../lib/wgit/database/database"
 require_relative "../lib/wgit/database/database_helper"
 
-# @author Michael Telford
 # Tests the ability to extend the Wgit::Document functionality by extracting
 # custom page elements that aren't extracted by default.
 # WARNING: Certain tests will clear down the DB prior to the test run.
@@ -58,7 +58,8 @@ class TestDocumentExtension < Minitest::Test
   
   def test_virtual_attributes_extension_with_non_defaults
     # Test singleton: false and text_content_only: false
-    name = Wgit::Document.define_extension(:tables, "//table", 
+    # NOTE: test_readme_code_examples defines :tables so we use :tables2.
+    name = Wgit::Document.define_extension(:tables2, "//table", 
                                     singleton: false, text_content_only: false)
     
     doc = Wgit::Document.new(
@@ -67,9 +68,9 @@ class TestDocumentExtension < Minitest::Test
 <table><th>Header Text</th><th>Another Header</th></table></html>"
     )
     
-    assert_equal :init_tables, name
-    assert doc.respond_to? :tables
-    tables = doc.tables
+    assert_equal :init_tables2, name
+    assert doc.respond_to? :tables2
+    tables = doc.tables2
     
     assert_instance_of Nokogiri::XML::NodeSet, tables
     assert_equal 1, tables.length
@@ -126,6 +127,21 @@ class TestDocumentExtension < Minitest::Test
     assert_instance_of Nokogiri::XML::Element, img
     assert_equal obj, img
     assert_equal 120, area
+  end
+
+  def test_define_extension_when_crawled
+    # We get the first blockquote on the crawled page.
+    # default_opts = { singleton: true, text_content_only: true }
+    name = Wgit::Document.define_extension(:blockquote, "//blockquote")
+    
+    doc = Wgit::Crawler.new("https://motherfuckingwebsite.com/").crawl_url
+    
+    assert_equal :init_blockquote, name
+    assert doc.respond_to? :blockquote
+    blockquote = doc.blockquote
+    
+    assert_instance_of String, blockquote
+    assert_equal "\"Good design is as little design as possible.\"\n            - some German motherfucker", blockquote
   end
   
   def test_virtual_attributes_extension_init_from_database
@@ -271,14 +287,15 @@ class TestDocumentExtension < Minitest::Test
     refute Wgit::Document.remove_extension(:blah2)
   end
 
-  # Runs after every test and should remove all defined extensions.
+  # Runs after every test and should remove all defined extensions
+  # to avoid affecting other tests.
   def teardown
     if Wgit::Document.remove_extension(:table_text)
       Wgit::Document.send(:remove_method, :table_text)
     end
 
-    if Wgit::Document.remove_extension(:tables)
-      Wgit::Document.send(:remove_method, :tables)
+    if Wgit::Document.remove_extension(:tables2)
+      Wgit::Document.send(:remove_method, :tables2)
     end
 
     if Wgit::Document.remove_extension(:img_alt)
@@ -287,6 +304,10 @@ class TestDocumentExtension < Minitest::Test
 
     if Wgit::Document.remove_extension(:img)
       Wgit::Document.send(:remove_method, :img)
+    end
+
+    if Wgit::Document.remove_extension(:blockquote)
+      Wgit::Document.send(:remove_method, :blockquote)
     end
 
     if Wgit::Document.remove_extension(:table_text2)

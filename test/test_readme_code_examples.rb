@@ -5,8 +5,7 @@ require_relative "helpers/test_helper"
 require_relative "../lib/wgit/database/mongo_connection_details"
 require_relative "../lib/wgit/database/database_helper"
 
-# @author Michael Telford
-# WARNING: The DB is cleared down at the start of the database example test. 
+# WARNING: The DB is cleared down at the start of the database example test.
 class TestReadmeCodeExamples < Minitest::Test
     include TestHelper
     include Wgit::DatabaseHelper
@@ -155,7 +154,56 @@ class TestReadmeCodeExamples < Minitest::Test
       end
     end
     
-    def test_extending_the_api
-      #
+    def test_extending_the_api_text_elements
+      # Let's add the text of links e.g. <a> tags.
+      Wgit::Document.text_elements << :a
+
+      # Our Document has a link whose's text we're interested in.
+      doc = Wgit::Document.new(
+        "http://some_url.com".to_url, 
+        "<html><p>Hello world!</p>\
+      <a href='https://made-up-link.com'>Click this link.</a></html>"
+      )
+
+      # Now all crawled Documents will contain all link text in Document#text.
+      # doc.text # => ["Hello world!", "Click this link."]
+      assert_equal ["Hello world!", "Click this link."], doc.text
+      
+      # Remove the extension.
+      assert_equal :a, Wgit::Document.text_elements.delete(:a)
+    end
+
+    def test_extending_the_api_define_extension
+      # Let's get all the page's table elements.
+      Wgit::Document.define_extension(
+        :tables,                  # Document#tables will return the page's tables.
+        "//table",                # The xpath to extract the tables.
+        singleton: false,         # True returns the first table found, false returns all.
+        text_content_only: false, # True returns a String of all the tables combined text,
+                                  # false returns the tables as Nokogiri objects (see below).
+      ) do |tables|
+        # Here we can manipulate the object(s) before they're set in Document#tables.
+      end
+
+      # Our Document has a table which we're interested in.
+      doc = Wgit::Document.new(
+        "http://some_url.com".to_url, 
+        "<html><p>Hello world!</p>\
+      <table><th>Header Text</th><th>Another Header</th></table></html>"
+      )
+
+      # Call our newly defined method to obtain the table data we're interested in.
+      tables = doc.tables
+
+      # Both the collection and each table within the collection are plain Nokogiri objects.
+      tables.class        # => Nokogiri::XML::NodeSet
+      tables.first.class  # => Nokogiri::XML::Element
+
+      assert_equal Nokogiri::XML::NodeSet, tables.class
+      assert_equal Nokogiri::XML::Element, tables.first.class
+
+      # Remove the extension.
+      Wgit::Document.remove_extension(:tables)
+      Wgit::Document.send(:remove_method, :tables)
     end
 end

@@ -4,7 +4,6 @@ require_relative "helpers/test_helper"
 require_relative "../lib/wgit/web_crawler"
 require_relative "../lib/wgit/database/database_helper"
 
-# @author Michael Telford
 # WARNING: The DB is cleared down prior to each test run.
 class TestWebCrawler < Minitest::Test
     include TestHelper
