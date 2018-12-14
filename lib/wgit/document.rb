@@ -2,6 +2,7 @@ require_relative 'url'
 require_relative 'utils'
 require_relative 'assertable'
 require 'nokogiri'
+require 'json'
 
 module Wgit
 
@@ -107,6 +108,10 @@ module Wgit
     def [](range)
       html[range]
     end
+
+    def date_crawled
+      @url.date_crawled
+    end
     
     # Returns a Hash containing this Document's instance vars.
     # Used when storing the Document in a Database e.g. MongoDB etc.
@@ -119,6 +124,16 @@ module Wgit
         ignore = include_html ? [] : ["@html"]
         ignore << "@doc" # Always ignore "@doc"
         Wgit::Utils.to_h(self, ignore)
+    end
+
+    # Converts this Document's to_h return value to a JSON String.
+    #
+    # @param include_html [Boolean] Whether or not to include @html in the
+    #   returned JSON String.
+    # @return [String] This Document represented as a JSON String.
+    def to_json(include_html = false)
+      h = to_h(include_html)
+      JSON.generate(h)
     end
     
     # Returns a Hash containing this Document's instance variables and
@@ -169,6 +184,15 @@ module Wgit
     # @return [Nokogiri::XML::NodeSet] The result set of the xpath search.
     def xpath(xpath)
   		@doc.xpath(xpath)
+    end
+
+    # Uses Nokogiri's css method to search the doc's html and return the 
+    # results.
+    #
+    # @param css [String] The CSS selector to search the @html with.
+    # @return [Nokogiri::XML::NodeSet] The result set of the CSS search.
+    def css(selector)
+  		@doc.css(selector)
     end
     
     # Get all internal links of this Document.

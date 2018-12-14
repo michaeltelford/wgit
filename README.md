@@ -1,6 +1,6 @@
 # Wgit
 
-Wgit is wget on steroids with an easy to use API for web scraping and indexing.
+Wgit is `wget` on steroids with an easy to use API for web scraping and indexing.
 
 Wgit is a WWW indexer/scraper which crawls URL's and retrieves their page contents for later use. Also included in this gem is a means to search indexed documents stored in a database. Therefore this library provides the main components of a WWW search engine. You can also use Wgit to copy entire website's HTML making it far more powerful than wget. The Wgit API is easily extendable allowing you to easily pull out the parts of a webpage that are important to you, the external links or keywords for example.
 
@@ -52,11 +52,11 @@ results.first # => "ial materials involving war, spying and corruption.
 
 ## Practical Examples
 
-Below are some practical examples of Wgit in use. You can copy and run the code for yourself. Make sure to replace the `CONNECTION_DETAILS` with your own when using the Database example. 
+Below are some practical examples of Wgit in use. You can copy and run the code for yourself. 
 
 ### WWW HTML Indexer
 
-See the `Wgit::WebCrawler` documentation and source code for an already built example of a WWW HTML indexer. It will crawl any external url's (in the database) and index their markup for later use, be it searching or otherwise. It will literally crawl the WWW forever if you let it!
+See the `Wgit::Indexer` documentation and source code for an already built example of a WWW HTML indexer. It will crawl any external url's (in the database) and index their markup for later use, be it searching or otherwise. It will literally crawl the WWW forever if you let it!
 
 ### CSS Indexer
 
@@ -111,11 +111,35 @@ puts "Your pages compared to your competitors are missing the following keywords
 puts my_pages_missing_keywords.uniq!
 ```
 
-### Database Example
+## Practical Database Example
 
-The below script shows how to use Wgit's database functionality (using MongoDB) to crawl and then search HTML documents. 
+This next example requires a configured database instance.
 
 Currently the only supported DBMS is MongoDB. See [mLab](https://mlab.com) for a free (small) account or provide your own database instance. 
+
+### Setting Up MongoDB
+
+Follow the steps below to configure MongoDB for use with Wgit. This is only needed if you want to store/access database records.
+
+1) Create collections for: `documents` and `urls`.
+2) Add a unique index for the `url` field to **both** collections.
+3) Enable `textSearchEnabled` in the DB's configuration.
+4) Create a text search index for the `documents` collection using:
+```json
+{
+	"text": "text",
+	"author": "text",
+	"keywords": "text",
+	"title": "text"
+}
+```
+5) Set the `Wgit::CONNECTION_DETAILS` for your DB instance somewhere in your code (prior to using `Wgit::Database`)
+
+### Database Example
+
+The below script shows how to use Wgit's database functionality to crawl and then search HTML documents stored in the DB.
+
+If you're running the code below for yourself, remember to replace the `Wgit::CONNECTION_DETAILS` with your own.
 
 ```ruby
 require 'wgit'
@@ -145,7 +169,7 @@ results = db.search "text"
 
 doc == results.first # => true
 
-# Searching a document returns text snippets with 'hits' within that document. 
+# Searching a document returns the text snippets with 'hits' within that document. 
 doc.search("text").first # => "Some text to search for."
 
 db.insert doc.external_links
@@ -155,9 +179,9 @@ urls_to_crawl = db.uncrawled_urls # => Results will include doc.external_links.
 
 ## Extending The API
 
-Indexing in Wgit is the means of pulling down parts of a web page and turning them into accessible document attributes/methods. For example, `Document#author` will return you the webpage's tag value of `meta[@name='author']`.
+Indexing in Wgit is the means of pulling down parts of a web page and turning them into accessible document attributes/methods. For example, `Wgit::Document#author` will return you the webpage's tag value of `meta[@name='author']`.
 
-By default, Wgit indexes what it thinks are the most important pieces of information from each webpage. This of course is often not enough given the nature of webpages and their differences from each other. Therefore there exists ways to extend the default indexing logic.
+By default, Wgit indexes what it thinks are the most important pieces of information from each webpage. This of course is often not enough given the nature of webpages and their differences from each other. Therefore, there exists a set of ways to extend the default indexing logic.
 
 There are two ways to extend the indexing behaviour of Wgit:
 
@@ -168,9 +192,9 @@ Below describes these two methods in more detail.
 
 ### 1. Extending The Default Text Elements
 
-Wgit contains an array of `Document.text_elements` which are the default set of webpage elements containing text; which in turn are indexed and accessible via `Document#text`.
+Wgit contains an array of `Wgit::Document.text_elements` which are the default set of webpage elements containing text; which in turn are indexed and accessible via `Wgit::Document#text`.
 
-If you'd like the text of additional webpage elements to be returned from `Document#text`, then you can do the following:
+If you'd like the text of additional webpage elements to be returned from `Wgit::Document#text`, then you can do the following:
 
 ```ruby
 # Let's add the text of links e.g. <a> tags.
@@ -183,7 +207,7 @@ doc = Wgit::Document.new(
 <a href='https://made-up-link.com'>Click this link.</a></html>"
 )
 
-# Now all crawled Documents will contain all link text in Document#text.
+# Now all crawled Documents will contain all link text in Wgit::Document#text.
 doc.text # => ["Hello world!", "Click this link."]
 ```
 
@@ -193,20 +217,20 @@ doc.text # => ["Hello world!", "Click this link."]
 
 If you want full control over the elements being indexed for your own purposes, then you'll need to define a custom indexer for each type of element that you're interested in.
 
-Once you have the indexed page element, accessed via a `Document` instance method, you can do with it as you wish e.g. obtain it's text value or manipulate the element etc. Since the returned types are plain Nokogiri objects, you have the full control that the Nokogiri gem gives you.
+Once you have the indexed page element, accessed via a `Wgit::Document` instance method, you can do with it as you wish e.g. obtain it's text value or manipulate the element etc. Since the returned types are plain Nokogiri objects, you have the full control that the Nokogiri gem gives you.
 
 Here's how to add a custom indexer for a page element:
 
 ```ruby
 # Let's get all the page's table elements.
 Wgit::Document.define_extension(
-  :tables,                  # Document#tables will return the page's tables.
+  :tables,                  # Wgit::Document#tables will return the page's tables.
   "//table",                # The xpath to extract the tables.
   singleton: false,         # True returns the first table found, false returns all.
   text_content_only: false, # True returns a String of all the tables combined text,
                             # false returns the tables as Nokogiri objects (see below).
 ) do |tables|
-  # Here we can manipulate the object(s) before they're set in Document#tables.
+  # Here we can manipulate the object(s) before they're set in Wgit::Document#tables.
 end
 
 # Our Document has a table which we're interested in.
@@ -237,7 +261,7 @@ Below are some notes to keep in mind when using Wgit:
 
 - All Url's must be prefixed with the appropiate protocol e.g. `http://`
 - Currently, Url redirects will not be followed and `nil` will be returned from the crawl. 
-- Currently, the only supported DBMS is MongoDB. 
+- Currently, the only supported DBMS is MongoDB.
 
 ## Executable
 

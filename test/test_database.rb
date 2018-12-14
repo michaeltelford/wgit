@@ -1,5 +1,5 @@
 require "minitest/autorun"
-require 'minitest/pride'
+require "minitest/pride"
 require_relative "helpers/test_helper"
 require_relative "../lib/wgit/assertable"
 require_relative "../lib/wgit/url"
@@ -19,15 +19,19 @@ class TestDatabase < Minitest::Test
   # Runs before every test.
   def setup
     clear_db
+    
     @url = Wgit::Url.new(Wgit::DatabaseDefaultData.url)
     @doc = Wgit::Document.new(Wgit::DatabaseDefaultData.doc)
-    num_records = 3
+    
+    records = 3
+    
     @urls = []
-    num_records.times do
+    records.times do
       @urls << Wgit::Url.new(Wgit::DatabaseDefaultData.url)
     end
+    
     @docs = []
-    num_records.times do 
+    records.times do 
       @docs << Wgit::Document.new(Wgit::DatabaseDefaultData.doc)
     end
   end
@@ -46,15 +50,15 @@ class TestDatabase < Minitest::Test
     num_inserted = db.insert @url
     assert_equal 1, num_inserted
     assert url?(@url.to_h)
-    assert_equal 1, num_urls
+    assert_equal 1, db.num_urls
     
     # Insert several urls.
     num_inserted = db.insert @urls
     assert_equal @urls.length, num_inserted
     @urls.each { |url| assert url?(url.to_h) }
-    assert_equal @urls.length + 1, num_urls
+    assert_equal @urls.length + 1, db.num_urls
     
-    assert_equal num_urls, num_records
+    assert_equal db.num_urls, db.num_records
   end
   
   def test_insert_docs
@@ -64,15 +68,15 @@ class TestDatabase < Minitest::Test
     num_inserted = db.insert @doc
     assert_equal 1, num_inserted
     assert doc?(@doc.to_h)
-    assert_equal 1, num_docs
+    assert_equal 1, db.num_docs
     
     # Insert several docs.
     num_inserted = db.insert @docs
     assert_equal @docs.length, num_inserted
     @docs.each { |doc| assert doc?(doc.to_h) }
-    assert_equal @docs.length + 1, num_docs
+    assert_equal @docs.length + 1, db.num_docs
     
-    assert_equal num_docs, num_records
+    assert_equal db.num_docs, db.num_records
   end
   
   def test_urls
@@ -107,9 +111,9 @@ class TestDatabase < Minitest::Test
   end
   
   def test_search
-    search_text = "Everest Depart Kathmandu"
+    query = "Everest Depart Kathmandu"
     
-    @docs.last.text << search_text
+    @docs.last.text << query
     doc_hashes = @docs.map { |doc| doc.to_h }
     seed { docs doc_hashes }
     
@@ -119,13 +123,15 @@ class TestDatabase < Minitest::Test
     assert_empty_array db.search "doesn't_exist_123"
     
     # Test whole_sentence = false.
-    results = db.search search_text
+    results = db.search query
     assert_arr_types results, Wgit::Document
     assert_equal @docs.count, results.count
     
-    # Test whole_sentence = true.
-    results = db.search search_text, true
+    # Test whole_sentence = true and block.
+    num_results_from_block = 0
+    results = db.search(query, true) { num_results_from_block += 1 }
     assert_arr_types results, Wgit::Document
+    assert_equal 1, num_results_from_block
     assert_equal 1, results.count
     assert_equal @docs.last.url, results.last.url
   end
@@ -140,10 +146,50 @@ class TestDatabase < Minitest::Test
   def test_size
     db = Wgit::Database.new
     size = db.size
-    refute_nil size
     assert_type size, Float
+    refute_nil size
   end
-  
+
+  def test_num_urls
+    db = Wgit::Database.new
+    assert_equal 0, db.num_urls
+    seed { url 3 }
+    assert_equal 3, db.num_urls
+  end
+
+  def test_num_docs
+    db = Wgit::Database.new
+    assert_equal 0, db.num_docs
+    seed { doc 3 }
+    assert_equal 3, db.num_docs
+  end
+
+  def test_num_records
+    db = Wgit::Database.new
+    assert_equal 0, db.num_records
+    seed do
+      url 3
+      doc 2
+    end
+    assert_equal 5, db.num_records
+  end
+
+  def test_url?
+    db = Wgit::Database.new
+    refute db.url? @url
+    seed { url @url.to_h }
+    assert db.url? @url
+  end
+
+  def test_doc?
+    db = Wgit::Database.new
+    refute db.doc? @doc
+    refute db.doc? @doc.url.to_s
+    seed { doc @doc.to_h }
+    assert db.doc? @doc
+    assert db.doc? @doc.url.to_s
+  end
+
   def test_update_url
     seed { url @url.to_h }
     @url.crawled = true

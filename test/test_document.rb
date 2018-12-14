@@ -1,5 +1,5 @@
 require "minitest/autorun"
-require 'minitest/pride'
+require "minitest/pride"
 require_relative "helpers/test_helper"
 require_relative "../lib/wgit/url"
 require_relative "../lib/wgit/document"
@@ -142,7 +142,13 @@ Minitest framework."
         hash["score"] = @mongo_doc_dup["score"]
         assert_equal hash, doc.to_h
     end
-    
+
+    def test_to_json
+        doc = Wgit::Document.new @url, @html
+        assert_equal to_json_without_html, doc.to_json
+        assert_equal to_json_with_html, doc.to_json(true)
+    end
+
     def test_double_equals
         doc = Wgit::Document.new @url, @html
         refute doc == Object.new
@@ -156,6 +162,13 @@ Minitest framework."
         range = 0..50
         doc = Wgit::Document.new @url, @html
         assert_equal @html[range], doc[range]
+    end
+
+    def test_date_crawled
+        timestamp = Time.now
+        url = Wgit::Url.new "http://www.mytestsite.com", true, timestamp
+        doc = Wgit::Document.new url
+        assert_equal timestamp, doc.date_crawled
     end
     
     def test_empty?
@@ -188,6 +201,12 @@ Minitest framework."
         results = doc.xpath("//title")
         assert_equal @mongo_doc_dup["title"], results.first.content
     end
+
+    def test_css
+        doc = Wgit::Document.new @url, @html
+        results = doc.css("title")
+        assert_equal @mongo_doc_dup["title"], results.first.content
+    end
     
     private
     
@@ -199,5 +218,13 @@ Minitest framework."
         assert_equal @mongo_doc_dup["keywords"], doc.keywords
         assert_equal @mongo_doc_dup["links"], doc.links
         assert_equal @mongo_doc_dup["text"], doc.text
+    end
+
+    def to_json_without_html
+        "{\"url\":\"http://www.mytestsite.com\",\"score\":0.0,\"title\":\"My Test Webpage\",\"author\":\"Michael Telford\",\"keywords\":[\"Minitest\",\"Ruby\",\"Test Document\"],\"links\":[\"http://www.google.co.uk\",\"security.html\",\"about.html\",\"http://www.yahoo.com\",\"/contact.html\",\"http://www.bing.com\",\"tests.html\",\"https://duckduckgo.com\",\"/contents\"],\"text\":[\"Howdy!\",\"Welcome to my site, I hope you like what you see and enjoy browsing the various randomness.\",\"This page is primarily for testing the Ruby code used in Wgit with the Minitest framework.\",\"Minitest rocks!! It's simplicity and power matches the Ruby language in which it's developed.\"]}"
+    end
+
+    def to_json_with_html
+        "{\"url\":\"http://www.mytestsite.com\",\"html\":\"<html>\\n<head>\\n\\t<meta http-equiv=\\\"Content-type\\\" content=\\\"text/html; charset=utf-8\\\">\\n\\t<title>My Test Webpage</title>\\n\\t<meta name=\\\"author\\\" content=\\\"Michael Telford\\\">\\n\\t<meta name=\\\"keywords\\\" content=\\\"Minitest, Ruby, Test Document\\\">\\n</head>\\n<body id=\\\"main-body\\\" onload=\\\"\\\">\\n\\t<h1>Howdy!</h1>\\n\\t<a href=\\\"http://www.google.co.uk\\\">\\n\\t<a href=\\\"www.mytestsite.com/security.html\\\">\\n\\t<h2>Welcome to my site, I hope you like what you see and enjoy browsing the various randomness.</h2>\\n\\t<a href=\\\"about.html\\\">\\n\\t<p>This page is primarily for testing the Ruby code used in Wgit with the Minitest framework.</p>\\n\\t<div id=\\\"minitest\\\">\\n\\t\\tMinitest rocks!! It's simplicity and power matches the Ruby language in which it's developed.\\n\\t\\t<a href=\\\"http://www.yahoo.com\\\">\\n\\t</div>\\n\\t<a href=\\\"/contact.html\\\">\\n\\t<a href=\\\"http://www.bing.com\\\">\\n\\t<a href=\\\"http://www.mytestsite.com/tests.html\\\">\\n\\t<a href=\\\"https://duckduckgo.com\\\">\\n\\t<a href=\\\"/contents\\\">\\n</body>\\n</html>\\n\",\"score\":0.0,\"title\":\"My Test Webpage\",\"author\":\"Michael Telford\",\"keywords\":[\"Minitest\",\"Ruby\",\"Test Document\"],\"links\":[\"http://www.google.co.uk\",\"security.html\",\"about.html\",\"http://www.yahoo.com\",\"/contact.html\",\"http://www.bing.com\",\"tests.html\",\"https://duckduckgo.com\",\"/contents\"],\"text\":[\"Howdy!\",\"Welcome to my site, I hope you like what you see and enjoy browsing the various randomness.\",\"This page is primarily for testing the Ruby code used in Wgit with the Minitest framework.\",\"Minitest rocks!! It's simplicity and power matches the Ruby language in which it's developed.\"]}"
     end
 end

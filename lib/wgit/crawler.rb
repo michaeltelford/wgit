@@ -6,7 +6,8 @@ require 'net/http' # requires 'uri'
 
 module Wgit
 
-  # Crawler class provides a means of crawling web based URL's. 
+  # The Crawler class provides a means of crawling web based URL's, turning
+  # their HTML into Wgit::Document's.
   # Note that currently all redirects will not be followed during a crawl.
   class Crawler
     include Assertable

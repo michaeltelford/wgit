@@ -1,16 +1,16 @@
 require_relative "database_default_data"
 require_relative "mongo_connection_details"
-require 'mongo'
+require "mongo"
 
 module Wgit
-  
+
   # Helper class for the Database to manipulate data. Used for testing and 
   # development. This class isn't packaged in the gem and is for dev only so it
   # doesn't currently have unit tests. This class was originally 
   # developed to assist in testing database.rb and is in essence tested by the
   # database tests themselves as they use the helper methods. 
-  # The main methods include: :clear_db (:nuke), :seed, :num_records,
-  # :num_urls, :num_docs, :url?, :doc?, :index, :search
+  # The main methods include: :clear_db (:nuke), :seed, :index, :search,
+  # :num_urls, :num_docs, :num_records
   module DatabaseHelper
     conn_details = Wgit::CONNECTION_DETAILS
     if conn_details.empty?
@@ -81,59 +81,43 @@ module Wgit
 accept duplicate urls. Exception details: #{err_msg}"
       end
     end
-  
-    # Returns the total number of URL records in the DB.
-    def num_urls
-      @@client[:urls].count
+
+    # Return if the url_hash/record exists in the DB.
+    def url?(url_hash)
+      not @@client[:urls].find(url_hash).none?
     end
-  
-    # Returns the total number of Document records in the DB.
-    def num_docs
-      @@client[:documents].count
-    end
-  
-    # Returns the total number of records (urls + docs) in the DB.
-    def num_records
-      num_urls + num_docs
-    end
-  
-    # Returns wether a url exists with the given url field.
-    # Default checks if the urls collection has at least one document in it.
-    def url?(url = {})
-      not @@client[:urls].find(url).none?
-    end
-  
-    # Returns wether a doc exists with the given url field.
-    def doc?(doc = {})
-      not @@client[:documents].find(doc).none?
+
+    # Return if the doc_hash/record exists in the DB.
+    def doc?(doc_hash)
+      not @@client[:documents].find(doc_hash).none?
     end
     
     # Helper method which takes a url and recursively indexes the site storing 
-    # the markup in the database. Use sensible url's e.g. not Amazon.co.uk. 
-    # We re-use the private methods of WebCrawler to handle error scenarios 
-    # and put statements when interacting with the database. 
+    # the markup in the database. Use sensible url's, not www.amazon.com etc.
     def index(url, insert_externals = true)
-      crawler = Wgit::Crawler.new url
-      database = Wgit::Database.new
-      web_crawler = Wgit::WebCrawler.new database
-      
-      total_crawled = 0
-      
-      ext_urls = crawler.crawl_site do |doc|
-        inserted = web_crawler.send :write_doc_to_db, doc
-        total_crawled += 1 if inserted
-      end
-      
-      web_crawler.send :write_urls_to_db, ext_urls
-      
-      total_crawled
+      Wgit.index_this_site url, insert_externals
     end
     
-    # Searches the database Document collection for the given text, formats 
-    # and pretty prints the results for the command line. Mainly used for 
+    # Searches the database Document collection for the given query, formats
+    # and pretty prints the results to the command line. Mainly used for 
     # ./bin/console. 
     def search(query)
-      Database.new.search_p query
+      Wgit.indexed_search query
+    end
+
+    # Returns the number of url collection records in the DB.
+    def num_urls
+      @@client[:urls].count
+    end
+
+    # Returns the number of document collection records in the DB.
+    def num_docs
+      @@client[:documents].count
+    end
+
+    # Returns the number of url and document collection records in the DB.
+    def num_records
+      num_urls + num_docs
     end
   
   private
@@ -172,10 +156,9 @@ accept duplicate urls. Exception details: #{err_msg}"
     end
   
     alias_method :nuke, :clear_db
-    alias_method :document, :doc
-    alias_method :document?, :doc?
-    alias_method :num_documents, :num_docs
     alias_method :clear_documents, :clear_docs
+    alias_method :document?, :doc?
+    alias_method :document, :doc
     alias_method :urls, :url
     alias_method :docs, :doc
   end

@@ -9,8 +9,7 @@ require 'mongo'
 module Wgit
 
   # Class modeling a DB connection and CRUD operations for the Url and 
-  # Document collections. The most common methods are:
-  # :insert, :update, :urls, :search, :stats, :size. 
+  # Document collections.
   class Database
     include Assertable
   
@@ -93,7 +92,7 @@ module Wgit
     def crawled_urls(limit = 0, skip = 0, &block)
       urls(true, limit, skip, &block)
     end
-  
+
     # Returned Url records that haven't been crawled. Each Url is yielded to a
     # block, if given.
     #
@@ -125,7 +124,7 @@ module Wgit
     # @param skip [Integer] The number of DB records to skip.
     # @yield [doc] Given each search result (Wgit::Document).
     # @return [Array<Wgit::Document>] The search results obtained from the DB.
-    def search(query, whole_sentence = false, limit = 10, skip = 0, &block)
+    def search(query, whole_sentence = false, limit = 10, skip = 0)
       query.strip!
       query.replace("\"" + query + "\"") if whole_sentence
     
@@ -134,30 +133,15 @@ module Wgit
       # :$caseSensitive => case_sensitive, 3.2+ only.
       sort_proj = { score: { :$meta => "textScore" } }
       query = { :$text => { :$search => query } }
+      
       results = retrieve(:documents, query, sort_proj, sort_proj, limit, skip)
-    
-      return [] if results.count < 1
+      return [] if results.count < 1 # respond_to? :empty? == false
+      
       # results.respond_to? :map! is false so we use map and overwrite the var.
       results = results.map { |mongo_doc| Wgit::Document.new(mongo_doc) }
-      return results unless block_given?
-      results.each { |doc| block.call(doc) }
-    end
-
-    # Performs a search and pretty prints the results.
-    # See Wgit::Database#search for details of the search.
-    #
-    # @param query [String] The text query to search with.
-    # @param whole_sentence [Boolean] Whether multiple words should be searched
-    #   for separately.
-    # @param limit [Integer] The max number of results to return.
-    # @param skip [Integer] The number of DB records to skip.
-    # @param sentence_length [Integer] The max length of each result's text
-    #   snippet.
-    # @yield [doc] Given each search result (Wgit::Document).
-    def search_p(query, whole_sentence = false, limit = 10, 
-                 skip = 0, sentence_length = 80, &block)
-      results = search(query, whole_sentence, limit, skip, &block)
-      Wgit::Utils.printf_search_results(results, query, false, sentence_length)
+      results.each { |doc| yield(doc) } if block_given?
+      
+      results
     end
 
     # Returns statistics about the database.
@@ -173,7 +157,49 @@ module Wgit
     def size
         stats[:dataSize]
     end
-  
+
+    # Returns the total number of URL records in the DB.
+    #
+    # @return [Integer] The current number of URL records.
+    def num_urls
+        @@client[:urls].count
+    end
+
+    # Returns the total number of Document records in the DB.
+    #
+    # @return [Integer] The current number of Document records.
+    def num_docs
+        @@client[:documents].count
+    end
+
+    # Returns the total number of records (urls + docs) in the DB.
+    #
+    # @return [Integer] The current number of URL and Document records.
+    def num_records
+        num_urls + num_docs
+    end
+
+    # Returns whether or not a record with the given url (which is unique)
+    # exists in the database's 'urls' collection.
+    #
+    # @param url [Wgit::Url] The Url to search the DB for.
+    # @return [Boolean] True if url exists, otherwise false.
+    def url?(url)
+        h = { "url" => url }
+        not @@client[:urls].find(h).none?
+    end
+
+    # Returns whether or not a record with the given doc.url (which is unique)
+    # exists in the database's 'documents' collection.
+    #
+    # @param doc [Wgit::Document] The Document to search the DB for.
+    # @return [Boolean] True if doc exists, otherwise false.
+    def doc?(doc)
+        url = doc.respond_to?(:url) ? doc.url : doc
+        h = { "url" => url }
+        not @@client[:documents].find(h).none?
+    end
+
     ### Update Data ###
   
     # Update a Url or Document object in the DB.
@@ -314,8 +340,9 @@ private
   
     alias :count :size
     alias :length :size
+    alias :num_documents :num_docs
+    alias :document? :doc?
     alias :insert_url :insert_urls
     alias :insert_doc :insert_docs
-    alias :search_and_format :search_p
   end
 end

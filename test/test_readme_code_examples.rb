@@ -33,11 +33,11 @@ class TestReadmeCodeExamples < Minitest::Test
       Wgit::Document.instance_methods(false).sort
        
       assert_equal [
-        :==, :[], :author, :doc, :empty?, :external_links, :external_urls,
-        :html, :internal_full_links, :internal_links, :keywords, :links, 
-        :relative_full_links, :relative_full_urls, :relative_links, 
-        :relative_urls, :score, :search, :search!, :size, :stats, :text, 
-        :title, :to_h, :to_hash, :url, :xpath
+        :==, :[], :author, :css, :date_crawled, :doc, :empty?, :external_links,
+        :external_urls, :html, :internal_full_links, :internal_links, :keywords,
+        :links, :relative_full_links, :relative_full_urls, :relative_links,
+        :relative_urls, :score, :search, :search!, :size, :stats, :text,
+        :title, :to_h, :to_hash, :to_json, :url, :xpath
       ], Wgit::Document.instance_methods(false).sort
 
       results = doc.search "corruption"

@@ -1,6 +1,5 @@
 #!/usr/bin/env ruby
 
-require 'irb'
 require 'pry'
 require 'bundler/setup'
 
@@ -13,18 +12,18 @@ end
 # Load the most recent code into the session.
 reload
 
-# Print some basic usage help text.
-puts "\nStarting an interactive session to play, do great things..."
-puts "To load your code changes type 'reload', see the DatabaseHelper module \
-for DB interaction methods.\n\n"
-
 # Seed some fixture data for the session (must be instance vars for irb).
 crawler = Crawler.new
 url = Url.new "https://mytestsite.com/"
 doc = Document.new url, File.read("test/helpers/test_doc.html")
+
+# Print some basic usage information.
+puts "\nStarting an interactive session to play, do great things...\n\n"
+puts "To load your code changes type: reload\n"
+puts "See the DatabaseHelper module for DB interaction methods which include:"
+puts "nuke, seed, index, search, num_urls, num_docs, num_records\n"
 puts "Available fixture vars include: crawler, url, doc"
 
-#IRB.start
 binding.pry
 
 puts "Interactive session complete, hope you had a good one!"

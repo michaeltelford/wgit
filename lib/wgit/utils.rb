@@ -148,7 +148,7 @@ module Wgit
                             end
                          end
               stream.puts doc.title
-              unless doc.keywords.empty?
+              unless doc.keywords.nil? || doc.keywords.empty?
                   stream.puts doc.keywords[0..keyword_count].join(", ")
               end
               stream.puts sentence unless sentence.nil?
