@@ -223,19 +223,19 @@ private
     def write_succeeded?(result, count = 1, multi = false)
         case result.class.to_s
         # Single create result.
-        when "Mongo::Operation::Write::Insert::Result"
+        when "Mongo::Operation::Insert::Result"
             result.documents.first[:err].nil?
         # Multiple create result.
         when "Mongo::BulkWrite::Result"
             result.inserted_count == count
         # Single and multiple update result.
-        when "Mongo::Operation::Write::Update::Result", # MongoDB 3.0
-             "Mongo::Operation::Write::Update::LegacyResult" # MongoDB 2.4
+        when "Mongo::Operation::Update::Result"
             if multi
                 result.n == count
             else
                 result.documents.first[:err].nil?
             end
+        # Class no longer used, have you upgraded the 'mongo' gem?
         else
             raise "Result class not currently supported: #{result.class.to_s}"
         end

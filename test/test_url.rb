@@ -1,5 +1,5 @@
 require "minitest/autorun"
-require 'minitest/pride'
+require "minitest/pride"
 require_relative "helpers/test_helper"
 require_relative "../lib/wgit/url"
 
@@ -22,6 +22,14 @@ class TestUrl < Minitest::Test
     
     def test_initialize
         url = Wgit::Url.new @url_str
+        assert_equal @url_str, url
+        refute url.crawled
+        assert_nil url.date_crawled
+    end
+
+    def test_initialize_from_url
+        temp_url = Wgit::Url.new @url_str
+        url = Wgit::Url.new temp_url
         assert_equal @url_str, url
         refute url.crawled
         assert_nil url.date_crawled

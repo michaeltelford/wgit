@@ -23,7 +23,7 @@ Gem::Specification.new do |s|
   #s.executables          << "wgit"
   s.homepage              = 'https://github.com/michaeltelford/wgit'
   s.license               = 'MIT'
-  s.required_ruby_version = '~> 2.2' # Only works with ruby 2.2.x
+  s.required_ruby_version = '~> 2.5' # Only works with ruby 2.5.x
   s.metadata              = { 
     "source_code_uri" => "https://github.com/michaeltelford/wgit",
   }

@@ -5,7 +5,7 @@ machine:
 
   ruby:
     version:
-      2.2.2
+      2.5.3
 
 general:
 

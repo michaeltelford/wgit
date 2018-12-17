@@ -14,7 +14,7 @@ reload
 
 # Seed some fixture data for the session (must be instance vars for irb).
 crawler = Crawler.new
-url = Url.new "https://mytestsite.com/"
+url = Url.new "https://motherfuckingwebsite.com/"
 doc = Document.new url, File.read("test/helpers/test_doc.html")
 
 # Print some basic usage information.

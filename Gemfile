@@ -1,17 +1,16 @@
 source 'https://rubygems.org'
 
-#ruby '~> 2.2.2' - Commented out due to issue with CircleCI.
-# mongo db version: 3.0
+ruby '~> 2.5'
 
 group :development, :test do
-  gem 'minitest', '~> 5.9.0'
+  gem 'minitest'
   gem 'yard'
   gem 'byebug'
   gem 'pry'
 end
 
 group :production do
-  gem 'rake', '~> 12.3.0'
-  gem 'nokogiri', '~> 1.6.8'
-  gem 'mongo', '~> 2.2.5'
+  gem 'rake'
+  gem 'nokogiri'
+  gem 'mongo'
 end

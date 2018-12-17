@@ -23,7 +23,7 @@ class TestAssertable < Minitest::Test
         ex = assert_raises RuntimeError do
             assert_types @s, Fixnum
         end
-        assert_equal "Expected: Fixnum, Actual: String", ex.message
+        assert_equal "Expected: Integer, Actual: String", ex.message
         
         ex = assert_raises RuntimeError do
             assert_types @a, [TrueClass, Fixnum], "An Array is expected"
@@ -39,7 +39,7 @@ class TestAssertable < Minitest::Test
         ex = assert_raises RuntimeError do
             assert_arr_types @a2, [Fixnum, String]
         end
-        s = "Expected: [Fixnum, String], Actual: TrueClass"
+        s = "Expected: [Integer, String], Actual: TrueClass"
         assert_equal s, ex.message
     end
     

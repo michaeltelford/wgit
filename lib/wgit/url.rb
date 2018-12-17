@@ -32,7 +32,7 @@ module Wgit
       def initialize(url_or_obj, crawled = false, date_crawled = nil)
         # Init from a URL String.
         if url_or_obj.is_a?(String)
-            url = url_or_obj
+            url = url_or_obj.to_s
         # Else init from a database object/document.
         else
             obj = url_or_obj
