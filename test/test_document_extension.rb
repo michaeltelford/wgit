@@ -171,14 +171,14 @@ class TestDocumentExtension < Minitest::Test
     db.insert doc # Uses Document#to_h and Model.document.
     
     assert doc?({
-      :url => "http://some_url.com",
-      :score => 0.0,
-      :title => nil,
-      :author => nil,
-      :keywords => nil,
-      :links => ["https://made-up-link.com"],
-      :text => ["Hello world!", "Click this link."],
-      :table_text2 => "Header TextAnother Header"
+      url: "http://some_url.com",
+      score: 0.0,
+      title: nil,
+      author: nil,
+      keywords: nil,
+      links: ["https://made-up-link.com"],
+      text: ["Hello world!", "Click this link."],
+      table_text2: "Header TextAnother Header"
     })
     
     results = db.search "Hello world"

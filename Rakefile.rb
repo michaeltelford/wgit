@@ -6,7 +6,7 @@ Rake::TestTask.new do |t|
 end
 
 desc "Print help information"
-task :default => :help
+task default: :help
 
 desc "Print help information"
 task :help do

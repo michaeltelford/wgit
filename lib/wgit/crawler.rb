@@ -21,33 +21,37 @@ module Wgit
     # Initializes the Crawler by setting the @urls and @docs.
     #
     # @param urls [Wgit::Url] The URLs to crawl.
-  	def initialize(*urls)
-        self.urls = urls unless urls.nil?
-        @docs = []
-  	end
+    def initialize(*urls)
+      # Here we call urls= method but urls is also the param name so we prefix
+      # it with self.
+      self.urls = urls unless urls.nil?
+      @docs = []
+    end
     
     # Sets this Crawler's @urls.
     #
     # @param urls [Array<Wgit::Url>] The URLs to crawl.
     def urls=(urls)
-        @urls = []
-        Wgit::Utils.each(urls) { |url| add_url(url) }
+      @urls = []
+      Wgit::Utils.each(urls) { |url| add_url(url) }
     end
   
     # Sets this Crawler's @urls.
     #
     # @param urls [Wgit::Url] The URLs to crawl.
     def [](*urls)
-        self.urls = urls unless urls.nil?
+      # Here we call urls= method but urls is also the param name so we prefix
+      # it with self.
+      self.urls = urls unless urls.nil?
     end
   
     # Adds the url to this Crawler's @urls.
     #
     # @param url [Wgit::Url] A URL to crawl.
     def <<(url)
-        add_url(url)
+      add_url(url)
     end
-	
+  
     # Crawls individual urls, not entire sites.
     #
     # @param urls [Array<Wgit::Url>] The URLs to crawl.
@@ -55,29 +59,29 @@ module Wgit
     #   Document. Otherwise each doc is added to @docs which can be accessed
     #   by Crawler#docs after this method returns.
     # @return [Wgit::Document] The last Document crawled.
-  	def crawl_urls(urls = @urls, &block)
+    def crawl_urls(urls = @urls, &block)
       raise "No urls to crawl" unless urls
       @docs = []
       doc = nil
       Wgit::Utils.each(urls) { |url| doc = handle_crawl_block(url, &block) }
       doc ? doc : @docs.last
-  	end
-	
-  	# Crawl the url and return the response document or nil.
+    end
+  
+    # Crawl the url and return the response document or nil.
     #
     # @param url [Wgit::Document] The URL to crawl.
     # @yield [doc] The crawled HTML Document regardless if the
     #   crawl was successful or not. Therefore, the Document#url can be used.
     # @return [Wgit::Document, nil] The crawled HTML Document or nil if the
     #   crawl was unsuccessful.
-  	def crawl_url(url = @urls.first, &block)
-      assert_type(url, Url)
-  	  markup = fetch(url)
+    def crawl_url(url = @urls.first)
+      assert_type(url, Wgit::Url)
+      markup = fetch(url)
       url.crawled = true
       doc = Wgit::Document.new(url, markup)
-      block.call(doc) if block_given?
+      yield(doc) if block_given?
       doc.empty? ? nil : doc
-  	end
+    end
 
     # Crawls an entire site by recursively going through its internal_links.
     #
@@ -88,7 +92,7 @@ module Wgit
     #   from all of the site's pages or nil if the base_url could not be
     #   crawled successfully.
     def crawl_site(base_url = @urls.first, &block)
-      assert_type(base_url, Url)
+      assert_type(base_url, Wgit::Url)
     
       doc = crawl_url(base_url, &block)
       return nil if doc.nil?
@@ -100,7 +104,7 @@ module Wgit
       return doc.external_links.uniq if internal_urls.empty?
     
       loop do
-        internal_urls.uniq! unless internal_urls.uniq.nil?
+        internal_urls.uniq!
       
         links = internal_urls - crawled_urls
         break if links.empty?
@@ -122,12 +126,12 @@ module Wgit
     # Add the document to the @docs array for later processing or let the block
     # process it here and now.
     def handle_crawl_block(url, &block)
-        if not block_given?
-		        @docs << crawl_url(url)
-            nil
-        else
-            crawl_url(url, &block)
-        end
+      if block_given?
+        crawl_url(url, &block)
+      else
+        @docs << crawl_url(url)
+        nil
+      end
     end
   
     # The fetch method performs a HTTP GET to obtain the HTML document.
@@ -135,21 +139,21 @@ module Wgit
     # ignored and nil will be returned.  This means that redirects etc. will
     # not be followed.
     def fetch(url)
-        raise unless url.respond_to?(:to_uri)
-        res = Net::HTTP.get_response(url.to_uri)
-        res.body.empty? ? nil : res.body
+      raise unless url.respond_to?(:to_uri)
+      res = Net::HTTP.get_response(url.to_uri)
+      res.body.empty? ? nil : res.body
     rescue
-        nil
+      nil
     end
   
     # Add the url to @urls ensuring it is cast to a Wgit::Url if necessary.
     def add_url(url)
-        @urls = [] if @urls.nil?
-        if url.instance_of?(Url)
-            @urls << url
-        else
-            @urls << Wgit::Url.new(url)
-        end
+      @urls = [] if @urls.nil?
+      if url.is_a?(Wgit::Url)
+        @urls << url
+      else
+        @urls << Wgit::Url.new(url)
+      end
     end
   
     alias :crawl :crawl_urls

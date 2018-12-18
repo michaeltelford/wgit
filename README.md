@@ -4,6 +4,19 @@ Wgit is `wget` on steroids with an easy to use API for web scraping and indexing
 
 Wgit is a WWW indexer/scraper which crawls URL's and retrieves their page contents for later use. Also included in this gem is a means to search indexed documents stored in a database. Therefore this library provides the main components of a WWW search engine. You can also use Wgit to copy entire website's HTML making it far more powerful than wget. The Wgit API is easily extendable allowing you to easily pull out the parts of a webpage that are important to you, the external links or keywords for example.
 
+## Table Of Contents
+
+1. [Installation](#Installation)
+2. [Basic Usage](#Basic-Usage)
+3. [Practical Examples](#Practical-Examples)
+4. [Practical Database Example](#Practical-Database-Example)
+5. [Extending The API](#Extending-The-API)
+6. [Usage Notes](#Usage-Notes)
+7. [Executable](#Executable)
+8. [Development](#Development)
+9. [Contributing](#Contributing)
+10. [License](#License)
+
 ## Installation
 
 Add this line to your application's `Gemfile`:
@@ -154,11 +167,11 @@ doc = Wgit::Document.new(
 
 # Set your DB connection details.
 Wgit::CONNECTION_DETAILS = {
-  :host           => "<host_machine>",
-  :port           => "27017", # MongoDB's default port is shown here.
-  :db             => "<database_name>",
-  :uname          => "<username>",
-  :pword          => "<password>"
+  host:   "<host_machine>",
+  port:   "27017", # MongoDB's default port is shown here.
+  db:     "<database_name>",
+  uname:  "<username>",
+  pword:  "<password>"
 }.freeze
 
 db = Wgit::Database.new

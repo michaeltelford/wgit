@@ -1,5 +1,5 @@
 require "minitest/autorun"
-require 'minitest/pride'
+require "minitest/pride"
 require_relative "helpers/test_helper"
 
 class TestGem < Minitest::Test

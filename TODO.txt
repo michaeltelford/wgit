@@ -17,12 +17,7 @@ Think about potentially using DB._update's update_many func.
 
 Refactoring
 -----------
-Mock network calls (at least most of them) in tests.
-Add TOC to `README.md`.
-Use Utils#each where possible across project.
-Use super if possible when overriding getter and setters.
-Append '.freeze' to all constants where they shouldn't be changed.
-Sort tab formatting to be consistent throughout (with 2 space tabs).
+Mock network calls (at least many of them) in tests.
 
 Gem Publishing Checklist
 ------------------------
@@ -30,7 +25,7 @@ Run 'rake compile' and ensure no warnings/errors.
 Run 'rake test' and ensure all tests are passing.
 Increment the version number (in version.rb).
 Remove the DB authentication details - VERY IMPORTANT!
-Run `yard` to update documentation.
+Run `bundle exec yardoc` to update documentation.
 Build gem from `gemspec`, install and test it manually.
 Commit, tag (with version #) and push it to origin master.
 Push/upload the gem to rubygems.org.

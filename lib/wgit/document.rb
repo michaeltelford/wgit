@@ -66,8 +66,8 @@ module Wgit
         # Dynamically run the init_*_from_html methods.
         Document.private_instance_methods(false).each do |method|
           if method.to_s.start_with?("init_") && 
-             method.to_s.end_with?("_from_html")
-              self.send(method)
+                method.to_s.end_with?("_from_html")
+            self.send(method)
           end
         end
       # Init from a Hash like object containing Strings as keys e.g. Mongo
@@ -84,8 +84,8 @@ module Wgit
         # Dynamically run the init_*_from_object methods.
         Document.private_instance_methods(false).each do |method|
           if method.to_s.start_with?("init_") && 
-             method.to_s.end_with?("_from_object")
-              self.send(method, obj)
+                method.to_s.end_with?("_from_object")
+            self.send(method, obj)
           end
         end
       end
@@ -98,7 +98,7 @@ module Wgit
     # @return [Boolean] True if @url and @html are equal, false if not.
     def ==(other_doc)
       return false unless other_doc.is_a? Wgit::Document
-      url == other_doc.url and html == other_doc.html
+      @url == other_doc.url and @html == other_doc.html
     end
     
     # Is a shortcut for calling Document#html[range].
@@ -106,7 +106,7 @@ module Wgit
     # @param range [Range] The range of @html to return.
     # @return [String] The given range of @html.
     def [](range)
-      html[range]
+      @html[range]
     end
 
     def date_crawled
@@ -121,9 +121,9 @@ module Wgit
     #   returned Hash.
     # @return [Hash] Containing self's instance vars.
     def to_h(include_html = false)
-        ignore = include_html ? [] : ["@html"]
-        ignore << "@doc" # Always ignore "@doc"
-        Wgit::Utils.to_h(self, ignore)
+      ignore = include_html ? [] : ["@html"]
+      ignore << "@doc" # Always ignore "@doc"
+      Wgit::Utils.to_h(self, ignore)
     end
 
     # Converts this Document's to_h return value to a JSON String.
@@ -144,37 +144,37 @@ module Wgit
     #
     # @return [Hash] Containing self's HTML statistics.
     def stats
-        hash = {}
-        instance_variables.each do |var|
-            # Add up the total bytes of text as well as the length.
-            if var == :@text
-                count = 0
-                @text.each { |t| count += t.length }
-                hash[:text_length] = @text.length
-                hash[:text_bytes] = count
-            # Else take the var's #length method return value.
-            else
-                next unless instance_variable_get(var).respond_to?(:length)
-                hash[var[1..-1].to_sym] = 
-                                    instance_variable_get(var).send(:length)
-            end
+      hash = {}
+      instance_variables.each do |var|
+        # Add up the total bytes of text as well as the length.
+        if var == :@text
+          count = 0
+          @text.each { |t| count += t.length }
+          hash[:text_length] = @text.length
+          hash[:text_bytes] = count
+        # Else take the var's #length method return value.
+        else
+          next unless instance_variable_get(var).respond_to?(:length)
+          hash[var[1..-1].to_sym] = 
+                              instance_variable_get(var).send(:length)
         end
-        hash
+      end
+      hash
     end
   
     # Determine the size of this Document's HTML.
     #
     # @return [Integer] The total number of bytes in @html.
     def size
-        stats[:html]
+      stats[:html]
     end
   
     # Determine if this Document's HTML is empty or not.
     #
     # @return [Boolean] True if @html is nil/empty, false otherwise.
     def empty?
-      return true if html.nil?
-      html.strip.empty?
+      return true if @html.nil?
+      @html.strip.empty?
     end
     
     # Uses Nokogiri's xpath method to search the doc's html and return the 
@@ -183,7 +183,7 @@ module Wgit
     # @param xpath [String] The xpath to search the @html with.
     # @return [Nokogiri::XML::NodeSet] The result set of the xpath search.
     def xpath(xpath)
-  		@doc.xpath(xpath)
+      @doc.xpath(xpath)
     end
 
     # Uses Nokogiri's css method to search the doc's html and return the 
@@ -192,22 +192,22 @@ module Wgit
     # @param css [String] The CSS selector to search the @html with.
     # @return [Nokogiri::XML::NodeSet] The result set of the CSS search.
     def css(selector)
-  		@doc.css(selector)
+      @doc.css(selector)
     end
     
     # Get all internal links of this Document.
     #
     # @return [Array<Wgit::Url>] self's internal/relative URL's.
-  	def internal_links
+    def internal_links
       return [] if @links.empty?
-	    @links.reject do |link|
-          begin
-              not link.relative_link?
-          rescue
-              true
-          end
+      @links.reject do |link|
+        begin
+          not link.relative_link?
+        rescue
+          true
+        end
       end
-  	end
+    end
     
     # Get all internal links of this Document and append them to this
     # Document's base URL.
@@ -218,24 +218,24 @@ module Wgit
       in_links = internal_links
       return [] if in_links.empty?
       in_links.map do |link|
-          link.replace("/" + link) unless link.start_with?("/")
-          Wgit::Url.new(@url.to_base + link)
+        link.replace("/" + link) unless link.start_with?("/")
+        Wgit::Url.new(@url.to_base + link)
       end
     end
   
     # Get all external links of this Document.
     #
     # @return [Array<Wgit::Url>] self's external/absolute URL's.
-  	def external_links
+    def external_links
       return [] if @links.empty?
-  		@links.reject do |link|
+      @links.reject do |link|
         begin
-            link.relative_link?
+          link.relative_link?
         rescue
-            true
+          true
         end
       end
-  	end
+    end
   
     # Searches against the @text for the given search query.
     # The number of search hits for each sentenence are recorded internally 
@@ -363,7 +363,7 @@ module Wgit
       false
     end
 
-    private
+  private
 
     # Initializes the nokogiri object using @html, which must be already set.
     def init_nokogiri
@@ -385,11 +385,11 @@ module Wgit
       results = @doc.xpath(xpath)
       
       if results and not results.empty?
-        result = if singleton
-                   text_content_only ? results.first.content : results.first
-                 else
-                   text_content_only ? results.map(&:content) : results
-                 end
+        result =  if singleton
+                    text_content_only ? results.first.content : results.first
+                  else
+                    text_content_only ? results.map(&:content) : results
+                  end
       else
         result = singleton ? nil : []
       end
@@ -397,7 +397,7 @@ module Wgit
       singleton ? process_str(result) : process_arr(result)
 
       if block_given?
-        new_result = yield result
+        new_result = yield(result)
         result = new_result if new_result
       end
 
@@ -416,7 +416,7 @@ module Wgit
       singleton ? process_str(result) : process_arr(result)
 
       if block_given?
-        new_result = yield result
+        new_result = yield(result)
         result = new_result if new_result
       end
 
@@ -443,20 +443,20 @@ module Wgit
     # Takes Docuent.text_elements and returns an xpath String used to obtain
     # all of the combined text.
     def text_elements_xpath
-        xpath = ""
-        return xpath if @@text_elements.empty?
-        el_xpath = "//%s/text()"
-        @@text_elements.each_with_index do |el, i|
-            xpath += " | " unless i == 0
-            xpath += el_xpath % [el]
-        end
-        xpath
+      xpath = ""
+      return xpath if @@text_elements.empty?
+      el_xpath = "//%s/text()"
+      @@text_elements.each_with_index do |el, i|
+        xpath += " | " unless i == 0
+        xpath += el_xpath % [el]
+      end
+      xpath
     end
 
     # Processes a String to make it uniform.
     def process_str(str)
       if str.is_a?(String)
-        str.encode!('UTF-8', 'UTF-8', :invalid => :replace)
+        str.encode!('UTF-8', 'UTF-8', invalid: :replace)
         str.strip!
       end
       str
@@ -464,12 +464,12 @@ module Wgit
 
     # Processes an Array to make it uniform.
     def process_arr(array)
-        if array.is_a?(Array)
-          array.map! { |str| process_str(str) }
-          array.reject! { |str| str.is_a?(String) ? str.empty? : false }
-          array.uniq!
-        end
-        array
+      if array.is_a?(Array)
+        array.map! { |str| process_str(str) }
+        array.reject! { |str| str.is_a?(String) ? str.empty? : false }
+        array.uniq!
+      end
+      array
     end
   
     # Modifies internal links by removing this doc's base or host URL, if
@@ -477,19 +477,19 @@ module Wgit
     # protocol prefix) will become about.html meaning it'll appear within 
     # Document#internal_links.
     def process_internal_links(links)
-        links.map! do |link|
-            host_or_base = if link.start_with?("http")
-                              url.base
-                           else
-                              url.host
-                           end
-            if link.start_with?(host_or_base)
-                link.sub!(host_or_base, "")
-                link.replace(link[1..-1]) if link.start_with?("/")
-                link.strip!
-            end
-            link
+      links.map! do |link|
+        host_or_base =  if link.start_with?("http")
+                          @url.base
+                        else
+                          @url.host
+                        end
+        if link.start_with?(host_or_base)
+          link.sub!(host_or_base, "")
+          link.replace(link[1..-1]) if link.start_with?("/")
+          link.strip!
         end
+        link
+      end
     end
 
     ### Default init_* (Document extension) methods. ###
@@ -584,7 +584,7 @@ module Wgit
       init_var(:@text, result)
     end
     
-  	alias :to_hash :to_h
+    alias :to_hash :to_h
     alias :relative_links :internal_links
     alias :relative_urls :internal_links
     alias :relative_full_links :internal_full_links

@@ -55,7 +55,7 @@ module Wgit
   #   snippet.
   # @yield [doc] Given each search result (Wgit::Document).
   def self.indexed_search(query, whole_sentence = false, limit = 10, 
-                     skip = 0, sentence_length = 80, &block)
+                          skip = 0, sentence_length = 80, &block)
     db = Wgit::Database.new
     results = db.search(query, whole_sentence, limit, skip, &block)
     Wgit::Utils.printf_search_results(results, query, false, sentence_length)
@@ -99,19 +99,19 @@ urls to crawl (which might be never)."
       site_count = 0
       
       while keep_crawling?(site_count, max_sites_to_crawl, max_data_size) do
-        puts "Current database size: #{db.size}"
-        crawler.urls = db.uncrawled_urls
+        puts "Current database size: #{@db.size}"
+        @crawler.urls = @db.uncrawled_urls
 
-        if crawler.urls.empty?
-            puts "No urls to crawl, exiting."
-            return
+        if @crawler.urls.empty?
+          puts "No urls to crawl, exiting."
+          return
         end
-        puts "Starting crawl loop for: #{crawler.urls}"
+        puts "Starting crawl loop for: #{@crawler.urls}"
     
         docs_count = 0
         urls_count = 0
     
-        crawler.urls.each do |url|
+        @crawler.urls.each do |url|
           unless keep_crawling?(site_count, max_sites_to_crawl, max_data_size)
             puts "Reached max number of sites to crawl or database \
 capacity, exiting."
@@ -120,16 +120,16 @@ capacity, exiting."
           site_count += 1
 
           url.crawled = true
-          raise unless db.update(url) == 1
+          raise unless @db.update(url) == 1
       
           site_docs_count = 0
-          ext_links = crawler.crawl_site(url) do |doc|
-              unless doc.empty?
-                  if write_doc_to_db(doc)
-                      docs_count += 1
-                      site_docs_count += 1
-                  end
+          ext_links = @crawler.crawl_site(url) do |doc|
+            unless doc.empty?
+              if write_doc_to_db(doc)
+                docs_count += 1
+                site_docs_count += 1
               end
+            end
           end
       
           urls_count += write_urls_to_db(ext_links)
@@ -156,17 +156,17 @@ iteration."
     def index_this_site(url, insert_externals = true)
       total_pages_crawled = 0
       
-      ext_urls = crawler.crawl_site(url) do |doc|
+      ext_urls = @crawler.crawl_site(url) do |doc|
         yield(doc) if block_given?
         inserted = write_doc_to_db(doc)
         total_pages_crawled += 1 if inserted
       end
 
       url.crawled = true
-      if !db.url?(url)
-        db.insert(url)
+      if !@db.url?(url)
+        @db.insert(url)
       else
-        db.update(url)
+        @db.update(url)
       end
       
       write_urls_to_db(ext_urls) if insert_externals
@@ -174,11 +174,11 @@ iteration."
       total_pages_crawled
     end
 
-    private
+  private
 
     # Keep crawling or not based on DB size and current loop iteration.
     def keep_crawling?(site_count, max_sites_to_crawl, max_data_size)
-      return false if db.size >= max_data_size
+      return false if @db.size >= max_data_size
       # If max_sites_to_crawl is -1 for example then crawl away.
       if max_sites_to_crawl < 0
         true
@@ -190,29 +190,29 @@ iteration."
     # The unique url index on the documents collection prevents duplicate 
     # inserts.
     def write_doc_to_db(doc)
-        db.insert(doc)
-        puts "Saved document for url: #{doc.url}"
-        true
+      @db.insert(doc)
+      puts "Saved document for url: #{doc.url}"
+      true
     rescue Mongo::Error::OperationFailure
-        puts "Document already exists: #{doc.url}"
-        false
+      puts "Document already exists: #{doc.url}"
+      false
     end
 
     # The unique url index on the urls collection prevents duplicate inserts.
     def write_urls_to_db(urls)
-        count = 0
-        if urls.respond_to?(:each)
-            urls.each do |url|
-                begin
-                  db.insert(url)
-                  count += 1
-                  puts "Inserted url: #{url}"
-                rescue Mongo::Error::OperationFailure
-                  puts "Url already exists: #{url}"
-                end
-            end
+      count = 0
+      if urls.respond_to?(:each)
+        urls.each do |url|
+          begin
+            @db.insert(url)
+            count += 1
+            puts "Inserted url: #{url}"
+          rescue Mongo::Error::OperationFailure
+            puts "Url already exists: #{url}"
+          end
         end
-        count
+      end
+      count
     end
   end
 end

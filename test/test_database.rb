@@ -90,7 +90,7 @@ class TestDatabase < Minitest::Test
     # Seed url data to the DB.
     # Url 1 crawled == true, Url 2 & 3 crawled == false.
     @urls.first.crawled = true
-    @urls.map! { |url| url.to_h }
+    @urls.map!(&:to_h)
     seed { urls @urls }
     
     urls = db.urls
@@ -114,7 +114,7 @@ class TestDatabase < Minitest::Test
     query = "Everest Depart Kathmandu"
     
     @docs.last.text << query
-    doc_hashes = @docs.map { |doc| doc.to_h }
+    doc_hashes = @docs.map(&:to_h)
     seed { docs doc_hashes }
     
     db = Wgit::Database.new

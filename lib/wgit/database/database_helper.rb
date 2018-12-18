@@ -24,11 +24,11 @@ module Wgit
     address = "#{conn_details[:host]}:#{conn_details[:port]}"
       
     @@client = Mongo::Client.new([address], 
-                                 :database => conn_details[:db],
-                                 :user => conn_details[:uname],
-                                 :password => conn_details[:pword],
-                                 :logger => logger,
-                                 :truncate_logs => false)
+                                 database:      conn_details[:db],
+                                 user:          conn_details[:uname],
+                                 password:      conn_details[:pword],
+                                 logger:        logger,
+                                 truncate_logs: false)
   
     @@urls = []
     @@docs = []
