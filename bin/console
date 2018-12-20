@@ -16,13 +16,14 @@ reload
 crawler = Crawler.new
 url = Url.new "https://motherfuckingwebsite.com/"
 doc = Document.new url, File.read("test/helpers/test_doc.html")
+db = Database.new unless Wgit::CONNECTION_DETAILS.empty?
 
 # Print some basic usage information.
 puts "\nStarting an interactive session to play, do great things...\n\n"
 puts "To load your code changes type: reload\n"
 puts "See the DatabaseHelper module for DB interaction methods which include:"
 puts "nuke, seed, index, search, num_urls, num_docs, num_records\n"
-puts "Available fixture vars include: crawler, url, doc"
+puts "Available fixture vars include: crawler, url, doc, db"
 
 binding.pry
 

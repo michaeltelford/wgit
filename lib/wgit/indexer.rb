@@ -146,20 +146,31 @@ iteration."
 
     # Crawls a single website's pages and stores them into the database.
     # There is no max download limit so be careful which sites you index.
+    # Puts out info on the crawl to STDOUT as it goes along.
     #
     # @param url [Wgit::Url] The base Url of the website to crawl.
     # @param insert_externals [Boolean] Whether or not to insert the website's
     #   external Url's into the database.
     # @yield [doc] Given the Wgit::Document of each crawled web page, before it
-    #   is inserted into the database allowing for prior manipulation.
-    # @return [Integer] The total number of pages crawled within the website.
+    #   is inserted into the database allowing for prior manipulation. Return
+    #   nil or false from the block to prevent the document from being saved
+    #   into the database.
+    # @return [Integer] The total number of webpages/documents indexed.
     def index_this_site(url, insert_externals = true)
-      total_pages_crawled = 0
+      total_pages_indexed = 0
       
       ext_urls = @crawler.crawl_site(url) do |doc|
-        yield(doc) if block_given?
-        inserted = write_doc_to_db(doc)
-        total_pages_crawled += 1 if inserted
+        result = true
+        if block_given?
+          result = yield(doc)
+        end
+
+        if result
+          if write_doc_to_db(doc)
+            total_pages_indexed += 1
+            puts "Crawled and saved internal page: #{doc.url}"
+          end
+        end
       end
 
       url.crawled = true
@@ -169,9 +180,15 @@ iteration."
         @db.update(url)
       end
       
-      write_urls_to_db(ext_urls) if insert_externals
+      if insert_externals
+        write_urls_to_db(ext_urls)
+        puts "Found and saved #{ext_urls.length} external url(s)"
+      end
       
-      total_pages_crawled
+      puts "Crawled and saved #{total_pages_indexed} docs for the \
+site: #{url}"
+
+      total_pages_indexed
     end
 
   private
