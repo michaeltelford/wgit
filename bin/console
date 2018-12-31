@@ -2,6 +2,14 @@
 
 require 'pry'
 require 'bundler/setup'
+require 'dotenv'
+
+# Load any required .env vars e.g. DB connection details.
+Dotenv.load
+
+# Set the DB connection details from the ENV.
+load 'lib/wgit/database/mongo_connection_details.rb'
+Wgit.set_connection_details_from_env
 
 # Define a method to facilitate the loading of changes.
 # NOTE: The CWD is the project root, not the bin folder.
@@ -16,17 +24,22 @@ reload
 crawler = Crawler.new
 url = Url.new "https://motherfuckingwebsite.com/"
 doc = Document.new url, File.read("test/helpers/test_doc.html")
-db = Database.new unless Wgit::CONNECTION_DETAILS.empty?
+db = Database.new
 
 # Print some basic usage information.
+def info
+  puts "To load your code changes type: reload\n"
+  puts "See the DatabaseHelper module for DB interaction methods which include:"
+  puts "nuke, seed, index, search, num_urls, num_docs, num_records\n"
+  puts "Available fixture vars include: crawler, url, doc, db"
+  puts "To see this help information again type: info"
+  puts "When you're finished type: exit"
+end
+
+# Start the pry session.
 puts "\nStarting an interactive session to play, do great things...\n\n"
-puts "To load your code changes type: reload\n"
-puts "See the DatabaseHelper module for DB interaction methods which include:"
-puts "nuke, seed, index, search, num_urls, num_docs, num_records\n"
-puts "Available fixture vars include: crawler, url, doc, db"
-
+info
 binding.pry
-
 puts "Interactive session complete, hope you had a good one!"
 
 # Do any post REPL cleanup tasks here...

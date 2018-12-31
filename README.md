@@ -8,14 +8,15 @@ Wgit is a WWW indexer/scraper which crawls URL's and retrieves their page conten
 
 1. [Installation](#Installation)
 2. [Basic Usage](#Basic-Usage)
-3. [Practical Examples](#Practical-Examples)
-4. [Practical Database Example](#Practical-Database-Example)
-5. [Extending The API](#Extending-The-API)
-6. [Usage Notes](#Usage-Notes)
-7. [Executable](#Executable)
-8. [Development](#Development)
-9. [Contributing](#Contributing)
-10. [License](#License)
+3. [Documentation](#Documentation)
+4. [Practical Examples](#Practical-Examples)
+5. [Practical Database Example](#Practical-Database-Example)
+6. [Extending The API](#Extending-The-API)
+7. [Gotchas](#Gotchas)
+8. [Executable](#Executable)
+9. [Development](#Development)
+10. [Contributing](#Contributing)
+11. [License](#License)
 
 ## Installation
 
@@ -62,6 +63,10 @@ results = doc.search "corruption"
 results.first # => "ial materials involving war, spying and corruption. 
               #     It has so far published more"
 ```
+
+## Documentation
+
+To see what's possible with the Wgit gem see the [docs](https://www.rubydoc.info/gems/wgit) or the [Practical Examples](#Practical-Examples) section below.
 
 ## Practical Examples
 
@@ -128,15 +133,15 @@ puts my_pages_missing_keywords.uniq!
 
 This next example requires a configured database instance.
 
-Currently the only supported DBMS is MongoDB. See [mLab](https://mlab.com) for a free (small) account or provide your own database instance. 
+Currently the only supported DBMS is MongoDB. See [mLab](https://mlab.com) for a free (small) account or provide your own MongoDB instance. 
 
 ### Setting Up MongoDB
 
 Follow the steps below to configure MongoDB for use with Wgit. This is only needed if you want to store/access database records.
 
 1) Create collections for: `documents` and `urls`.
-2) Add a unique index for the `url` field to **both** collections.
-3) Enable `textSearchEnabled` in the DB's configuration.
+2) Add a unique index for the `url` field in **both** collections.
+3) Enable `textSearchEnabled` in MongoDB's configuration.
 4) Create a text search index for the `documents` collection using:
 ```json
 {
@@ -146,13 +151,13 @@ Follow the steps below to configure MongoDB for use with Wgit. This is only need
 	"title": "text"
 }
 ```
-5) Set the `Wgit::CONNECTION_DETAILS` for your DB instance somewhere in your code (prior to using `Wgit::Database`)
+5) Set the connection details for your MongoDB instance using `Wgit.set_connection_details` (prior to using `Wgit::Database`)
 
 ### Database Example
 
 The below script shows how to use Wgit's database functionality to crawl and then search HTML documents stored in the DB.
 
-If you're running the code below for yourself, remember to replace the `Wgit::CONNECTION_DETAILS` with your own.
+If you're running the code below for yourself, remember to replace the Hash containing the connection details with your own.
 
 ```ruby
 require 'wgit'
@@ -165,14 +170,14 @@ doc = Wgit::Document.new(
 	"<p>Some text to search for.</p><a href='http://www.google.co.uk'>Click me!</a>"
 )
 
-# Set your DB connection details.
-Wgit::CONNECTION_DETAILS = {
-  host:   "<host_machine>",
-  port:   "27017", # MongoDB's default port is shown here.
-  db:     "<database_name>",
-  uname:  "<username>",
-  pword:  "<password>"
-}.freeze
+# Set your MongoDB connection details.
+Wgit.set_connection_details({
+  'host'  => '<host_machine>',
+  'port'  => '27017', # MongoDB's default port is shown here.
+  'uname' => '<username>',
+  'pword' => '<password>',
+  'db'    => '<database_name>',
+})
 
 db = Wgit::Database.new
 db.insert doc
@@ -210,6 +215,8 @@ Wgit contains an array of `Wgit::Document.text_elements` which are the default s
 If you'd like the text of additional webpage elements to be returned from `Wgit::Document#text`, then you can do the following:
 
 ```ruby
+require 'wgit'
+
 # Let's add the text of links e.g. <a> tags.
 Wgit::Document.text_elements << :a
 
@@ -235,6 +242,8 @@ Once you have the indexed page element, accessed via a `Wgit::Document` instance
 Here's how to add a custom indexer for a page element:
 
 ```ruby
+require 'wgit'
+
 # Let's get all the page's table elements.
 Wgit::Document.define_extension(
   :tables,                  # Wgit::Document#tables will return the page's tables.
@@ -268,19 +277,18 @@ For more information on what's possible with each Nokogiri object, see the [docu
 - Any links should be mapped into `Wgit::Url` objects, Url's are treated as Strings when being inserted into the DB. 
 - Any object like a Nokogiri object will not be inserted into the DB, its up to you to map each object to a native type e.g. String, Boolean etc. 
 
-## Usage Notes
+## Gotchas
 
-Below are some notes to keep in mind when using Wgit:
+Below are some points to keep in mind when using Wgit:
 
-- All Url's must be prefixed with the appropiate protocol e.g. `http://`
-- Currently, Url redirects will not be followed and `nil` will be returned from the crawl. 
-- Currently, the only supported DBMS is MongoDB.
+- All Url's must be prefixed with an appropiate protocol e.g. `https://`
+- Currently, Url redirects will not be followed and `nil` will be returned from the crawl.
 
 ## Executable
 
 Currently there is no executable provided with Wgit, however...
 
-In future versions of Wgit, a `wgit` executable will be provided as part of the gem. This executable will provide the capability to crawl a URL from the command line just like wget but you'll be able to do much more like recursively crawl entire sites and easily store the resulting markup in a Database or to a file. 
+In future versions of Wgit, a `wpry` executable will be packaged with the gem. The executable will provide a `pry` console with the `wgit` gem already loaded. Using the console, you'll easily be able to index and search the web without having to write your own scripts.
 
 ## Development
 

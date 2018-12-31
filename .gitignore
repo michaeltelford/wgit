@@ -8,3 +8,4 @@ wgit-*.gem
 **/mongo_log.txt
 **/test_mongo_log.txt
 **/pkg
+.env

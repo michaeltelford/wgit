@@ -1,23 +1,63 @@
-require "minitest/autorun"
-require "minitest/pride"
 require_relative "helpers/test_helper"
-require_relative "../lib/wgit/core_ext"
-require_relative "../lib/wgit/crawler"
-require_relative "../lib/wgit/document"
-require_relative "../lib/wgit/database/database"
-require_relative "../lib/wgit/database/database_helper"
 
 # Tests the ability to extend the Wgit::Document functionality by extracting
 # custom page elements that aren't extracted by default.
 # WARNING: Certain tests will clear down the DB prior to the test run.
 # NOTE: Every test case should clean up after itself by removing any defined 
-# extensions in the 'teardown' method.
-class TestDocumentExtension < Minitest::Test
-  include TestHelper
+# extensions in the 'teardown' method to avoid affecting other tests.
+class TestDocumentExtension < TestHelper
   include Wgit::DatabaseHelper
   
   # Runs before every test.
   def setup
+  end
+
+  # Runs after every test and should remove all defined extensions
+  # to avoid affecting other tests.
+  def teardown
+    if Wgit::Document.remove_extension(:table_text)
+      Wgit::Document.send(:remove_method, :table_text)
+    end
+
+    if Wgit::Document.remove_extension(:tables2)
+      Wgit::Document.send(:remove_method, :tables2)
+    end
+
+    if Wgit::Document.remove_extension(:img_alt)
+      Wgit::Document.send(:remove_method, :img_alt)
+    end
+
+    if Wgit::Document.remove_extension(:img)
+      Wgit::Document.send(:remove_method, :img)
+    end
+
+    if Wgit::Document.remove_extension(:blockquote)
+      Wgit::Document.send(:remove_method, :blockquote)
+    end
+
+    if Wgit::Document.remove_extension(:table_text2)
+      Wgit::Document.send(:remove_method, :table_text2)
+    end
+
+    if Wgit::Document.remove_extension(:code)
+      Wgit::Document.send(:remove_method, :code)
+    end
+
+    if Wgit::Document.remove_extension(:single)
+      Wgit::Document.send(:remove_method, :single)
+    end
+
+    if Wgit::Document.remove_extension(:array)
+      Wgit::Document.send(:remove_method, :array)
+    end
+
+    if Wgit::Document.remove_extension(:single2)
+      Wgit::Document.send(:remove_method, :single2)
+    end
+
+    if Wgit::Document.remove_extension(:array2)
+      Wgit::Document.send(:remove_method, :array2)
+    end
   end
   
   # Extends the text elements by processing <a> tags and adds the tag text 
@@ -285,53 +325,5 @@ class TestDocumentExtension < Minitest::Test
   def test_remove_extension_failure
     # blah2 doesn't exist so false should be returned.
     refute Wgit::Document.remove_extension(:blah2)
-  end
-
-  # Runs after every test and should remove all defined extensions
-  # to avoid affecting other tests.
-  def teardown
-    if Wgit::Document.remove_extension(:table_text)
-      Wgit::Document.send(:remove_method, :table_text)
-    end
-
-    if Wgit::Document.remove_extension(:tables2)
-      Wgit::Document.send(:remove_method, :tables2)
-    end
-
-    if Wgit::Document.remove_extension(:img_alt)
-      Wgit::Document.send(:remove_method, :img_alt)
-    end
-
-    if Wgit::Document.remove_extension(:img)
-      Wgit::Document.send(:remove_method, :img)
-    end
-
-    if Wgit::Document.remove_extension(:blockquote)
-      Wgit::Document.send(:remove_method, :blockquote)
-    end
-
-    if Wgit::Document.remove_extension(:table_text2)
-      Wgit::Document.send(:remove_method, :table_text2)
-    end
-
-    if Wgit::Document.remove_extension(:code)
-      Wgit::Document.send(:remove_method, :code)
-    end
-
-    if Wgit::Document.remove_extension(:single)
-      Wgit::Document.send(:remove_method, :single)
-    end
-
-    if Wgit::Document.remove_extension(:array)
-      Wgit::Document.send(:remove_method, :array)
-    end
-
-    if Wgit::Document.remove_extension(:single2)
-      Wgit::Document.send(:remove_method, :single2)
-    end
-
-    if Wgit::Document.remove_extension(:array2)
-      Wgit::Document.send(:remove_method, :array2)
-    end
   end
 end

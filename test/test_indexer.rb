@@ -1,20 +1,15 @@
-require "minitest/autorun"
-require "minitest/pride"
 require_relative "helpers/test_helper"
-require_relative "../lib/wgit/crawler"
-require_relative "../lib/wgit/indexer"
-require_relative "../lib/wgit/database/database"
-require_relative "../lib/wgit/database/database_helper"
 
+# Test class for testing the Indexer methods.
 # WARNING: The DB is cleared down prior to each test run.
-class TestIndexer < Minitest::Test
-  include TestHelper
+class TestIndexer < TestHelper
   include Wgit::DatabaseHelper
   
   # Runs before every test.
   def setup
-    @db = Wgit::Database.new
     clear_db
+    
+    @db = Wgit::Database.new
   end
 
   def test_initialize
@@ -54,7 +49,6 @@ class TestIndexer < Minitest::Test
     assert url? url: url_str, crawled: true
     
     # Assert that some indexed docs were inserted into the DB.
-    # The orig url and its doc plus plus an external url.
     assert_equal 9, @db.num_urls
     assert_equal 8, @db.num_docs
   end

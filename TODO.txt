@@ -10,7 +10,6 @@ Secondary
 ---------
 - Think about ignoring non html documents/urls e.g. http://server/image.jpg etc.
 - Check if Document::TEXT_ELEMENTS is expansive enough.
-- Remove CONNECTION_DETAILS and read in values from the ENV.
 - Add logging functionality (possibly use the mongo logger?).
 - Possibly use refine instead of core-ext?
 - Think about potentially updating the Indexer to be multi threaded.
@@ -18,15 +17,14 @@ Secondary
 
 Refactoring
 -----------
-- Make tests multi-threaded (if possible).
 - Mock network calls (at least many of them) in tests.
+- Remove STDOUT ruby warnings from console and test output.
 
 Gem Publishing Checklist
 ------------------------
 - Run 'rake compile' and ensure no warnings/errors.
 - Run 'rake test' and ensure all tests are passing.
 - Increment the version number (in version.rb).
-- Remove the DB authentication details - VERY IMPORTANT!
 - Run `bundle exec yardoc` to update documentation.
 - Build gem from `gemspec`, install and test it manually.
 - Commit, tag (with version #) and push it to origin master.

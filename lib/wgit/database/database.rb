@@ -2,7 +2,6 @@ require_relative '../document'
 require_relative '../url'
 require_relative '../utils'
 require_relative '../assertable'
-require_relative 'mongo_connection_details'
 require_relative 'model'
 require 'mongo'
 
@@ -12,9 +11,6 @@ module Wgit
   # Document collections.
   class Database
     include Assertable
-  
-    # Path is relative to the root project folder, not this file.
-    LOG_FILE_PATH = "misc/mongo_log.txt".freeze
 
     # Initializes a database connection client.
     #
@@ -26,14 +22,14 @@ module Wgit
 :port, :db, :uname, :pword for a database connection to be established."
       end
       
-      logger = Logger.new(LOG_FILE_PATH)
+      # Only log to STDOUT in fatal scenarios.
+      Mongo::Logger.logger.level = Logger::FATAL
+      
       address = "#{conn_details[:host]}:#{conn_details[:port]}"
       @@client = Mongo::Client.new([address], 
                                    database:      conn_details[:db],
                                    user:          conn_details[:uname],
-                                   password:      conn_details[:pword],
-                                   logger:        logger,
-                                   truncate_logs: false)
+                                   password:      conn_details[:pword])
     end
   
     ### Create Data ###

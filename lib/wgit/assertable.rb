@@ -47,6 +47,7 @@ module Wgit
     # @param msg [String] The raised RuntimeError message, if provided.
     # @return [Object] The given obj_or_objs on successful assertion.
     def assert_respond_to(obj_or_objs, methods, msg = nil)
+      methods = [methods] unless methods.respond_to?(:all?)
       if obj_or_objs.respond_to?(:each)
         obj_or_objs.each do |obj|
           _assert_respond_to(obj, methods, msg)
@@ -61,6 +62,7 @@ module Wgit
   
     # obj must respond_to? all methods or an exception is raised.
     def _assert_respond_to(obj, methods, msg = nil)
+      raise "methods must respond_to? :all?" unless methods.respond_to?(:all?)
       msg ||= DEFAULT_DUCK_FAIL_MSG % ["#{obj.class} (#{obj})", methods]
       match = methods.all? { |method| obj.respond_to?(method) }
       raise msg unless match

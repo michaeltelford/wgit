@@ -7,6 +7,7 @@ group :development, :test do
   gem 'yard'
   gem 'byebug'
   gem 'pry'
+  gem 'dotenv'
 end
 
 group :production do

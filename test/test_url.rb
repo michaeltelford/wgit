@@ -1,11 +1,10 @@
-require "minitest/autorun"
-require "minitest/pride"
 require_relative "helpers/test_helper"
-require_relative "../lib/wgit/url"
 
-class TestUrl < Minitest::Test
-  include TestHelper
-  
+# Test class for Url methods.
+class TestUrl < TestHelper
+  # Run non DB tests in parallel for speed.
+  parallelize_me!
+
   # Runs before every test.
   def setup
     @url_str = "http://www.google.co.uk"

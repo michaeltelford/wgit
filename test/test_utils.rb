@@ -1,9 +1,4 @@
-require "minitest/autorun"
-require "minitest/pride"
 require_relative "helpers/test_helper"
-require_relative "../lib/wgit/utils"
-require_relative "../lib/wgit/document"
-require_relative "../lib/wgit/database/database_default_data"
 
 # We use a class rather than a Struct because a Struct instance doesn't
 # have instance_variables which Wgit::Utils.to_h uses.
@@ -17,9 +12,11 @@ class Person
   end
 end
 
-class TestUtils < Minitest::Test
-  include TestHelper
-  
+# Test class for utility funcs.
+class TestUtils < TestHelper
+  # Run non DB tests in parallel for speed.
+  parallelize_me!
+
   # Runs before every test.
   def setup
     @person = Person.new

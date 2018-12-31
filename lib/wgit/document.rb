@@ -74,7 +74,7 @@ module Wgit
       # collection obj.
       else
         obj = url_or_obj
-        assert_respond_to(obj, [:fetch])
+        assert_respond_to(obj, :fetch)
 
         @url = obj.fetch("url") # Should always be present.
         @html = obj.fetch("html", "")
@@ -189,7 +189,7 @@ module Wgit
     # Uses Nokogiri's css method to search the doc's html and return the 
     # results.
     #
-    # @param css [String] The CSS selector to search the @html with.
+    # @param selector [String] The CSS selector to search the @html with.
     # @return [Nokogiri::XML::NodeSet] The result set of the CSS search.
     def css(selector)
       @doc.css(selector)
@@ -409,7 +409,7 @@ module Wgit
     # A block can be used to set the final value before it is returned.
     # Return nil from the block if you don't want to override the value.
     def find_in_object(obj, key, singleton: true)
-      assert_respond_to(obj, [:fetch])
+      assert_respond_to(obj, :fetch)
 
       default = singleton ? nil : []
       result = obj.fetch(key.to_s, default)

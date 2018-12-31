@@ -1,11 +1,9 @@
-require "minitest/autorun"
-require "minitest/pride"
 require_relative "helpers/test_helper"
-require_relative "../lib/wgit/url"
-require_relative "../lib/wgit/document"
 
-class TestDocument < Minitest::Test
-  include TestHelper
+# Test class for the Document methods.
+class TestDocument < TestHelper
+  # Run non DB tests in parallel for speed.
+  parallelize_me!
   
   # Runs before every test.
   def setup

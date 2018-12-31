@@ -1,5 +1,4 @@
 require_relative "database_default_data"
-require_relative "mongo_connection_details"
 require "mongo"
 
 module Wgit
@@ -12,26 +11,26 @@ module Wgit
   # The main methods include: :clear_db (:nuke), :seed, :index, :search,
   # :num_urls, :num_docs, :num_records
   module DatabaseHelper
-    conn_details = Wgit::CONNECTION_DETAILS
-    if conn_details.empty?
-      raise "Wgit::CONNECTION_DETAILS must be defined and include :host, 
+    # A connection to the database is established when this module is included.
+    def self.included(base)
+      conn_details = Wgit::CONNECTION_DETAILS
+      if conn_details.empty?
+        raise "Wgit::CONNECTION_DETAILS must be defined and include :host, 
 :port, :db, :uname, :pword for a database connection to be established."
+      end
+
+      # Only log to STDOUT in fatal scenarios.
+      Mongo::Logger.logger.level = Logger::FATAL
+    
+      address = "#{conn_details[:host]}:#{conn_details[:port]}"
+      @@client = Mongo::Client.new([address], 
+                                  database:      conn_details[:db],
+                                  user:          conn_details[:uname],
+                                  password:      conn_details[:pword])
+    
+      @@urls = []
+      @@docs = []
     end
-  
-    # Log path is relative to the root project folder, not this file. 
-    log_file_path = "misc/test_mongo_log.txt".freeze
-    logger = Logger.new(log_file_path)
-    address = "#{conn_details[:host]}:#{conn_details[:port]}"
-      
-    @@client = Mongo::Client.new([address], 
-                                 database:      conn_details[:db],
-                                 user:          conn_details[:uname],
-                                 password:      conn_details[:pword],
-                                 logger:        logger,
-                                 truncate_logs: false)
-  
-    @@urls = []
-    @@docs = []
     
     # Returns the number of deleted records.
     def clear_urls

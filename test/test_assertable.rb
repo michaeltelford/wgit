@@ -1,11 +1,9 @@
-require "minitest/autorun"
-require "minitest/pride"
 require_relative "helpers/test_helper"
-require_relative "../lib/wgit/assertable"
 
-class TestAssertable < Minitest::Test
-  include TestHelper
-  include Wgit::Assertable
+# Test class for the Assertable funcs.
+class TestAssertable < TestHelper
+  # Run non DB tests in parallel for speed.
+  parallelize_me!
   
   # Runs before every test.
   def setup
@@ -56,5 +54,10 @@ class TestAssertable < Minitest::Test
     assert_equal(
       "String (Hello World!) doesn't respond_to? [:equal?, :each]", 
       ex.message)
+  end
+
+  def test_assert_respond_to_single_method
+    objs = [@s, @a]
+    assert_equal objs, assert_respond_to(objs, :length)
   end
 end

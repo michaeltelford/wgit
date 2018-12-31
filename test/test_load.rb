@@ -1,10 +1,7 @@
-require "minitest/autorun"
-require "minitest/pride"
 require_relative "helpers/test_helper"
 
-class TestLoad < Minitest::Test
-  include TestHelper
-  
+# Test class for the load script (used in dev).
+class TestLoad < TestHelper
   # Runs before every test.
   def setup
   end

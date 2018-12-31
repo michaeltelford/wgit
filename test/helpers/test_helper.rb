@@ -1,13 +1,36 @@
-require "minitest/autorun"
-require "minitest/pride"
-require "byebug"
+require 'minitest/autorun'
+require 'dotenv'
+require 'byebug' # Call 'byebug' anywhere in the code to debug.
 
-# Test helper module for unit tests.
-module TestHelper
+# Require all code being tested once, in one place.
+require_relative '../../lib/wgit'
+require_relative '../../lib/wgit/core_ext'
+require_relative '../../lib/wgit/database/database_helper'
+require_relative '../../lib/wgit/database/database_default_data'
+
+# Test helper class for unit tests. Should be inherited from by all test cases.
+class TestHelper < Minitest::Test
+  include Wgit::Assertable
+
+  # Fires everytime this class is subclassed.
+  def self.inherited(child)
+    # Load any required .env vars e.g. DB connection details.
+    Dotenv.load!
+
+    # Set the DB connection details from the ENV.
+    load 'lib/wgit/database/mongo_connection_details.rb'
+    Wgit.set_connection_details_from_env
+
+    # Run the tests.
+    super
+  end
+
+  # Any helper methods go below, these will be callable from child unit tests.
+
   # Flunk (fail) the test if an exception is thrown.
-  def flunk_ex(test)
+  def refute_exception
     yield
   rescue Exception => ex
-    test.flunk ex.message
+    flunk ex.message
   end
 end

@@ -1,13 +1,9 @@
-require "minitest/autorun"
-require "minitest/pride"
 require 'securerandom'
 require_relative "helpers/test_helper"
-require_relative "../lib/wgit/database/mongo_connection_details"
-require_relative "../lib/wgit/database/database_helper"
 
+# Test class for code snippets in the README.md.
 # WARNING: The DB is cleared down at the start of the database example test.
-class TestReadmeCodeExamples < Minitest::Test
-  include TestHelper
+class TestReadmeCodeExamples < TestHelper
   include Wgit::DatabaseHelper
   
   # Runs before every test.
@@ -121,16 +117,16 @@ class TestReadmeCodeExamples < Minitest::Test
       "<p>Some text to search for.</p><a href='http://www.google.co.uk'>Click me!</a>"
     )
 
-    # NOTE: We use the required DB connection details instead of replacing them below to 
-    # avoid them being accidentally copied into the README.md by mistake. 
-
-    #Wgit::CONNECTION_DETAILS = {
-    #  host : "<host_machine>",
-    #  port : "27017", # MongoDB's default port is shown here.
-    #  db   : "<database_name>",
-    #  uname: "<username>",
-    #  pword: "<password>"
-    #}.freeze
+    # NOTE: test_helper.rb has already set the connection details for us.
+    #
+    # Set your MongoDB connection details.
+    # Wgit.set_connection_details({
+    #   'host'  => '<host_machine>',
+    #   'port'  => '27017', # MongoDB's default port is shown here.
+    #   'uname' => '<username>',
+    #   'pword' => '<password>',
+    #   'db'    => '<database_name>',
+    # })
 
     db = Wgit::Database.new
     db.insert doc
@@ -155,6 +151,8 @@ class TestReadmeCodeExamples < Minitest::Test
   end
   
   def test_extending_the_api_text_elements
+    require 'wgit'
+    
     # Let's add the text of links e.g. <a> tags.
     Wgit::Document.text_elements << :a
 
@@ -174,6 +172,8 @@ class TestReadmeCodeExamples < Minitest::Test
   end
 
   def test_extending_the_api_define_extension
+    require 'wgit'
+
     # Let's get all the page's table elements.
     Wgit::Document.define_extension(
       :tables,                  # Document#tables will return the page's tables.

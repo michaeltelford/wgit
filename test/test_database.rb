@@ -1,21 +1,10 @@
-require "minitest/autorun"
-require "minitest/pride"
 require_relative "helpers/test_helper"
-require_relative "../lib/wgit/assertable"
-require_relative "../lib/wgit/url"
-require_relative "../lib/wgit/document"
-require_relative "../lib/wgit/database/database"
-require_relative "../lib/wgit/database/database_helper"
-require_relative "../lib/wgit/database/database_default_data"
 
 # Test class for the Database methods.
-# The classes Url and Document are required types for some Database logic.
 # WARNING: The DB is cleared down prior to each test run.
-class TestDatabase < Minitest::Test
-  include TestHelper
-  include Wgit::Assertable
+class TestDatabase < TestHelper
   include Wgit::DatabaseHelper
-  
+
   # Runs before every test.
   def setup
     clear_db

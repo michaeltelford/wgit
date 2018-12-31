@@ -1,13 +1,9 @@
-require "minitest/autorun"
-require "minitest/pride"
 require_relative "helpers/test_helper"
-require_relative "../lib/wgit/assertable"
-require_relative "../lib/wgit/url"
-require_relative "../lib/wgit/core_ext"
 
-class TestCoreExt < Minitest::Test
-  include TestHelper
-  include Wgit::Assertable
+# Test class for the Ruby core extension methods.
+class TestCoreExt < TestHelper
+  # Run non DB tests in parallel for speed.
+  parallelize_me!
   
   # Runs before every test.
   def setup

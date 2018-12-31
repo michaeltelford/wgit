@@ -1,5 +1,11 @@
 require 'bundler/gem_tasks'
 require 'rake/testtask'
+require 'dotenv/tasks'
+
+# To load .env vars into a task below:
+#task mytask: :dotenv do
+  # Things that require .env vars.
+#end
 
 Rake::TestTask.new do |t|
   t.libs << 'test'
@@ -25,11 +31,11 @@ end
 desc "The SAFE RELEASE task which ensures DB details are blank."
 task :RELEASE, [:remote] do |t, args|
   raise unless require_relative 'lib/wgit'
-  if not Wgit::CONNECTION_DETAILS.empty?
+  if !Wgit::CONNECTION_DETAILS.empty?
     raise "Clear the CONNECTION_DETAILS before releasing the gem"
   else
     puts "Releasing gem version #{Wgit::VERSION}, using the #{args[:remote]} Git remote..."
-    confirm "Do you wan't to continue? (Y/n)"
+    confirm "Have you correctly updated the version? (Y/n)"
     Rake::Task[:release].invoke args[:remote]
   end
 end
