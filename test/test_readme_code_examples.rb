@@ -161,6 +161,7 @@ class TestReadmeCodeExamples < TestHelper
     ### PUT README CODE BELOW ###
 
     require 'wgit'
+    require 'wgit/core_ext'
 
     # Let's add the text of links e.g. <a> tags.
     Wgit::Document.text_elements << :a
@@ -185,6 +186,7 @@ class TestReadmeCodeExamples < TestHelper
     ### PUT README CODE BELOW ###
 
     require 'wgit'
+    require 'wgit/core_ext'
 
     # Let's get all the page's table elements.
     Wgit::Document.define_extension(

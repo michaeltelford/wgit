@@ -223,6 +223,7 @@ If you'd like the text of additional webpage elements to be returned from `Wgit:
 
 ```ruby
 require 'wgit'
+require 'wgit/core_ext'
 
 # Let's add the text of links e.g. <a> tags.
 Wgit::Document.text_elements << :a
@@ -250,6 +251,7 @@ Here's how to add a custom indexer for a page element:
 
 ```ruby
 require 'wgit'
+require 'wgit/core_ext'
 
 # Let's get all the page's table elements.
 Wgit::Document.define_extension(
@@ -305,7 +307,7 @@ After checking out the repo, run `./bin/setup` to install dependencies (requires
 
 To generate code documentation run `bundle exec yarddoc`. To browse the generated documentation run `bundle exec yard server -r`.
 
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, see the 'Gem Publishing Checklist' section of the `TODO.txt` file.
+To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, see the *Gem Publishing Checklist* section of the `TODO.txt` file.
 
 ## Contributing
 
