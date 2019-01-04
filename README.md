@@ -45,12 +45,14 @@ crawler = Wgit::Crawler.new
 url = Wgit::Url.new "https://wikileaks.org/What-is-Wikileaks.html"
 
 doc = crawler.crawl url
+
+doc.class # => Wgit::Document
 doc.stats # => {
 # :url=>44, :html=>28133, :title=>17, :keywords=>0,
 # :links=>35, :text_length=>67, :text_bytes=>13735
 #}
 
-doc.class # => Wgit::Document
+# doc responds to the following methods:
 Wgit::Document.instance_methods(false).sort # => [
 # :==, :[], :author, :doc, :empty?, :external_links, :external_urls,
 # :html, :internal_full_links, :internal_links, :keywords, :links, 
@@ -105,28 +107,32 @@ The below script downloads the contents of several webpages and pulls out their 
 
 ```ruby
 require 'wgit'
-require 'wgit/core_ext' # => Provides the String#to_url and Enumerable#to_urls methods.
 
-my_pages_keywords = ["altitude", "mountaineering", "adventure"]
+my_pages_keywords = ["Everest", "mountaineering school", "adventure"]
 my_pages_missing_keywords = []
 
 competitor_urls = [
-	"http://altitudejunkies.com", 
-	"http://www.mountainmadness.com", 
-	"http://www.adventureconsultants.com"
-].to_urls
+  "http://altitudejunkies.com", 
+  "http://www.mountainmadness.com", 
+  "http://www.adventureconsultants.com"
+]
 
 crawler = Wgit::Crawler.new competitor_urls
 
 crawler.crawl do |doc|
+  # If there are keywords present in the web document.
   if doc.keywords.respond_to? :-
     puts "The keywords for #{doc.url} are: \n#{doc.keywords}\n\n"
     my_pages_missing_keywords.concat(doc.keywords - my_pages_keywords)
   end
 end
 
-puts "Your pages compared to your competitors are missing the following keywords:"
-puts my_pages_missing_keywords.uniq!
+if my_pages_missing_keywords.empty?
+  puts "Your pages are missing no keywords, nice one!"
+else
+  puts "Your pages compared to your competitors are missing the following keywords:"
+  puts my_pages_missing_keywords.uniq
+end
 ```
 
 ## Practical Database Example
@@ -166,14 +172,14 @@ require 'wgit/core_ext' # => Provides the String#to_url and Enumerable#to_urls m
 # Here we create our own document rather than crawling the web.
 # We pass the web page's URL and HTML Strings.
 doc = Wgit::Document.new(
-	"http://test-url.com".to_url, 
-	"<p>Some text to search for.</p><a href='http://www.google.co.uk'>Click me!</a>"
+  "http://test-url.com".to_url, 
+  "<html><p>How now brown cow.</p><a href='http://www.google.co.uk'>Click me!</a></html>"
 )
 
 # Set your MongoDB connection details.
 Wgit.set_connection_details({
   'host'  => '<host_machine>',
-  'port'  => '27017', # MongoDB's default port is shown here.
+  'port'  => '27017',
   'uname' => '<username>',
   'pword' => '<password>',
   'db'    => '<database_name>',
@@ -182,13 +188,14 @@ Wgit.set_connection_details({
 db = Wgit::Database.new
 db.insert doc
 
-# Searching the DB returns documents with 'hits'. 
-results = db.search "text"
+# Searching the database returns documents with matching text 'hits'.
+query = "cow"
+results = db.search query
 
-doc == results.first # => true
+doc.url == results.first.url # => true
 
-# Searching a document returns the text snippets with 'hits' within that document. 
-doc.search("text").first # => "Some text to search for."
+# Searching a document returns the matching lines of text within that document.
+doc.search(query).first # => "How now brown cow."
 
 db.insert doc.external_links
 
@@ -296,9 +303,9 @@ For a full list of available Rake tasks, run `bundle exec rake help`. The most c
 
 After checking out the repo, run `./bin/setup` to install dependencies (requires `gem install bundler`). Then, run `bundle exec rake test` to run the tests. You can also run `bundle exec ./bin/console` for an interactive prompt that will allow you to experiment with the code.
 
-To generate code documentation run `bundle exec yard doc`. To browse the generated documentation run `bundle exec yard server -r`.
+To generate code documentation run `bundle exec yarddoc`. To browse the generated documentation run `bundle exec yard server -r`.
 
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake RELEASE[remote]` (remote being the correct Git remote e.g. `origin`), which will create a git tag for the version, push any git commits and tags, and push the `*.gem` file to [rubygems.org](https://rubygems.org).
+To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, see the 'Gem Publishing Checklist' section of the `TODO.txt` file.
 
 ## Contributing
 

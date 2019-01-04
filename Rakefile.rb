@@ -28,20 +28,22 @@ task :compile do
   end
 end
 
-desc "The SAFE RELEASE task which ensures DB details are blank."
+desc "The SAFE RELEASE task which double checks things ;-)"
 task :RELEASE, [:remote] do |t, args|
   raise unless require_relative 'lib/wgit'
   if !Wgit::CONNECTION_DETAILS.empty?
     raise "Clear the CONNECTION_DETAILS before releasing the gem"
-  else
-    puts "Releasing gem version #{Wgit::VERSION}, using the #{args[:remote]} Git remote..."
-    confirm "Have you correctly updated the version? (Y/n)"
-    Rake::Task[:release].invoke args[:remote]
   end
+  
+  puts "Releasing gem version #{Wgit::VERSION}, using the #{args[:remote]} Git remote..."
+  confirm "Have you went through the TODO.txt 'Gem Publishing Checklist'?"
+
+  # Tag the repo, build and push the gem to rubygems.org.
+  Rake::Task[:release].invoke args[:remote]
 end
 
 def confirm(question)
-  puts question
+  puts "#{question}  (Y/n) [n]"
   input = STDIN.gets.strip
   exit unless input == "Y"
 end
