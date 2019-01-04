@@ -20,14 +20,12 @@ module Wgit
 
     # Initializes the Crawler by setting the @urls and @docs.
     #
-    # @param urls [Wgit::Url] The URLs to crawl.
+    # @param urls [*Wgit::Url] The URLs to crawl.
     def initialize(*urls)
-      # Here we call urls= method but urls is also the param name so we prefix
-      # it with self.
-      self.urls = urls unless urls.nil?
+      self.[](*urls)
       @docs = []
     end
-    
+
     # Sets this Crawler's @urls.
     #
     # @param urls [Array<Wgit::Url>] The URLs to crawl.
@@ -38,11 +36,23 @@ module Wgit
   
     # Sets this Crawler's @urls.
     #
-    # @param urls [Wgit::Url] The URLs to crawl.
+    # @param urls [*Wgit::Url] The URLs to crawl.
     def [](*urls)
-      # Here we call urls= method but urls is also the param name so we prefix
-      # it with self.
-      self.urls = urls unless urls.nil?
+      # If urls is nil then add_url (when called later) will set @urls = []
+      # so we do nothing here.
+      if not urls.nil?
+        # Due to *urls you can end up with [[url1,url2,url3]] etc. where the
+        # outer array is bogus so we use the inner one only.
+        if  urls.is_a?(Enumerable) &&
+            urls.length == 1 &&
+            urls.first.is_a?(Enumerable)
+          urls = urls.first
+        end
+
+        # Here we call urls= method using self because the param name is also
+        # urls which conflicts.
+        self.urls = urls
+      end
     end
   
     # Adds the url to this Crawler's @urls.

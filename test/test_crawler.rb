@@ -27,6 +27,10 @@ class TestCrawler < TestHelper
     c = Wgit::Crawler.new(*@urls)
     assert_empty c.docs
     assert_urls c
+    
+    c = Wgit::Crawler.new(@urls)
+    assert_empty c.docs
+    assert_urls c
   end
   
   def test_urls=
@@ -38,12 +42,18 @@ class TestCrawler < TestHelper
     assert_urls c
     
     c.urls = "https://duckduckgo.com"
-    assert_equal ["https://duckduckgo.com"], c.urls
+    assert_urls c, [Wgit::Url.new("https://duckduckgo.com")]
+
+    c.urls = Wgit::Url.new "https://duckduckgo.com"
+    assert_urls c, [Wgit::Url.new("https://duckduckgo.com")]
   end
   
   def test_square_brackets
     c = Wgit::Crawler.new
     c[*@urls]
+    assert_urls c
+
+    c[@urls]
     assert_urls c
     
     c[*@url_strs]
