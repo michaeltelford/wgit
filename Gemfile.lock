@@ -1,9 +1,9 @@
 PATH
   remote: .
   specs:
-    wgit (0.0.4)
-      mongo
-      nokogiri
+    wgit (0.0.5)
+      mongo (~> 2.6)
+      nokogiri (~> 1.10)
 
 GEM
   remote: https://rubygems.org/
@@ -29,13 +29,13 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  byebug
-  dotenv
-  minitest
-  pry
-  rake
+  byebug (~> 10.0)
+  dotenv (~> 2.5)
+  minitest (~> 5.11)
+  pry (~> 0.12)
+  rake (~> 12.3)
   wgit!
-  yard
+  yard (~> 0.9)
 
 RUBY VERSION
    ruby 2.5.3p105

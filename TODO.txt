@@ -23,6 +23,7 @@ Refactoring
 Gem Publishing Checklist
 ------------------------
 - Ensure a clean branch of master and create a 'release' branch.
+- Run 'bundle install' to update deps.
 - Run 'bundle exec rake compile' and ensure no warnings/errors.
 - Run 'bundle exec rake test' and ensure all tests are passing.
 - Increment the version number (in version.rb).
