@@ -3,8 +3,8 @@ lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require 'wgit/version'
 
-# List any files that should NOT be packaged in the built gem. 
-# The full file path should be provided e.g. "./lib/wgit/file.rb"
+# List any files that should NOT be packaged in the built gem.
+# The full file path should be provided e.g. "./lib/wgit/file.rb".
 reject_files = [
   "./lib/wgit/database/database_default_data.rb", 
   "./lib/wgit/database/database_helper.rb"
@@ -23,10 +23,21 @@ Gem::Specification.new do |s|
   #s.executables          << "wgit"
   s.homepage              = 'https://github.com/michaeltelford/wgit'
   s.license               = 'MIT'
-  s.required_ruby_version = '~> 2.5' # Only works with ruby 2.5.x
   s.metadata              = { 
     "source_code_uri" => "https://github.com/michaeltelford/wgit",
   }
+
+  s.required_ruby_version = '~> 2.5' # Only works with ruby 2.5.x
+
+  s.add_development_dependency "minitest"
+  s.add_development_dependency "yard"
+  s.add_development_dependency "byebug"
+  s.add_development_dependency "pry"
+  s.add_development_dependency "dotenv"
+  s.add_development_dependency "rake"
+
+  s.add_runtime_dependency "nokogiri"
+  s.add_runtime_dependency "mongo"
   
   # Prevent pushing this gem to RubyGems.org. To allow pushes either set the 'allowed_push_host'
   # to allow pushing to a single host or delete this section to allow pushing to any host.
