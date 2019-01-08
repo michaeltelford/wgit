@@ -29,15 +29,15 @@ Gem::Specification.new do |s|
 
   s.required_ruby_version = '~> 2.5' # Only works with ruby 2.5.x
 
-  s.add_development_dependency "minitest"
-  s.add_development_dependency "yard"
-  s.add_development_dependency "byebug"
-  s.add_development_dependency "pry"
-  s.add_development_dependency "dotenv"
-  s.add_development_dependency "rake"
+  s.add_development_dependency "minitest", "~> 5.11"
+  s.add_development_dependency "yard", "~> 0.9"
+  s.add_development_dependency "byebug", "~> 10.0"
+  s.add_development_dependency "pry", "~> 0.12"
+  s.add_development_dependency "dotenv", "~> 2.5"
+  s.add_development_dependency "rake", "~> 12.3"
 
-  s.add_runtime_dependency "nokogiri"
-  s.add_runtime_dependency "mongo"
+  s.add_runtime_dependency "nokogiri", "~> 1.10"
+  s.add_runtime_dependency "mongo", "~> 2.6"
   
   # Prevent pushing this gem to RubyGems.org. To allow pushes either set the 'allowed_push_host'
   # to allow pushing to a single host or delete this section to allow pushing to any host.
