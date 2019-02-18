@@ -183,14 +183,14 @@ Minitest framework."
   
   def test_search
     doc = Wgit::Document.new @url, @html
-    results = doc.search("minitest")
+    results = doc.search("minitest", 80)
     assert_equal @search_results, results
   end
   
   def test_search!
     doc = Wgit::Document.new @url, @html
     orig_text = doc.text
-    assert_equal orig_text, doc.search!("minitest")
+    assert_equal orig_text, doc.search!("minitest", 80)
     assert_equal @search_results, doc.text
   end
   

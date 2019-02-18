@@ -17,6 +17,7 @@ Secondary
 
 Refactoring
 -----------
+- Replace method params with an options hash where applicable.
 - Mock network calls (at least many of them) in tests.
 - Remove STDOUT ruby warnings from console and test output.
 

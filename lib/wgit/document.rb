@@ -280,10 +280,12 @@ module Wgit
     # is kept thereafter.
     #
     # @param query [String] The value to search the document's text against.
+    # @param sentence_limit [Integer] The max length of each search result
+    #   sentence.
     # @return [String] This Document's original @text value.
-    def search!(query)
+    def search!(query, sentence_limit = 80)
       orig_text = @text
-      @text = search(query)
+      @text = search(query, sentence_limit)
       orig_text
     end
     
