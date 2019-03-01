@@ -143,7 +143,7 @@ Currently the only supported DBMS is MongoDB. See [mLab](https://mlab.com) for a
 
 ### Setting Up MongoDB
 
-Follow the steps below to configure MongoDB for use with Wgit. This is only needed if you want to store/access database records.
+Follow the steps below to configure MongoDB for use with Wgit. This is only needed if you want to read/write database records.
 
 1) Create collections for: `documents` and `urls`.
 2) Add a unique index for the `url` field in **both** collections.
@@ -159,9 +159,11 @@ Follow the steps below to configure MongoDB for use with Wgit. This is only need
 ```
 5) Set the connection details for your MongoDB instance using `Wgit.set_connection_details` (prior to using `Wgit::Database`)
 
+**Note**: The text search index (in step 4) lists all document fields to be searched by MongoDB when calling `Wgit::Database#search`. Therefore, you should append this list with any other fields that you want searched. For example, if you extend the API (see [Extending The API](#Extending-The-API)) then you might want to search your new fields in the database by adding them to the index above.
+
 ### Database Example
 
-The below script shows how to use Wgit's database functionality to crawl and then search HTML documents stored in the DB.
+The below script shows how to use Wgit's database functionality to crawl and then search HTML documents stored in the database.
 
 If you're running the code below for yourself, remember to replace the Hash containing the connection details with your own.
 
@@ -283,8 +285,8 @@ For more information on what's possible with each Nokogiri object, see the [docu
 
 **Extension Notes**:
 
-- Any links should be mapped into `Wgit::Url` objects, Url's are treated as Strings when being inserted into the DB. 
-- Any object like a Nokogiri object will not be inserted into the DB, its up to you to map each object to a native type e.g. String, Boolean etc. 
+- Any links should be mapped into `Wgit::Url` objects, Url's are treated as Strings when being inserted into the database. 
+- Any object like a Nokogiri object will not be inserted into the database, its up to you to map each object to a native type e.g. String, Boolean etc. 
 
 ## Gotchas
 
