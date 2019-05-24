@@ -35,6 +35,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency "pry", "~> 0.12"
   s.add_development_dependency "dotenv", "~> 2.5"
   s.add_development_dependency "rake", "~> 12.3"
+  s.add_development_dependency "httplog", "~> 1.3"
 
   s.add_runtime_dependency "nokogiri", "~> 1.10"
   s.add_runtime_dependency "mongo", "~> 2.6"

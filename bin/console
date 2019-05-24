@@ -7,6 +7,18 @@ require 'dotenv'
 # Load any required .env vars e.g. DB connection details.
 Dotenv.load
 
+# Monkey patch Net::HTTP GET to log its details.
+require 'httplog'
+HttpLog.configure do |config|
+  config.log_connect    = false
+  config.log_request    = true
+  config.log_headers    = false
+  config.log_data       = false
+  config.log_status     = true
+  config.log_response   = false
+  config.log_benchmark  = true
+end
+
 # Set the DB connection details from the ENV.
 load 'lib/wgit/database/mongo_connection_details.rb'
 Wgit.set_connection_details_from_env
