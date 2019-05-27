@@ -8,7 +8,7 @@ Primary
 
 Secondary
 ---------
-- Think about ignoring non html documents/urls e.g. http://server/image.jpg etc.
+- Think about ignoring non html documents/urls e.g. http://server/image.jpg etc. by implementing MIME types (defaulting to only HTML).
 - Check if Document::TEXT_ELEMENTS is expansive enough.
 - Add logging functionality (possibly use the mongo logger?).
 - Possibly use refine instead of core-ext?
@@ -19,7 +19,6 @@ Refactoring
 -----------
 - Replace method params with an options hash where applicable.
 - Mock network calls (at least many of them) in tests.
-- Remove STDOUT ruby warnings from console and test output.
 
 Gem Publishing Checklist
 ------------------------

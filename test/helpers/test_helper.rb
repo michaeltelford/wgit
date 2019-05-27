@@ -1,3 +1,5 @@
+$VERBOSE = nil # Suppress warning messages for the test run.
+
 require 'minitest/autorun'
 require 'dotenv'
 require 'byebug' # Call 'byebug' anywhere in the code to debug.
@@ -27,7 +29,7 @@ class TestHelper < Minitest::Test
 
   # Any helper methods go below, these will be callable from child unit tests.
 
-  # Flunk (fail) the test if an exception is thrown.
+  # Flunk (fail) the test if an exception is raised in the given block.
   def refute_exception
     yield
   rescue Exception => ex

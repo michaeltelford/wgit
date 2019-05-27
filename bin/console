@@ -26,10 +26,14 @@ end
 load 'lib/wgit/database/mongo_connection_details.rb'
 Wgit.set_connection_details_from_env
 
-# Define a method to facilitate the loading of changes.
+# Define a method to facilitate the reloading of code changes.
 # NOTE: The CWD is the project root, not the bin folder.
 def reload
-  load 'load.rb'
+  original_verbose = $VERBOSE
+  $VERBOSE = nil              # Suppress warning messages (when loading CONSTANTS).
+  load 'load.rb'              # Reload all code changes.
+  $VERBOSE = original_verbose # Activate warning messages again globally.
+  true
 end
 
 # Load the most recent code into the session.
