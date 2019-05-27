@@ -17,6 +17,9 @@ HttpLog.configure do |config|
   config.log_status     = true
   config.log_response   = false
   config.log_benchmark  = true
+
+  config.compact_log    = true
+  config.json_log       = true
 end
 
 # Set the DB connection details from the ENV.
