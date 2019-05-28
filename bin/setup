@@ -6,5 +6,4 @@ set -vx
 
 bundle install
 
-# Do any other automated setup here...
-# TODO.
+touch .env

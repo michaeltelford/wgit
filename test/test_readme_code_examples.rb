@@ -92,17 +92,17 @@ class TestReadmeCodeExamples < TestHelper
     crawler.crawl do |doc|
       # If there are keywords present in the web document.
       if doc.keywords.respond_to? :-
-        puts "The keywords for #{doc.url} are: \n#{doc.keywords}\n\n"
+        # puts "The keywords for #{doc.url} are: \n#{doc.keywords}\n\n"
         my_pages_missing_keywords.concat(doc.keywords - my_pages_keywords)
       end
     end
 
-    if my_pages_missing_keywords.empty?
-      puts "Your pages are missing no keywords, nice one!"
-    else
-      puts "Your pages compared to your competitors are missing the following keywords:"
-      puts my_pages_missing_keywords.uniq
-    end
+    # if my_pages_missing_keywords.empty?
+    #   puts "Your pages are missing no keywords, nice one!"
+    # else
+    #   puts "Your pages compared to your competitors are missing the following keywords:"
+    #   puts my_pages_missing_keywords.uniq
+    # end
 
     ### PUT README CODE ABOVE ###
 

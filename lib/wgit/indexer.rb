@@ -8,8 +8,8 @@ module Wgit
   #
   # Retrieves uncrawled url's from the database and recursively crawls each
   # site storing their internal pages into the database and adding their
-  # external url's to be crawled at a later date. Puts out info on the crawl
-  # to STDOUT as it goes along.
+  # external url's to be crawled later on. Logs info on the crawl
+  # using Wgit.logger as it goes along.
   # 
   # @param max_sites_to_crawl [Integer] The number of separate and whole
   #   websites to be crawled before the method exits. Defaults to -1 which
@@ -81,8 +81,8 @@ module Wgit
 
     # Retrieves uncrawled url's from the database and recursively crawls each
     # site storing their internal pages into the database and adding their
-    # external url's to be crawled at a later date. Puts out info on the crawl
-    # to STDOUT as it goes along.
+    # external url's to be crawled later on. Logs info on the crawl
+    # using Wgit.logger as it goes along.
     #
     # @param max_sites_to_crawl [Integer] The number of separate and whole
     #   websites to be crawled before the method exits. Defaults to -1 which
@@ -93,28 +93,28 @@ module Wgit
     #   that will be obtained.
     def index_the_web(max_sites_to_crawl = -1, max_data_size = 1048576000)
       if max_sites_to_crawl < 0
-        puts "Indexing until the database has been filled or it runs out of \
-urls to crawl (which might be never)."
+        Wgit.logger.info("Indexing until the database has been filled or it runs out of \
+urls to crawl (which might be never).")
       end
       site_count = 0
       
       while keep_crawling?(site_count, max_sites_to_crawl, max_data_size) do
-        puts "Current database size: #{@db.size}"
+        Wgit.logger.info("Current database size: #{@db.size}")
         @crawler.urls = @db.uncrawled_urls
 
         if @crawler.urls.empty?
-          puts "No urls to crawl, exiting."
+          Wgit.logger.info("No urls to crawl, exiting.")
           return
         end
-        puts "Starting crawl loop for: #{@crawler.urls}"
+        Wgit.logger.info("Starting crawl loop for: #{@crawler.urls}")
     
         docs_count = 0
         urls_count = 0
     
         @crawler.urls.each do |url|
           unless keep_crawling?(site_count, max_sites_to_crawl, max_data_size)
-            puts "Reached max number of sites to crawl or database \
-capacity, exiting."
+            Wgit.logger.info("Reached max number of sites to crawl or database \
+capacity, exiting.")
             return
           end
           site_count += 1
@@ -133,20 +133,20 @@ capacity, exiting."
           end
       
           urls_count += write_urls_to_db(ext_links)
-          puts "Crawled and saved #{site_docs_count} docs for the \
-site: #{url}"
+          Wgit.logger.info("Crawled and saved #{site_docs_count} docs for the \
+site: #{url}")
         end
 
-        puts "Crawled and saved docs for #{docs_count} url(s) overall for \
-this iteration."
-        puts "Found and saved #{urls_count} external url(s) for the next \
-iteration."
+        Wgit.logger.info("Crawled and saved docs for #{docs_count} url(s) overall for \
+this iteration.")
+        Wgit.logger.info("Found and saved #{urls_count} external url(s) for the next \
+iteration.")
       end
     end
 
     # Crawls a single website's pages and stores them into the database.
     # There is no max download limit so be careful which sites you index.
-    # Puts out info on the crawl to STDOUT as it goes along.
+    # Logs info on the crawl using Wgit.logger as it goes along.
     #
     # @param url [Wgit::Url] The base Url of the website to crawl.
     # @param insert_externals [Boolean] Whether or not to insert the website's
@@ -168,7 +168,7 @@ iteration."
         if result
           if write_doc_to_db(doc)
             total_pages_indexed += 1
-            puts "Crawled and saved internal page: #{doc.url}"
+            Wgit.logger.info("Crawled and saved internal page: #{doc.url}")
           end
         end
       end
@@ -182,11 +182,11 @@ iteration."
       
       if insert_externals
         write_urls_to_db(ext_urls)
-        puts "Found and saved #{ext_urls.length} external url(s)"
+        Wgit.logger.info("Found and saved #{ext_urls.length} external url(s)")
       end
       
-      puts "Crawled and saved #{total_pages_indexed} docs for the \
-site: #{url}"
+      Wgit.logger.info("Crawled and saved #{total_pages_indexed} docs for the \
+site: #{url}")
 
       total_pages_indexed
     end
@@ -208,10 +208,10 @@ site: #{url}"
     # inserts.
     def write_doc_to_db(doc)
       @db.insert(doc)
-      puts "Saved document for url: #{doc.url}"
+      Wgit.logger.info("Saved document for url: #{doc.url}")
       true
     rescue Mongo::Error::OperationFailure
-      puts "Document already exists: #{doc.url}"
+      Wgit.logger.info("Document already exists: #{doc.url}")
       false
     end
 
@@ -223,9 +223,9 @@ site: #{url}"
           begin
             @db.insert(url)
             count += 1
-            puts "Inserted url: #{url}"
+            Wgit.logger.info("Inserted url: #{url}")
           rescue Mongo::Error::OperationFailure
-            puts "Url already exists: #{url}"
+            Wgit.logger.info("Url already exists: #{url}")
           end
         end
       end

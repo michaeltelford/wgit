@@ -3,12 +3,10 @@
 require 'pry'
 require 'bundler/setup'
 require 'dotenv'
-
-# Load any required .env vars e.g. DB connection details.
-Dotenv.load
+require 'logger'
+require 'httplog'
 
 # Monkey patch Net::HTTP GET to log its details.
-require 'httplog'
 HttpLog.configure do |config|
   config.log_connect    = false
   config.log_request    = true
@@ -22,21 +20,26 @@ HttpLog.configure do |config|
   config.json_log       = true
 end
 
-# Set the DB connection details from the ENV.
+# Require the code and set the DB connection details from the ENV.
 load 'lib/wgit/database/mongo_connection_details.rb'
+Dotenv.load
 Wgit.set_connection_details_from_env
 
 # Define a method to facilitate the reloading of code changes.
 # NOTE: The CWD is the project root, not the bin folder.
 def reload
   original_verbose = $VERBOSE
-  $VERBOSE = nil              # Suppress warning messages (when loading CONSTANTS).
+  $VERBOSE = nil              # Suppress warning messages (when reloading CONSTANTS).
   load 'load.rb'              # Reload all code changes.
   $VERBOSE = original_verbose # Activate warning messages again globally.
+
+  # Set the Wgit logger level to Logger::DEBUG.
+  Wgit.logger.level = Logger::DEBUG
+
   true
 end
 
-# Load the most recent code into the session.
+# Load the most recent code into the session, include modules, connect to DB etc.
 reload
 
 # Seed some fixture data for the session (must be instance vars for irb).
@@ -62,4 +65,3 @@ binding.pry
 puts "Interactive session complete, hope you had a good one!"
 
 # Do any post REPL cleanup tasks here...
-# TODO.

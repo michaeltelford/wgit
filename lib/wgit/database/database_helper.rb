@@ -1,5 +1,6 @@
 require_relative "database_default_data"
 require "mongo"
+require "logger"
 
 module Wgit
 
@@ -19,14 +20,15 @@ module Wgit
 :port, :db, :uname, :pword for a database connection to be established."
       end
 
-      # Only log to STDOUT in fatal scenarios.
-      Mongo::Logger.logger.level = Logger::FATAL
+      # Only log for error (or more severe) scenarios.
+      Mongo::Logger.logger = Wgit.logger.clone
+      Mongo::Logger.level = Logger::ERROR
     
       address = "#{conn_details[:host]}:#{conn_details[:port]}"
       @@client = Mongo::Client.new([address], 
-                                  database:      conn_details[:db],
-                                  user:          conn_details[:uname],
-                                  password:      conn_details[:pword])
+                                  database: conn_details[:db],
+                                  user:     conn_details[:uname],
+                                  password: conn_details[:pword])
     
       @@urls = []
       @@docs = []

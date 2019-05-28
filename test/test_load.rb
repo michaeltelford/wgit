@@ -7,7 +7,6 @@ class TestLoad < TestHelper
   end
   
   def test_load
-    # TODO: Supress the load output by writing it to a file.
     assert load 'load.rb'
   end
 end

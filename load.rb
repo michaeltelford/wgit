@@ -4,6 +4,7 @@
 # elsewhere for interacting with the DB prior to loading this file.
 
 load 'lib/wgit/version.rb'
+load 'lib/wgit/logger.rb'; Wgit.use_default_logger
 load 'lib/wgit/core_ext.rb'
 load 'lib/wgit/crawler.rb'
 load 'lib/wgit/indexer.rb'

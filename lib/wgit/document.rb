@@ -24,7 +24,7 @@ module Wgit
       :main, :ol, :p, :pre, :span, :ul, :h1, :h2, :h3, :h4, :h5
     ]
     
-    # The URL of the webpage, an instance of Wgit:Url.
+    # The URL of the webpage, an instance of Wgit::Url.
     attr_reader :url
     
     # The HTML of the webpage, an instance of String.
@@ -56,7 +56,7 @@ module Wgit
       # Init from URL String and HTML String.
       if url_or_obj.is_a?(String)
         url = url_or_obj
-        assert_type(url, Url)
+        assert_type(url, Wgit::Url)
   
         @url = url
         @html = html ||= ""
