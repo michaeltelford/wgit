@@ -9,6 +9,6 @@ require_relative 'wgit/utils'
 require_relative 'wgit/assertable'
 require_relative 'wgit/database/database'
 require_relative 'wgit/database/model'
-require_relative 'wgit/database/mongo_connection_details'
+require_relative 'wgit/database/connection_details'
 # We don't add core bahaviour by default, it must be an explicit require.
 #require_relative 'wgit/core_ext'

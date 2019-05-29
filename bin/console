@@ -21,7 +21,7 @@ HttpLog.configure do |config|
 end
 
 # Require the code and set the DB connection details from the ENV.
-load 'lib/wgit/database/mongo_connection_details.rb'
+load 'lib/wgit/database/connection_details.rb'
 Dotenv.load
 Wgit.set_connection_details_from_env
 

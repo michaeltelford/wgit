@@ -24,7 +24,7 @@ class TestHelper < Minitest::Test
     Dotenv.load!
 
     # Set the DB connection details from the ENV.
-    load 'lib/wgit/database/mongo_connection_details.rb'
+    load 'lib/wgit/database/connection_details.rb'
     Wgit.set_connection_details_from_env
 
     # Run the tests.

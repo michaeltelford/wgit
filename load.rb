@@ -1,6 +1,6 @@
 # Development script which loads (any code changes) when called.
 #
-# NOTE: mongo_connection_details.rb are not loaded here, they should be set
+# NOTE: connection_details.rb are not loaded here, they should be set
 # elsewhere for interacting with the DB prior to loading this file.
 
 load 'lib/wgit/version.rb'
