@@ -4,21 +4,20 @@ Primary
 - Have the option to follow redirects and then update README & code refs.
 - Update Database#search & Document#search to have optional case sensitivity.
 - Have the ability to crawl sub sections of a site only e.g. https://www.honda.co.uk/motorcycles.html as the base url and crawl any links containing this as a prefix. For example, https://www.honda.co.uk/cars.html would not be crawled but https://www.honda.co.uk/motorcycles/africa-twin.html would be.
-- Create an executable based on the ./bin/console shipped as `wpry`.
+- Create an executable based on the ./bin/console shipped as `wpry` or `wgit`.
 
 Secondary
 ---------
 - Think about ignoring non html documents/urls e.g. http://server/image.jpg etc. by implementing MIME types (defaulting to only HTML).
 - Check if Document::TEXT_ELEMENTS is expansive enough.
-- Add logging functionality (possibly use the mongo logger?).
 - Possibly use refine instead of core-ext?
 - Think about potentially updating the Indexer to be multi threaded.
 - Think about potentially using DB._update's update_many func.
 
 Refactoring
 -----------
-- Replace method params with an options hash where applicable.
-- Mock network calls (at least many of them) in tests.
+- Replace method params with named parameters where applicable.
+- Mock network calls (at least many of them) in tests OR split out network dependant tests from unit tests with separate Rake tasks for each/all.
 
 Gem Publishing Checklist
 ------------------------
@@ -28,6 +27,7 @@ Gem Publishing Checklist
 - Run 'bundle exec rake test' and ensure all tests are passing.
 - Increment the version number (in version.rb).
 - Run `bundle exec rake install` to build and install the gem locally, then test it manually from outside this repo.
+- Update the docs (if necessary): README.md, TODO.txt etc.
 - Run `bundle exec yardoc` to update documentation.
 - Commit, merge to master & push any changes made from the above steps.
 - Run `bundle exec rake RELEASE[origin]` to tag, build and push everything to github.com and rubygems.org.
