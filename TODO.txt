@@ -27,7 +27,7 @@ Gem Publishing Checklist
 - Run 'bundle exec rake test' and ensure all tests are passing.
 - Increment the version number (in version.rb).
 - Run `bundle exec rake install` to build and install the gem locally, then test it manually from outside this repo.
-- Update the docs (if necessary): README.md, TODO.txt etc.
+- Update standalone files (if necessary): README.md, TODO.txt etc.
 - Run `bundle exec yardoc` to update documentation.
 - Commit, merge to master & push any changes made from the above steps.
 - Run `bundle exec rake RELEASE[origin]` to tag, build and push everything to github.com and rubygems.org.

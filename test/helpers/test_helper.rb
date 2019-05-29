@@ -1,9 +1,9 @@
+$VERBOSE = nil # Suppress ruby warnings for the test run.
+
 require 'minitest/autorun'
 require 'logger'
 require 'dotenv'
 require 'byebug' # Call 'byebug' anywhere in the code to debug.
-
-$VERBOSE = nil # Suppress ruby warnings for the test run.
 
 # Require all code being tested once, in one place.
 require_relative '../../lib/wgit'

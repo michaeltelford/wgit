@@ -1,14 +1,14 @@
 PATH
   remote: .
   specs:
-    wgit (0.0.6)
+    wgit (0.0.7)
       mongo (~> 2.6)
       nokogiri (~> 1.10)
 
 GEM
   remote: https://rubygems.org/
   specs:
-    bson (4.3.0)
+    bson (4.4.2)
     byebug (10.0.2)
     coderay (1.1.2)
     dotenv (2.5.0)
@@ -18,9 +18,9 @@ GEM
     method_source (0.9.2)
     mini_portile2 (2.4.0)
     minitest (5.11.3)
-    mongo (2.6.2)
-      bson (>= 4.3.0, < 5.0.0)
-    nokogiri (1.10.0)
+    mongo (2.7.0)
+      bson (>= 4.4.2, < 5.0.0)
+    nokogiri (1.10.3)
       mini_portile2 (~> 2.4.0)
     pry (0.12.2)
       coderay (~> 1.1.0)

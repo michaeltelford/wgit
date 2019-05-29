@@ -7,6 +7,7 @@ class TestLoad < TestHelper
   end
   
   def test_load
-    assert load 'load.rb'
+    assert load('load.rb')
+    Wgit.logger.level = Logger::WARN
   end
 end

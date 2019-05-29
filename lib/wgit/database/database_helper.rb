@@ -21,8 +21,9 @@ module Wgit
       end
 
       # Only log for error (or more severe) scenarios.
-      Mongo::Logger.logger = Wgit.logger.clone
-      Mongo::Logger.level = Logger::ERROR
+      Mongo::Logger.logger          = Wgit.logger.clone
+      Mongo::Logger.logger.progname = 'mongo'
+      Mongo::Logger.logger.level    = Logger::ERROR
     
       address = "#{conn_details[:host]}:#{conn_details[:port]}"
       @@client = Mongo::Client.new([address], 
