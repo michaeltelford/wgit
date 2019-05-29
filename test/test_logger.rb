@@ -6,6 +6,12 @@ class TestLogger < TestHelper
   def setup
   end
 
+  # Runs after every test.
+  def teardown
+    Wgit.use_default_logger
+    Wgit.logger.level = Logger::WARN
+  end
+
   def test_logger
     assert Wgit.logger.is_a?(Logger)
   end
@@ -23,11 +29,5 @@ class TestLogger < TestHelper
 
   def test_use_default_logger
     assert Wgit.use_default_logger.is_a?(Logger)
-  end
-
-  # Runs after every test.
-  def teardown
-    Wgit.use_default_logger
-    Wgit.logger.level = Logger::WARN
   end
 end

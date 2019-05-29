@@ -53,11 +53,28 @@ class TestAssertable < TestHelper
     end
     assert_equal(
       "String (Hello World!) doesn't respond_to? [:equal?, :each]", 
-      ex.message)
+      ex.message
+    )
   end
 
   def test_assert_respond_to_single_method
     objs = [@s, @a]
     assert_equal objs, assert_respond_to(objs, :length)
+  end
+
+  def assert_required_keys_pass
+    hash = { 'NAME': 'Mick', 'AGE': 30 }
+    assert_equal hash, assert_required_keys(hash, ['NAME', 'AGE'])
+  end
+
+  def assert_required_keys_fail
+    hash = { 'NAME': 'Mick', 'AGE': 30 }
+    ex = assert_raises KeyError do
+      assert_required_keys(hash, ['NAME', 'ADDRESS'])
+    end
+    assert_equal(
+      "Some or all of the required keys are not present: NAME, ADDRESS", 
+      ex.message
+    )
   end
 end

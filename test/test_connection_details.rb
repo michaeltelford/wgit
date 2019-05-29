@@ -16,42 +16,47 @@ class TestConnectionDetails < TestHelper
     load 'lib/wgit/database/connection_details.rb'
     Wgit.set_connection_details_from_env
   end
-  
+
   def test_set_connection_details
     h = {
-      'host'  => 'blah.mongolab.com',
-      'port'  => '12345',
-      'uname' => 'minitest',
-      'pword' => 'rocks!!!',
-      'db'    => 'test',
+      'DB_HOST'     => 'blah.mongolab.com',
+      'DB_PORT'     => '12345',
+      'DB_USERNAME' => 'minitest',
+      'DB_PASSWORD' => 'rocks!!!',
+      'DB_DATABASE' => 'test',
     }
-    
-    assert_equal({
-      host:   'blah.mongolab.com',
-      port:   '12345',
-      uname:  'minitest',
-      pword:  'rocks!!!',
-      db:     'test',
-    }, Wgit.set_connection_details(h))
-    assert_raises(FrozenError) { Wgit.set_connection_details(h) }
+    expected = {
+      host:  'blah.mongolab.com',
+      port:  '12345',
+      uname: 'minitest',
+      pword: 'rocks!!!',
+      db:    'test',
+    }
+    assert_equal(expected, Wgit.set_connection_details(h))
+    # Test that we can reset the connection if required.
+    assert_equal(expected, Wgit.set_connection_details(h))
   end
 
   def test_set_connection_details_fails
+    req_keys = 'DB_HOST, DB_PORT, DB_USERNAME, DB_PASSWORD, DB_DATABASE'
     h = {
-      'host'  => 'blah.mongolab.com',
-      'port'  => '12345',
-      'uname' => 'minitest',
-      # 'pword' => 'rocks!!!', Required.
-      'db'    => 'test',
+      'DB_HOST'     => 'blah.mongolab.com',
+      'DB_PORT'     => '12345',
+      'DB_USERNAME' => 'minitest',
+      # 'DB_PASSWORD' => 'rocks!!!', Required.
+      'DB_DATABASE' => 'test',
     }
     
-    assert_raises(KeyError) { Wgit.set_connection_details(h) }
+    ex = assert_raises(KeyError) { Wgit.set_connection_details(h) }
+    assert_equal(
+      "Some or all of the required keys are not present: #{req_keys}",
+      ex.message
+    )
   end
 
   def test_set_connection_details_from_env
     assert_equal([
       :host, :port, :uname, :pword, :db
     ], Wgit.set_connection_details_from_env.keys)
-    assert_raises(FrozenError) { Wgit.set_connection_details_from_env }
   end
 end

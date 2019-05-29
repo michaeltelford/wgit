@@ -6,6 +6,7 @@ module Wgit
     DEFAULT_TYPE_FAIL_MSG = "Expected: %s, Actual: %s".freeze
     WRONG_METHOD_MSG = "arr must be Enumerable, use a different method".freeze
     DEFAULT_DUCK_FAIL_MSG = "%s doesn't respond_to? %s".freeze
+    DEFAULT_REQUIRED_KEYS_MSG = "Some or all of the required keys are not present: %s".freeze
   
     # Tests if the obj is of a given type.
     #
@@ -57,7 +58,20 @@ module Wgit
       end
       obj_or_objs
     end
-  
+
+    # The hash must include? the keys or a KeyError is raised.
+    #
+    # @param hash [Hash] The hash which should include the required keys.
+    # @param keys [Array<String, Symbol>] The keys whose presence to assert.
+    # @param msg [String] The raised KeyError message, if provided.
+    # @return [Hash] The given hash on successful assertion.
+    def assert_required_keys(hash, keys, msg = nil)
+      msg ||= DEFAULT_REQUIRED_KEYS_MSG % [keys.join(', ')]
+      all_present = keys.all? { |key| hash.keys.include? key }
+      raise KeyError.new(msg) unless all_present
+      hash
+    end
+
   private
   
     # obj must respond_to? all methods or an exception is raised.

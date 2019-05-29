@@ -1,3 +1,5 @@
+# FYI: The default logger is set at the bottom of this file.
+
 require 'logger'
 
 module Wgit
@@ -30,3 +32,5 @@ module Wgit
     @logger = self.default_logger
   end
 end
+
+Wgit.use_default_logger
