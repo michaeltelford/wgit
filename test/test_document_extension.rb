@@ -23,6 +23,14 @@ class TestDocumentExtension < TestHelper
       Wgit::Document.send(:remove_method, :tables2)
     end
 
+    if Wgit::Document.remove_extension(:code_snippets)
+      Wgit::Document.send(:remove_method, :code_snippets)
+    end
+
+    if Wgit::Document.remove_extension(:code_snippet)
+      Wgit::Document.send(:remove_method, :code_snippet)
+    end
+
     if Wgit::Document.remove_extension(:img_alt)
       Wgit::Document.send(:remove_method, :img_alt)
     end
@@ -116,6 +124,52 @@ class TestDocumentExtension < TestHelper
     assert_equal 1, tables.length
     
     assert_instance_of Nokogiri::XML::Element, tables.first
+  end
+
+  def test_virtual_attributes_extension_with_mixed_defaults
+    # Test singleton: false and text_content_only: true
+    name = Wgit::Document.define_extension(
+      :code_snippets,
+      "//code",
+      singleton: false,
+      text_content_only: true
+    )
+
+    doc = Wgit::Document.new(
+      "http://some_url.com".to_url,
+      "<html><code>curl</code><code>wget</code><code>wgit</code></html>"
+    )
+
+    assert_equal :init_code_snippets, name
+    assert doc.respond_to? :code_snippets
+    snippets = doc.code_snippets
+
+    assert_instance_of Array, snippets
+    assert_equal 3, snippets.length
+    assert snippets.all? { |snippet| snippet.instance_of? String }
+    assert_equal ['curl', 'wget', 'wgit'], snippets
+  end
+
+  def test_virtual_attributes_extension_with_mixed_defaults_2
+    # Test singleton: true and text_content_only: false
+    name = Wgit::Document.define_extension(
+      :code_snippet,
+      "//code",
+      singleton: true,
+      text_content_only: false
+    )
+
+    doc = Wgit::Document.new(
+      "http://some_url.com".to_url,
+      "<html><code>curl</code><code>wget</code><code>wgit</code></html>"
+    )
+
+    assert_equal :init_code_snippet, name
+    assert doc.respond_to? :code_snippet
+    snippet = doc.code_snippet
+
+    assert_instance_of Nokogiri::XML::Element, snippet
+    assert_equal 'curl', snippet.content
   end
 
   def test_virtual_attributes_extension_change_simple_value
