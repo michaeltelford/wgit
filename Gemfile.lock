@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    wgit (0.0.8)
+    wgit (0.0.9)
       mongo (~> 2.6)
       nokogiri (~> 1.10)
 
