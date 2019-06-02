@@ -1,7 +1,6 @@
 
 Primary
 -------
-- Have the option to follow redirects and then update README & code refs.
 - Update Database#search & Document#search to have optional case sensitivity.
 - Have the ability to crawl sub sections of a site only e.g. https://www.honda.co.uk/motorcycles.html as the base url and crawl any links containing this as a prefix. For example, https://www.honda.co.uk/cars.html would not be crawled but https://www.honda.co.uk/motorcycles/africa-twin.html would be.
 - Create an executable based on the ./bin/console shipped as `wpry` or `wgit`.

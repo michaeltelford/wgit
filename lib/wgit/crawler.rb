@@ -8,13 +8,12 @@ module Wgit
 
   # The Crawler class provides a means of crawling web based URL's, turning
   # their HTML into Wgit::Document's.
-  # Note that currently all redirects will not be followed during a crawl.
   class Crawler
     include Assertable
-    
+
     # The urls to crawl.
     attr_reader :urls
-      
+
     # The docs of the crawled @urls.
     attr_reader :docs
 
@@ -146,26 +145,35 @@ module Wgit
   
     # The fetch method performs a HTTP GET to obtain the HTML document.
     # Invalid urls or any HTTP response that doesn't return a HTML body will be
-    # ignored and nil will be returned.  This means that redirects etc. will
-    # not be followed.
+    # ignored and nil will be returned. Otherwise, the HTML is returned.
     def fetch(url)
-      raise unless url.respond_to?(:to_uri)
-      res = Net::HTTP.get_response(url.to_uri)
-      res.body.empty? ? nil : res.body
+      response = resolve(url)
+      response.body.empty? ? nil : response.body
     rescue
       nil
     end
-  
+
+    # The resolve method performs a HTTP GET to obtain the HTML document.
+    # A certain amount of redirects will be followed by default before raising
+    # an exception. Redirects can be disabled by setting `redirect_limit: 1`.
+    # The Net::HTTPResponse will be returned.
+    def resolve(url, redirect_limit: 5)
+      redirect_count = 0
+      begin
+        raise "Too many redirects" if redirect_count >= redirect_limit
+        response = Net::HTTP.get_response(URI.parse(url))
+        url = response['location']
+        redirect_count += 1
+      end while response.is_a?(Net::HTTPRedirection)
+      response
+    end
+
     # Add the url to @urls ensuring it is cast to a Wgit::Url if necessary.
     def add_url(url)
       @urls = [] if @urls.nil?
-      if url.is_a?(Wgit::Url)
-        @urls << url
-      else
-        @urls << Wgit::Url.new(url)
-      end
+      @urls << Wgit::Url.new(url)
     end
-  
+
     alias :crawl :crawl_urls
     alias :crawl_r :crawl_site
   end

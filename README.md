@@ -2,7 +2,7 @@
 
 Wgit is the ruby version of GNU's `wget` with an easy to use API for programmatic web scraping, indexing and searching.
 
-Wgit is a WWW indexer/scraper which crawls URL's, retrieves and serialises their page contents for later use. You can use Wgit to copy entire websites if required. Wgit also provides a means to search indexed documents stored in a database. Therefore, this library provides the main components of a WWW search engine. The Wgit API is easily extended allowing you to pull out the parts of a webpage that are important to you, the code snippets or images for example. As Wgit is an API, it's very useful in many different application types.
+Wgit is a WWW indexer/scraper which crawls URL's, retrieves and serialises their page contents for later use. You can use Wgit to copy entire websites if required. Wgit also provides a means to search indexed documents stored in a database. Therefore, this library provides the main components of a WWW search engine. The Wgit API is easily extended allowing you to pull out the parts of a webpage that are important to you, the code snippets or images for example. As Wgit is a library, it's very useful in many different application types.
 
 Check out this [example application](https://search-engine-rb.herokuapp.com) - a search engine built using Wgit and Sinatra, deployed to Heroku.
 
@@ -14,7 +14,7 @@ Check out this [example application](https://search-engine-rb.herokuapp.com) - a
 4. [Practical Examples](#Practical-Examples)
 5. [Practical Database Example](#Practical-Database-Example)
 6. [Extending The API](#Extending-The-API)
-7. [Gotchas](#Gotchas)
+7. [Caveats](#Caveats)
 8. [Executable](#Executable)
 9. [Development](#Development)
 10. [Contributing](#Contributing)
@@ -289,12 +289,11 @@ tables.first.class  # => Nokogiri::XML::Element
 - Any links should be mapped into `Wgit::Url` objects; Url's are treated as Strings when being inserted into the database. 
 - Any object (like a Nokogiri object) will not be inserted into the database, its up to you to map each object into a native type e.g. `Boolean, Array` etc.
 
-## Gotchas
+## Caveats
 
 Below are some points to keep in mind when using Wgit:
 
 - All Url's must be prefixed with an appropiate protocol e.g. `https://`
-- Currently, Url redirects will not be followed and `nil` will be returned from the crawl.
 
 ## Executable
 

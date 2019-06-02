@@ -153,9 +153,23 @@ class TestCrawler < TestHelper
     c = Wgit::Crawler.new url
     assert_nil c.crawl_site
   end
-  
+
+  def test_resolve
+    c = Wgit::Crawler.new
+    url = "http://twitter.com/" # Redirects once to https.
+
+    response = c.send :resolve, url
+    assert response.is_a? Net::HTTPResponse
+    assert_equal "200", response.code
+    refute response.body.empty?
+
+    assert_raises RuntimeError do
+      c.send :resolve, url, redirect_limit: 1
+    end
+  end
+
 private
-  
+
   def assert_urls(crawler, urls = @urls)
     assert crawler.urls.all? { |url| url.instance_of?(Wgit::Url) }
     assert_equal urls, crawler.urls
