@@ -25,8 +25,8 @@ Gem::Specification.new do |s|
   s.license               = 'MIT'
   s.metadata              = { 
     "source_code_uri" => "https://github.com/michaeltelford/wgit",
+    "yard.run" => "yri",
   }
-
   s.required_ruby_version = '~> 2.5' # Only works with ruby 2.5.x
 
   s.add_development_dependency "minitest", "~> 5.11"

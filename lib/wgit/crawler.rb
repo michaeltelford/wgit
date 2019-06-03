@@ -149,7 +149,10 @@ module Wgit
     def fetch(url)
       response = resolve(url)
       response.body.empty? ? nil : response.body
-    rescue
+    rescue Exception => ex
+      Wgit.logger.debug(
+        "Wgit::Crawler#fetch('#{url}') exception: #{ex.message}"
+      )
       nil
     end
 

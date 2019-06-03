@@ -5,6 +5,7 @@ require 'bundler/setup'
 require 'dotenv'
 require 'logger'
 require 'httplog'
+require 'byebug'
 
 # Monkey patch Net::HTTP GET to log its details.
 HttpLog.configure do |config|
