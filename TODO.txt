@@ -7,6 +7,8 @@ Primary
 
 Secondary
 ---------
+- Add Url#path method.
+- Add Document aliases for link aka url.
 - Think about ignoring non html documents/urls e.g. http://server/image.jpg etc. by implementing MIME types (defaulting to only HTML).
 - Check if Document::TEXT_ELEMENTS is expansive enough.
 - Possibly use refine instead of core-ext?
@@ -16,7 +18,7 @@ Secondary
 Refactoring
 -----------
 - Replace method params with named parameters where applicable.
-- Mock network calls (at least many of them) in tests OR split out network dependant tests from unit tests with separate Rake tasks for each/all.
+- Mock (monkey patch) the 'mongo' gem's func. for speed in the tests.
 
 Gem Publishing Checklist
 ------------------------

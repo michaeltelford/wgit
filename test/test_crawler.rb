@@ -139,11 +139,14 @@ class TestCrawler < TestHelper
   
   def test_crawl_site
     # Test largish site.
-    url = Wgit::Url.new "http://www.belfastpilates.co.uk"
+    url = Wgit::Url.new "http://www.belfastpilates.co.uk/"
     c = Wgit::Crawler.new url
     assert_crawl_site c
+
+    # Test small site.
+    flunk "TODO: txti.es and assert pages crawled"
     
-    # Test small site with externals only on the index page.
+    # Test site with externals only on the index page.
     url = Wgit::Url.new "https://motherfuckingwebsite.com/"
     c = Wgit::Crawler.new url
     assert_crawl_site c

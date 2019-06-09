@@ -9,3 +9,4 @@ wgit-*.gem
 **/test_mongo_log.txt
 **/pkg
 .env
+**/spike.rb

@@ -19,6 +19,18 @@ task :help do
   system "bundle exec rake -D"
 end
 
+desc "Download/update a web page test fixture to test/mock/fixtures"
+task :save_page, [:url] do |t, args|
+  puts `ruby test/mock/save_page.rb #{args[:url]}`
+  puts "Don't forget to mock the page in test/mock/fixtures.rb"
+end
+
+desc "Download/update a web site test fixture to test/mock/fixtures"
+task :save_site, [:url] do |t, args|
+  puts `ruby test/mock/save_site.rb #{args[:url]}`
+  puts "Don't forget to mock the site in test/mock/fixtures.rb"
+end
+
 desc "Compile all project Ruby files with warnings."
 task :compile do 
   paths = Dir["**/*.rb", "**/*.gemspec"]

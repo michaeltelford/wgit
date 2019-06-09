@@ -62,6 +62,8 @@ module Wgit
         @html = html ||= ""
         @doc = init_nokogiri
         @score = 0.0
+
+        process_url_and_html
         
         # Dynamically run the init_*_from_html methods.
         Document.private_instance_methods(false).each do |method|
@@ -80,7 +82,9 @@ module Wgit
         @html = obj.fetch("html", "")
         @doc = init_nokogiri
         @score = obj.fetch("score", 0.0)
-        
+
+        process_url_and_html
+
         # Dynamically run the init_*_from_object methods.
         Document.private_instance_methods(false).each do |method|
           if method.to_s.start_with?("init_") && 
@@ -174,7 +178,7 @@ module Wgit
     # @return [Boolean] True if @html is nil/empty, false otherwise.
     def empty?
       return true if @html.nil?
-      @html.strip.empty?
+      @html.empty?
     end
     
     # Uses Nokogiri's xpath method to search the doc's html and return the 
@@ -375,6 +379,12 @@ module Wgit
         #config.options = Nokogiri::XML::ParseOptions::STRICT | 
         #                 Nokogiri::XML::ParseOptions::NONET
       end
+    end
+
+    # Ensure the @url and @html Strings are correctly encoded etc.
+    def process_url_and_html
+      @url = process_str(@url)
+      @html = process_str(@html)
     end
 
     # Returns an object/value from this Document's @html using the provided

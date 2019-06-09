@@ -5,6 +5,8 @@ require 'logger'
 require 'dotenv'
 require 'byebug' # Call 'byebug' anywhere in the code to debug.
 
+require_relative '../mock/fixtures' # Mock HTTP responses.
+
 # Require all code being tested once, in one place.
 require_relative '../../lib/wgit'
 require_relative '../../lib/wgit/core_ext'

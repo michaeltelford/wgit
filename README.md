@@ -78,7 +78,11 @@ Below are some practical examples of Wgit in use. You can copy and run the code 
 
 ### WWW HTML Indexer
 
-See the `Wgit::Indexer` documentation and source code for an already built example of a WWW HTML indexer. It will crawl any external url's (in the database) and index their markup for later use, be it searching or otherwise. It will literally crawl the WWW forever if you let it!
+See the `Wgit::Indexer#index_the_web` documentation and source code for an already built example of a WWW HTML indexer. It will crawl any external url's (in the database) and index their markup for later use, be it searching or otherwise. It will literally crawl the WWW forever if you let it!
+
+### Website Downloader
+
+Wgit uses itself to download and save fixture webpages to disk (used in tests). See the script [here](https://github.com/michaeltelford/wgit/test/mock/save_site.rb) and edit it for your own purposes.
 
 ### CSS Indexer
 
@@ -97,10 +101,10 @@ doc = crawler.crawl url
 hrefs = doc.xpath "//link[@rel='stylesheet']/@href"
 
 hrefs.class # => Nokogiri::XML::NodeSet
-href = hrefs.first.value # => "https://static.xx.fbcdn.net/rsrc.php/v3/yE/r/uqWZrDdEiFq.css"
+href = hrefs.first.value # => "https://static.xx.fbcdn.net/rsrc.php/v3/y1/l/0,cross/NvZ4mNTW3Fd.css"
 
 css = crawler.crawl href.to_url
-css[0..50] # => ".UIContentTopper{padding:14px 0 0 17px;margin:50px "
+css[0..50] # => "._3_s0._3_s0{border:0;display:flex;height:44px;min-"
 ```
 
 ### Keyword Indexer (SEO Helper)

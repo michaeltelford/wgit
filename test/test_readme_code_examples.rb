@@ -55,10 +55,10 @@ class TestReadmeCodeExamples < TestHelper
     hrefs = doc.xpath "//link[@rel='stylesheet']/@href"
 
     hrefs.class # => Nokogiri::XML::NodeSet
-    href = hrefs.first.value # => "https://static.xx.fbcdn.net/rsrc.php/v3/yE/r/uqWZrDdEiFq.css"
+    href = hrefs.first.value # => "https://static.xx.fbcdn.net/rsrc.php/v3/y1/l/0,cross/NvZ4mNTW3Fd.css"
 
     css = crawler.crawl href.to_url
-    css[0..50] # => ".UIContentTopper{padding:14px 0 0 17px;margin:50px "
+    css[0..50] # => "._3_s0._3_s0{border:0;display:flex;height:44px;min-"
 
     ### PUT README CODE ABOVE ###
 
