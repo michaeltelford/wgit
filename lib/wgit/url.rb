@@ -198,6 +198,28 @@ module Wgit
       base = "#{url_segs[0]}://#{url_segs[2]}"
       Wgit::Url.new(base)
     end
+
+    # Returns the path of this URL e.g. the part after the host.
+    # For example:
+    # Wgit::Url.new("http://www.google.co.uk/about.html").to_path returns
+    # "about.html". See Wgit::Url#to_endpoint if you want a leading slash.
+    #
+    # @return [Wgit::Url] Path of self (Url) e.g. about.html.
+    def to_path
+      path = @uri.path
+      path = path[1..-1] if path.start_with?('/')
+      Wgit::Url.new(path)
+    end
+
+    # Returns the endpoint of this URL e.g. the part after the host.
+    # For example:
+    # Wgit::Url.new("http://www.google.co.uk/about.html").to_endpoint returns
+    # "/about.html". See Wgit::Url#to_path if you don't want a leading slash.
+    #
+    # @return [Wgit::Url] Endpoint of self (Url) e.g. /about.html.
+    def to_endpoint
+      Wgit::Url.new('/' + to_path)
+    end
   
     # Returns a Hash containing this Url's instance vars excluding @uri.
     # Used when storing the URL in a Database e.g. MongoDB etc.
@@ -210,8 +232,12 @@ module Wgit
     end
   
     alias :to_hash :to_h
+    alias :uri :to_uri
+    alias :url :to_url
     alias :host :to_host
     alias :base :to_base
+    alias :path :to_path
+    alias :endpoint :to_endpoint
     alias :internal_link? :relative_link?
     alias :crawled? :crawled
   end

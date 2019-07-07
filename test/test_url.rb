@@ -93,6 +93,30 @@ class TestUrl < TestHelper
     assert_raises(RuntimeError) { Wgit::Url.new(@link).to_base }
     assert_equal @url_str, Wgit::Url.new(@url_str_link).to_base
   end
+
+  def test_to_path
+    url = Wgit::Url.new @url_str_link
+    assert_equal 'about.html', url.to_path
+
+    url = Wgit::Url.new '/about.html'
+    assert_equal 'about.html', url.to_path
+
+    url = Wgit::Url.new 'about.html'
+    assert_equal 'about.html', url.to_path
+    assert_equal Wgit::Url, url.to_path.class
+  end
+
+  def test_to_endpoint
+    url = Wgit::Url.new @url_str_link
+    assert_equal '/about.html', url.to_endpoint
+
+    url = Wgit::Url.new '/about.html'
+    assert_equal '/about.html', url.to_endpoint
+
+    url = Wgit::Url.new 'about.html'
+    assert_equal '/about.html', url.to_endpoint
+    assert_equal Wgit::Url, url.to_endpoint.class
+  end
   
   def test_to_h
     assert_equal @mongo_doc_dup, Wgit::Url.new(@mongo_doc_dup).to_h

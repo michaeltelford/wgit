@@ -7,8 +7,6 @@ Primary
 
 Secondary
 ---------
-- Add Url#path method.
-- Add Document aliases for link aka url.
 - Think about ignoring non html documents/urls e.g. http://server/image.jpg etc. by implementing MIME types (defaulting to only HTML).
 - Check if Document::TEXT_ELEMENTS is expansive enough.
 - Possibly use refine instead of core-ext?
