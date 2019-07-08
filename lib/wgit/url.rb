@@ -95,14 +95,11 @@ module Wgit
       url
     end
   
-    # Returns if link is a relative or absolute Url. How it works:
-    # URI.split("http://www.google.co.uk/about.html") returns the following:
-    # array[2]: "www.google.co.uk", array[5]: "/about.html".
-    # This means that all external links in a page are expected to have a 
-    # protocol prefix e.g. "http://", otherwise the link is treated as an 
-    # internal link (regardless of whether it is valid or not). The only
-    # exception is if base is provided and link is a page within that site;
-    # then the link is relative.
+    # Returns if link is a relative or absolute Url.
+    # All external links in a page are expected to have a protocol prefix e.g.
+    # "http://", otherwise the link is treated as an internal link (regardless
+    # of whether it is valid or not). The only exception is if base is provided
+    # and link is a page within that site; then the link is relative.
     #
     # @param link [Wgit::Url, String] The url to test if relative or not.
     # @param base [String] The Url base e.g. http://www.google.co.uk.
@@ -113,14 +110,14 @@ module Wgit
         raise "Invalid base, must contain protocol prefix: #{base}"
       end
       
-      link_segs = URI.split(link)
-      if not link_segs[2].nil? and not link_segs[2].empty?
+      uri = URI(link)
+      if not uri.host.nil? and not uri.host.empty?
         if base
-          link_segs[2] == URI(base).host
+          uri.host == URI(base).host
         else
           false
         end
-      elsif not link_segs[5].nil? and not link_segs[5].empty?
+      elsif not uri.path.nil? and not uri.path.empty?
         true
       else
         raise "Invalid link: #{link}"
@@ -156,7 +153,7 @@ module Wgit
       Wgit::Url.valid?(self)
     end
   
-    # Concats self (Url) and the link.
+    # Concats self and the link.
     #
     # @param link [Wgit::Url, String] The link to concat with self.
     # @return [Wgit::Url] self + "/" + link
@@ -186,6 +183,14 @@ module Wgit
     def to_url
       self
     end
+
+    # Returns a new Wgit::Url containing just the scheme/protocol of this URL
+    # e.g. Given http://www.google.co.uk, http is returned.
+    #
+    # @return [Wgit::Url] Containing just the scheme/protocol.
+    def to_scheme
+      Wgit::Url.new(@uri.scheme)
+    end
   
     # Returns a new Wgit::Url containing just the host of this URL e.g.
     # Given http://www.google.co.uk/about.html, www.google.co.uk is returned.
@@ -195,21 +200,17 @@ module Wgit
       Wgit::Url.new(@uri.host)
     end
   
-    # Returns the base of this URL e.g. the protocol and host combined.
-    # How it works:
-    # URI.split("http://www.google.co.uk/about.html") returns the following:
-    # array[0]: "http://", array[2]: "www.google.co.uk", which we use.
+    # Returns only the base of this URL e.g. the protocol and host combined.
     #
-    # @return [Wgit::Url] Base of self (Url) e.g. http://www.google.co.uk.
+    # @return [Wgit::Url] Base of self e.g. http://www.google.co.uk.
     def to_base
       if Wgit::Url.relative_link?(self)
         raise "A relative link doesn't have a base URL: #{self}"
       end
-      url_segs = URI.split(self)
-      if url_segs[0].nil? or url_segs[2].nil? or url_segs[2].empty?
+      if @uri.scheme.nil? or @uri.host.nil? or @uri.host.empty?
         raise "Both a protocol and host are needed: #{self}"
       end
-      base = "#{url_segs[0]}://#{url_segs[2]}"
+      base = "#{@uri.scheme}://#{@uri.host}"
       Wgit::Url.new(base)
     end
 
@@ -238,7 +239,15 @@ module Wgit
       endpoint = '/' + endpoint unless endpoint.start_with?('/')
       Wgit::Url.new(endpoint)
     end
-  
+
+    # Returns a new Wgit::Url containing just the query string of this URL
+    # e.g. Given http://google.com?q=ruby, ruby is returned.
+    #
+    # @return [Wgit::Url] Containing just the query string.
+    def to_query_string
+      Wgit::Url.new(@uri.query)
+    end
+
     # Returns a Hash containing this Url's instance vars excluding @uri.
     # Used when storing the URL in a Database e.g. MongoDB etc.
     #
@@ -252,10 +261,15 @@ module Wgit
     alias :to_hash :to_h
     alias :uri :to_uri
     alias :url :to_url
+    alias :scheme :to_scheme
+    alias :to_protocol :to_scheme
+    alias :protocol :to_scheme
     alias :host :to_host
     alias :base :to_base
     alias :path :to_path
     alias :endpoint :to_endpoint
+    alias :query_string :to_query_string
+    alias :query :to_query_string
     alias :internal_link? :relative_link?
     alias :crawled? :crawled
   end

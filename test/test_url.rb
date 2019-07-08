@@ -98,6 +98,12 @@ class TestUrl < TestHelper
     assert_equal url, url.to_url
     assert_equal Wgit::Url, url.to_url.class
   end
+
+  def test_to_scheme
+    url = Wgit::Url.new @url_str
+    assert_equal 'http', url.to_scheme
+    assert_equal Wgit::Url, url.to_url.class
+  end
   
   def test_to_host
     assert_equal "www.google.co.uk", Wgit::Url.new(@url_str_link).to_host
@@ -152,6 +158,12 @@ class TestUrl < TestHelper
     url = Wgit::Url.new 'about.html'
     assert_equal '/about.html', url.to_endpoint
     assert_equal Wgit::Url, url.to_endpoint.class
+  end
+
+  def test_to_query_string
+    url = Wgit::Url.new @url_str_link + '?q=ruby&page=2'
+    assert_equal 'q=ruby&page=2', url.to_query_string
+    assert_equal Wgit::Url, url.to_url.class
   end
   
   def test_to_h
