@@ -100,15 +100,26 @@ module Wgit
     # array[2]: "www.google.co.uk", array[5]: "/about.html".
     # This means that all external links in a page are expected to have a 
     # protocol prefix e.g. "http://", otherwise the link is treated as an 
-    # internal link (regardless of whether it is valid or not).
+    # internal link (regardless of whether it is valid or not). The only
+    # exception is if base is provided and link is a page within that site;
+    # then the link is relative.
     #
     # @param link [Wgit::Url, String] The url to test if relative or not.
+    # @param base [String] The Url base e.g. http://www.google.co.uk.
     # @return [Boolean] True if relative, false if absolute.
     # @raise [RuntimeError] If the link is invalid.
-    def self.relative_link?(link)
+    def self.relative_link?(link, base: nil)
+      if base and URI(base).host.nil?
+        raise "Invalid base, must contain protocol prefix: #{base}"
+      end
+      
       link_segs = URI.split(link)
       if not link_segs[2].nil? and not link_segs[2].empty?
-        false
+        if base
+          link_segs[2] == URI(base).host
+        else
+          false
+        end
       elsif not link_segs[5].nil? and not link_segs[5].empty?
         true
       else
@@ -128,11 +139,14 @@ module Wgit
       Wgit::Url.new(url + "/" + link)
     end
   
-    # Returns if self is a relative or absolute Url.
+    # Returns if self is a relative or absolute Url. If base is provided and
+    # self is a page within that site then the link is relative.
+    # See Wgit.relative_link? for more information.
+    #
     # @return [Boolean] True if relative, false if absolute.
     # @raise [RuntimeError] If the link is invalid.
-    def relative_link?
-      Wgit::Url.relative_link?(self)
+    def relative_link?(base: nil)
+      Wgit::Url.relative_link?(self, base: base)
     end
 
     # Determines if self is a valid Url or not.
@@ -199,26 +213,30 @@ module Wgit
       Wgit::Url.new(base)
     end
 
-    # Returns the path of this URL e.g. the part after the host.
+    # Returns the path of this URL e.g. the bit after the host without slashes.
     # For example:
-    # Wgit::Url.new("http://www.google.co.uk/about.html").to_path returns
-    # "about.html". See Wgit::Url#to_endpoint if you want a leading slash.
+    # Wgit::Url.new("http://www.google.co.uk/about.html/").to_path returns
+    # "about.html". See Wgit::Url#to_endpoint if you want the slashes.
     #
-    # @return [Wgit::Url] Path of self (Url) e.g. about.html.
+    # @return [Wgit::Url] Path of self e.g. about.html.
     def to_path
       path = @uri.path
+      return Wgit::Url.new(path) if path == '/'
       path = path[1..-1] if path.start_with?('/')
+      path.chop! if path.end_with?('/')
       Wgit::Url.new(path)
     end
 
-    # Returns the endpoint of this URL e.g. the part after the host.
-    # For example:
-    # Wgit::Url.new("http://www.google.co.uk/about.html").to_endpoint returns
-    # "/about.html". See Wgit::Url#to_path if you don't want a leading slash.
+    # Returns the endpoint of this URL e.g. the bit after the host with any
+    # slashes included. For example:
+    # Wgit::Url.new("http://www.google.co.uk/about.html/").to_endpoint returns
+    # "/about.html/". See Wgit::Url#to_path if you don't want the slashes.
     #
-    # @return [Wgit::Url] Endpoint of self (Url) e.g. /about.html.
+    # @return [Wgit::Url] Endpoint of self e.g. /about.html/.
     def to_endpoint
-      Wgit::Url.new('/' + to_path)
+      endpoint = @uri.path
+      endpoint = '/' + endpoint unless endpoint.start_with?('/')
+      Wgit::Url.new(endpoint)
     end
   
     # Returns a Hash containing this Url's instance vars excluding @uri.

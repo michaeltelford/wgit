@@ -106,7 +106,8 @@ module Wgit
       doc = crawl_url(base_url, &block)
       return nil if doc.nil?
     
-      crawled_urls  = []
+      path = base_url.path.empty? ? '/' : base_url.path
+      crawled_urls  = [path]
       external_urls = doc.external_links
       internal_urls = doc.internal_links
     

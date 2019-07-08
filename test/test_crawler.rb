@@ -146,7 +146,6 @@ class TestCrawler < TestHelper
     # Test small site.
     url = Wgit::Url.new "http://txti.es"
     c = Wgit::Crawler.new url
-    byebug
     assert_crawl_site c, 7
 
     # Test small site not starting on the index page.
@@ -198,7 +197,6 @@ private
   def assert_crawl_site(crawler, expected_num_pages)
     pages_crawled = 0
     ext_links = crawler.crawl_site do |doc|
-      puts doc.url
       refute doc.empty?
       assert doc.url.start_with?(crawler.urls.first.to_base)
       assert doc.url.crawled?

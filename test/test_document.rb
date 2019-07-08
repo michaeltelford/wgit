@@ -12,19 +12,23 @@ class TestDocument < TestHelper
     @mongo_doc_dup = { 
       "url" => @url, 
       "html" => @html,
+      "score" => 12.05,
       "title" => "My Test Webpage",
       "author" => "Michael Telford",
       "keywords" => ["Minitest", "Ruby", "Test Document"],
       "links" => [
         "http://www.google.co.uk",
-        "security.html",
+        "http://www.mytestsite.com/security.html",
+        "/about.html",
         "about.html",
+        "/",
         "http://www.yahoo.com",
         "/contact.html",
+        "http://www.bing.com/",
         "http://www.bing.com",
-        "tests.html",
-        "https://duckduckgo.com",
-        "/contents"
+        "http://www.mytestsite.com/tests.html",
+        "https://duckduckgo.com/search?q=hello&page=2",
+        "/contents/",
       ],
       "text" => [
         "Howdy!", "Welcome to my site, I hope you like what you \
@@ -33,15 +37,14 @@ primarily for testing the Ruby code used in Wgit with the \
 Minitest framework.", "Minitest rocks!! It's simplicity \
 and power matches the Ruby language in which it's developed."
       ],
-      "score" => 12.05
     }
     @stats = {
       url: 25, 
-      html: 927, 
+      html: 1118, 
       title: 15, 
       author: 15, 
       keywords: 3, 
-      links: 9, 
+      links: 12, 
       text_length: 4, 
       text_bytes: 280
     }
@@ -76,9 +79,10 @@ Minitest framework."
     assert_equal [
       "security.html",
       "about.html",
-      "/contact.html",
+      "/",
+      "contact.html",
       "tests.html",
-      "/contents"
+      "contents"
     ], doc.internal_links
     assert doc.internal_links.all? { |link| link.instance_of?(Wgit::Url) }
     
@@ -91,6 +95,7 @@ Minitest framework."
     assert_equal [
       "#{@url}/security.html",
       "#{@url}/about.html",
+      "#{@url}/",
       "#{@url}/contact.html",
       "#{@url}/tests.html",
       "#{@url}/contents"
@@ -98,6 +103,9 @@ Minitest framework."
     assert doc.internal_full_links.all? do |link| 
       link.instance_of?(Wgit::Url)
     end
+
+    doc = Wgit::Document.new Wgit::Url.new("#{@url}/contents"), @html
+    assert_equal "#{@url}/security.html", doc.internal_full_links.first
     
     doc = Wgit::Document.new @url, "<p>Hello World!</p>"
     assert_empty doc.internal_full_links
@@ -109,7 +117,7 @@ Minitest framework."
       "http://www.google.co.uk",
       "http://www.yahoo.com",
       "http://www.bing.com",
-      "https://duckduckgo.com"
+      "https://duckduckgo.com/search?q=hello&page=2"
     ], doc.external_links
     assert doc.external_links.all? { |link| link.instance_of?(Wgit::Url) }
     

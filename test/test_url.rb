@@ -61,6 +61,19 @@ class TestUrl < TestHelper
   def test_relative_link?
     assert Wgit::Url.relative_link? @link
     refute Wgit::Url.relative_link? @url_str
+    
+    assert Wgit::Url.relative_link? @url_str_link, base: @url_str
+    refute Wgit::Url.relative_link? @url_str_link, base: "http://bing.com"
+
+    assert Wgit::Url.relative_link? "/"
+    assert Wgit::Url.relative_link? "/", base: @url_str
+
+    assert_raises(RuntimeError) do
+      Wgit::Url.relative_link? @url_str_link, base: "bing.com"
+    end
+
+    assert Wgit::Url.new(@url_str_link).relative_link?(base: @url_str)
+    refute Wgit::Url.new(@url_str_link).relative_link?(base: "http://bing.com")
   end
   
   def test_concat
@@ -83,23 +96,36 @@ class TestUrl < TestHelper
     url = Wgit::Url.new @url_str
     assert_equal url.object_id, url.to_url.object_id
     assert_equal url, url.to_url
+    assert_equal Wgit::Url, url.to_url.class
   end
   
   def test_to_host
     assert_equal "www.google.co.uk", Wgit::Url.new(@url_str_link).to_host
+    assert_equal Wgit::Url, Wgit::Url.new(@url_str_link).to_host.class
   end
   
   def test_to_base
     assert_raises(RuntimeError) { Wgit::Url.new(@link).to_base }
     assert_equal @url_str, Wgit::Url.new(@url_str_link).to_base
+    assert_equal Wgit::Url, Wgit::Url.new(@url_str_link).to_base.class
   end
 
   def test_to_path
     url = Wgit::Url.new @url_str_link
     assert_equal 'about.html', url.to_path
+    assert_equal Wgit::Url, url.to_path.class
 
     url = Wgit::Url.new '/about.html'
     assert_equal 'about.html', url.to_path
+    assert_equal Wgit::Url, url.to_path.class
+
+    url = Wgit::Url.new '/about.html/'
+    assert_equal 'about.html', url.to_path
+    assert_equal Wgit::Url, url.to_path.class
+
+    url = Wgit::Url.new '/'
+    assert_equal '/', url.to_path
+    assert_equal Wgit::Url, url.to_path.class
 
     url = Wgit::Url.new 'about.html'
     assert_equal 'about.html', url.to_path
@@ -109,9 +135,19 @@ class TestUrl < TestHelper
   def test_to_endpoint
     url = Wgit::Url.new @url_str_link
     assert_equal '/about.html', url.to_endpoint
+    assert_equal Wgit::Url, url.to_endpoint.class
 
     url = Wgit::Url.new '/about.html'
     assert_equal '/about.html', url.to_endpoint
+    assert_equal Wgit::Url, url.to_endpoint.class
+
+    url = Wgit::Url.new @url_str_link + '/'
+    assert_equal '/about.html/', url.to_endpoint
+    assert_equal Wgit::Url, url.to_endpoint.class
+
+    url = Wgit::Url.new '/'
+    assert_equal '/', url.to_endpoint
+    assert_equal Wgit::Url, url.to_endpoint.class
 
     url = Wgit::Url.new 'about.html'
     assert_equal '/about.html', url.to_endpoint

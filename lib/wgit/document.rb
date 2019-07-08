@@ -198,47 +198,54 @@ module Wgit
     def css(selector)
       @doc.css(selector)
     end
-    
-    # Get all internal links of this Document.
+
+    # Get all internal links of this Document in relative form. Internal
+    # meaning a link to another page on this website. Also see
+    # Wgit::Document#internal_full_links.
     #
     # @return [Array<Wgit::Url>] self's internal/relative URL's.
     def internal_links
       return [] if @links.empty?
-      @links.reject do |link|
-        begin
-          not link.relative_link?
+
+      links = @links.
+        reject do |link|
+          not link.relative_link?(base: @url.to_base)
         rescue
           true
-        end
-      end
+        end.
+        map(&:to_path)
+
+      process_arr(links)
     end
     
     # Get all internal links of this Document and append them to this
-    # Document's base URL.
+    # Document's base URL making them absolute. Also see
+    # Wgit::Document#internal_links.
     #
     # @return [Array<Wgit::Url>] self's internal/relative URL's in absolute
     #   form.
     def internal_full_links
       in_links = internal_links
       return [] if in_links.empty?
-      in_links.map do |link|
-        link.replace("/" + link) unless link.start_with?("/")
-        Wgit::Url.new(@url.to_base + link)
-      end
+      in_links.map { |link| @url.to_base.concat(link) }
     end
   
-    # Get all external links of this Document.
+    # Get all external links of this Document. External meaning a link to
+    # another website.
     #
     # @return [Array<Wgit::Url>] self's external/absolute URL's.
     def external_links
       return [] if @links.empty?
-      @links.reject do |link|
-        begin
-          link.relative_link?
+
+      links = @links.
+        reject do |link|
+          link.relative_link?(base: @url.to_base)
         rescue
           true
-        end
-      end
+        end.
+        map { |link| link.end_with?('/') ? link.chop : link }
+
+      process_arr(links)
     end
   
     # Searches against the @text for the given search query.
@@ -257,8 +264,8 @@ module Wgit
     #   sentence.
     # @return [Array<String>] Representing the search results.
     def search(query, sentence_limit = 80)
-      raise "A search value must be provided" if query.empty?
-      raise "The sentence length value must be even" if sentence_limit.odd?
+      raise "A search query must be provided" if query.empty?
+      raise "The sentence_limit value must be even" if sentence_limit.odd?
     
       results = {}
       regex = Regexp.new(query, Regexp::IGNORECASE)
@@ -381,12 +388,6 @@ module Wgit
       end
     end
 
-    # Ensure the @url and @html Strings are correctly encoded etc.
-    def process_url_and_html
-      @url = process_str(@url)
-      @html = process_str(@html)
-    end
-
     # Returns an object/value from this Document's @html using the provided
     # xpath param.
     # singleton ? results.first (single Object) : results (Array)
@@ -479,29 +480,16 @@ module Wgit
       if array.is_a?(Array)
         array.map! { |str| process_str(str) }
         array.reject! { |str| str.is_a?(String) ? str.empty? : false }
+        array.compact!
         array.uniq!
       end
       array
     end
-  
-    # Modifies internal links by removing this doc's base or host URL, if
-    # present. http://www.google.co.uk/about.html (with or without the 
-    # protocol prefix) will become about.html meaning it'll appear within 
-    # Document#internal_links.
-    def process_internal_links(links)
-      links.map! do |link|
-        host_or_base =  if link.start_with?("http")
-                          @url.base
-                        else
-                          @url.host
-                        end
-        if link.start_with?(host_or_base)
-          link.sub!(host_or_base, "")
-          link.replace(link[1..-1]) if link.start_with?("/")
-          link.strip!
-        end
-        link
-      end
+
+    # Ensure the @url and @html Strings are correctly encoded etc.
+    def process_url_and_html
+      @url = process_str(@url)
+      @html = process_str(@html)
     end
 
     ### Default init_* (Document extension) methods. ###
@@ -557,7 +545,6 @@ module Wgit
       xpath = "//a/@href"
       result = find_in_html(xpath, singleton: false) do |links|
         if links
-          links.reject! { |link| link == "/" }
           links.map! do |link|
             begin
               Wgit::Url.new(link)
@@ -565,8 +552,7 @@ module Wgit
               nil
             end
           end
-          links.reject! { |link| link.nil? }
-          process_internal_links(links)
+          links.compact!
         end
         links
       end
