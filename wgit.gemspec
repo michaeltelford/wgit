@@ -25,12 +25,12 @@ Gem::Specification.new do |s|
   s.license               = 'MIT'
   s.metadata              = { 
     "source_code_uri" => "https://github.com/michaeltelford/wgit",
-    "yard.run" => "yri",
+    "yard.run" => "yri", # use "yard" to build full HTML docs.
   }
   s.required_ruby_version = '~> 2.5' # Only works with ruby 2.5.x
 
   s.add_development_dependency "minitest", "~> 5.11"
-  s.add_development_dependency "yard", "~> 0.9"
+  s.add_development_dependency "yard", ">= 0.9.20"
   s.add_development_dependency "byebug", "~> 10.0"
   s.add_development_dependency "pry", "~> 0.12"
   s.add_development_dependency "dotenv", "~> 2.5"

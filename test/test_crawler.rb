@@ -141,22 +141,22 @@ class TestCrawler < TestHelper
     # Test largish site.
     url = Wgit::Url.new "http://www.belfastpilates.co.uk/"
     c = Wgit::Crawler.new url
-    assert_crawl_site c, 26
+    assert_crawl_site c, 26, 9
 
     # Test small site.
     url = Wgit::Url.new "http://txti.es"
     c = Wgit::Crawler.new url
-    assert_crawl_site c, 7
+    assert_crawl_site c, 7, 7
 
     # Test small site not starting on the index page.
     url = Wgit::Url.new "http://txti.es/terms"
     c = Wgit::Crawler.new url
-    assert_crawl_site c, 7
+    assert_crawl_site c, 7, 7
 
     # Test single web page with externals links.
     url = Wgit::Url.new "https://motherfuckingwebsite.com/"
     c = Wgit::Crawler.new url
-    assert_crawl_site c, 1
+    assert_crawl_site c, 1, 1
 
     # Test that an invalid url returns nil.
     url = Wgit::Url.new "http://doesntexist_123"
@@ -194,7 +194,7 @@ private
     assert_crawl_output crawler, document, url
   end
   
-  def assert_crawl_site(crawler, expected_num_pages)
+  def assert_crawl_site(crawler, expected_num_pages, expected_num_externals)
     pages_crawled = 0
     ext_links = crawler.crawl_site do |doc|
       refute doc.empty?
@@ -204,7 +204,7 @@ private
     end
 
     assert_equal expected_num_pages, pages_crawled
-    refute_empty ext_links
+    assert_equal expected_num_externals, ext_links.length
     assert_equal ext_links.uniq.length, ext_links.length
     assert crawler.urls.first.crawled?
   end
