@@ -164,18 +164,41 @@ class TestCrawler < TestHelper
     assert_nil c.crawl_site
   end
 
-  def test_resolve
+  def test_resolve__absolute_location
     c = Wgit::Crawler.new
     url = "http://twitter.com/" # Redirects once to https.
 
-    response = c.send :resolve, url
-    assert response.is_a? Net::HTTPResponse
-    assert_equal "200", response.code
-    refute response.body.empty?
+    assert_resolve c, url
+  end
 
+  def test_resolve__relative_location
+    c = Wgit::Crawler.new
+    # Redirects twice to /de/folder/page2#anchor-on-page2 on host: example.com
+    url = "https://cms.org"
+
+    assert_resolve c, url
+  end
+
+  def test_resolve__redirect_limit
+    c = Wgit::Crawler.new
+
+    # Redirects 5 times - should resolve.
+    url = "http://redirect.com/2"
+    assert_resolve c, url
+
+    # Redirects 6 times - should fail.
+    url = "http://redirect.com/1"
+    assert_raises(RuntimeError) { c.send :resolve, url }
+
+    # Disable redirects - should fail.
+    url = 'http://twitter.com/'
     assert_raises RuntimeError do
-      c.send :resolve, url, redirect_limit: 1
+      c.send :resolve, url, redirect_limit: 0
     end
+
+    # Disable redirects - should pass as there's no redirect.
+    url = "https://twitter.com/"
+    c.send :resolve, url, redirect_limit: 0
   end
 
 private
@@ -214,5 +237,12 @@ private
     refute doc.empty?
     url = crawler.urls.first if url.nil?
     assert url.crawled if url
+  end
+
+  def assert_resolve(crawler, url)
+    response = crawler.send :resolve, url
+    assert response.is_a? Net::HTTPResponse
+    assert_equal "200", response.code
+    refute response.body.empty?
   end
 end

@@ -162,12 +162,16 @@ module Wgit
     # an exception. Redirects can be disabled by setting `redirect_limit: 1`.
     # The Net::HTTPResponse will be returned.
     def resolve(url, redirect_limit: 5)
-      redirect_count = 0
+      redirect_count = -1
       begin
         raise "Too many redirects" if redirect_count >= redirect_limit
-        response = Net::HTTP.get_response(URI.parse(url))
-        url = response['location']
         redirect_count += 1
+
+        response = Net::HTTP.get_response(URI(url))
+        location = Wgit::Url.new(response.fetch('location', ''))
+        if not location.empty?
+          url = location.is_relative? ? url.to_base.concat(location) : location
+        end
       end while response.is_a?(Net::HTTPRedirection)
       response
     end

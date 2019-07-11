@@ -10,7 +10,6 @@ Secondary
 - Think about ignoring non html documents/urls e.g. http://server/image.jpg etc. by implementing MIME types (defaulting to only HTML).
 - Check if Document::TEXT_ELEMENTS is expansive enough.
 - Possibly use refine instead of core-ext?
-- Think about potentially updating the Indexer to be multi threaded.
 - Think about potentially using DB._update's update_many func.
 
 Refactoring
@@ -18,6 +17,7 @@ Refactoring
 - Replace method params with named parameters where applicable.
 - Think about reducing the amount of method aliases, pick the best for the method def and remove the aliases?
 - Mock (monkey patch) the 'mongo' gem's func. for speed in the tests.
+- Refactor the tests to include: Removal of instance_vars defined in setup & Expansion of test scenarios for each func (where possible).
 
 Gem Publishing Checklist
 ------------------------

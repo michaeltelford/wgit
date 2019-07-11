@@ -271,6 +271,8 @@ module Wgit
     alias :query_string :to_query_string
     alias :query :to_query_string
     alias :internal_link? :relative_link?
+    alias :is_relative? :relative_link?
+    alias :is_internal? :relative_link?
     alias :crawled? :crawled
   end
 end

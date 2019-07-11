@@ -71,6 +71,7 @@ class TestUrl < TestHelper
     assert_raises(RuntimeError) do
       Wgit::Url.relative_link? @url_str_link, base: "bing.com"
     end
+    assert_raises(RuntimeError) { Wgit::Url.relative_link? '' }
 
     assert Wgit::Url.new(@url_str_link).relative_link?(base: @url_str)
     refute Wgit::Url.new(@url_str_link).relative_link?(base: "http://bing.com")
