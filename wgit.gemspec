@@ -3,12 +3,24 @@ lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require 'wgit/version'
 
-# List any files that should NOT be packaged in the built gem.
-# The full file path should be provided e.g. "./lib/wgit/file.rb".
-reject_files = [
-  "./lib/wgit/database/database_default_data.rb", 
-  "./lib/wgit/database/database_helper.rb"
-]
+# Returns all files to be packaged within the gem.
+def get_gem_files
+  rb_files = Dir["./lib/**/*.rb"]
+  non_rb_files = ['README.md', 'TODO.txt', 'LICENSE.txt']
+
+  # List any ruby files that should NOT be packaged in the built gem.
+  # The full file path should be provided e.g. "./lib/wgit/file.rb".
+  ignore_files = [
+    "./lib/wgit/database/database_default_data.rb",
+    "./lib/wgit/database/database_helper.rb",
+  ]
+
+  files = ((rb_files + non_rb_files) - ignore_files).uniq
+  raise 'A file path is incorrect' if files.any? { |f| !File.exist? f }
+  raise 'An ignored file path is incorrect' if files.any? { |f| ignore_files.include? f }
+
+  files
+end
 
 Gem::Specification.new do |s|
   s.name                  = 'wgit'
@@ -19,7 +31,7 @@ Gem::Specification.new do |s|
   s.author                = "Michael Telford"
   s.email                 = "michael.telford@live.com"
   s.require_paths         = ["lib"]
-  s.files                 = Dir["./lib/**/*.rb"] - reject_files
+  s.files                 = get_gem_files
   #s.executables          << "wgit"
   s.homepage              = 'https://github.com/michaeltelford/wgit'
   s.license               = 'MIT'
