@@ -84,7 +84,7 @@ See the [Practical Database Example](#Practical-Database-Example) for informatio
 
 ### Website Downloader
 
-Wgit uses itself to download and save fixture webpages to disk (used in tests). See the script [here](https://github.com/michaeltelford/wgit/test/mock/save_site.rb) and edit it for your own purposes.
+Wgit uses itself to download and save fixture webpages to disk (used in tests). See the script [here](https://github.com/michaeltelford/wgit/blob/master/test/mock/save_site.rb) and edit it for your own purposes.
 
 ### CSS Indexer
 
