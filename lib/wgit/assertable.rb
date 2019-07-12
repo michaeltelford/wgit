@@ -3,9 +3,13 @@ module Wgit
   # Module containing assert methods including type checking which can be used
   # for asserting the integrity of method definitions etc.
   module Assertable
+    # Default type fail message.
     DEFAULT_TYPE_FAIL_MSG = "Expected: %s, Actual: %s".freeze
+    # Wrong method message.
     WRONG_METHOD_MSG = "arr must be Enumerable, use a different method".freeze
+    # Default duck fail message.
     DEFAULT_DUCK_FAIL_MSG = "%s doesn't respond_to? %s".freeze
+    # Default required keys message.
     DEFAULT_REQUIRED_KEYS_MSG = "Some or all of the required keys are not present: %s".freeze
   
     # Tests if the obj is of a given type.

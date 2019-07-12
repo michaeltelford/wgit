@@ -1,8 +1,9 @@
-require_relative 'url'
-
 # Script which extends Ruby's core functionality when parsed.
 # Needs to be required separately using `require 'wgit/core_ext'`.
 
+require_relative 'url'
+
+# Extend the standard String functionality.
 class String
   # Converts a String into a Wgit::Url object.
   #
@@ -12,6 +13,7 @@ class String
   end
 end
 
+# Extend the standard Enumerable functionality.
 module Enumerable
   # Converts each String instance into a Wgit::Url object and returns the new 
   # Array.

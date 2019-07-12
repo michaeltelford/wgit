@@ -113,6 +113,9 @@ module Wgit
       @html[range]
     end
 
+    # Returns the timestamp of when this Wgit::Document was crawled.
+    #
+    # @return [Time] Time of when this Wgit::Document was crawled.
     def date_crawled
       @url.date_crawled
     end
