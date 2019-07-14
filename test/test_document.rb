@@ -17,11 +17,16 @@ class TestDocument < TestHelper
       "author" => "Michael Telford",
       "keywords" => ["Minitest", "Ruby", "Test Document"],
       "links" => [
+        "/styles.css",
+        "http://www.mytestsite.com/client.js",
+        "http://www.external-scripts.com/code.js",
         "http://www.google.co.uk",
         "http://www.mytestsite.com/security.html",
         "/about.html",
         "about.html",
         "/",
+        "smiley.jpg",
+        "https://imgur.com/smiley.jpg",
         "http://www.yahoo.com",
         "/contact.html",
         "http://www.bing.com/",
@@ -40,11 +45,11 @@ and power matches the Ruby language in which it's developed."
     }
     @stats = {
       url: 25, 
-      html: 1118, 
+      html: 1496, 
       title: 15, 
       author: 15, 
       keywords: 3, 
-      links: 12, 
+      links: 17, 
       text_length: 4, 
       text_bytes: 280
     }
@@ -77,9 +82,12 @@ Minitest framework."
   def test_internal_links
     doc = Wgit::Document.new @url, @html
     assert_equal [
+      "styles.css",
+      "client.js",
       "security.html",
       "about.html",
       "/",
+      "smiley.jpg",
       "contact.html",
       "tests.html",
       "contents"
@@ -93,9 +101,12 @@ Minitest framework."
   def test_internal_full_links
     doc = Wgit::Document.new @url, @html
     assert_equal [
+      "#{@url}/styles.css",
+      "#{@url}/client.js",
       "#{@url}/security.html",
       "#{@url}/about.html",
       "#{@url}/",
+      "#{@url}/smiley.jpg",
       "#{@url}/contact.html",
       "#{@url}/tests.html",
       "#{@url}/contents"
@@ -105,7 +116,7 @@ Minitest framework."
     end
 
     doc = Wgit::Document.new Wgit::Url.new("#{@url}/contents"), @html
-    assert_equal "#{@url}/security.html", doc.internal_full_links.first
+    assert_equal "#{@url}/styles.css", doc.internal_full_links.first
     
     doc = Wgit::Document.new @url, "<p>Hello World!</p>"
     assert_empty doc.internal_full_links
@@ -114,7 +125,9 @@ Minitest framework."
   def test_external_links
     doc = Wgit::Document.new @url, @html
     assert_equal [
+      "http://www.external-scripts.com/code.js",
       "http://www.google.co.uk",
+      "https://imgur.com/smiley.jpg",
       "http://www.yahoo.com",
       "http://www.bing.com",
       "https://duckduckgo.com/search?q=hello&page=2"

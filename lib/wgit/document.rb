@@ -545,7 +545,8 @@ module Wgit
     # Init methods for links.
 
     def init_links_from_html
-      xpath = "//a/@href"
+      # Any element with a href or src attribute is considered a link.
+      xpath = '//*/@href | //*/@src'
       result = find_in_html(xpath, singleton: false) do |links|
         if links
           links.map! do |link|

@@ -29,14 +29,14 @@ crawler.crawl_site do |doc|
   end
 
   # Work out the file structure on disk.
-  segs = uri.path.split('/').reject { |s| s.empty? }
+  segs = uri.path.split('/').reject(&:empty?)
   dir = ''
   if segs.length == 1
     file_name = segs[0]
   else
     file_name = segs.pop
     segs.each { |seg| dir += "#{seg}/" }
-    dir = dir[0..-2] # Remove trailing slash.
+    dir.chop! # Remove trailing slash.
   end
 
   # Create the directory if necessary.
