@@ -3,20 +3,20 @@ require_relative 'assertable'
 require 'uri'
 
 module Wgit
-  
+
   # Class modeling a web based URL.
   # Can be an internal/relative link e.g. "about.html" or a full URL
   # e.g. "http://www.google.co.uk". Is a subclass of String and uses 'uri'
   # internally.
   class Url < String
     include Assertable
-    
+
     # Whether or not the Url has been crawled or not.
     attr_accessor :crawled
 
     # The date which the Url was crawled.
     attr_accessor :date_crawled
-  
+
     # Initializes a new instance of Wgit::Url which represents a web based
     # HTTP URL.
     #
@@ -42,14 +42,14 @@ module Wgit
         crawled = obj.fetch("crawled", false)
         date_crawled = obj["date_crawled"]
       end
-      
+
       @uri = URI(url)
       @crawled = crawled
       @date_crawled = date_crawled
-      
+
       super(url)
     end
-  
+
     # Raises an exception if url is not a valid HTTP URL.
     #
     # @param url [Wgit::Url, String] The Url to validate.
@@ -65,7 +65,7 @@ module Wgit
         raise "Invalid url: #{url}"
       end
     end
-  
+
     # Determines if the Url is valid or not.
     #
     # @param url [Wgit::Url, String] The Url to validate.
@@ -76,7 +76,7 @@ module Wgit
     rescue
       false
     end
-  
+
     # Modifies the receiver url by prefixing it with a protocol.
     # Returns the url whether its been modified or not.
     # The default protocol prefix is http://.
@@ -94,7 +94,7 @@ module Wgit
       end
       url
     end
-  
+
     # Returns if link is a relative or absolute Url.
     # All external links in a page are expected to have a protocol prefix e.g.
     # "http://", otherwise the link is treated as an internal link (regardless
@@ -118,7 +118,7 @@ module Wgit
         base ? uri.host == URI(base).host : false
       end
     end
-  
+
     # Concats the host and link Strings and returns the result.
     #
     # @param host [Wgit::Url, String] The Url host.
@@ -131,7 +131,7 @@ module Wgit
       separator = link.start_with?('#') ? '' : '/'
       Wgit::Url.new(url + separator + link)
     end
-  
+
     # Returns if self is a relative or absolute Url. If base is provided and
     # self is a page within that site then the link is relative.
     # See Wgit.relative_link? for more information.
@@ -148,7 +148,7 @@ module Wgit
     def valid?
       Wgit::Url.valid?(self)
     end
-  
+
     # Concats self and the link.
     #
     # @param link [Wgit::Url, String] The link to concat with self.
@@ -156,7 +156,7 @@ module Wgit
     def concat(link)
       Wgit::Url.concat(self, link)
     end
-  
+
     # Sets the @crawled instance var, also setting @date_crawled to the
     # current time or nil (depending on the bool value).
     #
@@ -165,14 +165,14 @@ module Wgit
       @crawled = bool
       @date_crawled = bool ? Wgit::Utils.time_stamp : nil
     end
-  
+
     # Returns the @uri instance var of this URL.
     #
     # @return [URI::HTTP, URI::HTTPS] The URI object of self.
     def to_uri
       @uri
     end
-    
+
     # Returns self.
     #
     # @return [Wgit::Url] This (self) Url.
@@ -188,7 +188,7 @@ module Wgit
       scheme = @uri.scheme
       scheme ? Wgit::Url.new(scheme) : nil
     end
-  
+
     # Returns a new Wgit::Url containing just the host of this URL e.g.
     # Given http://www.google.co.uk/about.html, www.google.co.uk is returned.
     #
@@ -197,7 +197,7 @@ module Wgit
       host = @uri.host
       host ? Wgit::Url.new(host) : nil
     end
-  
+
     # Returns only the base of this URL e.g. the protocol and host combined.
     #
     # @return [Wgit::Url, nil] Base of self e.g. http://www.google.co.uk or nil.
@@ -215,7 +215,7 @@ module Wgit
     # @return [Wgit::Url, nil] Path of self e.g. about.html or nil.
     def to_path
       path = @uri.path
-      return nil if path.nil?
+      return nil if path.nil? or path.empty?
       return Wgit::Url.new('/') if path == '/'
       path = path[1..-1] if path.start_with?('/')
       path.chop! if path.end_with?('/')
@@ -282,7 +282,7 @@ module Wgit
       h = Wgit::Utils.to_h(self, ignore)
       Hash[h.to_a.insert(0, ["url", self])] # Insert url at position 0.
     end
-  
+
     alias :to_hash :to_h
     alias :uri :to_uri
     alias :url :to_url

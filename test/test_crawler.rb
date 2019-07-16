@@ -4,7 +4,7 @@ require_relative "helpers/test_helper"
 class TestCrawler < TestHelper
   # Run non DB tests in parallel for speed.
   parallelize_me!
-  
+
   # Runs before every test.
   def setup
     @url_strs = [
@@ -19,35 +19,35 @@ class TestCrawler < TestHelper
     c = Wgit::Crawler.new
     assert_empty c.docs
     assert_empty c.urls
-    
+
     c = Wgit::Crawler.new(*@url_strs)
     assert_empty c.docs
     assert_urls c
-    
+
     c = Wgit::Crawler.new(*@urls)
     assert_empty c.docs
     assert_urls c
-    
+
     c = Wgit::Crawler.new(@urls)
     assert_empty c.docs
     assert_urls c
   end
-  
+
   def test_urls=
     c = Wgit::Crawler.new
     c.urls = @urls
     assert_urls c
-    
+
     c.urls = @url_strs
     assert_urls c
-    
+
     c.urls = "https://duckduckgo.com"
     assert_urls c, [Wgit::Url.new("https://duckduckgo.com")]
 
     c.urls = Wgit::Url.new "https://duckduckgo.com"
     assert_urls c, [Wgit::Url.new("https://duckduckgo.com")]
   end
-  
+
   def test_square_brackets
     c = Wgit::Crawler.new
     c[*@urls]
@@ -55,25 +55,25 @@ class TestCrawler < TestHelper
 
     c[@urls]
     assert_urls c
-    
+
     c[*@url_strs]
     assert_urls c
   end
-  
+
   def test_double_chevron
     c = Wgit::Crawler.new
     c << @urls.first
     assert_urls c, @urls.first(1)
-    
+
     c.urls.clear
     c << @url_strs.first
     assert_urls c, @url_strs.first(1)
   end
-  
+
   def test_crawl_urls
     c = Wgit::Crawler.new
     i = 0
-    
+
     # Test array of urls as parameter.
     urls = @urls.dup
     document = c.crawl_urls urls do |doc|
@@ -81,7 +81,7 @@ class TestCrawler < TestHelper
       i += 1
     end
     assert_crawl_output c, document, urls.last
-    
+
     # Test array of urls as instance var.
     urls = @urls.dup
     c = Wgit::Crawler.new(*urls)
@@ -91,7 +91,7 @@ class TestCrawler < TestHelper
       i += 1
     end
     assert_crawl_output c, document, urls.last
-    
+
     # Test one url as parameter.
     c = Wgit::Crawler.new
     url = @urls.dup.first
@@ -99,7 +99,7 @@ class TestCrawler < TestHelper
       assert_crawl_output c, doc, url
     end
     assert_crawl_output c, document, url
-    
+
     # Test invalid url.
     c = Wgit::Crawler.new
     url = Wgit::Url.new("doesnt_exist")
@@ -108,7 +108,7 @@ class TestCrawler < TestHelper
       assert url.crawled
     end
     assert_nil document
-    
+
     # Test no block given.
     urls = @urls.dup
     document = c.crawl_urls urls
@@ -121,15 +121,15 @@ class TestCrawler < TestHelper
     c = Wgit::Crawler.new
     url = @urls.first.dup
     assert_crawl c, url
-    
+
     c = Wgit::Crawler.new(*@urls.dup)
     assert_crawl c
-    
+
     url = Wgit::Url.new("doesnt_exist")
     doc = c.crawl_url url
     assert_nil doc
     assert url.crawled
-    
+
     # Test String instead of Url instance.
     url = "http://www.bing.com"
     assert_raises RuntimeError do
@@ -141,17 +141,17 @@ class TestCrawler < TestHelper
     # Test largish site.
     url = Wgit::Url.new "http://www.belfastpilates.co.uk/"
     c = Wgit::Crawler.new url
-    assert_crawl_site c, 26, 9
+    assert_crawl_site c, 145, 24
 
     # Test small site.
     url = Wgit::Url.new "http://txti.es"
     c = Wgit::Crawler.new url
-    assert_crawl_site c, 7, 7
+    assert_crawl_site c, 22, 8
 
     # Test small site not starting on the index page.
     url = Wgit::Url.new "http://txti.es/terms"
     c = Wgit::Crawler.new url
-    assert_crawl_site c, 7, 7
+    assert_crawl_site c, 22, 8
 
     # Test single web page with externals links.
     url = Wgit::Url.new "https://motherfuckingwebsite.com/"
@@ -207,7 +207,7 @@ private
     assert crawler.urls.all? { |url| url.instance_of?(Wgit::Url) }
     assert_equal urls, crawler.urls
   end
-  
+
   def assert_crawl(crawler, url = nil)
     if url
       document = crawler.crawl_url(url) { |doc| assert doc.title }
@@ -216,22 +216,22 @@ private
     end
     assert_crawl_output crawler, document, url
   end
-  
-  def assert_crawl_site(crawler, expected_num_pages, expected_num_externals)
-    pages_crawled = 0
+
+  def assert_crawl_site(crawler, expected_num_crawled, expected_num_externals)
+    num_crawled = 0
     ext_links = crawler.crawl_site do |doc|
       refute doc.empty?
       assert doc.url.start_with?(crawler.urls.first.to_base)
       assert doc.url.crawled?
-      pages_crawled += 1
+      num_crawled += 1
     end
 
-    assert_equal expected_num_pages, pages_crawled
+    assert_equal expected_num_crawled, num_crawled
     assert_equal expected_num_externals, ext_links.length
     assert_equal ext_links.uniq.length, ext_links.length
     assert crawler.urls.first.crawled?
   end
-  
+
   def assert_crawl_output(crawler, doc, url = nil)
     assert doc
     refute doc.empty?

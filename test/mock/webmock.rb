@@ -46,7 +46,8 @@ def stub_dir(url, path, dir)
   url  += "/#{dir}" unless URI(url).host == dir
   path += "/#{dir}"
 
-  objects = Dir["#{path}/*"]
+  objects = Dir["#{path}/{*,.*}"].
+    reject { |f| f.end_with?('.') or f.end_with?('..') }
   files = objects.
     select { |obj| File.file?(obj) }.
     reject { |f| f.end_with?('index.html') }.
@@ -67,6 +68,6 @@ def stub_fixtures(pages, sites)
   sites.each do |url|
     dir = URI(url).host
     stub_page(url, fixture: "#{dir}/index")
-    stub_dir(url, 'test/mock/fixtures', dir)
+    stub_dir(url, fixtures_dir, dir)
   end
 end

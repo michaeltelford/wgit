@@ -32,7 +32,7 @@ module Wgit
       @urls = []
       Wgit::Utils.each(urls) { |url| add_url(url) }
     end
-  
+
     # Sets this Crawler's @urls.
     #
     # @param urls [*Wgit::Url] The URLs to crawl.
@@ -53,14 +53,14 @@ module Wgit
         self.urls = urls
       end
     end
-  
+
     # Adds the url to this Crawler's @urls.
     #
     # @param url [Wgit::Url] A URL to crawl.
     def <<(url)
       add_url(url)
     end
-  
+
     # Crawls individual urls, not entire sites.
     #
     # @param urls [Array<Wgit::Url>] The URLs to crawl.
@@ -75,7 +75,7 @@ module Wgit
       Wgit::Utils.each(urls) { |url| doc = handle_crawl_block(url, &block) }
       doc ? doc : @docs.last
     end
-  
+
     # Crawl the url and return the response document or nil.
     #
     # @param url [Wgit::Document] The URL to crawl.
@@ -102,23 +102,23 @@ module Wgit
     #   crawled successfully.
     def crawl_site(base_url = @urls.first, &block)
       assert_type(base_url, Wgit::Url)
-    
+
       doc = crawl_url(base_url, &block)
       return nil if doc.nil?
-    
-      path = base_url.path.empty? ? '/' : base_url.path
+
+      path = base_url.path.nil? ? '/' : base_url.path
       crawled_urls  = [path]
       external_urls = doc.external_links
       internal_urls = doc.internal_links
-    
+
       return doc.external_links.uniq if internal_urls.empty?
-    
+
       loop do
         internal_urls.uniq!
-      
+
         links = internal_urls - crawled_urls
         break if links.empty?
-      
+
         links.each do |link|
           doc = crawl_url(Wgit::Url.concat(base_url.to_base, link), &block)
           crawled_urls << link
@@ -127,12 +127,12 @@ module Wgit
           external_urls.concat(doc.external_links)
         end
       end
-    
+
       external_urls.uniq
     end
-    
+
   private
-    
+
     # Add the document to the @docs array for later processing or let the block
     # process it here and now.
     def handle_crawl_block(url, &block)
@@ -143,7 +143,7 @@ module Wgit
         nil
       end
     end
-  
+
     # The fetch method performs a HTTP GET to obtain the HTML document.
     # Invalid urls or any HTTP response that doesn't return a HTML body will be
     # ignored and nil will be returned. Otherwise, the HTML is returned.

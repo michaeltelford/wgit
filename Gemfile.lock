@@ -3,7 +3,7 @@ PATH
   specs:
     wgit (0.0.10)
       mongo (~> 2.8.0)
-      nokogiri (~> 1.10)
+      nokogiri (~> 1.10.3)
 
 GEM
   remote: https://rubygems.org/

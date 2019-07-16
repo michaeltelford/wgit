@@ -8,7 +8,7 @@ require 'mongo'
 
 module Wgit
 
-  # Class modeling a DB connection and CRUD operations for the Url and 
+  # Class modeling a DB connection and CRUD operations for the Url and
   # Document collections.
   class Database
     include Assertable
@@ -19,7 +19,7 @@ module Wgit
     def initialize
       conn_details = Wgit::CONNECTION_DETAILS
       if conn_details.empty?
-        raise "Wgit::CONNECTION_DETAILS must be defined and include :host, 
+        raise "Wgit::CONNECTION_DETAILS must be defined and include :host,
 :port, :db, :uname, :pword for a database connection to be established."
       end
 
@@ -29,14 +29,14 @@ module Wgit
       Mongo::Logger.logger.level    = Logger::ERROR
 
       address = "#{conn_details[:host]}:#{conn_details[:port]}"
-      @@client = Mongo::Client.new([address], 
+      @@client = Mongo::Client.new([address],
                                    database: conn_details[:db],
                                    user:     conn_details[:uname],
                                    password: conn_details[:pword])
     end
 
     ### Create Data ###
-  
+
     # Insert one or more Url or Document objects into the DB.
     #
     # @param data [Hash, Enumerable<Hash>] Hash(es) returned from
@@ -57,9 +57,9 @@ module Wgit
         raise "data is not in the correct format (all Url's or Document's)"
       end
     end
-  
+
     ### Retrieve Data ###
-  
+
     # Returns Url records from the DB. All Urls are sorted by date_added
     # ascending, in other words the first url returned is the first one that
     # was inserted into the DB.
@@ -71,18 +71,18 @@ module Wgit
     # @return [Array<Wgit::Url>] The Urls obtained from the DB.
     def urls(crawled = nil, limit = 0, skip = 0)
       crawled.nil? ? query = {} : query = { crawled: crawled }
-      
+
       sort = { date_added: 1 }
       results = retrieve(:urls, query, sort, {}, limit, skip)
       return [] if results.count < 1
-      
+
       # results.respond_to? :map! is false so we use map and overwrite the var.
       results = results.map { |url_doc| Wgit::Url.new(url_doc) }
       results.each { |url| yield(url) } if block_given?
-      
+
       results
     end
-  
+
     # Returns Url records that have been crawled.
     #
     # @param limit [Integer] The max number of Url's to return. 0 returns all.
@@ -127,20 +127,20 @@ module Wgit
     def search(query, whole_sentence = false, limit = 10, skip = 0)
       query.strip!
       query.replace("\"" + query + "\"") if whole_sentence
-    
+
       # The sort_proj sorts based on the most search hits.
       # We use the sort_proj hash as both a sort and a projection below.
       # :$caseSensitive => case_sensitive, 3.2+ only.
       sort_proj = { score: { :$meta => "textScore" } }
       query = { :$text => { :$search => query } }
-      
+
       results = retrieve(:documents, query, sort_proj, sort_proj, limit, skip)
       return [] if results.count < 1 # respond_to? :empty? == false
-      
+
       # results.respond_to? :map! is false so we use map and overwrite the var.
       results = results.map { |mongo_doc| Wgit::Document.new(mongo_doc) }
       results.each { |doc| yield(doc) } if block_given?
-      
+
       results
     end
 
@@ -150,7 +150,7 @@ module Wgit
     def stats
       @@client.command(dbStats: 0).documents[0]
     end
-  
+
     # Returns the current size of the database.
     #
     # @return [Integer] The current size of the DB.
@@ -201,7 +201,7 @@ module Wgit
     end
 
     ### Update Data ###
-  
+
     # Update a Url or Document object in the DB.
     #
     # @param data [Hash, Enumerable<Hash>] Hash(es) returned from
@@ -254,7 +254,7 @@ module Wgit
       end
       create(:urls, url_or_urls)
     end
-  
+
     # Insert one or more Document objects into the DB.
     def insert_docs(doc_or_docs)
       unless doc_or_docs.respond_to?(:map)
@@ -270,7 +270,7 @@ module Wgit
       end
       create(:documents, doc_or_docs)
     end
-  
+
     # Create/insert one or more Url or Document records into the DB.
     def create(collection, data)
       assert_type(data, [Hash, Array])
@@ -324,9 +324,9 @@ module Wgit
       update = { "$set" => doc_hash }
       _update(true, :documents, selection, update)
     end
-  
+
     # Update one or more Url or Document records in the DB.
-    # NOTE: The Model.common_update_data should be merged in the calling 
+    # NOTE: The Model.common_update_data should be merged in the calling
     # method as the update param can be bespoke due to its nature.
     def _update(single, collection, selection, update)
       assert_arr_types([selection, update], Hash)
@@ -338,12 +338,13 @@ module Wgit
       raise "DB write (update) failed" unless write_succeeded?(result)
       result.n
     end
-  
+
     alias :count :size
     alias :length :size
     alias :num_documents :num_docs
     alias :document? :doc?
     alias :insert_url :insert_urls
     alias :insert_doc :insert_docs
+    alias :num_objects :num_records
   end
 end

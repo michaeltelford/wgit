@@ -1,0 +1,46 @@
+.expandable-button {
+  display: block;
+  margin: 0;
+  padding: 39px 15px 39px;
+  color: #444444;
+  background-color: #f6f6f6;
+  cursor: pointer;
+}
+.expandable-button:hover {
+  color: #00B960;
+}
+.expandable-button.left {
+  text-align: left;
+}
+.expandable-button.center {
+  text-align: center;
+}
+.expandable-button.right {
+  text-align: right;
+}
+.expandable-button span,
+.expandable-button i {
+  display: inline-block;
+  vertical-align: middle;
+}
+.expandable-button span {
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.expandable-button i {
+  -webkit-transition: -webkit-transform 300ms ease-in-out;
+  -moz-transition: -moz-transform 300ms ease-in-out;
+  -ms-transition: -ms-transform 300ms ease-in-out;
+  -o-transition: -o-transform 300ms ease-in-out;
+  transition: transform 300ms ease-in-out;
+  margin-right: 12px;
+  font-size: 44px;
+}
+.expandable-button i.rotate-arrow {
+  -webkit-transform: rotate(-180deg);
+  -moz-transform: rotate(-180deg);
+  -ms-transform: rotate(-180deg);
+  -o-transform: rotate(-180deg);
+  transform: rotate(-180deg);
+}

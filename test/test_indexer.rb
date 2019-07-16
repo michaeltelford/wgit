@@ -4,11 +4,11 @@ require_relative "helpers/test_helper"
 # WARNING: The DB is cleared down prior to each test run.
 class TestIndexer < TestHelper
   include Wgit::DatabaseHelper
-  
+
   # Runs before every test.
   def setup
     clear_db
-    
+
     @db = Wgit::Database.new
   end
 
@@ -19,18 +19,18 @@ class TestIndexer < TestHelper
     assert_instance_of Wgit::Crawler, indexer.crawler
     assert_instance_of Wgit::Database, indexer.db
   end
-  
+
   def test_index_the_web_one_site
     url_str = "https://motherfuckingwebsite.com/"
     seed { url url: url_str, crawled: false }
-    
+
     # Index only one site.
     Wgit.index_the_web 1
-    
+
     # Assert that url.crawled gets updated.
     refute url? url: url_str, crawled: false
     assert url? url: url_str, crawled: true
-    
+
     # Assert that some indexed docs were inserted into the DB.
     # The orig url and its doc plus plus an external url.
     assert_equal 2, @db.num_urls
@@ -40,26 +40,26 @@ class TestIndexer < TestHelper
   def test_index_the_web_two_sites
     url_str = "https://motherfuckingwebsite.com/"
     seed { url url: url_str, crawled: false }
-    
+
     # Index two sites.
     Wgit.index_the_web 2
-    
+
     # Assert that url.crawled gets updated.
     refute url? url: url_str, crawled: false
     assert url? url: url_str, crawled: true
-    
+
     # Assert that some indexed docs were inserted into the DB.
-    assert_equal 9, @db.num_urls
-    assert_equal 8, @db.num_docs
+    assert_equal 10, @db.num_urls
+    assert_equal 23, @db.num_docs
   end
 
   def test_index_the_web_max_data
     url_str = "https://motherfuckingwebsite.com/"
     seed { url url: url_str, crawled: false }
-    
+
     # Index nothing because max_data_size is zero.
     Wgit.index_the_web(-1, 0)
-    
+
     # Assert nothing was indexed. The only DB record is the original url.
     refute url? url: url_str, crawled: true
     assert url? url: url_str, crawled: false
@@ -68,15 +68,15 @@ class TestIndexer < TestHelper
 
   def test_index_this_site_without_externals
     url = Wgit::Url.new "https://motherfuckingwebsite.com/"
-    
+
     refute url? url: url
-    
+
     # Index the site and don't insert the external urls.
     Wgit.index_this_site url, false
-    
+
     # Assert that url.crawled gets updated.
     assert url? url: url, crawled: true
-    
+
     # The site has one doc plus its url.
     assert_equal 1, @db.num_urls
     assert_equal 1, @db.num_docs
@@ -85,19 +85,19 @@ class TestIndexer < TestHelper
   def test_index_this_site_with_externals
     url = "https://motherfuckingwebsite.com/"
     num_pages_crawled = 0
-    
+
     refute url? url: url
-    
+
     # Index the site and don't insert the external urls.
     Wgit.index_this_site url do |doc|
       assert_instance_of Wgit::Document, doc
       num_pages_crawled +=1
       true # To insert the doc into the DB.
     end
-    
+
     # Assert that url.crawled gets updated.
     assert url? url: url, crawled: true
-    
+
     # The site has one doc plus its url and one external url.
     assert_equal 2, @db.num_urls
     assert_equal 1, @db.num_docs
@@ -108,18 +108,18 @@ class TestIndexer < TestHelper
     # Test that returning nil/false from the block prevents saving the doc to
     # the DB.
     url = Wgit::Url.new "https://motherfuckingwebsite.com/"
-    
+
     refute url? url: url
-    
+
     # Index the site and don't insert the external urls.
     Wgit.index_this_site url, false do |doc|
       assert_instance_of Wgit::Document, doc
       false # To avoid inserting the doc into the DB.
     end
-    
+
     # Assert that url.crawled gets updated.
     assert url? url: url, crawled: true
-    
+
     # The site has one doc plus its url.
     assert_equal 1, @db.num_urls
     assert_equal 0, @db.num_docs

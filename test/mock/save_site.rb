@@ -5,11 +5,12 @@
 # <path_to_script>/fixtures/blah.com/admin/about.html
 # Call this script like: `ruby save_site.rb http://blah.com` etc.
 
-require 'wgit'
+require_relative '../../lib/wgit'
 require 'fileutils'
 
-url = ARGV[0] || raise('ARGV[0] must be a URL')
-url = Wgit::Url.new(url)
+raise 'ARGV[0] must be a URL' unless ARGV[0]
+
+url = Wgit::Url.new(ARGV[0])
 path = "#{File.expand_path(__dir__)}/fixtures/#{url.host}"
 crawler = Wgit::Crawler.new(url)
 

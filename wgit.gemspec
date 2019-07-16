@@ -35,7 +35,7 @@ Gem::Specification.new do |s|
   #s.executables          << "wgit"
   s.homepage              = 'https://github.com/michaeltelford/wgit'
   s.license               = 'MIT'
-  s.metadata              = { 
+  s.metadata              = {
     "source_code_uri" => "https://github.com/michaeltelford/wgit",
     "yard.run" => "yri", # use "yard" to build full HTML docs.
   }
@@ -51,9 +51,9 @@ Gem::Specification.new do |s|
   s.add_development_dependency "webmock", "~> 3.6"
   s.add_development_dependency "rack", "~> 2.0"
 
-  s.add_runtime_dependency "nokogiri", "~> 1.10"
+  s.add_runtime_dependency "nokogiri", "~> 1.10.3"
   s.add_runtime_dependency "mongo", "~> 2.8.0"
-  
+
   # Prevent pushing this gem to RubyGems.org. To allow pushes either set the 'allowed_push_host'
   # to allow pushing to a single host or delete this section to allow pushing to any host.
   if s.respond_to?(:metadata)
