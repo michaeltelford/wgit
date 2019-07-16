@@ -20,6 +20,7 @@ class TestDocument < TestHelper
         "/styles.css",
         "http://www.mytestsite.com/client.js",
         "http://www.external-scripts.com/code.js",
+        "#welcome",
         "http://www.google.co.uk",
         "http://www.mytestsite.com/security.html",
         "/about.html",
@@ -33,6 +34,8 @@ class TestDocument < TestHelper
         "http://www.bing.com",
         "http://www.mytestsite.com/tests.html",
         "https://duckduckgo.com/search?q=hello&page=2",
+        "/blog#about-us",
+        "https://example.com/blog#about-us",
         "/contents/",
       ],
       "text" => [
@@ -44,13 +47,13 @@ and power matches the Ruby language in which it's developed."
       ],
     }
     @stats = {
-      url: 25, 
-      html: 1496, 
-      title: 15, 
-      author: 15, 
-      keywords: 3, 
-      links: 17, 
-      text_length: 4, 
+      url: 25,
+      html: 1607,
+      title: 15,
+      author: 15,
+      keywords: 3,
+      links: 20,
+      text_length: 4,
       text_bytes: 280
     }
     @search_results = [
@@ -84,13 +87,15 @@ Minitest framework."
     assert_equal [
       "styles.css",
       "client.js",
+      "#welcome",
       "security.html",
       "about.html",
       "/",
       "smiley.jpg",
       "contact.html",
       "tests.html",
-      "contents"
+      "blog#about-us",
+      "contents",
     ], doc.internal_links
     assert doc.internal_links.all? { |link| link.instance_of?(Wgit::Url) }
     
@@ -103,13 +108,15 @@ Minitest framework."
     assert_equal [
       "#{@url}/styles.css",
       "#{@url}/client.js",
+      "#{@url}#welcome",
       "#{@url}/security.html",
       "#{@url}/about.html",
       "#{@url}/",
       "#{@url}/smiley.jpg",
       "#{@url}/contact.html",
       "#{@url}/tests.html",
-      "#{@url}/contents"
+      "#{@url}/blog#about-us",
+      "#{@url}/contents",
     ], doc.internal_full_links
     assert doc.internal_full_links.all? do |link| 
       link.instance_of?(Wgit::Url)
@@ -130,7 +137,8 @@ Minitest framework."
       "https://imgur.com/smiley.jpg",
       "http://www.yahoo.com",
       "http://www.bing.com",
-      "https://duckduckgo.com/search?q=hello&page=2"
+      "https://duckduckgo.com/search?q=hello&page=2",
+      "https://example.com/blog#about-us",
     ], doc.external_links
     assert doc.external_links.all? { |link| link.instance_of?(Wgit::Url) }
     

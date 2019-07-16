@@ -106,21 +106,16 @@ module Wgit
     # @return [Boolean] True if relative, false if absolute.
     # @raise [RuntimeError] If the link is invalid.
     def self.relative_link?(link, base: nil)
+      raise "Invalid link: #{link}" if link.nil? or link.empty?
       if base and URI(base).host.nil?
         raise "Invalid base, must contain protocol prefix: #{base}"
       end
-      
+
       uri = URI(link)
-      if not uri.host.nil? and not uri.host.empty?
-        if base
-          uri.host == URI(base).host
-        else
-          false
-        end
-      elsif not uri.path.nil? and not uri.path.empty?
+      if uri.relative?
         true
       else
-        raise "Invalid link: #{link}"
+        base ? uri.host == URI(base).host : false
       end
     end
   
@@ -131,9 +126,10 @@ module Wgit
     # @return [Wgit::Url] host + "/" + link
     def self.concat(host, link)
       url = host
-      url.chop! if url.end_with?("/")
-      link = link[1..-1] if link.start_with?("/")
-      Wgit::Url.new(url + "/" + link)
+      url.chop! if url.end_with?('/')
+      link = link[1..-1] if link.start_with?('/')
+      separator = link.start_with?('#') ? '' : '/'
+      Wgit::Url.new(url + separator + link)
     end
   
     # Returns if self is a relative or absolute Url. If base is provided and
@@ -187,29 +183,26 @@ module Wgit
     # Returns a new Wgit::Url containing just the scheme/protocol of this URL
     # e.g. Given http://www.google.co.uk, http is returned.
     #
-    # @return [Wgit::Url] Containing just the scheme/protocol.
+    # @return [Wgit::Url, nil] Containing just the scheme/protocol or nil.
     def to_scheme
-      Wgit::Url.new(@uri.scheme)
+      scheme = @uri.scheme
+      scheme ? Wgit::Url.new(scheme) : nil
     end
   
     # Returns a new Wgit::Url containing just the host of this URL e.g.
     # Given http://www.google.co.uk/about.html, www.google.co.uk is returned.
     #
-    # @return [Wgit::Url] Containing just the host.
+    # @return [Wgit::Url, nil] Containing just the host or nil.
     def to_host
-      Wgit::Url.new(@uri.host)
+      host = @uri.host
+      host ? Wgit::Url.new(host) : nil
     end
   
     # Returns only the base of this URL e.g. the protocol and host combined.
     #
-    # @return [Wgit::Url] Base of self e.g. http://www.google.co.uk.
+    # @return [Wgit::Url, nil] Base of self e.g. http://www.google.co.uk or nil.
     def to_base
-      if Wgit::Url.relative_link?(self)
-        raise "A relative link doesn't have a base URL: #{self}"
-      end
-      if @uri.scheme.nil? or @uri.host.nil? or @uri.host.empty?
-        raise "Both a protocol and host are needed: #{self}"
-      end
+      return nil if @uri.scheme.nil? or @uri.host.nil?
       base = "#{@uri.scheme}://#{@uri.host}"
       Wgit::Url.new(base)
     end
@@ -219,10 +212,11 @@ module Wgit
     # Wgit::Url.new("http://www.google.co.uk/about.html/").to_path returns
     # "about.html". See Wgit::Url#to_endpoint if you want the slashes.
     #
-    # @return [Wgit::Url] Path of self e.g. about.html.
+    # @return [Wgit::Url, nil] Path of self e.g. about.html or nil.
     def to_path
       path = @uri.path
-      return Wgit::Url.new(path) if path == '/'
+      return nil if path.nil?
+      return Wgit::Url.new('/') if path == '/'
       path = path[1..-1] if path.start_with?('/')
       path.chop! if path.end_with?('/')
       Wgit::Url.new(path)
@@ -233,7 +227,8 @@ module Wgit
     # Wgit::Url.new("http://www.google.co.uk/about.html/").to_endpoint returns
     # "/about.html/". See Wgit::Url#to_path if you don't want the slashes.
     #
-    # @return [Wgit::Url] Endpoint of self e.g. /about.html/.
+    # @return [Wgit::Url] Endpoint of self e.g. /about.html/. For a URL without
+    #   an endpoint, / is returned.
     def to_endpoint
       endpoint = @uri.path
       endpoint = '/' + endpoint unless endpoint.start_with?('/')
@@ -241,11 +236,41 @@ module Wgit
     end
 
     # Returns a new Wgit::Url containing just the query string of this URL
-    # e.g. Given http://google.com?q=ruby, ruby is returned.
+    # e.g. Given http://google.com?q=ruby, 'ruby' is returned.
     #
-    # @return [Wgit::Url] Containing just the query string.
+    # @return [Wgit::Url, nil] Containing just the query string or nil.
     def to_query_string
-      Wgit::Url.new(@uri.query)
+      query = @uri.query
+      query ? Wgit::Url.new(query) : nil
+    end
+
+    # Returns a new Wgit::Url containing just the anchor string of this URL
+    # e.g. Given http://google.com#about, #about is returned.
+    #
+    # @return [Wgit::Url, nil] Containing just the anchor string or nil.
+    def to_anchor
+      anchor = @uri.fragment
+      anchor ? Wgit::Url.new("##{anchor}") : nil
+    end
+
+    # Returns a new Wgit::Url containing just the path + anchor string of this
+    # URL e.g. Given http://google.com/us#about, us#about is returned.
+    #
+    # @return [Wgit::Url, nil] Containing just the path and anchor string or
+    #   nil.
+    def to_path_and_anchor
+      path = to_path || ''
+      anchor = to_anchor || ''
+      both = path + anchor
+      both.empty? ? nil : Wgit::Url.new(both)
+    end
+
+    # Returns a new Wgit::Url containing self without a trailing slash. Is
+    # idempotent.
+    #
+    # @return [Wgit::Url] Without a trailing slash.
+    def without_trailing_slash
+      end_with?('/') ? Wgit::Url.new(chop) : self
     end
 
     # Returns a Hash containing this Url's instance vars excluding @uri.
@@ -270,6 +295,9 @@ module Wgit
     alias :endpoint :to_endpoint
     alias :query_string :to_query_string
     alias :query :to_query_string
+    alias :anchor :to_anchor
+    alias :to_fragment :to_anchor
+    alias :fragment :to_anchor
     alias :internal_link? :relative_link?
     alias :is_relative? :relative_link?
     alias :is_internal? :relative_link?

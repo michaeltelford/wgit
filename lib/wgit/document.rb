@@ -216,7 +216,7 @@ module Wgit
         rescue
           true
         end.
-        map(&:to_path)
+        map(&:to_path_and_anchor)
 
       process_arr(links)
     end
@@ -246,7 +246,7 @@ module Wgit
         rescue
           true
         end.
-        map { |link| link.end_with?('/') ? link.chop : link }
+        map(&:without_trailing_slash)
 
       process_arr(links)
     end
@@ -353,10 +353,8 @@ module Wgit
 
       # Define the private init_*_from_object method for a Database object.
       # Gets the Object's "key" value and creates a var for it.
-      func_name = Document.send(
-                        :define_method, "init_#{var}_from_object") do |obj|
-        result = find_in_object(
-                      obj, var.to_s, singleton: options[:singleton], &block)
+      func_name = Document.send(:define_method, "init_#{var}_from_object") do |obj|
+        result = find_in_object(obj, var.to_s, singleton: options[:singleton], &block)
         init_var(var, result)
       end
       Document.send :private, func_name
