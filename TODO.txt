@@ -19,7 +19,7 @@ Refactoring
 - Replace method params with named parameters where applicable.
 - Think about reducing the amount of method aliases, pick the best for the method def and remove the aliases?
 - Mock (monkey patch) the 'mongo' gem's func. for speed in the tests.
-- Refactor the tests to include: Removal of instance_vars defined in setup & Expansion of test scenarios for each func (where possible).
+- Refactor the 3 main classes and their tests (where needed): Url, Document & Crawler.
 
 Gem Publishing Checklist
 ------------------------

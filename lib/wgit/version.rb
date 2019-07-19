@@ -3,5 +3,5 @@
 # @author Michael Telford
 module Wgit
   # The current gem version of Wgit.
-  VERSION = "0.0.11".freeze
+  VERSION = "0.0.12".freeze
 end
