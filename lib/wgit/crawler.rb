@@ -17,6 +17,9 @@ module Wgit
     # The docs of the crawled @urls.
     attr_reader :docs
 
+    # The Net::HTTPResponse of the most recently crawled URL or nil.
+    attr_reader :last_response
+
     # Initializes the Crawler by setting the @urls and @docs.
     #
     # @param urls [*Wgit::Url] The URLs to crawl.
@@ -149,6 +152,7 @@ module Wgit
     # ignored and nil will be returned. Otherwise, the HTML is returned.
     def fetch(url)
       response = resolve(url)
+      @last_response = response
       response.body.empty? ? nil : response.body
     rescue Exception => ex
       Wgit.logger.debug(

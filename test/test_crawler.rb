@@ -19,18 +19,22 @@ class TestCrawler < TestHelper
     c = Wgit::Crawler.new
     assert_empty c.docs
     assert_empty c.urls
+    assert_nil c.last_response
 
     c = Wgit::Crawler.new(*@url_strs)
     assert_empty c.docs
     assert_urls c
+    assert_nil c.last_response
 
     c = Wgit::Crawler.new(*@urls)
     assert_empty c.docs
     assert_urls c
+    assert_nil c.last_response
 
     c = Wgit::Crawler.new(@urls)
     assert_empty c.docs
     assert_urls c
+    assert_nil c.last_response
   end
 
   def test_urls=
@@ -233,6 +237,7 @@ private
   end
 
   def assert_crawl_output(crawler, doc, url = nil)
+    assert crawler.last_response.is_a? Net::HTTPResponse
     assert doc
     refute doc.empty?
     url = crawler.urls.first if url.nil?
