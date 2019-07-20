@@ -13,13 +13,13 @@ class TestUrl < TestHelper
     @url_str_link = "#{@url_str}#{@link}"
     @url_str_anchor = "#{@url_str_link}#about-us"
     @time_stamp = Time.new
-    @mongo_doc_dup = { 
-      "url" => @url_str, 
-      "crawled" => true, 
-      "date_crawled" => @time_stamp 
+    @mongo_doc_dup = {
+      "url" => @url_str,
+      "crawled" => true,
+      "date_crawled" => @time_stamp
     }
   end
-  
+
   def test_initialize
     url = Wgit::Url.new @url_str
     assert_equal @url_str, url
@@ -34,36 +34,36 @@ class TestUrl < TestHelper
     refute url.crawled
     assert_nil url.date_crawled
   end
-  
+
   def test_initialize_from_mongo_doc
     url = Wgit::Url.new @mongo_doc_dup
     assert_equal @url_str, url
     assert url.crawled
     assert_equal @time_stamp, url.date_crawled
   end
-  
+
   def test_validate
     Wgit::Url.validate @url_str
     assert_raises(RuntimeError) { Wgit::Url.validate @bad_url_str }
   end
-  
+
   def test_valid?
     assert Wgit::Url.valid? @url_str
     refute Wgit::Url.valid? @bad_url_str
     assert Wgit::Url.valid? @url_str_anchor
   end
-  
+
   def test_prefix_protocol
     assert_equal "https://#{@bad_url_str}", Wgit::Url.prefix_protocol(
                                                 @bad_url_str.dup, true)
     assert_equal "http://#{@bad_url_str}", Wgit::Url.prefix_protocol(
                                                 @bad_url_str.dup)
   end
-  
+
   def test_relative_link?
     assert Wgit::Url.relative_link? @link
     refute Wgit::Url.relative_link? @url_str
-    
+
     assert Wgit::Url.relative_link? @url_str_link, base: @url_str
     refute Wgit::Url.relative_link? @url_str_link, base: "http://bing.com"
 
@@ -82,24 +82,24 @@ class TestUrl < TestHelper
     assert Wgit::Url.new(@url_str_link).relative_link?(base: @url_str)
     refute Wgit::Url.new(@url_str_link).relative_link?(base: "http://bing.com")
   end
-  
+
   def test_concat
     assert_equal @url_str_link, Wgit::Url.concat(@url_str, @link)
     assert_equal @url_str_link, Wgit::Url.concat(@url_str, @link[1..-1])
     assert_equal @url_str_anchor, Wgit::Url.concat(@url_str_link, '#about-us')
   end
-  
+
   def test_crawled=
     url = Wgit::Url.new @url_str
     url.crawled = true
     assert url.crawled
     assert url.crawled?
   end
-  
+
   def test_to_uri
     assert_equal URI::HTTP, Wgit::Url.new(@url_str).to_uri.class
   end
-  
+
   def test_to_url
     url = Wgit::Url.new @url_str
     assert_equal url.object_id, url.to_url.object_id
@@ -113,13 +113,13 @@ class TestUrl < TestHelper
     assert_equal Wgit::Url, url.to_scheme.class
     assert_nil Wgit::Url.new(@link).to_scheme
   end
-  
+
   def test_to_host
     assert_equal "www.google.co.uk", Wgit::Url.new(@url_str_link).to_host
     assert_equal Wgit::Url, Wgit::Url.new(@url_str_link).to_host.class
     assert_nil Wgit::Url.new(@link).to_host
   end
-  
+
   def test_to_base
     assert_equal @url_str, Wgit::Url.new(@url_str_link).to_base
     assert_equal Wgit::Url, Wgit::Url.new(@url_str_link).to_base.class
@@ -153,31 +153,6 @@ class TestUrl < TestHelper
     url = Wgit::Url.new @url_str_anchor
     assert_equal 'about.html', url.to_path
     assert_equal Wgit::Url, url.to_path.class
-  end
-
-  def test_to_path_and_anchor
-    url = Wgit::Url.new @url_str_anchor
-    assert_equal 'about.html#about-us', url.to_path_and_anchor
-    assert_equal Wgit::Url, url.to_path_and_anchor.class
-
-    url = Wgit::Url.new '/about.html#hello'
-    assert_equal 'about.html#hello', url.to_path_and_anchor
-    assert_equal Wgit::Url, url.to_path_and_anchor.class
-
-    url = Wgit::Url.new '/about.html/hello#about'
-    assert_equal 'about.html/hello#about', url.to_path_and_anchor
-    assert_equal Wgit::Url, url.to_path_and_anchor.class
-
-    url = Wgit::Url.new '/'
-    assert_equal '/', url.to_path_and_anchor
-    assert_equal Wgit::Url, url.to_path_and_anchor.class
-
-    url = Wgit::Url.new @url_str + '#about'
-    assert_equal '#about', url.to_path_and_anchor
-    assert_equal Wgit::Url, url.to_path_and_anchor.class
-
-    url = Wgit::Url.new @url_str
-    assert_nil url.to_path_and_anchor
   end
 
   def test_to_endpoint
@@ -232,6 +207,14 @@ class TestUrl < TestHelper
     assert_nil url.to_anchor
   end
 
+  def test_without_leading_slash
+    url = Wgit::Url.new @url_str
+    assert_equal @url_str, url.without_leading_slash
+
+    url = Wgit::Url.new @link
+    assert_equal 'about.html', url.without_leading_slash
+  end
+
   def test_without_trailing_slash
     url = Wgit::Url.new @url_str
     assert_equal @url_str, url.without_trailing_slash
@@ -239,7 +222,45 @@ class TestUrl < TestHelper
     url = Wgit::Url.new @url_str + '/'
     assert_equal @url_str, url.without_trailing_slash
   end
-  
+
+  def test_without_slashes
+    url = Wgit::Url.new 'link.html'
+    assert_equal 'link.html', url.without_slashes
+
+    url = Wgit::Url.new '/link.html/'
+    assert_equal 'link.html', url.without_slashes
+  end
+
+  def test_without_base
+    url = Wgit::Url.new 'http://google.com/search?q=foo#bar'
+    assert_equal 'search?q=foo#bar', url.without_base
+    assert_equal Wgit::Url, url.without_base.class
+
+    url = Wgit::Url.new '/about.html'
+    assert_equal 'about.html', url.without_base
+    assert_equal Wgit::Url, url.without_base.class
+
+    url = Wgit::Url.new '/about.html#hello/'
+    assert_equal 'about.html#hello', url.without_base
+    assert_equal Wgit::Url, url.without_base.class
+
+    url = Wgit::Url.new '/about.html/hello?a=b&b=c#about'
+    assert_equal 'about.html/hello?a=b&b=c#about', url.without_base
+    assert_equal Wgit::Url, url.without_base.class
+
+    url = Wgit::Url.new '/'
+    assert_equal url, url.without_base
+    assert_equal Wgit::Url, url.without_base.class
+
+    url = Wgit::Url.new 'https://google.com/'
+    assert_equal url, url.without_base
+    assert_equal Wgit::Url, url.without_base.class
+
+    url = Wgit::Url.new 'https://google.com'
+    assert_equal url, url.without_base
+    assert_equal Wgit::Url, url.without_base.class
+  end
+
   def test_to_h
     assert_equal @mongo_doc_dup, Wgit::Url.new(@mongo_doc_dup).to_h
   end

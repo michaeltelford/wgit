@@ -125,11 +125,10 @@ module Wgit
     # @param link [Wgit::Url, String] The link to add to the host prefix.
     # @return [Wgit::Url] host + "/" + link
     def self.concat(host, link)
-      url = host
-      url.chop! if url.end_with?('/')
-      link = link[1..-1] if link.start_with?('/')
+      host = Wgit::Url.new(host).without_trailing_slash
+      link = Wgit::Url.new(link).without_leading_slash
       separator = link.start_with?('#') ? '' : '/'
-      Wgit::Url.new(url + separator + link)
+      Wgit::Url.new(host + separator + link)
     end
 
     # Returns if self is a relative or absolute Url. If base is provided and
@@ -217,9 +216,9 @@ module Wgit
       path = @uri.path
       return nil if path.nil? or path.empty?
       return Wgit::Url.new('/') if path == '/'
-      path = path[1..-1] if path.start_with?('/')
-      path.chop! if path.end_with?('/')
-      Wgit::Url.new(path)
+      Wgit::Url.new(path).
+        without_leading_slash.
+        without_trailing_slash
     end
 
     # Returns the endpoint of this URL e.g. the bit after the host with any
@@ -253,24 +252,47 @@ module Wgit
       anchor ? Wgit::Url.new("##{anchor}") : nil
     end
 
-    # Returns a new Wgit::Url containing just the path + anchor string of this
-    # URL e.g. Given http://google.com/us#about, us#about is returned.
+    # Returns a new Wgit::Url containing self without a trailing slash. Is
+    # idempotent meaning self will always be returned regardless of whether
+    # there's a trailing slash or not.
     #
-    # @return [Wgit::Url, nil] Containing just the path and anchor string or
-    #   nil.
-    def to_path_and_anchor
-      path = to_path || ''
-      anchor = to_anchor || ''
-      both = path + anchor
-      both.empty? ? nil : Wgit::Url.new(both)
+    # @return [Wgit::Url] Self without a trailing slash.
+    def without_leading_slash
+      start_with?('/') ? Wgit::Url.new(self[1..-1]) : self
     end
 
     # Returns a new Wgit::Url containing self without a trailing slash. Is
-    # idempotent.
+    # idempotent meaning self will always be returned regardless of whether
+    # there's a trailing slash or not.
     #
-    # @return [Wgit::Url] Without a trailing slash.
+    # @return [Wgit::Url] Self without a trailing slash.
     def without_trailing_slash
       end_with?('/') ? Wgit::Url.new(chop) : self
+    end
+
+    # Returns a new Wgit::Url containing self without a leading or trailing
+    # slash. Is idempotent and will return self regardless if there's slashes
+    # present or not.
+    #
+    # @return [Wgit::Url] Self without leading or trailing slashes.
+    def without_slashes
+      without_leading_slash.without_trailing_slash
+    end
+
+    # Returns a new Wgit::Url with the base (proto and host) removed e.g. Given
+    # http://google.com/search?q=something#about, search?q=something#about is
+    # returned. If relative and base isn't present then self is returned.
+    # Leading and trailing slashes are always stripped from the return value.
+    #
+    # @return [Wgit::Url] Self containing everything after the base.
+    def without_base
+      base_url = to_base
+      without_base = base_url ? gsub(base_url, '') : self
+
+      return self if ['', '/'].include?(without_base)
+      Wgit::Url.new(without_base).
+        without_leading_slash.
+        without_trailing_slash
     end
 
     # Returns a Hash containing this Url's instance vars excluding @uri.

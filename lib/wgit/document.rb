@@ -216,7 +216,7 @@ module Wgit
         rescue
           true
         end.
-        map(&:to_path_and_anchor)
+        map(&:without_base)
 
       process_arr(links)
     end

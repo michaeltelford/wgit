@@ -224,6 +224,7 @@ private
   def assert_crawl_site(crawler, expected_num_crawled, expected_num_externals)
     num_crawled = 0
     ext_links = crawler.crawl_site do |doc|
+      byebug if doc.empty?
       refute doc.empty?
       assert doc.url.start_with?(crawler.urls.first.to_base)
       assert doc.url.crawled?
