@@ -1,10 +1,10 @@
 # Wgit
 
-Wgit is a Ruby gem similar in nature to GNU's `wget`. It provides an easy to use API for programmatic web scraping, indexing and searching.
+Wgit is a Ruby gem similar in nature to GNU's `wget` tool. It provides an easy to use API for programmatic web scraping, indexing and searching.
 
-Fundamentally, Wgit is a WWW indexer/scraper which crawls URL's, retrieves and serialises their page contents for later use. You can use Wgit to copy entire websites if required. Wgit also provides a means to search indexed documents stored in a database. Therefore, this library provides the main components of a WWW search engine. The Wgit API is easily extended allowing you to pull out the parts of a webpage that are important to you, the code snippets or images for example. As Wgit is a library, it has uses in many different application types.
+Fundamentally, Wgit is a WWW indexer/scraper which crawls URL's, retrieves and serialises their page contents for later use. You can use Wgit to copy entire websites if required. Wgit also provides a means to search indexed documents stored in a database. Therefore, this library provides the main components of a WWW search engine. The Wgit API is easily extended allowing you to pull out the parts of a webpage that are important to you, the code snippets or tables for example. As Wgit is a library, it has uses in many different application types.
 
-Check out this [example application](https://search-engine-rb.herokuapp.com) - a search engine built using Wgit and Sinatra, deployed to Heroku.
+Check out this [example application](https://search-engine-rb.herokuapp.com) - a search engine (see its [repository](https://github.com/michaeltelford/search_engine)) built using Wgit and Sinatra, deployed to Heroku. Heroku's free tier is used so the initial page load may be slow. Try searching for "Ruby" or something else that's Ruby related.
 
 ## Table Of Contents
 
@@ -56,15 +56,15 @@ doc.stats # => {
 
 # doc responds to the following methods:
 Wgit::Document.instance_methods(false).sort # => [
-# :==, :[], :author, :css, :date_crawled, :doc, :empty?, :external_links, 
-# :external_urls, :html, :internal_full_links, :internal_links, :keywords, 
-# :links, :relative_full_links, :relative_full_urls, :relative_links, 
-# :relative_urls, :score, :search, :search!, :size, :stats, :text, :title, 
+# :==, :[], :author, :css, :date_crawled, :doc, :empty?, :external_links,
+# :external_urls, :html, :internal_full_links, :internal_links, :keywords,
+# :links, :relative_full_links, :relative_full_urls, :relative_links,
+# :relative_urls, :score, :search, :search!, :size, :stats, :text, :title,
 # :to_h, :to_hash, :to_json, :url, :xpath
 #]
 
 results = doc.search "corruption"
-results.first # => "ial materials involving war, spying and corruption. 
+results.first # => "ial materials involving war, spying and corruption.
               #     It has so far published more"
 ```
 
@@ -120,8 +120,8 @@ my_pages_keywords = ["Everest", "mountaineering school", "adventure"]
 my_pages_missing_keywords = []
 
 competitor_urls = [
-  "http://altitudejunkies.com", 
-  "http://www.mountainmadness.com", 
+  "http://altitudejunkies.com",
+  "http://www.mountainmadness.com",
   "http://www.adventureconsultants.com"
 ]
 
@@ -188,7 +188,7 @@ require 'wgit/core_ext' # => Provides the String#to_url and Enumerable#to_urls m
 # Here we create our own document rather than crawling the web.
 # We pass the web page's URL and HTML Strings.
 doc = Wgit::Document.new(
-  "http://test-url.com".to_url, 
+  "http://test-url.com".to_url,
   "<html><p>How now brown cow.</p><a href='http://www.google.co.uk'>Click me!</a></html>"
 )
 
@@ -216,7 +216,7 @@ doc.search(query).first # => "How now brown cow."
 
 db.insert doc.external_links
 
-urls_to_crawl = db.uncrawled_urls # => Results will include doc.external_links. 
+urls_to_crawl = db.uncrawled_urls # => Results will include doc.external_links.
 ```
 
 ## Extending The API
@@ -247,7 +247,7 @@ Wgit::Document.text_elements << :a
 
 # Our Document has a link whose's text we're interested in.
 doc = Wgit::Document.new(
-  "http://some_url.com".to_url, 
+  "http://some_url.com".to_url,
   "<html><p>Hello world!</p>\
 <a href='https://made-up-link.com'>Click this link.</a></html>"
 )
@@ -283,7 +283,7 @@ end
 
 # Our Document has a table which we're interested in.
 doc = Wgit::Document.new(
-  "http://some_url.com".to_url, 
+  "http://some_url.com".to_url,
   "<html><p>Hello world!</p>\
 <table><th>Header Text</th><th>Another Header</th></table></html>"
 )
@@ -298,14 +298,14 @@ tables.first.class  # => Nokogiri::XML::Element
 
 **Extension Notes**:
 
-- Any links should be mapped into `Wgit::Url` objects; Url's are treated as Strings when being inserted into the database. 
+- Any links should be mapped into `Wgit::Url` objects; Url's are treated as Strings when being inserted into the database.
 - Any object (like a Nokogiri object) will not be inserted into the database, its up to you to map each object into a native type e.g. `Boolean, Array` etc.
 
 ## Caveats
 
 Below are some points to keep in mind when using Wgit:
 
-- All Url's must be prefixed with an appropiate protocol e.g. `https://`
+- All `Wgit::Url`'s must be prefixed with an appropiate protocol e.g. `https://`
 
 ## Executable
 
@@ -317,11 +317,13 @@ This executable will be very similar in nature to `./bin/console` which is curre
 
 ## Development
 
+The current road map is rudimentally listed in the [TODO.txt](https://github.com/michaeltelford/wgit/blob/master/TODO.txt) file.
+
 For a full list of available Rake tasks, run `bundle exec rake help`. The most commonly used tasks are listed below...
 
 After checking out the repo, run `./bin/setup` to install dependencies (requires `bundler`). Then, run `bundle exec rake test` to run the tests. You can also run `./bin/console` for an interactive REPL that will allow you to experiment with the code.
 
-To generate code documentation run `bundle exec yarddoc`. To browse the generated documentation run `bundle exec yard server -r`.
+To generate code documentation run `bundle exec yard doc`. To browse the generated documentation run `bundle exec yard server -r`.
 
 To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, see the *Gem Publishing Checklist* section of the `TODO.txt` file.
 

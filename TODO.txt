@@ -8,7 +8,8 @@ Primary
 
 Secondary
 ---------
-- Setup a dedicated mLab account for the example application in the README - the Heroku deployed search engine; then index some ruby sites like ruby.org and update the README to include an example search query e.g. "ruby" etc.
+- Setup a dedicated mLab account for the example application in the README - the Heroku deployed search engine; then index some ruby sites like ruby.org etc.
+- Think about how we handle invalid url's on crawled documents. Setup tests and implement logic for this scenario.
 - Think about ignoring non html documents/urls e.g. http://server/image.jpg etc. by implementing MIME types (defaulting to only HTML).
 - Check if Document::TEXT_ELEMENTS is expansive enough.
 - Possibly use refine instead of core-ext?

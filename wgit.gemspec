@@ -26,8 +26,8 @@ Gem::Specification.new do |s|
   s.name                  = 'wgit'
   s.version               = Wgit::VERSION
   s.date                  = '2016-03-07'
-  s.summary               = "Wgit is a Ruby gem similar in nature to GNU's `wget`. It provides an easy to use API for programmatic web scraping, indexing and searching."
-  s.description           = "Fundamentally, Wgit is a WWW indexer/scraper which crawls URL's, retrieves and serialises their page contents for later use. You can use Wgit to copy entire websites if required. Wgit also provides a means to search indexed documents stored in a database. Therefore, this library provides the main components of a WWW search engine. The Wgit API is easily extended allowing you to pull out the parts of a webpage that are important to you, the code snippets or images for example. As Wgit is a library, it has uses in many different application types."
+  s.summary               = "Wgit is a Ruby gem similar in nature to GNU's `wget` tool. It provides an easy to use API for programmatic web scraping, indexing and searching."
+  s.description           = "Fundamentally, Wgit is a WWW indexer/scraper which crawls URL's, retrieves and serialises their page contents for later use. You can use Wgit to copy entire websites if required. Wgit also provides a means to search indexed documents stored in a database. Therefore, this library provides the main components of a WWW search engine. The Wgit API is easily extended allowing you to pull out the parts of a webpage that are important to you, the code snippets or tables for example. As Wgit is a library, it has uses in many different application types."
   s.author                = "Michael Telford"
   s.email                 = "michael.telford@live.com"
   s.require_paths         = ["lib"]

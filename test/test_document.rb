@@ -48,11 +48,11 @@ and power matches the Ruby language in which it's developed."
     }
     @stats = {
       url: 25,
-      html: 1708,
+      html: 1717,
       title: 15,
       author: 15,
       keywords: 3,
-      links: 21,
+      links: 20,
       text_length: 4,
       text_bytes: 280
     }
