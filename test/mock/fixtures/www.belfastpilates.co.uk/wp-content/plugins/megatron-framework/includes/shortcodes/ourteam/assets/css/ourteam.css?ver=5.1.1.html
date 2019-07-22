@@ -1,0 +1,104 @@
+.ourteam.style1,
+.ourteam.style3 {
+  text-align: center;
+}
+.ourteam .ourteam-avatar-inner {
+  overflow: hidden;
+  position: relative;
+  max-width: 270px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.ourteam .ourteam-avatar-inner img {
+  width: 100%;
+  height: auto;
+}
+.ourteam .ourteam-avatar-overlay {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  opacity: 0;
+  margin: auto;
+  text-align: center;
+  -moz-transition-duration: 0.4s;
+  -webkit-transition-duration: 0.4s;
+  -ms-transition-duration: 0.4s;
+  -o-transition-duration: 0.4s;
+  transition-duration: 0.4s;
+}
+.ourteam .ourteam-avatar-overlay i {
+  color: #ffffff;
+  font-size: 20px;
+  position: absolute;
+  top: 50%;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  margin-top: -10px;
+}
+.ourteam .ourteam-avatar:hover .ourteam-avatar-overlay {
+  opacity: 1;
+}
+.ourteam .ourteam-info h6 {
+  font-size: 18px;
+  line-height: 1.6;
+  padding-top: 30px;
+  margin-bottom: 4px;
+}
+.ourteam .ourteam-info span {
+  font-size: 14px;
+  font-style: italic;
+  line-height: 2.2;
+  letter-spacing: 0.05em;
+  display: block;
+}
+.ourteam .ourteam-info p {
+  padding-top: 7px;
+  margin-bottom: 20px;
+}
+.ourteam.style2 .ourteam-info h6 {
+  padding-top: 3px;
+}
+.ourteam.style3 .ourteam-avatar-inner {
+  max-width: 400px;
+}
+.ourteam.style3 .ourteam-info {
+  position: relative;
+}
+.ourteam.style3 .social-profile {
+  position: absolute;
+  left: 0;
+  bottom: 100%;
+  margin-bottom: 20px;
+  opacity: 0;
+  -moz-transition-duration: 0.4s;
+  -webkit-transition-duration: 0.4s;
+  -ms-transition-duration: 0.4s;
+  -o-transition-duration: 0.4s;
+  transition-duration: 0.4s;
+}
+.ourteam.style3 .social-profile li {
+  display: inline;
+}
+.ourteam.style3 .social-profile li a {
+  margin-bottom: 15px;
+}
+.ourteam.style3 .ourteam-item:hover .social-profile {
+  opacity: 1;
+  left: 50px;
+}
+.ourteam.style3 .ourteam-item:hover img {
+  opacity: 0.5;
+  -moz-transition-duration: 0.4s;
+  -webkit-transition-duration: 0.4s;
+  -ms-transition-duration: 0.4s;
+  -o-transition-duration: 0.4s;
+  transition-duration: 0.4s;
+}
+@media screen and (max-width: 767px) {
+  .ourteam.style2 {
+    text-align: center;
+  }
+}

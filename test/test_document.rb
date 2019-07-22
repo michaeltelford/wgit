@@ -21,6 +21,7 @@ class TestDocument < TestHelper
         "http://www.mytestsite.com/client.js",
         "http://www.external-scripts.com/code.js",
         "#welcome",
+        "?foo=bar",
         "http://www.google.co.uk",
         "http://www.mytestsite.com/security.html",
         "/about.html",
@@ -31,7 +32,8 @@ class TestDocument < TestHelper
         "http://www.yahoo.com",
         "/contact.html",
         "http://www.bing.com/",
-        "http://www.bing.com",
+        "http://www.mytestsite.com",
+        "http://www.mytestsite.com/",
         "http://www.mytestsite.com/tests.html",
         "https://duckduckgo.com/search?q=hello&page=2",
         "/blog#about-us",
@@ -48,11 +50,11 @@ and power matches the Ruby language in which it's developed."
     }
     @stats = {
       url: 25,
-      html: 1717,
+      html: 1786,
       title: 15,
       author: 15,
       keywords: 3,
-      links: 20,
+      links: 22,
       text_length: 4,
       text_bytes: 280
     }
@@ -84,20 +86,10 @@ Minitest framework."
 
   def test_internal_links
     doc = Wgit::Document.new @url, @html
-    assert_equal [
-      "styles.css",
-      "client.js",
-      "#welcome",
-      "security.html",
-      "about.html",
-      "/",
-      "smiley.jpg",
-      "contact.html",
-      "tests.html",
-      "blog#about-us",
-      "contents",
-    ], doc.internal_links
-    assert doc.internal_links.all? { |link| link.instance_of?(Wgit::Url) }
+    assert_internal_links doc
+
+    doc = Wgit::Document.new Wgit::Url.new(@url + '/about'), @html
+    assert_internal_links doc
 
     doc = Wgit::Document.new @url, "<p>Hello World!</p>"
     assert_empty doc.internal_links
@@ -109,6 +101,7 @@ Minitest framework."
       "#{@url}/styles.css",
       "#{@url}/client.js",
       "#{@url}#welcome",
+      "#{@url}?foo=bar",
       "#{@url}/security.html",
       "#{@url}/about.html",
       "#{@url}/",
@@ -239,11 +232,31 @@ private
 
   def assert_doc(doc)
     assert_equal @url, doc.url
+    assert doc.url.instance_of? Wgit::Url
     assert_equal @html, doc.html
     assert_equal @mongo_doc_dup["title"], doc.title
     assert_equal @mongo_doc_dup["author"], doc.author
     assert_equal @mongo_doc_dup["keywords"], doc.keywords
     assert_equal @mongo_doc_dup["links"], doc.links
+    assert doc.links.all? { |link| link.instance_of? Wgit::Url }
     assert_equal @mongo_doc_dup["text"], doc.text
+  end
+
+  def assert_internal_links(doc)
+    assert_equal [
+      "styles.css",
+      "client.js",
+      "#welcome",
+      "?foo=bar",
+      "security.html",
+      "about.html",
+      "/",
+      "smiley.jpg",
+      "contact.html",
+      "tests.html",
+      "blog#about-us",
+      "contents",
+    ], doc.internal_links
+    assert doc.internal_links.all? { |link| link.instance_of?(Wgit::Url) }
   end
 end

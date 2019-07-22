@@ -12,6 +12,7 @@ class TestUrl < TestHelper
     @link = "/about.html"
     @url_str_link = "#{@url_str}#{@link}"
     @url_str_anchor = "#{@url_str_link}#about-us"
+    @url_str_query = "#{@url_str_link}?foo=bar"
     @time_stamp = Time.new
     @mongo_doc_dup = {
       "url" => @url_str,
@@ -65,7 +66,11 @@ class TestUrl < TestHelper
     refute Wgit::Url.relative_link? @url_str
 
     assert Wgit::Url.relative_link? @url_str_link, base: @url_str
+    assert Wgit::Url.relative_link? "https://www.google.co.uk", base: @url_str # Diff protocol.
     refute Wgit::Url.relative_link? @url_str_link, base: "http://bing.com"
+    assert Wgit::Url.relative_link? @url_str, base: @url_str
+    assert Wgit::Url.relative_link? @url_str + '/', base: @url_str
+    assert Wgit::Url.relative_link? @url_str + '/', base: @url_str + '/'
 
     assert Wgit::Url.relative_link? "/"
     assert Wgit::Url.relative_link? "/", base: @url_str
@@ -73,6 +78,10 @@ class TestUrl < TestHelper
     assert Wgit::Url.relative_link? '#about-us'
     refute Wgit::Url.relative_link? @url_str_anchor
     assert Wgit::Url.relative_link? @url_str_anchor, base: @url_str
+
+    assert Wgit::Url.relative_link? '?foo=bar'
+    refute Wgit::Url.relative_link? @url_str_query
+    assert Wgit::Url.relative_link? @url_str_query, base: @url_str
 
     assert_raises(RuntimeError) do
       Wgit::Url.relative_link? @url_str_link, base: "bing.com"
@@ -87,6 +96,7 @@ class TestUrl < TestHelper
     assert_equal @url_str_link, Wgit::Url.concat(@url_str, @link)
     assert_equal @url_str_link, Wgit::Url.concat(@url_str, @link[1..-1])
     assert_equal @url_str_anchor, Wgit::Url.concat(@url_str_link, '#about-us')
+    assert_equal @url_str_query, Wgit::Url.concat(@url_str_link, '?foo=bar')
   end
 
   def test_crawled=
@@ -153,6 +163,10 @@ class TestUrl < TestHelper
     url = Wgit::Url.new @url_str_anchor
     assert_equal 'about.html', url.to_path
     assert_equal Wgit::Url, url.to_path.class
+
+    url = Wgit::Url.new @url_str_query
+    assert_equal 'about.html', url.to_path
+    assert_equal Wgit::Url, url.to_path.class
   end
 
   def test_to_endpoint
@@ -183,6 +197,10 @@ class TestUrl < TestHelper
     url = Wgit::Url.new @url_str_anchor
     assert_equal '/about.html', url.to_endpoint
     assert_equal Wgit::Url, url.to_endpoint.class
+
+    url = Wgit::Url.new @url_str_query
+    assert_equal '/about.html', url.to_endpoint
+    assert_equal Wgit::Url, url.to_endpoint.class
   end
 
   def test_to_query_string
@@ -210,25 +228,31 @@ class TestUrl < TestHelper
   def test_without_leading_slash
     url = Wgit::Url.new @url_str
     assert_equal @url_str, url.without_leading_slash
+    assert_equal Wgit::Url, url.without_leading_slash.class
 
     url = Wgit::Url.new @link
     assert_equal 'about.html', url.without_leading_slash
+    assert_equal Wgit::Url, url.without_leading_slash.class
   end
 
   def test_without_trailing_slash
     url = Wgit::Url.new @url_str
     assert_equal @url_str, url.without_trailing_slash
+    assert_equal Wgit::Url, url.without_trailing_slash.class
 
     url = Wgit::Url.new @url_str + '/'
     assert_equal @url_str, url.without_trailing_slash
+    assert_equal Wgit::Url, url.without_trailing_slash.class
   end
 
   def test_without_slashes
     url = Wgit::Url.new 'link.html'
     assert_equal 'link.html', url.without_slashes
+    assert_equal Wgit::Url, url.without_slashes.class
 
     url = Wgit::Url.new '/link.html/'
     assert_equal 'link.html', url.without_slashes
+    assert_equal Wgit::Url, url.without_slashes.class
   end
 
   def test_without_base

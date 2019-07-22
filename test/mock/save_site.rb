@@ -10,27 +10,30 @@ require 'fileutils'
 
 raise 'ARGV[0] must be a URL' unless ARGV[0]
 
-url = Wgit::Url.new(ARGV[0])
-path = "#{File.expand_path(__dir__)}/fixtures/#{url.host}"
-crawler = Wgit::Crawler.new(url)
+base_url = Wgit::Url.new(ARGV[0])
+path = "#{File.expand_path(__dir__)}/fixtures/#{base_url.host}"
+crawler = Wgit::Crawler.new(base_url)
 
 Dir.mkdir(path) unless Dir.exists?(path)
 Dir.chdir(path)
 
 # Save the site to disk.
 crawler.crawl_site do |doc|
-  next if doc.empty?
+  if doc.empty?
+    puts "Invalid URL: #{doc.url}"
+    next
+  end
 
   # Save the index.html file to disk.
-  uri = doc.url.to_uri
-  if uri.path == '' || uri.path == '/'
-    puts "Saving document #{url.host}/index.html"
+  url = doc.url
+  if url.without_slashes == base_url.without_slashes
+    puts "Saving document #{base_url.host}/index.html"
     File.open('index.html', 'w') { |f| f.write(doc.html) }
     next
   end
 
   # Work out the file structure on disk.
-  segs = uri.path.split('/').reject(&:empty?)
+  segs = url.without_base.split('/').reject(&:empty?)
   dir = ''
   if segs.length == 1
     file_name = segs[0]
@@ -48,6 +51,6 @@ crawler.crawl_site do |doc|
 
   # Save the HTML file for the page.
   file_path = "#{dir}#{file_name}.html"
-  puts "Saving document #{url.host}/#{file_path}"
+  puts "Saving document #{base_url.host}/#{file_path}"
   File.open(file_path, 'w') { |f| f.write(doc.html) }
 end

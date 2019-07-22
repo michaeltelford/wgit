@@ -142,12 +142,12 @@ class TestCrawler < TestHelper
   end
 
   def test_crawl_site
-    # Test largish site.
+    # Test largish site - Wordpress site with disgusting HTML.
     url = Wgit::Url.new "http://www.belfastpilates.co.uk/"
     c = Wgit::Crawler.new url
-    assert_crawl_site c, 145, 24
+    assert_crawl_site c, 194, 24
 
-    # Test small site.
+    # Test small site - Static well formed HTML.
     url = Wgit::Url.new "http://txti.es"
     c = Wgit::Crawler.new url
     assert_crawl_site c, 22, 8
@@ -224,7 +224,7 @@ private
   def assert_crawl_site(crawler, expected_num_crawled, expected_num_externals)
     num_crawled = 0
     ext_links = crawler.crawl_site do |doc|
-      byebug if doc.empty?
+      # byebug if doc.empty? # Leave commented out as it's a useful debugger.
       refute doc.empty?
       assert doc.url.start_with?(crawler.urls.first.to_base)
       assert doc.url.crawled?

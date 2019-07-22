@@ -1,0 +1,56 @@
+.feature .feature-thumb {
+  position: relative;
+}
+.feature .feature-thumb i {
+  position: absolute;
+  display: block;
+  right: 20px;
+  top: 20px;
+  color: #FFFFFF;
+  font-size: 30px;
+}
+.feature .feature-thumb img {
+  width: 100%;
+  height: auto;
+}
+.feature .feature-thumb a {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.feature .feature-thumb a:before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  opacity: 0;
+  background-color: rgba(17, 17, 17, 0.3);
+  -webkit-transition: all 0.3s linear;
+  -moz-transition: all 0.3s linear;
+  -ms-transition: all 0.3s linear;
+  -o-transition: all 0.3s linear;
+  transition: all 0.3s linear;
+}
+.feature:hover .feature-thumb:before {
+  opacity: 1;
+}
+.feature .feature-content {
+  padding-top: 13px;
+}
+.feature .feature-content span {
+  font-style: italic;
+  display: block;
+  padding-top: 14px;
+}
+.feature .feature-content h6 {
+  padding-top: 16px;
+  margin-bottom: 6px;
+}
+.feature .feature-content h6 a {
+  text-transform: uppercase;
+}
+.feature .feature-content h6 a:hover {
+  text-decoration: none;
+}

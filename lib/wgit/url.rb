@@ -107,15 +107,19 @@ module Wgit
     # @raise [RuntimeError] If the link is invalid.
     def self.relative_link?(link, base: nil)
       raise "Invalid link: #{link}" if link.nil? or link.empty?
-      if base and URI(base).host.nil?
-        raise "Invalid base, must contain protocol prefix: #{base}"
+
+      link = Wgit::Url.new(link)
+      if base
+        base = Wgit::Url.new(base)
+        if base.to_scheme.nil?
+          raise "Invalid base, must contain protocol prefix: #{base}"
+        end
       end
 
-      uri = URI(link)
-      if uri.relative?
+      if link.to_uri.relative?
         true
       else
-        base ? uri.host == URI(base).host : false
+        base ? link.to_host == base.to_host : false
       end
     end
 
@@ -127,7 +131,7 @@ module Wgit
     def self.concat(host, link)
       host = Wgit::Url.new(host).without_trailing_slash
       link = Wgit::Url.new(link).without_leading_slash
-      separator = link.start_with?('#') ? '' : '/'
+      separator = (link.start_with?('#') or link.start_with?('?')) ? '' : '/'
       Wgit::Url.new(host + separator + link)
     end
 
@@ -276,7 +280,9 @@ module Wgit
     #
     # @return [Wgit::Url] Self without leading or trailing slashes.
     def without_slashes
-      without_leading_slash.without_trailing_slash
+      self.
+        without_leading_slash.
+        without_trailing_slash
     end
 
     # Returns a new Wgit::Url with the base (proto and host) removed e.g. Given

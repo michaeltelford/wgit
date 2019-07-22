@@ -216,7 +216,10 @@ module Wgit
         rescue
           true
         end.
-        map(&:without_base)
+        map(&:without_base).
+        map do |link| # We map @url.to_host into / because it's a duplicate.
+          link.to_host == @url.to_host ? Wgit::Url.new('/') : link
+        end
 
       process_arr(links)
     end

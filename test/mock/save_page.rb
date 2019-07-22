@@ -16,7 +16,11 @@ Dir.chdir("#{File.expand_path(__dir__)}/fixtures")
 
 # Save the HTML file for the page.
 crawler.crawl_url do |doc|
-  next if doc.empty?
+  if doc.empty?
+    puts "Invalid URL: #{doc.url}"
+    next
+  end
+
   file_path = "#{url.host}.html"
   puts "Saving document #{file_path}"
   File.open(file_path, 'w') { |f| f.write(doc.html) }

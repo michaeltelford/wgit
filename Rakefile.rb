@@ -21,22 +21,22 @@ end
 
 desc "Download/update a web page test fixture to test/mock/fixtures"
 task :save_page, [:url] do |t, args|
-  puts `ruby test/mock/save_page.rb #{args[:url]}`
+  system "ruby test/mock/save_page.rb #{args[:url]}"
   puts "Don't forget to mock the page in test/mock/fixtures.rb"
 end
 
 desc "Download/update a web site test fixture to test/mock/fixtures"
 task :save_site, [:url] do |t, args|
-  puts `ruby test/mock/save_site.rb #{args[:url]}`
+  system "ruby test/mock/save_site.rb #{args[:url]}"
   puts "Don't forget to mock the site in test/mock/fixtures.rb"
 end
 
 desc "Compile all project Ruby files with warnings."
-task :compile do 
-  paths = Dir["**/*.rb", "**/*.gemspec"]
+task :compile do
+  paths = Dir["**/*.rb", "**/*.gemspec", "bin/console"]
   paths.each do |f|
     puts "\nCompiling #{f}..."
-    puts `ruby -cw #{f}`
+    system "ruby -cw #{f}"
   end
 end
 
@@ -46,7 +46,7 @@ task :RELEASE, [:remote] do |t, args|
   if !Wgit::CONNECTION_DETAILS.empty?
     raise "Clear the CONNECTION_DETAILS before releasing the gem"
   end
-  
+
   puts "Releasing gem version #{Wgit::VERSION}, using the #{args[:remote]} Git remote..."
   confirm "Have you went through the TODO.txt 'Gem Publishing Checklist'?"
 
