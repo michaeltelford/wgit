@@ -19,10 +19,16 @@ module Wgit
     # The HTML elements that make up the visible text on a page.
     # These elements are used to initialize the @text of the Document.
     # See the README.md for how to add to this Array dynamically.
-    @@text_elements = [
+    @text_elements = [
       :dd, :div, :dl, :dt, :figcaption, :figure, :hr, :li,
       :main, :ol, :p, :pre, :span, :ul, :h1, :h2, :h3, :h4, :h5
     ]
+
+    class << self
+      # Class level instance reader method for @text_elements.
+      # Call using Wgit::Document.text_elements.
+      attr_reader :text_elements
+    end
 
     # The URL of the webpage, an instance of Wgit::Url.
     attr_reader :url
@@ -308,21 +314,15 @@ module Wgit
 
     ### Document (Class) methods ###
 
-    # Returns Document.text_elements used to obtain the text in a webpage.
+    # Uses Document.text_elements to build an xpath String, used to obtain
+    # all of the combined text on a webpage.
     #
-    # @return [Array<Symbols>] The page elements containing visual text on a
-    #   webpage.
-    def self.text_elements
-      @@text_elements
-    end
-
-    # Takes Docuent.text_elements and returns an xpath String used to obtain
-    # all of the combined text.
+    # @return [String] An xpath String to obtain a webpage's text elements.
     def self.text_elements_xpath
       xpath = ""
-      return xpath if @@text_elements.empty?
+      return xpath if Wgit::Document.text_elements.empty?
       el_xpath = "//%s/text()"
-      @@text_elements.each_with_index do |el, i|
+      Wgit::Document.text_elements.each_with_index do |el, i|
         xpath += " | " unless i == 0
         xpath += el_xpath % [el]
       end
