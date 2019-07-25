@@ -2,7 +2,7 @@ require_relative 'url'
 require_relative 'document'
 require_relative 'utils'
 require_relative 'assertable'
-require 'net/http' # requires 'uri'
+require 'net/http' # Requires 'uri'.
 
 module Wgit
 
@@ -10,6 +10,15 @@ module Wgit
   # their HTML into Wgit::Document's.
   class Crawler
     include Assertable
+
+    # The default maximum amount of allowed URL redirects.
+    @default_redirect_limit = 5
+
+    class << self
+      # Class level instance accessor methods for @default_redirect_limit.
+      # Call using Wgit::Crawler.default_redirect_limit etc.
+      attr_accessor :default_redirect_limit
+    end
 
     # The urls to crawl.
     attr_reader :urls
@@ -158,14 +167,15 @@ module Wgit
       Wgit.logger.debug(
         "Wgit::Crawler#fetch('#{url}') exception: #{ex.message}"
       )
+      @last_response = nil
       nil
     end
 
     # The resolve method performs a HTTP GET to obtain the HTML document.
     # A certain amount of redirects will be followed by default before raising
-    # an exception. Redirects can be disabled by setting `redirect_limit: 1`.
+    # an exception. Redirects can be disabled by setting `redirect_limit: 0`.
     # The Net::HTTPResponse will be returned.
-    def resolve(url, redirect_limit: 5)
+    def resolve(url, redirect_limit: Wgit::Crawler.default_redirect_limit)
       redirect_count = -1
       begin
         raise "Too many redirects" if redirect_count >= redirect_limit
