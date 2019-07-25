@@ -2,7 +2,7 @@ module Wgit
 
   # Utility module containing generic methods.
   module Utils
-      
+
     # Returns the current time stamp.
     #
     # @return [Time] The current time stamp.
@@ -27,7 +27,7 @@ module Wgit
       end
       hash
     end
-    
+
     # Returns the model having removed non bson types (for use with MongoDB).
     #
     # @param model_hash [Hash] The model Hash to process.
@@ -60,7 +60,7 @@ module Wgit
     # @param index [Integer] The first index of a word in sentence. This is
     #     usually a word in a search query.
     # @param sentence_limit [Integer] The max length of the formatted sentence
-    #     being returned. The length will be based on the sentence_limit 
+    #     being returned. The length will be based on the sentence_limit
     #     parameter or the full length of the original sentence, which ever
     #     is less. The full sentence is returned if the sentence_limit is 0.
     # @return [String] The sentence once formatted.
@@ -70,7 +70,7 @@ module Wgit
       if index < 0 or index > sentence.length
         raise "Incorrect index value: #{index}"
       end
-    
+
       return sentence if sentence_limit == 0
 
       start = 0
@@ -131,11 +131,11 @@ module Wgit
     #     to output text somewhere e.g. STDOUT (the default).
     # @return [nil]
     def self.printf_search_results(results, query = nil, case_sensitive = false,
-                                   sentence_length = 80, keyword_count = 5, 
+                                   sentence_length = 80, keyword_count = 5,
                                    stream = Kernel)
       raise "stream must respond_to? :puts" unless stream.respond_to? :puts
       keyword_count -= 1 # Because Array's are zero indexed.
-    
+
       results.each do |doc|
         sentence =  if query.nil?
                       nil
@@ -155,8 +155,37 @@ module Wgit
         stream.puts doc.url
         stream.puts
       end
-      
+
       nil
+    end
+
+    # Processes a String to make it uniform. Strips off any leading/trailing
+    # white space and converts to UTF-8.
+    #
+    # @param str [String] The String to process. str is modified.
+    # @return [String] The processed str is both modified and then returned.
+    def self.process_str(str)
+      if str.is_a?(String)
+        str.encode!('UTF-8', 'UTF-8', invalid: :replace)
+        str.strip!
+      end
+      str
+    end
+
+    # Processes an Array to make it uniform. Removes empty Strings and nils,
+    # processes non empty Strings using Wgit::Utils.process_str before removing
+    # duplicates.
+    #
+    # @param arr [Enumerable] The Array to process. arr is modified.
+    # @return [Enumerable] The processed arr is both modified and then returned.
+    def self.process_arr(arr)
+      if arr.is_a?(Array)
+        arr.map! { |str| process_str(str) }
+        arr.reject! { |str| str.is_a?(String) ? str.empty? : false }
+        arr.compact!
+        arr.uniq!
+      end
+      arr
     end
   end
 end

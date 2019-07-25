@@ -221,7 +221,7 @@ module Wgit
           link.to_host == @url.to_host ? Wgit::Url.new('/') : link
         end
 
-      process_arr(links)
+      Wgit::Utils.process_arr(links)
     end
 
     # Get all internal links of this Document and append them to this
@@ -251,7 +251,7 @@ module Wgit
         end.
         map(&:without_trailing_slash)
 
-      process_arr(links)
+      Wgit::Utils.process_arr(links)
     end
 
     # Searches against the @text for the given search query.
@@ -316,6 +316,19 @@ module Wgit
       @@text_elements
     end
 
+    # Takes Docuent.text_elements and returns an xpath String used to obtain
+    # all of the combined text.
+    def self.text_elements_xpath
+      xpath = ""
+      return xpath if @@text_elements.empty?
+      el_xpath = "//%s/text()"
+      @@text_elements.each_with_index do |el, i|
+        xpath += " | " unless i == 0
+        xpath += el_xpath % [el]
+      end
+      xpath
+    end
+
     # Initialises a private instance variable with the xpath or database object
     # result(s). When initialising from HTML, a true singleton value will only
     # ever return one result otherwise all xpath results are returned in an
@@ -329,7 +342,11 @@ module Wgit
     # effectively implements ORM like behavior using this class.
     #
     # @param var [Symbol] The name of the variable to be initialised.
-    # @param xpath [String] Used to find the element(s) of the webpage.
+    # @param xpath [String, Object#call] The xpath used to find the element(s)
+    #   of the webpage. Pass a callable object (proc etc.) if you want the
+    #   xpath value to be derived on Document initialisation (instead of when
+    #   the extension is defined). The call method must return a valid xpath
+    #   String.
     # @option options [Boolean] :singleton The singleton option determines
     #   whether or not the result(s) should be in an Array. If multiple
     #   results are found and singleton is true then the first result will be
@@ -337,10 +354,13 @@ module Wgit
     # @option options [Boolean] :text_content_only The text_content_only option
     #   if true will use the text content of the Nokogiri result object,
     #   otherwise the Nokogiri object itself is returned. Defaults to true.
-    # @yield [var_value] Gives the value about to be assigned to the new var.
+    # @yield [Object, Symbol] Yields the value about to be assigned to the new
+    #   var and the source of the value (either :html or :object aka database).
     #   The return value of the block becomes the new var value, unless nil.
-    #   Return nil if you want to inspect but not change the var value.
-    # @return [Symbol] The first half of the newly created method names e.g.
+    #   Return nil if you want to inspect but not change the var value. The
+    #   block gets executed when a Document is initialized from html or an
+    #   object.
+    # @return [Symbol] The first half of the newly defined method names e.g.
     #   if var == "title" then :init_title is returned.
     def self.define_extension(var, xpath, options = {}, &block)
       default_options = { singleton: true, text_content_only: true }
@@ -392,6 +412,12 @@ module Wgit
       end
     end
 
+    # Ensure the @url and @html Strings are correctly encoded etc.
+    def process_url_and_html
+      @url = Wgit::Utils.process_str(@url)
+      @html = Wgit::Utils.process_str(@html)
+    end
+
     # Returns an object/value from this Document's @html using the provided
     # xpath param.
     # singleton ? results.first (single Object) : results (Array)
@@ -399,6 +425,7 @@ module Wgit
     # A block can be used to set the final value before it is returned.
     # Return nil from the block if you don't want to override the value.
     def find_in_html(xpath, singleton: true, text_content_only: true)
+      xpath = xpath.call if xpath.respond_to?(:call)
       results = @doc.xpath(xpath)
 
       if results and not results.empty?
@@ -411,10 +438,10 @@ module Wgit
         result = singleton ? nil : []
       end
 
-      singleton ? process_str(result) : process_arr(result)
+      singleton ? Wgit::Utils.process_str(result) : Wgit::Utils.process_arr(result)
 
       if block_given?
-        new_result = yield(result)
+        new_result = yield(result, :html)
         result = new_result if new_result
       end
 
@@ -430,10 +457,10 @@ module Wgit
 
       default = singleton ? nil : []
       result = obj.fetch(key.to_s, default)
-      singleton ? process_str(result) : process_arr(result)
+      singleton ? Wgit::Utils.process_str(result) : Wgit::Utils.process_arr(result)
 
       if block_given?
-        new_result = yield(result)
+        new_result = yield(result, :object)
         result = new_result if new_result
       end
 
@@ -455,136 +482,6 @@ module Wgit
       Document.send(:define_method, var_name) do
         instance_variable_get(instance_var_name)
       end
-    end
-
-    # Takes Docuent.text_elements and returns an xpath String used to obtain
-    # all of the combined text.
-    def text_elements_xpath
-      xpath = ""
-      return xpath if @@text_elements.empty?
-      el_xpath = "//%s/text()"
-      @@text_elements.each_with_index do |el, i|
-        xpath += " | " unless i == 0
-        xpath += el_xpath % [el]
-      end
-      xpath
-    end
-
-    # Processes a String to make it uniform.
-    def process_str(str)
-      if str.is_a?(String)
-        str.encode!('UTF-8', 'UTF-8', invalid: :replace)
-        str.strip!
-      end
-      str
-    end
-
-    # Processes an Array to make it uniform.
-    def process_arr(array)
-      if array.is_a?(Array)
-        array.map! { |str| process_str(str) }
-        array.reject! { |str| str.is_a?(String) ? str.empty? : false }
-        array.compact!
-        array.uniq!
-      end
-      array
-    end
-
-    # Ensure the @url and @html Strings are correctly encoded etc.
-    def process_url_and_html
-      @url = process_str(@url)
-      @html = process_str(@html)
-    end
-
-    ### Default init_* (Document extension) methods. ###
-
-    # Init methods for title.
-
-    def init_title_from_html
-      xpath = "//title"
-      result = find_in_html(xpath)
-      init_var(:@title, result)
-    end
-
-    def init_title_from_object(obj)
-      result = find_in_object(obj, "title")
-      init_var(:@title, result)
-    end
-
-    # Init methods for author.
-
-    def init_author_from_html
-      xpath = "//meta[@name='author']/@content"
-      result = find_in_html(xpath)
-      init_var(:@author, result)
-    end
-
-    def init_author_from_object(obj)
-      result = find_in_object(obj, "author")
-      init_var(:@author, result)
-    end
-
-    # Init methods for keywords.
-
-    def init_keywords_from_html
-      xpath = "//meta[@name='keywords']/@content"
-      result = find_in_html(xpath) do |keywords|
-        if keywords
-          keywords = keywords.split(",")
-          process_arr(keywords)
-        end
-        keywords
-      end
-      init_var(:@keywords, result)
-    end
-
-    def init_keywords_from_object(obj)
-      result = find_in_object(obj, "keywords", singleton: false)
-      init_var(:@keywords, result)
-    end
-
-    # Init methods for links.
-
-    def init_links_from_html
-      # Any element with a href or src attribute is considered a link.
-      xpath = '//*/@href | //*/@src'
-      result = find_in_html(xpath, singleton: false) do |links|
-        if links
-          links.map! do |link|
-            begin
-              Wgit::Url.new(link)
-            rescue
-              nil
-            end
-          end
-          links.compact!
-        end
-        links
-      end
-      init_var(:@links, result)
-    end
-
-    def init_links_from_object(obj)
-      result = find_in_object(obj, "links", singleton: false) do |links|
-        if links
-          links.map! { |link| Wgit::Url.new(link) }
-        end
-        links
-      end
-      init_var(:@links, result)
-    end
-
-    # Init methods for text.
-
-    def init_text_from_html
-      xpath = text_elements_xpath
-      result = find_in_html(xpath, singleton: false)
-      init_var(:@text, result)
-    end
-
-    def init_text_from_object(obj)
-      result = find_in_object(obj, "text", singleton: false)
-      init_var(:@text, result)
     end
 
     alias :to_hash :to_h

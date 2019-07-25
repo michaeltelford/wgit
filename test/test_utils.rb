@@ -4,7 +4,7 @@ require_relative "helpers/test_helper"
 # have instance_variables which Wgit::Utils.to_h uses.
 class Person
   attr_accessor :name, :age, :height
-  
+
   def initialize
     @name = "Bob"
     @age = 45
@@ -25,7 +25,7 @@ class TestUtils < TestHelper
         "age" => 45
     }
   end
-  
+
   def test_to_h
     h = Wgit::Utils.to_h @person, ["@height"]
     assert_equal @to_h_result, h
@@ -38,42 +38,42 @@ class TestUtils < TestHelper
       age: 45
     }, h)
   end
-  
+
   def test_each
     str = ["hello", "goodbye"]
     Wgit::Utils.each(str) { |el| el.replace(el + 1.to_s) }
     assert_equal ["hello1", "goodbye1"], str
-    
+
     str = "hello"
     Wgit::Utils.each(str) { |el| el.replace(el + 1.to_s) }
     assert_equal "hello1", str
   end
-  
+
   def test_format_sentence_length
     sentence_limit = 10
-    
+
     # Short sentence.
     sentence = "For what"
-    result = 
+    result =
       Wgit::Utils.format_sentence_length sentence.dup, 2, sentence_limit
     assert_equal sentence, result
-    
+
     # Long sentence: index near start.
     sentence = "For what of the flower if not for soil beneath it?"
-    result = 
+    result =
       Wgit::Utils.format_sentence_length sentence.dup, 5, sentence_limit
     assert_equal "For what o", result
-    
+
     # Long sentence: index near end.
-    result = 
+    result =
       Wgit::Utils.format_sentence_length sentence.dup, 48, sentence_limit
     assert_equal "eneath it?", result
-    
+
     # Long sentence: index near middle.
-    result = 
+    result =
       Wgit::Utils.format_sentence_length sentence.dup, 23, sentence_limit
     assert_equal "ower if no", result
-    
+
     # Return full sentence.
     sentence = "For what of the flower if not for soil beneath it?\
                 For what of the flower if not for soil beneath it?\
@@ -81,7 +81,7 @@ class TestUtils < TestHelper
     result = Wgit::Utils.format_sentence_length sentence.dup, 5, 0
     assert_equal sentence, result
   end
-  
+
   def test_printf_search_results
     # Setup the test results data.
     search_text = "Everest"
@@ -91,22 +91,39 @@ class TestUtils < TestHelper
       doc_hash["url"] = "http://altitudejunkies.com/everest.html"
       results << Wgit::Document.new(doc_hash)
     end
-    
+
     # Setup the temp file to write the printf output to.
     file_name = SecureRandom.uuid.split("-").last
     file_path = "#{Dir.tmpdir}/#{file_name}.txt"
     file = File.new file_path, "w+"
-    
+
     Wgit::Utils.printf_search_results results, search_text, false, 80, 5, file
     file.close
-    
+
     # Assert the file contents against the expected output.
     text = IO.readlines(file_path).join
     assert_equal printf_expected_output, text
   end
-  
+
+  def test_process_str
+    s = ' hello world '
+    s2 = Wgit::Utils.process_str s
+
+    assert_equal s.strip, s
+    assert_equal s2, s
+  end
+
+  def test_process_arr
+    a = ['', true, nil, true, false, ' hello world ']
+    a2 = Wgit::Utils.process_arr a
+    expected = [true, false, 'hello world']
+
+    assert_equal expected, a
+    assert_equal expected, a2
+  end
+
 private
-  
+
   def printf_expected_output
     "Altitude Junkies | Everest
 Everest, Highest Peak, High Altitude, Altitude Junkies

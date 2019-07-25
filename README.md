@@ -258,13 +258,13 @@ doc.text # => ["Hello world!", "Click this link."]
 
 **Note**: This only works for textual page content. For more control over the indexed elements themselves, see below.
 
-### 2. Defining Custom Indexers/Elements a.k.a Virtual Attributes
+### 2. Defining Custom Indexers Via Document Extensions
 
 If you want full control over the elements being indexed for your own purposes, then you can define a custom indexer for each type of element that you're interested in.
 
 Once you have the indexed page element, accessed via a `Wgit::Document` instance method, you can do with it as you wish e.g. obtain it's text value or manipulate the element etc. Since the returned types are plain [Nokogiri](https://www.rubydoc.info/github/sparklemotion/nokogiri) objects, you have the full control that the Nokogiri gem gives you.
 
-Here's how to add a custom indexer for a specific page element:
+Here's how to add a Document extension to index a specific page element:
 
 ```ruby
 require 'wgit'
@@ -296,16 +296,19 @@ tables.class        # => Nokogiri::XML::NodeSet
 tables.first.class  # => Nokogiri::XML::Element
 ```
 
+**Note**: Wgit uses Document extensions to provide much of it's core functionality, providing access to a webpages text or links for example. These [default Document extensions](https://github.com/michaeltelford/wgit/blob/master/lib/wgit/document_extensions.rb) provide examples for your own.
+
 **Extension Notes**:
 
-- Any links should be mapped into `Wgit::Url` objects; Url's are treated as Strings when being inserted into the database.
-- Any object (like a Nokogiri object) will not be inserted into the database, its up to you to map each object into a native type e.g. `Boolean, Array` etc.
+- Any page links should be mapped into `Wgit::Url` objects; Url's are treated as Strings when being inserted into the database.
+- Any object (like a Nokogiri object) will not be inserted into the database, it's up to you to map each object into a primitive type e.g. `Boolean, Array` etc.
 
 ## Caveats
 
 Below are some points to keep in mind when using Wgit:
 
-- All `Wgit::Url`'s must be prefixed with an appropiate protocol e.g. `https://`
+- All absolute `Wgit::Url`'s must be prefixed with an appropiate protocol e.g. `https://`
+- By default, up to 5 URL redirects will be followed; this is configurable however.
 
 ## Executable
 
