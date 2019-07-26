@@ -3,7 +3,7 @@
 # Title.
 Wgit::Document.define_extension(
   :title,
-  "//title",
+  '//title',
   singleton: true,
   text_content_only: true,
 )
@@ -11,7 +11,7 @@ Wgit::Document.define_extension(
 # Author.
 Wgit::Document.define_extension(
   :author,
-  "//meta[@name='author']/@content",
+  '//meta[@name="author"]/@content',
   singleton: true,
   text_content_only: true,
 )
@@ -19,12 +19,12 @@ Wgit::Document.define_extension(
 # Keywords.
 Wgit::Document.define_extension(
   :keywords,
-  "//meta[@name='keywords']/@content",
+  '//meta[@name="keywords"]/@content',
   singleton: true,
   text_content_only: true,
 ) do |keywords, source|
   if keywords and source == :html
-    keywords = keywords.split(",")
+    keywords = keywords.split(',')
     Wgit::Utils.process_arr(keywords)
   end
   keywords
@@ -33,7 +33,7 @@ end
 # Links.
 Wgit::Document.define_extension(
   :links,
-  "//*/@href | //*/@src",
+  '//a/@href',
   singleton: false,
   text_content_only: true,
 ) do |links|

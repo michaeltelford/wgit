@@ -17,9 +17,6 @@ class TestDocument < TestHelper
       "author" => "Michael Telford",
       "keywords" => ["Minitest", "Ruby", "Test Document"],
       "links" => [
-        "/styles.css",
-        "http://www.mytestsite.com/client.js",
-        "http://www.external-scripts.com/code.js",
         "#welcome",
         "?foo=bar",
         "http://www.google.co.uk",
@@ -27,8 +24,6 @@ class TestDocument < TestHelper
         "/about.html",
         "about.html",
         "/",
-        "smiley.jpg",
-        "https://imgur.com/smiley.jpg",
         "http://www.yahoo.com",
         "/contact.html",
         "http://www.bing.com/",
@@ -54,7 +49,7 @@ and power matches the Ruby language in which it's developed."
       title: 15,
       author: 15,
       keywords: 3,
-      links: 22,
+      links: 17,
       text_snippets: 4,
       text_bytes: 280
     }
@@ -98,13 +93,10 @@ Minitest framework."
   def test_internal_links_without_anchors
     doc = Wgit::Document.new Wgit::Url.new(@url + '/about'), @html
     assert_equal [
-      "styles.css",
-      "client.js",
       "?foo=bar",
       "security.html",
       "about.html",
       "/",
-      "smiley.jpg",
       "contact.html",
       "tests.html",
       "blog",
@@ -121,14 +113,11 @@ Minitest framework."
   def test_internal_full_links
     doc = Wgit::Document.new @url, @html
     assert_equal [
-      "#{@url}/styles.css",
-      "#{@url}/client.js",
       "#{@url}#welcome",
       "#{@url}?foo=bar",
       "#{@url}/security.html",
       "#{@url}/about.html",
       "#{@url}/",
-      "#{@url}/smiley.jpg",
       "#{@url}/contact.html",
       "#{@url}/tests.html",
       "#{@url}/blog#about-us",
@@ -139,7 +128,7 @@ Minitest framework."
     end
 
     doc = Wgit::Document.new Wgit::Url.new("#{@url}/contents"), @html
-    assert_equal "#{@url}/styles.css", doc.internal_full_links.first
+    assert_equal "#{@url}#welcome", doc.internal_full_links.first
 
     doc = Wgit::Document.new @url, "<p>Hello World!</p>"
     assert_empty doc.internal_full_links
@@ -148,9 +137,7 @@ Minitest framework."
   def test_external_links
     doc = Wgit::Document.new @url, @html
     assert_equal [
-      "http://www.external-scripts.com/code.js",
       "http://www.google.co.uk",
-      "https://imgur.com/smiley.jpg",
       "http://www.yahoo.com",
       "http://www.bing.com",
       "https://duckduckgo.com/search?q=hello&page=2",
@@ -267,14 +254,11 @@ private
 
   def assert_internal_links(doc)
     assert_equal [
-      "styles.css",
-      "client.js",
       "#welcome",
       "?foo=bar",
       "security.html",
       "about.html",
       "/",
-      "smiley.jpg",
       "contact.html",
       "tests.html",
       "blog#about-us",
