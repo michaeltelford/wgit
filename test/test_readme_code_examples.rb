@@ -5,14 +5,14 @@ require "securerandom"
 # WARNING: The DB is cleared down at the start of the database example test.
 class TestReadmeCodeExamples < TestHelper
   include Wgit::DatabaseHelper
-  
+
   # Runs before every test.
   def setup
   end
 
   def test_basic_usage
     ### PUT README CODE BELOW ###
-    
+
     require 'wgit'
 
     crawler = Wgit::Crawler.new
@@ -30,16 +30,16 @@ class TestReadmeCodeExamples < TestHelper
     Wgit::Document.instance_methods(false).sort
 
     results = doc.search "corruption"
-    results.first # => "ial materials involving war, spying and corruption. 
+    results.first # => "ial materials involving war, spying and corruption.
                   #     It has so far published more"
 
     ### PUT README CODE ABOVE ###
 
     refute(doc.stats.empty?) # The stats change a lot so just assert presence.
-    assert_equal([:==, :[], :author, :css, :date_crawled, :doc, :empty?, :external_links, :external_urls, :html, :internal_full_links, :internal_links, :keywords, :links, :relative_full_links, :relative_full_urls, :relative_links, :relative_urls, :score, :search, :search!, :size, :stats, :text, :title, :to_h, :to_hash, :to_json, :url, :xpath], Wgit::Document.instance_methods(false).sort)
+    assert_equal([:==, :[], :author, :css, :date_crawled, :doc, :empty?, :external_links, :external_urls, :html, :internal_full_links, :internal_links, :internal_links_without_anchors, :keywords, :links, :relative_full_links, :relative_full_urls, :relative_links, :relative_urls, :score, :search, :search!, :size, :stats, :text, :title, :to_h, :to_hash, :to_json, :url, :xpath], Wgit::Document.instance_methods(false).sort)
     assert_equal("ial materials involving war, spying and corruption. It has so far published more", results.first)
   end
-  
+
   def test_css_indexer
     ### PUT README CODE BELOW ###
 
@@ -66,7 +66,7 @@ class TestReadmeCodeExamples < TestHelper
     assert href.start_with?("https://static.xx.fbcdn.net/rsrc.php/v3")
     refute_empty css
   end
-  
+
   def test_keyword_indexer
     ### PUT README CODE BELOW ###
 
@@ -76,8 +76,8 @@ class TestReadmeCodeExamples < TestHelper
     my_pages_missing_keywords = []
 
     competitor_urls = [
-      "http://altitudejunkies.com", 
-      "http://www.mountainmadness.com", 
+      "http://altitudejunkies.com",
+      "http://www.mountainmadness.com",
       "http://www.adventureconsultants.com"
     ]
 
@@ -102,7 +102,7 @@ class TestReadmeCodeExamples < TestHelper
 
     refute_empty my_pages_missing_keywords.uniq
   end
-  
+
   # Clears the DB and uses the test connection details which are already set.
   def test_database_example
     clear_db
@@ -115,7 +115,7 @@ class TestReadmeCodeExamples < TestHelper
     # Here we create our own document rather than crawling the web.
     # We pass the web page's URL and HTML Strings.
     doc = Wgit::Document.new(
-      "http://test-url.com".to_url, 
+      "http://test-url.com".to_url,
       "<html><p>How now brown cow.</p><a href='http://www.google.co.uk'>Click me!</a></html>"
     )
 
@@ -143,8 +143,8 @@ class TestReadmeCodeExamples < TestHelper
 
     db.insert doc.external_links
 
-    urls_to_crawl = db.uncrawled_urls # => Results will include doc.external_links. 
-    
+    urls_to_crawl = db.uncrawled_urls # => Results will include doc.external_links.
+
     ### PUT README CODE ABOVE ###
 
     assert_equal doc.url, results.first.url
@@ -171,7 +171,7 @@ class TestReadmeCodeExamples < TestHelper
 
     # Our Document has a table which we're interested in.
     doc = Wgit::Document.new(
-      "http://some_url.com".to_url, 
+      "http://some_url.com".to_url,
       "<html><p>Hello world!</p>\
     <table><th>Header Text</th><th>Another Header</th></table></html>"
     )

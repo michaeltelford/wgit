@@ -76,7 +76,7 @@ module Wgit
     # Crawls individual urls, not entire sites.
     #
     # @param urls [Array<Wgit::Url>] The URLs to crawl.
-    # @yield [doc] If provided, the block is given each crawled
+    # @yield [Wgit::Document] If provided, the block is given each crawled
     #   Document. Otherwise each doc is added to @docs which can be accessed
     #   by Crawler#docs after this method returns.
     # @return [Wgit::Document] The last Document crawled.
@@ -91,7 +91,7 @@ module Wgit
     # Crawl the url and return the response document or nil.
     #
     # @param url [Wgit::Document] The URL to crawl.
-    # @yield [doc] The crawled HTML Document regardless if the
+    # @yield [Wgit::Document] The crawled HTML Document regardless if the
     #   crawl was successful or not. Therefore, the Document#url can be used.
     # @return [Wgit::Document, nil] The crawled HTML Document or nil if the
     #   crawl was unsuccessful.
@@ -104,10 +104,11 @@ module Wgit
       doc.empty? ? nil : doc
     end
 
-    # Crawls an entire site by recursively going through its internal_links.
+    # Crawls an entire website's HTML Documents by recursively going through
+    # its internal_links.
     #
     # @param base_url [Wgit::Url] The base URL of the website to be crawled.
-    # @yield [doc] Given each crawled Document/page of the site.
+    # @yield [Wgit::Document] Given each crawled Document/page of the site.
     #   A block is the only way to interact with each crawled Document.
     # @return [Array<Wgit::Url>, nil] Unique Array of external urls collected
     #   from all of the site's pages or nil if the base_url could not be
@@ -121,7 +122,7 @@ module Wgit
       path = base_url.path.nil? ? '/' : base_url.path
       crawled_urls  = [path]
       external_urls = doc.external_links
-      internal_urls = doc.internal_links
+      internal_urls = doc.internal_links_without_anchors
 
       return doc.external_links.uniq if internal_urls.empty?
 
@@ -135,7 +136,7 @@ module Wgit
           doc = crawl_url(Wgit::Url.concat(base_url.to_base, link), &block)
           crawled_urls << link
           next if doc.nil?
-          internal_urls.concat(doc.internal_links)
+          internal_urls.concat(doc.internal_links_without_anchors)
           external_urls.concat(doc.external_links)
         end
       end

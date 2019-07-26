@@ -95,6 +95,29 @@ Minitest framework."
     assert_empty doc.internal_links
   end
 
+  def test_internal_links_without_anchors
+    doc = Wgit::Document.new Wgit::Url.new(@url + '/about'), @html
+    assert_equal [
+      "styles.css",
+      "client.js",
+      "?foo=bar",
+      "security.html",
+      "about.html",
+      "/",
+      "smiley.jpg",
+      "contact.html",
+      "tests.html",
+      "blog",
+      "contents",
+    ], doc.internal_links_without_anchors
+    assert doc.internal_links_without_anchors.all? do |link|
+      link.instance_of?(Wgit::Url)
+    end
+
+    doc = Wgit::Document.new @url, "<p>Hello World!</p>"
+    assert_empty doc.internal_links_without_anchors
+  end
+
   def test_internal_full_links
     doc = Wgit::Document.new @url, @html
     assert_equal [

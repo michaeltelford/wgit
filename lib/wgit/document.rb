@@ -208,8 +208,12 @@ module Wgit
       @doc.css(selector)
     end
 
-    # Get all internal links of this Document in relative form. Internal
-    # meaning a link to another page on this website. Also see
+    # Get all the internal links of this Document in relative form. Internal
+    # meaning a link to another document on this domain. This Document's domain
+    # is used to determine if an absolute URL is actually a relative link e.g.
+    # For a Document representing http://server.com/about, an absolute link of
+    # <a href='http://server.com/search'> will be recognized and returned as an
+    # internal link because both Documents live on the same domain. Also see
     # Wgit::Document#internal_full_links.
     #
     # @return [Array<Wgit::Url>] self's internal/relative URL's.
@@ -230,7 +234,20 @@ module Wgit
       Wgit::Utils.process_arr(links)
     end
 
-    # Get all internal links of this Document and append them to this
+    # Get all the internal links of this Document with their anchors removed
+    # (if present). Also see Wgit::Document#internal_links.
+    #
+    # @return [Array<Wgit::Url>] self's internal/relative URL's with their
+    #   anchors removed.
+    def internal_links_without_anchors
+      in_links = internal_links
+      return [] if in_links.empty?
+      in_links.
+        map(&:without_anchor).
+        reject(&:empty?)
+    end
+
+    # Get all the internal links of this Document and append them to this
     # Document's base URL making them absolute. Also see
     # Wgit::Document#internal_links.
     #
@@ -242,8 +259,8 @@ module Wgit
       in_links.map { |link| @url.to_base.concat(link) }
     end
 
-    # Get all external links of this Document. External meaning a link to
-    # another website.
+    # Get all the external links of this Document. External meaning a link to
+    # a different domain.
     #
     # @return [Array<Wgit::Url>] self's external/absolute URL's.
     def external_links

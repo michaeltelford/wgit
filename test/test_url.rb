@@ -285,6 +285,44 @@ class TestUrl < TestHelper
     assert_equal Wgit::Url, url.without_base.class
   end
 
+  def test_without_anchor
+    url = Wgit::Url.new 'http://google.com/search?q=foo#bar'
+    assert_equal 'http://google.com/search?q=foo', url.without_anchor
+    assert_equal Wgit::Url, url.without_anchor.class
+
+    url = Wgit::Url.new '/about.html'
+    assert_equal '/about.html', url.without_anchor
+    assert_equal Wgit::Url, url.without_anchor.class
+
+    url = Wgit::Url.new '/about.html#hello/'
+    assert_equal '/about.html', url.without_anchor
+    assert_equal Wgit::Url, url.without_anchor.class
+
+    url = Wgit::Url.new '/about.html/hello?a=b&b=c#about'
+    assert_equal '/about.html/hello?a=b&b=c', url.without_anchor
+    assert_equal Wgit::Url, url.without_anchor.class
+
+    url = Wgit::Url.new '/about.html/hello#about?a=b&b=c' # Invalid anchor.
+    assert_equal '/about.html/hello', url.without_anchor
+    assert_equal Wgit::Url, url.without_anchor.class
+
+    url = Wgit::Url.new '/'
+    assert_equal url, url.without_anchor
+    assert_equal Wgit::Url, url.without_anchor.class
+
+    url = Wgit::Url.new '#about'
+    assert_empty url.without_anchor
+    assert_equal Wgit::Url, url.without_anchor.class
+
+    url = Wgit::Url.new 'https://google.com/'
+    assert_equal url, url.without_anchor
+    assert_equal Wgit::Url, url.without_anchor.class
+
+    url = Wgit::Url.new 'https://google.com'
+    assert_equal url, url.without_anchor
+    assert_equal Wgit::Url, url.without_anchor.class
+  end
+
   def test_to_h
     assert_equal @mongo_doc_dup, Wgit::Url.new(@mongo_doc_dup).to_h
   end

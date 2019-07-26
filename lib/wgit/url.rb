@@ -301,6 +301,21 @@ module Wgit
         without_trailing_slash
     end
 
+    # Returns a new Wgit::Url with the anchor portion removed e.g. Given
+    # http://google.com/search#about, http://google.com/search is
+    # returned. Self is returned as is if no anchor is present. A URL
+    # consisting of only an anchor e.g. '#about' will return an empty URL.
+    # This method assumes that the anchor is correctly placed at the very end
+    # of the URL.
+    #
+    # @return [Wgit::Url] Self with the anchor portion removed.
+    def without_anchor
+      anchor = to_anchor
+      without_anchor = anchor ? gsub(anchor, '') : self
+
+      Wgit::Url.new(without_anchor)
+    end
+
     # Returns a Hash containing this Url's instance vars excluding @uri.
     # Used when storing the URL in a Database e.g. MongoDB etc.
     #
@@ -326,6 +341,7 @@ module Wgit
     alias :anchor :to_anchor
     alias :to_fragment :to_anchor
     alias :fragment :to_anchor
+    alias :without_fragment :without_anchor
     alias :internal_link? :relative_link?
     alias :is_relative? :relative_link?
     alias :is_internal? :relative_link?
