@@ -122,7 +122,7 @@ module Wgit
       path = base_url.path.nil? ? '/' : base_url.path
       crawled_urls  = [path]
       external_urls = doc.external_links
-      internal_urls = doc.internal_links_without_anchors
+      internal_urls = get_internal_links(doc)
 
       return doc.external_links.uniq if internal_urls.empty?
 
@@ -136,7 +136,7 @@ module Wgit
           doc = crawl_url(Wgit::Url.concat(base_url.to_base, link), &block)
           crawled_urls << link
           next if doc.nil?
-          internal_urls.concat(doc.internal_links_without_anchors)
+          internal_urls.concat(get_internal_links(doc))
           external_urls.concat(doc.external_links)
         end
       end
@@ -195,6 +195,16 @@ module Wgit
     def add_url(url)
       @urls = [] if @urls.nil?
       @urls << Wgit::Url.new(url)
+    end
+
+    # Pull out the doc's internal HTML page links for crawling.
+    def get_internal_links(doc)
+      doc.
+        internal_links_without_anchors.
+        reject do |link|
+          ext = link.to_extension
+          ext ? !['htm', 'html'].include?(ext) : false
+        end
     end
 
     alias :crawl :crawl_urls

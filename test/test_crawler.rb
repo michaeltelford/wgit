@@ -146,19 +146,19 @@ class TestCrawler < TestHelper
     # Test largish site - Wordpress site with disgusting HTML.
     url = Wgit::Url.new "http://www.belfastpilates.co.uk/"
     c = Wgit::Crawler.new url
-    assert_crawl_site c, 193, 24
+    assert_crawl_site c, 19, 10
 
     # Test small site - Static well formed HTML.
     url = Wgit::Url.new "http://txti.es"
     c = Wgit::Crawler.new url
-    assert_crawl_site c, 22, 8
+    assert_crawl_site c, 7, 8
 
     # Test small site not starting on the index page.
     url = Wgit::Url.new "http://txti.es/terms"
     c = Wgit::Crawler.new url
-    assert_crawl_site c, 22, 8
+    assert_crawl_site c, 7, 8
 
-    # Test single web page with externals links.
+    # Test single web page with an external link.
     url = Wgit::Url.new "https://motherfuckingwebsite.com/"
     c = Wgit::Crawler.new url
     assert_crawl_site c, 1, 1

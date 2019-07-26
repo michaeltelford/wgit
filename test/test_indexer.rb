@@ -50,7 +50,7 @@ class TestIndexer < TestHelper
 
     # Assert that some indexed docs were inserted into the DB.
     assert_equal 10, @db.num_urls
-    assert_equal 23, @db.num_docs
+    assert_equal 8, @db.num_docs
   end
 
   def test_index_the_web_max_data
