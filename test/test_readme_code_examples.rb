@@ -23,7 +23,7 @@ class TestReadmeCodeExamples < TestHelper
     doc.class # => Wgit::Document
     doc.stats # => {
     # :url=>44, :html=>28133, :title=>17, :keywords=>0,
-    # :links=>35, :text_length=>67, :text_bytes=>13735
+    # :links=>35, :text_snippets=>67, :text_bytes=>13735
     #}
 
     # doc responds to the following methods:

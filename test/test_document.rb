@@ -55,7 +55,7 @@ and power matches the Ruby language in which it's developed."
       author: 15,
       keywords: 3,
       links: 22,
-      text_length: 4,
+      text_snippets: 4,
       text_bytes: 280
     }
     @search_results = [

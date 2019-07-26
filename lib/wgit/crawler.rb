@@ -104,8 +104,8 @@ module Wgit
       doc.empty? ? nil : doc
     end
 
-    # Crawls an entire website's HTML Documents by recursively going through
-    # its internal_links.
+    # Crawls an entire website's HTML pages by recursively going through
+    # its internal links. Each crawled web Document is yielded to a block.
     #
     # @param base_url [Wgit::Url] The base URL of the website to be crawled.
     # @yield [Wgit::Document] Given each crawled Document/page of the site.

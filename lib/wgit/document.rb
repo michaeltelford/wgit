@@ -163,7 +163,7 @@ module Wgit
         if var == :@text
           count = 0
           @text.each { |t| count += t.length }
-          hash[:text_length] = @text.length
+          hash[:text_snippets] = @text.length
           hash[:text_bytes] = count
         # Else take the var's #length method return value.
         else
