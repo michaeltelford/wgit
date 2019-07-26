@@ -49,8 +49,10 @@ crawler.crawl_site do |doc|
     dir += '/'
   end
 
+  file_path = dir + file_name
+  file_path += '.html' unless file_path.end_with? '.html'
+
   # Save the HTML file for the page.
-  file_path = "#{dir}#{file_name}.html"
   puts "Saving document #{base_url.host}/#{file_path}"
   File.open(file_path, 'w') { |f| f.write(doc.html) }
 end

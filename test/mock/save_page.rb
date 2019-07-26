@@ -21,7 +21,8 @@ crawler.crawl_url do |doc|
     next
   end
 
-  file_path = "#{url.host}.html"
+  file_path = url.host
+  file_path += '.html' unless file_path.end_with? '.html'
   puts "Saving document #{file_path}"
   File.open(file_path, 'w') { |f| f.write(doc.html) }
 end
