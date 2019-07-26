@@ -225,6 +225,15 @@ class TestUrl < TestHelper
     assert_nil url.to_anchor
   end
 
+  def test_to_extension
+    url = Wgit::Url.new @url_str_link
+    assert_equal 'html', url.to_extension
+    assert_equal Wgit::Url, url.to_extension.class
+
+    url = Wgit::Url.new @url_str
+    assert_nil url.to_extension
+  end
+
   def test_without_leading_slash
     url = Wgit::Url.new @url_str
     assert_equal @url_str, url.without_leading_slash

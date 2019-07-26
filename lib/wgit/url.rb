@@ -256,6 +256,17 @@ module Wgit
       anchor ? Wgit::Url.new("##{anchor}") : nil
     end
 
+    # Returns a new Wgit::Url containing just the file extension of this URL
+    # e.g. Given http://google.com#about.html, html is returned.
+    #
+    # @return [Wgit::Url, nil] Containing just the extension string or nil.
+    def to_extension
+      path = to_path
+      return nil unless path
+      segs = path.split('.')
+      segs.length > 1 ? Wgit::Url.new(segs.last) : nil
+    end
+
     # Returns a new Wgit::Url containing self without a trailing slash. Is
     # idempotent meaning self will always be returned regardless of whether
     # there's a trailing slash or not.
@@ -341,6 +352,7 @@ module Wgit
     alias :anchor :to_anchor
     alias :to_fragment :to_anchor
     alias :fragment :to_anchor
+    alias :extension :to_extension
     alias :without_fragment :without_anchor
     alias :internal_link? :relative_link?
     alias :is_relative? :relative_link?
