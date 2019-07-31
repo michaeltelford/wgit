@@ -208,6 +208,8 @@ module Wgit
     end
 
     alias :crawl :crawl_urls
+    alias :crawl_pages :crawl_urls
+    alias :crawl_page :crawl_url
     alias :crawl_r :crawl_site
   end
 end

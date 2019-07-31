@@ -81,8 +81,13 @@ accept duplicate urls. Exception details: #{err_msg}"
 
     # Helper method which takes a url and recursively indexes the site storing
     # the markup in the database. Use sensible url's, not www.amazon.com etc.
-    def index(url, insert_externals = true)
+    def index_site(url, insert_externals = true)
       Wgit.index_this_site url, insert_externals
+    end
+
+    # Helper method which crawls a url storing its markup in the database.
+    def index_page(url, insert_externals = true)
+      Wgit.index_this_page url, insert_externals
     end
 
     # Searches the database Document collection for the given query, formats
@@ -149,5 +154,6 @@ accept duplicate urls. Exception details: #{err_msg}"
     alias :urls :url
     alias :docs :doc
     alias :num_objects :num_records
+    alias :index :index_site
   end
 end

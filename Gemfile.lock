@@ -54,7 +54,7 @@ DEPENDENCIES
   rake (~> 12.3)
   webmock (~> 3.6)
   wgit!
-  yard (>= 0.9.20)
+  yard (>= 0.9.20, < 1.0)
 
 RUBY VERSION
    ruby 2.5.3p105

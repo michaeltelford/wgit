@@ -20,7 +20,7 @@ class TestIndexer < TestHelper
     assert_instance_of Wgit::Database, indexer.db
   end
 
-  def test_index_the_web_one_site
+  def test_index_the_web__one_site
     url_str = "https://motherfuckingwebsite.com/"
     seed { url url: url_str, crawled: false }
 
@@ -37,7 +37,7 @@ class TestIndexer < TestHelper
     assert_equal 1, @db.num_docs
   end
 
-  def test_index_the_web_two_sites
+  def test_index_the_web__two_sites
     url_str = "https://motherfuckingwebsite.com/"
     seed { url url: url_str, crawled: false }
 
@@ -53,7 +53,7 @@ class TestIndexer < TestHelper
     assert_equal 8, @db.num_docs
   end
 
-  def test_index_the_web_max_data
+  def test_index_the_web__max_data
     url_str = "https://motherfuckingwebsite.com/"
     seed { url url: url_str, crawled: false }
 
@@ -66,7 +66,7 @@ class TestIndexer < TestHelper
     assert_equal 1, @db.num_records
   end
 
-  def test_index_this_site_without_externals
+  def test_index_this_site__without_externals
     url = Wgit::Url.new "https://motherfuckingwebsite.com/"
 
     refute url? url: url
@@ -82,7 +82,7 @@ class TestIndexer < TestHelper
     assert_equal 1, @db.num_docs
   end
 
-  def test_index_this_site_with_externals
+  def test_index_this_site__with_externals
     url = "https://motherfuckingwebsite.com/"
     num_pages_crawled = 0
 
@@ -104,7 +104,7 @@ class TestIndexer < TestHelper
     assert_equal 1, num_pages_crawled
   end
 
-  def test_index_this_site_no_doc_insert
+  def test_index_this_site__no_doc_insert
     # Test that returning nil/false from the block prevents saving the doc to
     # the DB.
     url = Wgit::Url.new "https://motherfuckingwebsite.com/"
@@ -113,6 +113,59 @@ class TestIndexer < TestHelper
 
     # Index the site and don't insert the external urls.
     Wgit.index_this_site url, false do |doc|
+      assert_instance_of Wgit::Document, doc
+      false # To avoid inserting the doc into the DB.
+    end
+
+    # Assert that url.crawled gets updated.
+    assert url? url: url, crawled: true
+
+    # The site has one doc plus its url.
+    assert_equal 1, @db.num_urls
+    assert_equal 0, @db.num_docs
+  end
+
+  def test_index_this_page__without_externals
+    url = Wgit::Url.new "https://motherfuckingwebsite.com/"
+
+    refute url? url: url
+
+    # Index the page and don't insert the external urls.
+    Wgit.index_this_page url, false
+
+    # Assert that url.crawled gets updated.
+    assert url? url: url, crawled: true
+
+    # The site has one doc plus its url.
+    assert_equal 1, @db.num_urls
+    assert_equal 1, @db.num_docs
+  end
+
+  def test_index_this_page__with_externals
+    url = "https://motherfuckingwebsite.com/"
+
+    refute url? url: url
+
+    # Index the page and insert the external urls.
+    Wgit.index_this_page url
+
+    # Assert that url.crawled gets updated.
+    assert url? url: url, crawled: true
+
+    # The site has one doc plus its url and one external url.
+    assert_equal 2, @db.num_urls
+    assert_equal 1, @db.num_docs
+  end
+
+  def test_index_this_page__no_doc_insert
+    # Test that returning nil/false from the block prevents saving the doc to
+    # the DB.
+    url = Wgit::Url.new "https://motherfuckingwebsite.com/"
+
+    refute url? url: url
+
+    # Index the page and don't insert the external urls.
+    Wgit.index_this_page url, false do |doc|
       assert_instance_of Wgit::Document, doc
       false # To avoid inserting the doc into the DB.
     end

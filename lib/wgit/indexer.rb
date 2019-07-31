@@ -10,7 +10,7 @@ module Wgit
   # site storing their internal pages into the database and adding their
   # external url's to be crawled later on. Logs info on the crawl
   # using Wgit.logger as it goes along.
-  # 
+  #
   # @param max_sites_to_crawl [Integer] The number of separate and whole
   #   websites to be crawled before the method exits. Defaults to -1 which
   #   means the crawl will occur until manually stopped (Ctrl+C etc).
@@ -33,14 +33,32 @@ module Wgit
   # @param url [Wgit::Url, String] The base Url of the website to crawl.
   # @param insert_externals [Boolean] Whether or not to insert the website's
   #   external Url's into the database.
-  # @yield [doc] Given the Wgit::Document of each crawled web page, before it
-  #   is inserted into the database allowing for prior manipulation.
+  # @yield [Wgit::Document] Given the Wgit::Document of each crawled webpage,
+  #   before it is inserted into the database allowing for prior manipulation.
   # @return [Integer] The total number of pages crawled within the website.
   def self.index_this_site(url, insert_externals = true, &block)
     url = Wgit::Url.new url
     db = Wgit::Database.new
     indexer = Wgit::Indexer.new(db)
     indexer.index_this_site(url, insert_externals, &block)
+  end
+
+  # Convience method to index a single webpage using
+  # Wgit::Indexer#index_this_page.
+  #
+  # Crawls a single webpage and stores it into the database.
+  # There is no max download limit so be careful of large pages.
+  #
+  # @param url [Wgit::Url, String] The Url of the webpage to crawl.
+  # @param insert_externals [Boolean] Whether or not to insert the website's
+  #   external Url's into the database.
+  # @yield [Wgit::Document] Given the Wgit::Document of the crawled webpage,
+  #   before it is inserted into the database allowing for prior manipulation.
+  def self.index_this_page(url, insert_externals = true, &block)
+    url = Wgit::Url.new url
+    db = Wgit::Database.new
+    indexer = Wgit::Indexer.new(db)
+    indexer.index_this_page(url, insert_externals, &block)
   end
 
   # Performs a search of the database's indexed documents and pretty prints
@@ -53,8 +71,8 @@ module Wgit
   # @param skip [Integer] The number of DB records to skip.
   # @param sentence_length [Integer] The max length of each result's text
   #   snippet.
-  # @yield [doc] Given each search result (Wgit::Document).
-  def self.indexed_search(query, whole_sentence = false, limit = 10, 
+  # @yield [Wgit::Document] Given each search result (Wgit::Document).
+  def self.indexed_search(query, whole_sentence = false, limit = 10,
                           skip = 0, sentence_length = 80, &block)
     db = Wgit::Database.new
     results = db.search(query, whole_sentence, limit, skip, &block)
@@ -63,13 +81,13 @@ module Wgit
 
   # Class which sets up a crawler and saves the indexed docs to a database.
   class Indexer
-    
+
     # The crawler used to scrape the WWW.
     attr_reader :crawler
-    
+
     # The database instance used to store Urls and Documents in.
     attr_reader :db
-    
+
     # Initialize the Indexer.
     #
     # @param database [Wgit::Database] The database instance (already
@@ -97,7 +115,7 @@ module Wgit
 urls to crawl (which might be never).")
       end
       site_count = 0
-      
+
       while keep_crawling?(site_count, max_sites_to_crawl, max_data_size) do
         Wgit.logger.info("Current database size: #{@db.size}")
         @crawler.urls = @db.uncrawled_urls
@@ -107,10 +125,10 @@ urls to crawl (which might be never).")
           return
         end
         Wgit.logger.info("Starting crawl loop for: #{@crawler.urls}")
-    
+
         docs_count = 0
         urls_count = 0
-    
+
         @crawler.urls.each do |url|
           unless keep_crawling?(site_count, max_sites_to_crawl, max_data_size)
             Wgit.logger.info("Reached max number of sites to crawl or database \
@@ -121,7 +139,7 @@ capacity, exiting.")
 
           url.crawled = true
           raise unless @db.update(url) == 1
-      
+
           site_docs_count = 0
           ext_links = @crawler.crawl_site(url) do |doc|
             unless doc.empty?
@@ -131,7 +149,7 @@ capacity, exiting.")
               end
             end
           end
-      
+
           urls_count += write_urls_to_db(ext_links)
           Wgit.logger.info("Crawled and saved #{site_docs_count} docs for the \
 site: #{url}")
@@ -141,6 +159,8 @@ site: #{url}")
 this iteration.")
         Wgit.logger.info("Found and saved #{urls_count} external url(s) for the next \
 iteration.")
+
+        nil
       end
     end
 
@@ -151,14 +171,14 @@ iteration.")
     # @param url [Wgit::Url] The base Url of the website to crawl.
     # @param insert_externals [Boolean] Whether or not to insert the website's
     #   external Url's into the database.
-    # @yield [doc] Given the Wgit::Document of each crawled web page, before it
-    #   is inserted into the database allowing for prior manipulation. Return
-    #   nil or false from the block to prevent the document from being saved
-    #   into the database.
+    # @yield [Wgit::Document] Given the Wgit::Document of each crawled web
+    #   page, before it is inserted into the database allowing for prior
+    #   manipulation. Return nil or false from the block to prevent the
+    #   document from being saved into the database.
     # @return [Integer] The total number of webpages/documents indexed.
     def index_this_site(url, insert_externals = true)
       total_pages_indexed = 0
-      
+
       ext_urls = @crawler.crawl_site(url) do |doc|
         result = true
         if block_given?
@@ -174,21 +194,54 @@ iteration.")
       end
 
       url.crawled = true
-      if !@db.url?(url)
-        @db.insert(url)
-      else
-        @db.update(url)
-      end
-      
+      @db.url?(url) ? @db.update(url) : @db.insert(url)
+
       if insert_externals
         write_urls_to_db(ext_urls)
         Wgit.logger.info("Found and saved #{ext_urls.length} external url(s)")
       end
-      
+
       Wgit.logger.info("Crawled and saved #{total_pages_indexed} docs for the \
 site: #{url}")
 
       total_pages_indexed
+    end
+
+    # Crawls a single webpage and stores it into the database.
+    # There is no max download limit so be careful of large pages.
+    # Logs info on the crawl using Wgit.logger as it goes along.
+    #
+    # @param url [Wgit::Url] The webpage Url to crawl.
+    # @param insert_externals [Boolean] Whether or not to insert the webpage's
+    #   external Url's into the database.
+    # @yield [Wgit::Document] Given the Wgit::Document of the crawled webpage,
+    #   before it is inserted into the database allowing for prior
+    #   manipulation. Return nil or false from the block to prevent the
+    #   document from being saved into the database.
+    def index_this_page(url, insert_externals = true)
+      doc = @crawler.crawl_page(url) do |doc|
+        result = true
+        if block_given?
+          result = yield(doc)
+        end
+
+        if result
+          if write_doc_to_db(doc)
+            Wgit.logger.info("Crawled and saved internal page: #{doc.url}")
+          end
+        end
+      end
+
+      url.crawled = true
+      @db.url?(url) ? @db.update(url) : @db.insert(url)
+
+      if insert_externals
+        ext_urls = doc.external_links
+        write_urls_to_db(ext_urls)
+        Wgit.logger.info("Found and saved #{ext_urls.length} external url(s)")
+      end
+
+      nil
     end
 
   private
@@ -204,7 +257,7 @@ site: #{url}")
       end
     end
 
-    # The unique url index on the documents collection prevents duplicate 
+    # The unique url index on the documents collection prevents duplicate
     # inserts.
     def write_doc_to_db(doc)
       @db.insert(doc)
