@@ -19,34 +19,23 @@ class TestConnectionDetails < TestHelper
 
   def test_set_connection_details
     h = {
-      'DB_HOST'     => 'blah.mongolab.com',
-      'DB_PORT'     => '12345',
-      'DB_USERNAME' => 'minitest',
-      'DB_PASSWORD' => 'rocks!!!',
-      'DB_DATABASE' => 'test',
+      'DB_CONNECTION_STRING' => 'mongodb://me:pass@server.com:27017/test',
     }
     expected = {
-      host:  'blah.mongolab.com',
-      port:  '12345',
-      uname: 'minitest',
-      pword: 'rocks!!!',
-      db:    'test',
+      connection_string: 'mongodb://me:pass@server.com:27017/test',
     }
+
     assert_equal(expected, Wgit.set_connection_details(h))
     # Test that we can reset the connection if required.
     assert_equal(expected, Wgit.set_connection_details(h))
   end
 
   def test_set_connection_details_fails
-    req_keys = 'DB_HOST, DB_PORT, DB_USERNAME, DB_PASSWORD, DB_DATABASE'
+    req_keys = 'DB_CONNECTION_STRING'
     h = {
-      'DB_HOST'     => 'blah.mongolab.com',
-      'DB_PORT'     => '12345',
-      'DB_USERNAME' => 'minitest',
-      # 'DB_PASSWORD' => 'rocks!!!', Required.
-      'DB_DATABASE' => 'test',
+      'DB_HOST' => 'blah.mongolab.com', # Missing connection string.
     }
-    
+
     ex = assert_raises(KeyError) { Wgit.set_connection_details(h) }
     assert_equal(
       "Some or all of the required keys are not present: #{req_keys}",
@@ -56,7 +45,7 @@ class TestConnectionDetails < TestHelper
 
   def test_set_connection_details_from_env
     assert_equal([
-      :host, :port, :uname, :pword, :db
+      :connection_string
     ], Wgit.set_connection_details_from_env.keys)
   end
 end

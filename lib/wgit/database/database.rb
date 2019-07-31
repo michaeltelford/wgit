@@ -17,10 +17,16 @@ module Wgit
     #
     # @raise [RuntimeError] If Wgit::CONNECTION_DETAILS aren't set.
     def initialize
-      conn_details = Wgit::CONNECTION_DETAILS
-      if conn_details.empty?
-        raise "Wgit::CONNECTION_DETAILS must be defined and include :host,
-:port, :db, :uname, :pword for a database connection to be established."
+      @@client = Database.connect
+    end
+
+    # Initializes a database connection client.
+    #
+    # @raise [RuntimeError] If Wgit::CONNECTION_DETAILS aren't set.
+    def self.connect
+      unless Wgit::CONNECTION_DETAILS[:connection_string]
+        raise "Wgit::CONNECTION_DETAILS must be defined and include \
+:connection_string"
       end
 
       # Only log for error (or more severe) scenarios.
@@ -28,11 +34,8 @@ module Wgit
       Mongo::Logger.logger.progname = 'mongo'
       Mongo::Logger.logger.level    = Logger::ERROR
 
-      address = "#{conn_details[:host]}:#{conn_details[:port]}"
-      @@client = Mongo::Client.new([address],
-                                   database: conn_details[:db],
-                                   user:     conn_details[:uname],
-                                   password: conn_details[:pword])
+      # Connects to the database here.
+      Mongo::Client.new(Wgit::CONNECTION_DETAILS[:connection_string])
     end
 
     ### Create Data ###

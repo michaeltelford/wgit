@@ -14,22 +14,7 @@ module Wgit
   module DatabaseHelper
     # A connection to the database is established when this module is included.
     def self.included(base)
-      conn_details = Wgit::CONNECTION_DETAILS
-      if conn_details.empty?
-        raise "Wgit::CONNECTION_DETAILS must be defined and include :host,
-:port, :db, :uname, :pword for a database connection to be established."
-      end
-
-      # Only log for error (or more severe) scenarios.
-      Mongo::Logger.logger          = Wgit.logger.clone
-      Mongo::Logger.logger.progname = 'mongo'
-      Mongo::Logger.logger.level    = Logger::ERROR
-
-      address = "#{conn_details[:host]}:#{conn_details[:port]}"
-      @@client = Mongo::Client.new([address],
-                                  database: conn_details[:db],
-                                  user:     conn_details[:uname],
-                                  password: conn_details[:pword])
+      @@client = Database.connect
 
       @@urls = []
       @@docs = []
