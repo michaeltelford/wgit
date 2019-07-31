@@ -52,7 +52,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency "rack", "~> 2.0"
 
   s.add_runtime_dependency "nokogiri", "~> 1.10.3"
-  s.add_runtime_dependency "mongo", "~> 2.8.0"
+  s.add_runtime_dependency "mongo", "~> 2.9.0"
 
   # Prevent pushing this gem to RubyGems.org. To allow pushes either set the 'allowed_push_host'
   # to allow pushing to a single host or delete this section to allow pushing to any host.

@@ -8,7 +8,6 @@ Primary
 
 Secondary
 ---------
-- Setup a dedicated mLab account for the example application in the README - the Heroku deployed search engine; then index some ruby sites like ruby.org etc.
 - Think about how we handle invalid url's on crawled documents. Setup tests and implement logic for this scenario.
 - Think about ignoring non html documents/urls e.g. http://server/image.jpg etc. by implementing MIME types (defaulting to only HTML).
 - Check if Document::TEXT_ELEMENTS is expansive enough.
@@ -17,10 +16,10 @@ Secondary
 
 Refactoring
 -----------
-- Replace method params with named parameters where applicable.
-- Think about reducing the amount of method aliases, pick the best for the method def and remove the aliases?
-- Mock (monkey patch) the 'mongo' gem's func. for speed in the tests.
 - Refactor the 3 main classes and their tests (where needed): Url, Document & Crawler.
+- Think about reducing the amount of method aliases, pick the best for the method def and remove the aliases?
+- Replace method params with named parameters where applicable.
+- Mock (monkey patch) the 'mongo' gem's func. for speed in the tests.
 
 Gem Publishing Checklist
 ------------------------
