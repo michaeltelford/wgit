@@ -24,7 +24,7 @@ Gem Publishing Checklist
 ------------------------
 - Ensure a clean branch of master and create a 'release' branch.
 - Update standalone files (if necessary): README.md, TODO.txt, wgit.gemspec etc.
-- Increment the version number (in version.rb).
+- Increment the version number (in version.rb) and update the CHANGELOG.md.
 - Run 'bundle install' to update deps.
 - Run 'bundle exec rake compile' and ensure acceptable warnings/errors.
 - Run 'bundle exec rake test' and ensure all tests are passing.

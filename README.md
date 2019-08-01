@@ -16,9 +16,10 @@ Check out this [example application](https://search-engine-rb.herokuapp.com) - a
 6. [Extending The API](#Extending-The-API)
 7. [Caveats](#Caveats)
 8. [Executable](#Executable)
-9. [Development](#Development)
-10. [Contributing](#Contributing)
-11. [License](#License)
+9. [Change Log](#Change-Log)
+10. [Development](#Development)
+11. [Contributing](#Contributing)
+12. [License](#License)
 
 ## Installation
 
@@ -324,6 +325,10 @@ Currently there is no executable provided with Wgit, however...
 In future versions of Wgit, an executable will be packaged with the gem. The executable will provide a `pry` console with the `wgit` gem already loaded. Using the console, you'll easily be able to index and search the web without having to write your own scripts.
 
 This executable will be very similar in nature to `./bin/console` which is currently used only for development and isn't packaged as part of the `wgit` gem.
+
+## Change Log
+
+See the [CHANGELOG.md](https://github.com/michaeltelford/wgit/blob/master/CHANGELOG.md) for differences between versions of Wgit.
 
 ## Development
 
