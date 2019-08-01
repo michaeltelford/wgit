@@ -87,6 +87,10 @@ See the [Practical Database Example](#Practical-Database-Example) for informatio
 
 Wgit uses itself to download and save fixture webpages to disk (used in tests). See the script [here](https://github.com/michaeltelford/wgit/blob/master/test/mock/save_site.rb) and edit it for your own purposes.
 
+### Broken Link Finder
+
+The `broken_link_finder` gem uses Wgit under the hood to find and report a website's broken links. Check out its [repository](https://github.com/michaeltelford/broken_link_finder) for more details.
+
 ### CSS Indexer
 
 The below script downloads the contents of the first css link found on Facebook's index page.
@@ -146,78 +150,80 @@ end
 
 ## Practical Database Example
 
-This next example requires a configured database instance.
+This next example requires a configured database instance. Currently the only supported DBMS is MongoDB. See [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) for a free (small) account or provide your own MongoDB instance.
 
-Currently the only supported DBMS is MongoDB. See [mLab](https://mlab.com) for a free (small) account or provide your own MongoDB instance.
+`Wgit::Database` provides a light wrapper of logic around the `mongo` gem allowing for simple database interactivity and serialisation. With Wgit you can index webpages, store them in a database and then search through all that's been indexed. The use of a database is entirely optional however and isn't required for crawling/indexing.
 
-The currently supported versions of `mongo` are:
+The following versions of MongoDB are supported:
 
-| Gem      | Database Engine |
-| -------- | --------------- |
-| ~> 2.8.0 | 3.6.12 (MMAPv1) |
+| Gem    | Database |
+| ------ | -------- |
+| ~> 2.9 | ~> 4.0   |
 
 ### Setting Up MongoDB
 
-Follow the steps below to configure MongoDB for use with Wgit. This is only needed if you want to read/write database records. The use of a database is entirely optional when using Wgit.
+Follow the steps below to configure MongoDB for use with Wgit. This is only needed if you want to read/write database records.
 
 1) Create collections for: `documents` and `urls`.
-2) Add a unique index for the `url` field in **both** collections.
-3) Enable `textSearchEnabled` in MongoDB's configuration.
-4) Create a *text search index* for the `documents` collection using:
+2) Add a [*unique index*](https://docs.mongodb.com/manual/core/index-unique/) for the `url` field in **both** collections.
+3) Enable `textSearchEnabled` in MongoDB's configuration (if not already so).
+4) Create a [*text search index*](https://docs.mongodb.com/manual/core/index-text/#index-feature-text) for the `documents` collection using:
 ```json
 {
-	"text": "text",
-	"author": "text",
-	"keywords": "text",
-	"title": "text"
+  "text": "text",
+  "author": "text",
+  "keywords": "text",
+  "title": "text"
 }
 ```
-5) Set the connection details for your MongoDB instance using `Wgit.set_connection_details` (prior to calling `Wgit::Database#new`)
+5) Set the connection details for your MongoDB instance (see below) using `Wgit.set_connection_details` (prior to calling `Wgit::Database#new`)
 
 **Note**: The *text search index* (in step 4) lists all document fields to be searched by MongoDB when calling `Wgit::Database#search`. Therefore, you should append this list with any other fields that you want searched. For example, if you [extend the API](#Extending-The-API) then you might want to search your new fields in the database by adding them to the index above.
 
 ### Database Example
 
-The below script shows how to use Wgit's database functionality to index and then search HTML documents stored in the database.
-
-If you're running the code below for yourself, remember to replace the Hash containing the connection details with your own.
+The below script shows how to use Wgit's database functionality to index and then search HTML documents stored in the database. If you're running the code for yourself, remember to replace the database [connection string](https://docs.mongodb.com/manual/reference/connection-string/) with your own.
 
 ```ruby
 require 'wgit'
 require 'wgit/core_ext' # => Provides the String#to_url and Enumerable#to_urls methods.
 
-# Here we create our own document rather than crawling the web.
+### CONNECT TO THE DATABASE ###
+
+# Set your connection details manually (as below) or from the environment using
+# Wgit.set_connection_details_from_env
+Wgit.set_connection_details('DB_CONNECTION_STRING' => '<your_connection_string>')
+db = Wgit::Database.new # Connects to the database...
+
+### SEED SOME DATA ###
+
+# Here we create our own document rather than crawling the web (which works in the same way).
 # We pass the web page's URL and HTML Strings.
 doc = Wgit::Document.new(
   "http://test-url.com".to_url,
   "<html><p>How now brown cow.</p><a href='http://www.google.co.uk'>Click me!</a></html>"
 )
-
-# Set your connection details manually (as below) or from the environment using
-# Wgit.set_connection_details_from_env
-Wgit.set_connection_details(
-  'DB_HOST'     => '<host_machine>',
-  'DB_PORT'     => '27017',
-  'DB_USERNAME' => '<username>',
-  'DB_PASSWORD' => '<password>',
-  'DB_DATABASE' => '<database_name>',
-)
-
-db = Wgit::Database.new # Connects to the database...
 db.insert doc
 
-# Searching the database returns documents with matching text 'hits'.
+### SEARCH THE DATABASE ###
+
+# Searching the database returns Wgit::Document's which have fields containing the query.
 query = "cow"
 results = db.search query
 
-doc.url == results.first.url # => true
+search_result = results.first
+search_result.class           # => Wgit::Document
+doc.url == search_result.url  # => true
 
-# Searching the returned documents gives the matching lines of text from that document.
-doc.search(query).first # => "How now brown cow."
+### PULL OUT THE BITS THAT MATCHED OUR QUERY ###
 
-db.insert doc.external_links
+# Searching the returned documents gives the matching text from that document.
+search_result.search(query).first # => "How now brown cow."
 
-urls_to_crawl = db.uncrawled_urls # => Results will include doc.external_links.
+### SEED URLS TO BE CRAWLED LATER ###
+
+db.insert search_result.external_links
+urls_to_crawl = db.uncrawled_urls # => Results will include search_result.external_links.
 ```
 
 ## Extending The API
