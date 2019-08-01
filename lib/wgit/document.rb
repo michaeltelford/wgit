@@ -84,7 +84,7 @@ module Wgit
         obj = url_or_obj
         assert_respond_to(obj, :fetch)
 
-        @url = obj.fetch("url") # Should always be present.
+        @url = Wgit::Url.new(obj.fetch("url")) # Should always be present.
         @html = obj.fetch("html", "")
         @doc = init_nokogiri
         @score = obj.fetch("score", 0.0)

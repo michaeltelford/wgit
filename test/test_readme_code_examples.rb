@@ -103,53 +103,61 @@ class TestReadmeCodeExamples < TestHelper
     refute_empty my_pages_missing_keywords.uniq
   end
 
-  # Clears the DB and uses the test connection details which are already set.
+  # Clears the DB and using the test connection details which are already set.
   def test_database_example
     clear_db
 
+    #########
     ### PUT README CODE BELOW AND COMMENT OUT THE SET CONNECTION DETAILS ###
+    #########
 
     require 'wgit'
     require 'wgit/core_ext' # => Provides the String#to_url and Enumerable#to_urls methods.
 
-    # Here we create our own document rather than crawling the web.
+    ### CONNECT TO THE DATABASE ###
+
+    # Set your connection details manually (as below) or from the environment using
+    # Wgit.set_connection_details_from_env
+    # Wgit.set_connection_details('DB_CONNECTION_STRING' => '<your_connection_string>')
+    db = Wgit::Database.new # Connects to the database...
+
+    ### SEED SOME DATA ###
+
+    # Here we create our own document rather than crawling the web (which works in the same way).
     # We pass the web page's URL and HTML Strings.
     doc = Wgit::Document.new(
       "http://test-url.com".to_url,
       "<html><p>How now brown cow.</p><a href='http://www.google.co.uk'>Click me!</a></html>"
     )
-
-    # Set your connection details manually (as below) or from the environment using
-    # Wgit.set_connection_details_from_env
-    # Wgit.set_connection_details(
-    #   'DB_HOST'     => '<host_machine>',
-    #   'DB_PORT'     => '27017',
-    #   'DB_USERNAME' => '<username>',
-    #   'DB_PASSWORD' => '<password>',
-    #   'DB_DATABASE' => '<database_name>',
-    # )
-
-    db = Wgit::Database.new # Connects to the database...
     db.insert doc
 
-    # Searching the database returns documents with matching text 'hits'.
+    ### SEARCH THE DATABASE ###
+
+    # Searching the database returns Wgit::Document's which have fields containing the query.
     query = "cow"
     results = db.search query
 
-    # doc.url == results.first.url # => true
+    search_result = results.first
+    search_result.class           # => Wgit::Document
+    # doc.url == search_result.url  # => true
 
-    # Searching the returned documents gives the matching lines of text from that document.
-    doc.search(query).first # => "How now brown cow."
+    ### PULL OUT THE BITS THAT MATCHED OUR QUERY ###
 
-    db.insert doc.external_links
+    # Searching the returned documents gives the matching text from that document.
+    search_result.search(query).first # => "How now brown cow."
 
-    urls_to_crawl = db.uncrawled_urls # => Results will include doc.external_links.
+    ### SEED URLS TO BE CRAWLED LATER ###
+    db.insert search_result.external_links
+    urls_to_crawl = db.uncrawled_urls # => Results will include search_result.external_links.
 
+    #########
     ### PUT README CODE ABOVE ###
+    #########
 
-    assert_equal doc.url, results.first.url
-    assert_equal "How now brown cow.", doc.search(query).first
-    assert_equal urls_to_crawl.length, doc.external_links.length
+    assert_instance_of Wgit::Document, search_result
+    assert_equal doc.url, search_result.url
+    assert_equal "How now brown cow.", search_result.search(query).first
+    assert_equal urls_to_crawl.length, search_result.external_links.length
   end
 
   def test_extending_the_api_define_extension

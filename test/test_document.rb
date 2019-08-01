@@ -10,7 +10,7 @@ class TestDocument < TestHelper
     @url = Wgit::Url.new("http://www.mytestsite.com")
     @html = File.read("test/mock/fixtures/test_doc.html")
     @mongo_doc_dup = {
-      "url" => @url,
+      "url" => @url.to_s,
       "html" => @html,
       "score" => 12.05,
       "title" => "My Test Webpage",
@@ -64,6 +64,7 @@ Minitest framework."
   def test_initialize_without_html
     doc = Wgit::Document.new @url
     assert_equal @url, doc.url
+    assert_instance_of Wgit::Url, doc.url
     assert_empty doc.html
   end
 
@@ -242,7 +243,7 @@ private
 
   def assert_doc(doc)
     assert_equal @url, doc.url
-    assert doc.url.instance_of? Wgit::Url
+    assert_instance_of Wgit::Url, doc.url
     assert_equal @html, doc.html
     assert_equal @mongo_doc_dup["title"], doc.title
     assert_equal @mongo_doc_dup["author"], doc.author
