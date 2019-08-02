@@ -328,24 +328,24 @@ This executable will be very similar in nature to `./bin/console` which is curre
 
 ## Change Log
 
-See the [CHANGELOG.md](https://github.com/michaeltelford/wgit/blob/master/CHANGELOG.md) for differences between versions of Wgit.
-
-## Development
-
-The current road map is rudimentally listed in the [TODO.txt](https://github.com/michaeltelford/wgit/blob/master/TODO.txt) file.
-
-For a full list of available Rake tasks, run `bundle exec rake help`. The most commonly used tasks are listed below...
-
-After checking out the repo, run `./bin/setup` to install dependencies (requires `bundler`). Then, run `bundle exec rake test` to run the tests. You can also run `./bin/console` for an interactive REPL that will allow you to experiment with the code.
-
-To generate code documentation run `bundle exec yard doc`. To browse the generated documentation run `bundle exec yard server -r`.
-
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, see the *Gem Publishing Checklist* section of the `TODO.txt` file.
-
-## Contributing
-
-Bug reports and pull requests are welcome on [GitHub](https://github.com/michaeltelford/wgit).
+See the [CHANGELOG.md](https://github.com/michaeltelford/wgit/blob/master/CHANGELOG.md) for differences (including any breaking changes) between releases of Wgit.
 
 ## License
 
 The gem is available as open source under the terms of the [MIT License](http://opensource.org/licenses/MIT).
+
+## Contributing
+
+Bug reports and feature requests are welcome on [GitHub](https://github.com/michaeltelford/wgit/issues). Just raise an issue, checking it doesn't already exist.
+
+The current road map is rudimentally listed in the [TODO.txt](https://github.com/michaeltelford/wgit/blob/master/TODO.txt) file. Maybe your feature request is already there?
+
+## Development
+
+For a full list of available Rake tasks, run `bundle exec rake help`. The most commonly used tasks are listed below...
+
+After checking out the repo, run `./bin/setup` to install dependencies (requires `bundler`). Then, run `bundle exec rake test` to run the tests. You can also run `./bin/console` for an interactive (`pry`) REPL that will allow you to experiment with the code.
+
+To generate code documentation run `bundle exec yard doc`. To browse the generated documentation run `bundle exec yard server -r`.
+
+To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, see the *Gem Publishing Checklist* section of the `TODO.txt` file.
