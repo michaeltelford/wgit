@@ -6,7 +6,7 @@ require 'wgit/version'
 # Returns all files to be packaged within the gem.
 def get_gem_files
   rb_files = Dir["./lib/**/*.rb"]
-  non_rb_files = ['README.md', 'TODO.txt', 'LICENSE.txt']
+  non_rb_files = ['README.md']
 
   # List any ruby files that should NOT be packaged in the built gem.
   # The full file path should be provided e.g. "./lib/wgit/file.rb".
