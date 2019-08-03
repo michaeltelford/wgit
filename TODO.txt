@@ -17,7 +17,7 @@ Secondary
 Refactoring
 -----------
 - Refactor the 3 main classes and their tests (where needed): Url, Document & Crawler.
-- Think about reducing the amount of method aliases, pick the best for the method def and remove the aliases?
+- Think about reducing the amount of method aliases, pick the best for the method def and remove the aliases? Also, the Url#to_* don't make sense, the `to_` should be removed.
 - Replace method params with named parameters where applicable.
 
 Gem Publishing Checklist

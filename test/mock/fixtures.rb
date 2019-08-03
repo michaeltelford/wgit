@@ -36,6 +36,7 @@ pages = [
 sites = [
   'http://txti.es/',
   'http://www.belfastpilates.co.uk/',
+  'http://test-site.com',
 ]
 
 stub_fixtures pages, sites

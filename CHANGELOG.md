@@ -1,16 +1,19 @@
 # Wgit Change Log
 
-## v0.0.0 - 1970/01/01 (TEMPLATE - DO NOT EDIT)
+## v0.0.0 (TEMPLATE - DO NOT EDIT)
 ### Added
-### Changed/Removed (Breaking Changes?)
+- ...
+### Changed/Removed
+- ...
 ### Fixed
+- ...
 ---
 
-## v0.0.14 - 2019/08/01
+## v0.0.14
 ### Added
 - `Indexer#index_this_page` method.
-### Changed/Removed (Breaking Changes?)
-- `Wgit::CONNECTION_DETAILS` now only requires `DB_CONNECTION_STRING` (Yes).
+### Changed/Removed
+- Breaking Changes: `Wgit::CONNECTION_DETAILS` now only requires `DB_CONNECTION_STRING`.
 ### Fixed
 - Found and fixed a bug in `Document#new`.
 ---

@@ -153,15 +153,20 @@ class TestCrawler < TestHelper
     c = Wgit::Crawler.new url
     assert_crawl_site c, 7, 8
 
-    # Test small site not starting on the index page.
-    url = Wgit::Url.new "http://txti.es/terms"
-    c = Wgit::Crawler.new url
-    assert_crawl_site c, 7, 8
-
     # Test single web page with an external link.
     url = Wgit::Url.new "https://motherfuckingwebsite.com/"
     c = Wgit::Crawler.new url
     assert_crawl_site c, 1, 1
+
+    # Test custom small site.
+    url = Wgit::Url.new "http://test-site.com"
+    c = Wgit::Crawler.new url
+    assert_crawl_site c, 3, 0
+
+    # Test custom small site not starting on the index page.
+    url = Wgit::Url.new "http://test-site.com/search"
+    c = Wgit::Crawler.new url
+    assert_crawl_site c, 3, 0
 
     # Test that an invalid url returns nil.
     url = Wgit::Url.new "http://doesntexist_123"
