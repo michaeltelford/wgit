@@ -230,6 +230,10 @@ class TestUrl < TestHelper
     assert_equal 'html', url.to_extension
     assert_equal Wgit::Url, url.to_extension.class
 
+    url = 'example.com/img/icon/apple-touch-icon-76x76.png?v=kPgE9zo'
+    assert_equal 'png', url.to_extension
+    assert_equal Wgit::Url, url.to_extension.class
+
     url = Wgit::Url.new @url_str
     assert_nil url.to_extension
   end
