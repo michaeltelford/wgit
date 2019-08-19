@@ -337,7 +337,6 @@ module Wgit
       Hash[h.to_a.insert(0, ["url", self])] # Insert url at position 0.
     end
 
-    alias :to_hash :to_h
     alias :uri :to_uri
     alias :url :to_url
     alias :scheme :to_scheme
