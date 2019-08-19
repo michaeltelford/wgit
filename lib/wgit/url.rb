@@ -1,13 +1,14 @@
 require_relative 'utils'
 require_relative 'assertable'
 require 'uri'
+require 'addressable/uri'
 
 module Wgit
 
   # Class modeling a web based URL.
   # Can be an internal/relative link e.g. "about.html" or a full URL
-  # e.g. "http://www.google.co.uk". Is a subclass of String and uses 'uri'
-  # internally.
+  # e.g. "http://www.google.co.uk". Is a subclass of String and uses
+  # 'addressable/uri' internally.
   class Url < String
     include Assertable
 
@@ -43,7 +44,7 @@ module Wgit
         date_crawled = obj["date_crawled"]
       end
 
-      @uri = URI(url)
+      @uri = Addressable::URI.parse(url)
       @crawled = crawled
       @date_crawled = date_crawled
 
@@ -169,9 +170,16 @@ module Wgit
       @date_crawled = bool ? Wgit::Utils.time_stamp : nil
     end
 
+    # Normalises/encodes self and returns a new Wgit::Url.
+    #
+    # @return [Wgit::Url] An encoded version of self.
+    def normalise
+      Wgit::Url.new(@uri.normalize.to_s)
+    end
+
     # Returns the @uri instance var of this URL.
     #
-    # @return [URI::HTTP, URI::HTTPS] The URI object of self.
+    # @return [Addressable::URI] The URI object of self.
     def to_uri
       @uri
     end
@@ -357,5 +365,6 @@ module Wgit
     alias :is_relative? :relative_link?
     alias :is_internal? :relative_link?
     alias :crawled? :crawled
+    alias :normalize :normalise
   end
 end

@@ -36,6 +36,14 @@ class TestUrl < TestHelper
     assert_nil url.date_crawled
   end
 
+  def test_initialize_non_ascii_url
+    u = 'https://www.flüchtlingen-helfen.ch/gemeinschaft#top'
+    url = Wgit::Url.new u
+    assert_equal u, url
+    refute url.crawled
+    assert_nil url.date_crawled
+  end
+
   def test_initialize_from_mongo_doc
     url = Wgit::Url.new @mongo_doc_dup
     assert_equal @url_str, url
@@ -106,8 +114,16 @@ class TestUrl < TestHelper
     assert url.crawled?
   end
 
+  def test_normalise
+    url = Wgit::Url.new 'https://www.flüchtlingen-helfen.ch/gemeinschaft#top'
+    normalised = url.normalise
+
+    assert_instance_of Wgit::Url, normalised
+    assert_equal 'https://www.xn--flchtlingen-helfen-n6b.ch/gemeinschaft#top', normalised
+  end
+
   def test_to_uri
-    assert_equal URI::HTTP, Wgit::Url.new(@url_str).to_uri.class
+    assert_equal Addressable::URI, Wgit::Url.new(@url_str).to_uri.class
   end
 
   def test_to_url

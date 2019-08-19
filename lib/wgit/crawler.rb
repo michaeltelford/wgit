@@ -189,13 +189,14 @@ module Wgit
         redirect_limit: Wgit::Crawler.default_redirect_limit,
         follow_external_redirects: true
       )
+      raise 'url must respond to :normalise' unless url.respond_to?(:normalise)
       redirect_count = -1
 
       begin
         raise 'Too many redirects' if redirect_count >= redirect_limit
         redirect_count += 1
 
-        response = Net::HTTP.get_response(URI(url))
+        response = Net::HTTP.get_response(url.normalise.to_uri)
         location = Wgit::Url.new(response.fetch('location', ''))
 
         if not location.empty?

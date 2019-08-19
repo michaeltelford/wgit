@@ -21,6 +21,7 @@ stub_redirect 'http://redirect.com/5', 'http://redirect.com/6' # Fifth redirect.
 stub_redirect 'http://redirect.com/6', 'http://redirect.com/7' # Sixth redirect.
 stub_page 'http://redirect.com/7'
 stub_redirect 'http://test-site.com/sneaky', 'https://motherfuckingwebsite.com/'
+stub_page 'https://www.xn--flchtlingen-helfen-n6b.ch/gemeinschaft'
 
 # Mock responses based on the fixtures saved to disk. Both single webpages and
 # full websites are supported.

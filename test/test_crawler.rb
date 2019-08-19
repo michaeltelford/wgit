@@ -122,20 +122,28 @@ class TestCrawler < TestHelper
   end
 
   def test_crawl_url
+    # Valid URL passed to method.
     c = Wgit::Crawler.new
     url = @urls.first.dup
     assert_crawl c, url
 
+    # Valid URL passed to constructor.
     c = Wgit::Crawler.new(*@urls.dup)
     assert_crawl c
 
+    # Invalid URL.
     url = Wgit::Url.new("doesnt_exist")
     doc = c.crawl_url url
     assert_nil doc
     assert_nil c.last_response
     assert url.crawled
 
-    # Test String instead of Url instance.
+    # Non ASCII chars in the URL.
+    c = Wgit::Crawler.new
+    url = Wgit::Url.new 'https://www.flüchtlingen-helfen.ch/gemeinschaft'
+    assert_crawl c, url
+
+    # String instead of Url instance.
     url = "http://www.bing.com"
     assert_raises RuntimeError do
       c.crawl_url url
@@ -176,7 +184,7 @@ class TestCrawler < TestHelper
 
   def test_resolve__absolute_location
     c = Wgit::Crawler.new
-    url = "http://twitter.com/" # Redirects once to https.
+    url = Wgit::Url.new "http://twitter.com/" # Redirects once to https.
 
     assert_resolve c, url
   end
@@ -184,7 +192,7 @@ class TestCrawler < TestHelper
   def test_resolve__relative_location
     c = Wgit::Crawler.new
     # Redirects twice to /de/folder/page2#anchor-on-page2 on host: example.com
-    url = "https://cms.org"
+    url = Wgit::Url.new "https://cms.org"
 
     assert_resolve c, url
   end
@@ -193,26 +201,26 @@ class TestCrawler < TestHelper
     c = Wgit::Crawler.new
 
     # Redirects 5 times - should resolve.
-    url = "http://redirect.com/2"
+    url = Wgit::Url.new "http://redirect.com/2"
     assert_resolve c, url
 
     # Redirects 6 times - should fail.
-    url = "http://redirect.com/1"
+    url = Wgit::Url.new "http://redirect.com/1"
     assert_raises(RuntimeError) { c.send :resolve, url }
 
     # Disable redirects - should fail.
-    url = 'http://twitter.com/'
+    url = Wgit::Url.new 'http://twitter.com/'
     assert_raises RuntimeError do
       c.send :resolve, url, redirect_limit: 0
     end
 
     # Disable redirects - should pass as there's no redirect.
-    url = "https://twitter.com/"
+    url = Wgit::Url.new "https://twitter.com/"
     c.send :resolve, url, redirect_limit: 0
 
     # Test changing the default limit - should fail, too many redirects.
     Wgit::Crawler.default_redirect_limit = 3
-    url = "http://redirect.com/2" # Would pass normally.
+    url = Wgit::Url.new "http://redirect.com/2" # Would pass normally.
     assert_raises(RuntimeError) { c.send :resolve, url }
     Wgit::Crawler.default_redirect_limit = 5 # Back to the original default.
   end
