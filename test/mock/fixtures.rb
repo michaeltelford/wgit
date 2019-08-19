@@ -20,6 +20,7 @@ stub_redirect 'http://redirect.com/4', 'http://redirect.com/5' # Fourth redirect
 stub_redirect 'http://redirect.com/5', 'http://redirect.com/6' # Fifth redirect.
 stub_redirect 'http://redirect.com/6', 'http://redirect.com/7' # Sixth redirect.
 stub_page 'http://redirect.com/7'
+stub_redirect 'http://test-site.com/sneaky', 'https://motherfuckingwebsite.com/'
 
 # Mock responses based on the fixtures saved to disk. Both single webpages and
 # full websites are supported.

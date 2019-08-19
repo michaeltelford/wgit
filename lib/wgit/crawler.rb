@@ -91,13 +91,15 @@ module Wgit
     # Crawl the url and return the response document or nil.
     #
     # @param url [Wgit::Document] The URL to crawl.
+    # @param follow_external_redirects [Boolean] Whether or not to follow
+    #   external redirects. False will return nil for such a crawl.
     # @yield [Wgit::Document] The crawled HTML Document regardless if the
     #   crawl was successful or not. Therefore, the Document#url can be used.
     # @return [Wgit::Document, nil] The crawled HTML Document or nil if the
     #   crawl was unsuccessful.
-    def crawl_url(url = @urls.first)
+    def crawl_url(url = @urls.first, follow_external_redirects: true)
       assert_type(url, Wgit::Url)
-      markup = fetch(url)
+      markup = fetch(url, follow_external_redirects: follow_external_redirects)
       url.crawled = true
       doc = Wgit::Document.new(url, markup)
       yield(doc) if block_given?
@@ -116,7 +118,7 @@ module Wgit
     def crawl_site(base_url = @urls.first, &block)
       assert_type(base_url, Wgit::Url)
 
-      doc = crawl_url(base_url, &block)
+      doc = crawl_url(base_url, follow_external_redirects: false, &block)
       return nil if doc.nil?
 
       path = base_url.path.nil? ? '/' : base_url.path
@@ -133,9 +135,15 @@ module Wgit
         break if links.empty?
 
         links.each do |link|
-          doc = crawl_url(Wgit::Url.concat(base_url.to_base, link), &block)
+          doc = crawl_url(
+            Wgit::Url.concat(base_url.to_base, link),
+            follow_external_redirects: false,
+            &block
+          )
+
           crawled_urls << link
           next if doc.nil?
+
           internal_urls.concat(get_internal_links(doc))
           external_urls.concat(doc.external_links)
         end
@@ -160,8 +168,8 @@ module Wgit
     # The fetch method performs a HTTP GET to obtain the HTML document.
     # Invalid urls or any HTTP response that doesn't return a HTML body will be
     # ignored and nil will be returned. Otherwise, the HTML is returned.
-    def fetch(url)
-      response = resolve(url)
+    def fetch(url, follow_external_redirects: true)
+      response = resolve(url, follow_external_redirects: follow_external_redirects)
       @last_response = response
       response.body.empty? ? nil : response.body
     rescue Exception => ex
@@ -176,18 +184,29 @@ module Wgit
     # A certain amount of redirects will be followed by default before raising
     # an exception. Redirects can be disabled by setting `redirect_limit: 0`.
     # The Net::HTTPResponse will be returned.
-    def resolve(url, redirect_limit: Wgit::Crawler.default_redirect_limit)
+    def resolve(
+        url,
+        redirect_limit: Wgit::Crawler.default_redirect_limit,
+        follow_external_redirects: true
+      )
       redirect_count = -1
+
       begin
-        raise "Too many redirects" if redirect_count >= redirect_limit
+        raise 'Too many redirects' if redirect_count >= redirect_limit
         redirect_count += 1
 
         response = Net::HTTP.get_response(URI(url))
         location = Wgit::Url.new(response.fetch('location', ''))
+
         if not location.empty?
+          if !follow_external_redirects and !location.is_relative?
+            raise 'External redirect encountered but not allowed'
+          end
+
           url = location.is_relative? ? url.to_base.concat(location) : location
         end
       end while response.is_a?(Net::HTTPRedirection)
+
       response
     end
 

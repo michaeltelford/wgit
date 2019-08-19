@@ -364,6 +364,7 @@ module Wgit
     #   xpath value to be derived on Document initialisation (instead of when
     #   the extension is defined). The call method must return a valid xpath
     #   String.
+    # @param options [Hash] The options to define an extension with.
     # @option options [Boolean] :singleton The singleton option determines
     #   whether or not the result(s) should be in an Array. If multiple
     #   results are found and singleton is true then the first result will be
