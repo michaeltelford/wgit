@@ -8,17 +8,17 @@ Primary
 
 Secondary
 ---------
-- Think about how we handle invalid url's on crawled documents. Setup tests and implement logic for this scenario.
-- Think about ignoring non html documents/urls e.g. http://server/image.jpg etc. by implementing MIME types (defaulting to only HTML).
+- Think about how we handle invalid Url's on crawled documents. Setup tests and implement logic for this scenario.
 - Check if Document::TEXT_ELEMENTS is expansive enough.
-- Possibly use refine instead of core-ext?
-- Think about potentially using DB._update's update_many func.
 
 Refactoring
 -----------
+- Open up the required_ruby_version range, say from 2.2 upwards e.g. `~> 2.2`. Might need CI testing for the different versions of ruby.
 - Refactor the 3 main classes and their tests (where needed): Url, Document & Crawler.
 - Think about reducing the amount of method aliases, pick the best for the method def and remove the aliases? Also, the Url#to_* don't make sense, the `to_` should be removed.
 - Replace method params with named parameters where applicable.
+- Possibly use refine instead of core-ext?
+- Think about potentially using DB._update's update_many func.
 
 Gem Publishing Checklist
 ------------------------

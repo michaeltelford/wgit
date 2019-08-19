@@ -61,7 +61,7 @@ Wgit::Document.instance_methods(false).sort # => [
 # :external_urls, :html, :internal_full_links, :internal_links,
 # :internal_links_without_anchors, :keywords, :links, :relative_full_links,
 # :relative_full_urls, :relative_links, :relative_urls, :score, :search,
-# :search!, :size, :stats, :text, :title, :to_h, :to_hash, :to_json, :url,
+# :search!, :size, :stats, :text, :title, :to_h, :to_json, :url,
 # :xpath
 #]
 
@@ -315,8 +315,9 @@ tables.first.class  # => Nokogiri::XML::Element
 
 Below are some points to keep in mind when using Wgit:
 
-- All absolute `Wgit::Url`'s must be prefixed with an appropiate protocol e.g. `https://`
+- All absolute `Wgit::Url`'s must be prefixed with an appropiate protocol e.g. `https://` etc.
 - By default, up to 5 URL redirects will be followed; this is configurable however.
+- IRI's (URL's containing non ASCII characters) are supported and will be normalised/escaped prior to being crawled.
 
 ## Executable
 

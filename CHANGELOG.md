@@ -9,6 +9,15 @@
 - ...
 ---
 
+## v0.0.15
+### Added
+- Support for IRI's (non ASCII based URL's).
+### Changed/Removed
+- Breaking changes: Removed `Document` and `Url#to_hash` aliases. Call `to_h` instead.
+### Fixed
+- Bug in `Crawler#crawl_site` where an internal redirect to an external site's page was being followed.
+---
+
 ## v0.0.14
 ### Added
 - `Indexer#index_this_page` method.
