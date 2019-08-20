@@ -142,6 +142,7 @@ class TestCrawler < TestHelper
     c = Wgit::Crawler.new
     url = Wgit::Url.new 'https://www.flüchtlingen-helfen.ch/gemeinschaft'
     assert_crawl c, url
+    assert_equal 'https://www.flüchtlingen-helfen.ch/gemeinschaft', url
 
     # String instead of Url instance.
     url = "http://www.bing.com"
