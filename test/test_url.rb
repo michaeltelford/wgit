@@ -51,6 +51,13 @@ class TestUrl < TestHelper
     assert_equal @time_stamp, url.date_crawled
   end
 
+  def test_initialize_using_parse
+    url = Wgit::Url.parse @url_str
+    assert_equal @url_str, url
+    refute url.crawled
+    assert_nil url.date_crawled
+  end
+
   def test_validate
     Wgit::Url.validate @url_str
     Wgit::Url.validate @iri

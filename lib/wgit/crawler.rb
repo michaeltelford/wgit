@@ -196,7 +196,7 @@ module Wgit
         raise 'Too many redirects' if redirect_count >= redirect_limit
         redirect_count += 1
 
-        response = Net::HTTP.get_response(url.normalise.to_uri)
+        response = Net::HTTP.get_response(url.to_uri)
         location = Wgit::Url.new(response.fetch('location', ''))
 
         if not location.empty?

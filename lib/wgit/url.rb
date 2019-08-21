@@ -51,6 +51,14 @@ module Wgit
       super(url)
     end
 
+    # A class alias for Url.new.
+    #
+    # @param str [String] The URL string to parse.
+    # @return [Wgit::Url] The parsed Url object.
+    def self.parse(str)
+      self.new(str)
+    end
+
     # Raises an exception if url is not a valid HTTP URL.
     #
     # @param url [Wgit::Url, String] The Url to validate.
