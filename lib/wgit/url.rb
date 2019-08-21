@@ -8,7 +8,7 @@ module Wgit
   # Class modeling a web based URL.
   # Can be an internal/relative link e.g. "about.html" or a full URL
   # e.g. "http://www.google.co.uk". Is a subclass of String and uses
-  # 'addressable/uri' internally.
+  # 'uri' and 'addressable/uri' internally.
   class Url < String
     include Assertable
 
@@ -56,13 +56,14 @@ module Wgit
     # @param url [Wgit::Url, String] The Url to validate.
     # @raise [RuntimeError] If url is invalid.
     def self.validate(url)
-      if Wgit::Url.relative_link?(url)
+      url = Wgit::Url.new(url)
+      if url.relative_link?
         raise "Invalid url (or a relative link): #{url}"
       end
       unless url.start_with?("http://") or url.start_with?("https://")
         raise "Invalid url (missing protocol prefix): #{url}"
       end
-      if URI.regexp.match(url).nil?
+      if URI.regexp.match(url.normalise).nil?
         raise "Invalid url: #{url}"
       end
     end
@@ -96,34 +97,6 @@ module Wgit
       url
     end
 
-    # Returns if link is a relative or absolute Url.
-    # All external links in a page are expected to have a protocol prefix e.g.
-    # "http://", otherwise the link is treated as an internal link (regardless
-    # of whether it is valid or not). The only exception is if base is provided
-    # and link is a page within that site; then the link is relative.
-    #
-    # @param link [Wgit::Url, String] The url to test if relative or not.
-    # @param base [String] The Url base e.g. http://www.google.co.uk.
-    # @return [Boolean] True if relative, false if absolute.
-    # @raise [RuntimeError] If the link is invalid.
-    def self.relative_link?(link, base: nil)
-      raise "Invalid link: #{link}" if link.nil? or link.empty?
-
-      link = Wgit::Url.new(link)
-      if base
-        base = Wgit::Url.new(base)
-        if base.to_scheme.nil?
-          raise "Invalid base, must contain protocol prefix: #{base}"
-        end
-      end
-
-      if link.to_uri.relative?
-        true
-      else
-        base ? link.to_host == base.to_host : false
-      end
-    end
-
     # Concats the host and link Strings and returns the result.
     #
     # @param host [Wgit::Url, String] The Url host.
@@ -136,14 +109,31 @@ module Wgit
       Wgit::Url.new(host + separator + link)
     end
 
-    # Returns if self is a relative or absolute Url. If base is provided and
-    # self is a page within that site then the link is relative.
-    # See Wgit.relative_link? for more information.
+    # Returns true if self is a relative Url.
     #
+    # All external links in a page are expected to have a protocol prefix e.g.
+    # "http://", otherwise the link is treated as an internal link (regardless
+    # of whether it's valid or not). The only exception is if base is provided
+    # and self is a page within that site; then the link is relative.
+    #
+    # @param base [Wgit::Url, String] The Url base e.g. http://www.google.com.
     # @return [Boolean] True if relative, false if absolute.
-    # @raise [RuntimeError] If the link is invalid.
-    def relative_link?(base: nil)
-      Wgit::Url.relative_link?(self, base: base)
+    # @raise [RuntimeError] If self is invalid e.g. empty.
+    def is_relative?(base: nil)
+      raise "Invalid link: #{self}" if nil? or empty?
+
+      if base
+        base = Wgit::Url.new(base)
+        if base.to_scheme.nil?
+          raise "Invalid base, must contain protocol prefix: #{base}"
+        end
+      end
+
+      if @uri.relative?
+        true
+      else
+        base ? to_host == base.to_host : false
+      end
     end
 
     # Determines if self is a valid Url or not.
@@ -170,18 +160,18 @@ module Wgit
       @date_crawled = bool ? Wgit::Utils.time_stamp : nil
     end
 
-    # Normalises/encodes self and returns a new Wgit::Url.
+    # Normalises/escapes self and returns a new Wgit::Url.
     #
     # @return [Wgit::Url] An encoded version of self.
     def normalise
       Wgit::Url.new(@uri.normalize.to_s)
     end
 
-    # Returns the @uri instance var of this URL.
+    # Returns a normalised URI object for this URL.
     #
-    # @return [Addressable::URI] The URI object of self.
+    # @return [URI::HTTP, URI::HTTPS] The URI object of self.
     def to_uri
-      @uri
+      URI(normalise)
     end
 
     # Returns self.
@@ -361,9 +351,9 @@ module Wgit
     alias :fragment :to_anchor
     alias :extension :to_extension
     alias :without_fragment :without_anchor
-    alias :internal_link? :relative_link?
-    alias :is_relative? :relative_link?
-    alias :is_internal? :relative_link?
+    alias :relative_link? :is_relative?
+    alias :internal_link? :is_relative?
+    alias :is_internal? :is_relative?
     alias :crawled? :crawled
     alias :normalize :normalise
   end
