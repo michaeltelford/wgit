@@ -9,6 +9,15 @@
 - ...
 ---
 
+## v0.0.16
+### Added
+- Added `Url.parse` class method as alias for `Url.new`.
+### Changed/Removed
+- Breaking changes: Removed `Wgit::Url.relative_link?` (class method). Use `Wgit::Url#is_relative?` (instance method) instead e.g. `Wgit::Url.new('/blah').is_relative?`.
+### Fixed
+- Several URI related bugs in `Wgit::Url` affecting crawls.
+---
+
 ## v0.0.15
 ### Added
 - Support for IRI's (non ASCII based URL's).
