@@ -19,6 +19,16 @@ task :help do
   system "bundle exec rake -D"
 end
 
+desc "Run the setup script"
+task :setup do
+  system "./bin/setup"
+end
+
+desc "Run the development console"
+task :console do
+  system "./bin/console"
+end
+
 desc "Download/update a web page test fixture to test/mock/fixtures"
 task :save_page, [:url] do |t, args|
   system "ruby test/mock/save_page.rb #{args[:url]}"
@@ -34,9 +44,9 @@ end
 desc "Compile all project Ruby files with warnings."
 task :compile do
   paths = Dir["**/*.rb", "**/*.gemspec", "bin/console"]
-  paths.each do |f|
-    puts "\nCompiling #{f}..."
-    system "ruby -cw #{f}"
+  paths.each do |file|
+    puts "\nCompiling #{file}..."
+    system "ruby -cw #{file}"
   end
 end
 

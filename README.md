@@ -325,7 +325,7 @@ Currently there is no executable provided with Wgit, however...
 
 In future versions of Wgit, an executable will be packaged with the gem. The executable will provide a `pry` console with the `wgit` gem already loaded. Using the console, you'll easily be able to index and search the web without having to write your own scripts.
 
-This executable will be very similar in nature to `./bin/console` which is currently used only for development and isn't packaged as part of the `wgit` gem.
+This executable will be similar in nature to `./bin/console` which is currently used for development and isn't packaged as part of the `wgit` gem.
 
 ## Change Log
 
@@ -345,7 +345,7 @@ The current road map is rudimentally listed in the [TODO.txt](https://github.com
 
 For a full list of available Rake tasks, run `bundle exec rake help`. The most commonly used tasks are listed below...
 
-After checking out the repo, run `./bin/setup` to install dependencies (requires `bundler`). Then, run `bundle exec rake test` to run the tests. You can also run `./bin/console` for an interactive (`pry`) REPL that will allow you to experiment with the code.
+After checking out the repo, run `bundle exec rake setup` to install the dependencies (requires `bundler`). Then, run `bundle exec rake test` to run the tests. You can also run `bundle exec rake console` for an interactive (`pry`) REPL that will allow you to experiment with the code.
 
 To generate code documentation run `bundle exec yard doc`. To browse the generated documentation run `bundle exec yard server -r`.
 
