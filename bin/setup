@@ -4,6 +4,6 @@ set -euo pipefail
 IFS=$'\n\t'
 set -vx
 
-bundle install
+bundle install --jobs=3
 
 touch .env
