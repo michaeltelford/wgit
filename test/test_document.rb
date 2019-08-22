@@ -8,11 +8,14 @@ class TestDocument < TestHelper
   # Runs before every test.
   def setup
     @url = Wgit::Url.new("http://www.mytestsite.com")
+    @rel_base_url = '/public'
+    @base_url = 'http://server.com' + @rel_base_url
     @html = File.read("test/mock/fixtures/test_doc.html")
     @mongo_doc_dup = {
       "url" => @url.to_s,
       "html" => @html,
       "score" => 12.05,
+      "base" => nil, # Set if using html_with_base.
       "title" => "My Test Webpage",
       "author" => "Michael Telford",
       "keywords" => ["Minitest", "Ruby", "Test Document"],
@@ -45,7 +48,7 @@ and power matches the Ruby language in which it's developed."
     }
     @stats = {
       url: 25,
-      html: 1786,
+      html: 2061,
       title: 15,
       author: 15,
       keywords: 3,
@@ -61,23 +64,39 @@ Minitest framework."
     ]
   end
 
-  def test_initialize_without_html
+  def test_initialize__without_html
     doc = Wgit::Document.new @url
+
     assert_equal @url, doc.url
     assert_instance_of Wgit::Url, doc.url
     assert_empty doc.html
+    assert_equal 0.0, doc.score
+    assert_nil doc.base
   end
 
-  def test_initialize_with_html
+  def test_initialize__with_html
     doc = Wgit::Document.new @url, @html
+
     assert_doc doc
     assert_equal 0.0, doc.score
+    assert_nil doc.base
   end
 
-  def test_initialize_with_mongo_doc
+  def test_initialize__with_base
+    html = html_with_base @base_url
+    doc = Wgit::Document.new @url, html
+
+    assert_doc doc, html: html
+    assert_equal 0.0, doc.score
+    assert_equal @base_url, doc.base
+  end
+
+  def test_initialize__with_mongo_doc
     doc = Wgit::Document.new @mongo_doc_dup
+
     assert_doc doc
     assert_equal @mongo_doc_dup["score"], doc.score
+    assert_nil doc.base
   end
 
   def test_internal_links
@@ -91,7 +110,7 @@ Minitest framework."
     assert_empty doc.internal_links
   end
 
-  def test_internal_links_without_anchors
+  def test_internal_links__without_anchors
     doc = Wgit::Document.new Wgit::Url.new(@url + '/about'), @html
     assert_equal [
       "?foo=bar",
@@ -135,6 +154,26 @@ Minitest framework."
     assert_empty doc.internal_full_links
   end
 
+  def test_internal_full_links__with_base
+    html = html_with_base @base_url
+    doc = Wgit::Document.new @url, html
+
+    assert_equal [
+      "#{@base_url}#welcome",
+      "#{@base_url}?foo=bar",
+      "#{@base_url}/security.html",
+      "#{@base_url}/about.html",
+      "#{@base_url}/",
+      "#{@base_url}/contact.html",
+      "#{@base_url}/tests.html",
+      "#{@base_url}/blog#about-us",
+      "#{@base_url}/contents",
+    ], doc.internal_full_links
+    assert doc.internal_full_links.all? do |link|
+      link.instance_of?(Wgit::Url)
+    end
+  end
+
   def test_external_links
     doc = Wgit::Document.new @url, @html
     assert_equal [
@@ -170,7 +209,14 @@ Minitest framework."
     assert_equal hash, doc.to_h
 
     doc = Wgit::Document.new @mongo_doc_dup
-    hash["score"] = @mongo_doc_dup["score"]
+    hash = @mongo_doc_dup.dup
+    assert_equal hash, doc.to_h
+
+    html = html_with_base @base_url
+    doc = Wgit::Document.new @url, html
+    hash = @mongo_doc_dup.dup
+    hash["score"] = 0.0
+    hash["base"] = @base_url
     assert_equal hash, doc.to_h
   end
 
@@ -200,6 +246,29 @@ Minitest framework."
     url = Wgit::Url.new "http://www.mytestsite.com", true, timestamp
     doc = Wgit::Document.new url
     assert_equal timestamp, doc.date_crawled
+  end
+
+  def test_base_url__no_base
+    doc = Wgit::Document.new @url.concat('/about'), @html
+
+    assert_equal @url, doc.base_url
+    assert_instance_of Wgit::Url, doc.base_url
+  end
+
+  def test_base_url__absolute_base
+    html = html_with_base @base_url
+    doc = Wgit::Document.new @url, html
+
+    assert_equal @base_url, doc.base_url
+    assert_instance_of Wgit::Url, doc.base_url
+  end
+
+  def test_base_url__relative_base
+    html = html_with_base @rel_base_url
+    doc = Wgit::Document.new @url, html
+
+    assert_equal @url + @rel_base_url, doc.base_url
+    assert_instance_of Wgit::Url, doc.base_url
   end
 
   def test_empty?
@@ -241,10 +310,19 @@ Minitest framework."
 
 private
 
-  def assert_doc(doc)
+  # Inserts a <base> element into @html.
+  def html_with_base(href)
+    noko_doc = Nokogiri::HTML @html
+    title_el = noko_doc.at 'title'
+    title_el.add_next_sibling "<base href='#{href}'>"
+    noko_doc.to_html
+  end
+
+  # We can override the doc's expected html for different test scenarios.
+  def assert_doc(doc, html: @html)
     assert_equal @url, doc.url
     assert_instance_of Wgit::Url, doc.url
-    assert_equal @html, doc.html
+    assert_equal html, doc.html
     assert_equal @mongo_doc_dup["title"], doc.title
     assert_equal @mongo_doc_dup["author"], doc.author
     assert_equal @mongo_doc_dup["keywords"], doc.keywords

@@ -1,7 +1,7 @@
 require 'securerandom'
 
 module Wgit
-  
+
   # Module containing the default url and doc objects for database testing.
   # We use an uuid on the url fields in the DB because they are unique.
   module DatabaseDefaultData
@@ -13,7 +13,7 @@ module Wgit
         "crawled" => false,
         "date_crawled" => nil,
         "date_added" => "2016-04-17 14:33:16 +0100",
-        "date_modified" => "2016-04-17 14:33:16 +0100"
+        "date_modified" => "2016-04-17 14:33:16 +0100",
       }
     end
 
@@ -22,6 +22,7 @@ module Wgit
       {
         "url" => "http://altitudejunkies.com/everest.html/#{SecureRandom.uuid}",
         "title" => "Altitude Junkies | Everest",
+        "base" => nil,
         "author" => "LTE Designs",
         "keywords" => ["Everest", "Highest Peak", "High Altitude", "Altitude Junkies"],
         "links" => [
@@ -195,7 +196,7 @@ module Wgit
         ],
         "score" => 0,
         "date_added" => "2016-04-17 14:33:16 +0100",
-        "date_modified" => "2016-04-17 14:33:16 +0100"
+        "date_modified" => "2016-04-17 14:33:16 +0100",
       }
     end
   end

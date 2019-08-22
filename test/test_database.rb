@@ -202,8 +202,6 @@ class TestDatabase < TestHelper
 
 private
 
-  # Method which sets the title attribute of a Document object.
-  # We define a singleton method on the doc because @title is read only.
   def set_doc_title(doc, title)
     doc.instance_variable_set :@title, title
   end

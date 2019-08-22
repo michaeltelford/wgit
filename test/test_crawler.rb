@@ -140,9 +140,9 @@ class TestCrawler < TestHelper
 
     # Non ASCII chars in the URL.
     c = Wgit::Crawler.new
-    url = Wgit::Url.new 'https://www.flüchtlingen-helfen.ch/gemeinschaft'
+    url = Wgit::Url.new 'https://www.über.com/about'
     assert_crawl c, url
-    assert_equal 'https://www.flüchtlingen-helfen.ch/gemeinschaft', url
+    assert_equal 'https://www.über.com/about', url
 
     # String instead of Url instance.
     url = "http://www.bing.com"
@@ -170,12 +170,12 @@ class TestCrawler < TestHelper
     # Test custom small site.
     url = Wgit::Url.new "http://test-site.com"
     c = Wgit::Crawler.new url
-    assert_crawl_site c, 4, 0
+    assert_crawl_site c, 6, 0
 
     # Test custom small site not starting on the index page.
     url = Wgit::Url.new "http://test-site.com/search"
     c = Wgit::Crawler.new url
-    assert_crawl_site c, 4, 0
+    assert_crawl_site c, 6, 0
 
     # Test that an invalid url returns nil.
     url = Wgit::Url.new "http://doesntexist_123"
