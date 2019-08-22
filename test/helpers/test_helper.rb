@@ -5,7 +5,8 @@ require 'logger'
 require 'dotenv'
 require 'byebug' # Call 'byebug' anywhere in the code to debug.
 
-require_relative '../mock/fixtures' # Mock HTTP responses.
+# Mock HTTP responses.
+require_relative '../mock/fixtures'
 
 # Require all code being tested once, in one place.
 require_relative '../../lib/wgit'
@@ -22,8 +23,8 @@ class TestHelper < Minitest::Test
 
   # Fires everytime this class is subclassed.
   def self.inherited(child)
-    # Load any required .env vars e.g. DB connection details.
-    Dotenv.load!
+    # Load any available .env vars e.g. DB connection details.
+    Dotenv.load! if File.exist? '.env'
 
     # Set the DB connection details from the ENV.
     load 'lib/wgit/database/connection_details.rb'
