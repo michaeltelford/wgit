@@ -126,6 +126,18 @@ module Wgit
       @url.date_crawled
     end
 
+    # Returns the base URL of this Wgit::Document. The base URL is either the
+    # <base> element's href value or @url (if @base is nil). If @base is
+    # present and relative, then @url + @base is returned. This method should
+    # be used instead of `doc.url.to_base` if manually building absolute links.
+    #
+    # @return [Wgit::Url] The base URL of this Document e.g.
+    #   'http://example.com/public'.
+    def base_url
+      return @url.base unless @base
+      @base.is_relative? ? @url.to_base.concat(@base) : @base
+    end
+
     # Returns a Hash containing this Document's instance vars.
     # Used when storing the Document in a Database e.g. MongoDB etc.
     # By default the @html var is excluded from the returned Hash.
@@ -221,11 +233,7 @@ module Wgit
       return [] if @links.empty?
 
       links = @links.
-        reject do |link|
-          not link.relative_link?(base: @url.to_base)
-        rescue
-          true
-        end.
+        reject { |link| !link.is_relative?(base: @url.to_base) }.
         map(&:without_base).
         map do |link| # We map @url.to_host into / because it's a duplicate.
           link.to_host == @url.to_host ? Wgit::Url.new('/') : link
@@ -240,9 +248,9 @@ module Wgit
     # @return [Array<Wgit::Url>] self's internal/relative URL's with their
     #   anchors removed.
     def internal_links_without_anchors
-      in_links = internal_links
-      return [] if in_links.empty?
-      in_links.
+      links = internal_links
+      return [] if links.empty?
+      links.
         map(&:without_anchor).
         reject(&:empty?)
     end
@@ -254,9 +262,9 @@ module Wgit
     # @return [Array<Wgit::Url>] self's internal/relative URL's in absolute
     #   form.
     def internal_full_links
-      in_links = internal_links
-      return [] if in_links.empty?
-      in_links.map { |link| @url.to_base.concat(link) }
+      links = internal_links
+      return [] if links.empty?
+      links.map { |link| base_url.concat(link) }
     end
 
     # Get all the external links of this Document. External meaning a link to
@@ -267,11 +275,7 @@ module Wgit
       return [] if @links.empty?
 
       links = @links.
-        reject do |link|
-          link.relative_link?(base: @url.to_base)
-        rescue
-          true
-        end.
+        reject { |link| link.relative_link?(base: @url.to_base) }.
         map(&:without_trailing_slash)
 
       Wgit::Utils.process_arr(links)

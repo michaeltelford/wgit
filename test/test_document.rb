@@ -210,11 +210,13 @@ Minitest framework."
 
     doc = Wgit::Document.new @mongo_doc_dup
     hash = @mongo_doc_dup.dup
+    hash.delete("html")
     assert_equal hash, doc.to_h
 
     html = html_with_base @base_url
     doc = Wgit::Document.new @url, html
     hash = @mongo_doc_dup.dup
+    hash.delete("html")
     hash["score"] = 0.0
     hash["base"] = @base_url
     assert_equal hash, doc.to_h
