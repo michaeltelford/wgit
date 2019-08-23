@@ -9,6 +9,15 @@
 - ...
 ---
 
+## v0.0.17
+### Added
+- Support for `<base>` element in `Wgit::Document`'s.
+### Changed/Removed
+- Breaking changes: Removed `Wgit::Document#internal_links_without_anchors` method.
+### Fixed
+- ...
+---
+
 ## v0.0.16
 ### Added
 - Added `Url.parse` class method as alias for `Url.new`.
