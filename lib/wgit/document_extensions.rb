@@ -1,5 +1,15 @@
 ### Default Document Extensions ###
 
+# Base.
+Wgit::Document.define_extension(
+  :base,
+  '//base/@href',
+  singleton: true,
+  text_content_only: true,
+) do |base|
+  base = Wgit::Url.new(base) if base
+end
+
 # Title.
 Wgit::Document.define_extension(
   :title,
@@ -37,15 +47,7 @@ Wgit::Document.define_extension(
   singleton: false,
   text_content_only: true,
 ) do |links|
-  if links
-    links.map! do |link|
-      Wgit::Url.new(link)
-    rescue
-      nil
-    end
-    links.compact!
-  end
-  links
+  links.map! { |link| Wgit::Url.new(link) } if links
 end
 
 # Text.
