@@ -242,19 +242,6 @@ module Wgit
       Wgit::Utils.process_arr(links)
     end
 
-    # Get all the internal links of this Document with their anchors removed
-    # (if present). Also see Wgit::Document#internal_links.
-    #
-    # @return [Array<Wgit::Url>] self's internal/relative URL's with their
-    #   anchors removed.
-    def internal_links_without_anchors
-      links = internal_links
-      return [] if links.empty?
-      links.
-        map(&:without_anchor).
-        reject(&:empty?)
-    end
-
     # Get all the internal links of this Document and append them to this
     # Document's base URL making them absolute. Also see
     # Wgit::Document#internal_links.

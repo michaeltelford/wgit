@@ -219,8 +219,9 @@ module Wgit
 
     # Pull out the doc's internal HTML page links for crawling.
     def get_internal_links(doc)
-      doc.
-        internal_links_without_anchors.
+      doc.internal_links.
+        map(&:without_anchor).
+        reject(&:empty?).
         reject do |link|
           ext = link.to_extension
           ext ? !['htm', 'html'].include?(ext) : false
