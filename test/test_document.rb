@@ -25,7 +25,7 @@ class TestDocument < TestHelper
         "http://www.google.co.uk",
         "http://www.mytestsite.com/security.html",
         "/about.html",
-        "about.html",
+        "about.html/",
         "/",
         "http://www.yahoo.com",
         "/contact.html",
@@ -48,7 +48,7 @@ and power matches the Ruby language in which it's developed."
     }
     @stats = {
       url: 25,
-      html: 2061,
+      html: 2062,
       title: 15,
       author: 15,
       keywords: 3,

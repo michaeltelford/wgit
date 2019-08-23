@@ -170,12 +170,12 @@ class TestCrawler < TestHelper
     # Test custom small site.
     url = Wgit::Url.new "http://test-site.com"
     c = Wgit::Crawler.new url
-    assert_crawl_site c, 6, 0
+    assert_crawl_site c, 5, 0
 
     # Test custom small site not starting on the index page.
     url = Wgit::Url.new "http://test-site.com/search"
     c = Wgit::Crawler.new url
-    assert_crawl_site c, 6, 0
+    assert_crawl_site c, 5, 0
 
     # Test that an invalid url returns nil.
     url = Wgit::Url.new "http://doesntexist_123"
@@ -243,16 +243,21 @@ private
   end
 
   def assert_crawl_site(crawler, expected_num_crawled, expected_num_externals)
-    num_crawled = 0
+    crawled = []
+
     ext_links = crawler.crawl_site do |doc|
-      # byebug if doc.empty? # Leave commented out as it's a useful debugger.
-      doc.url == 'http://test-site.com/sneaky' ? assert_empty(doc) : refute_empty(doc)
       assert doc.url.start_with?(crawler.urls.first.to_base)
       assert doc.url.crawled?
-      num_crawled += 1
+
+      if doc.url == 'http://test-site.com/sneaky'
+        assert_empty(doc)
+      else
+        refute_empty(doc)
+        crawled << doc.url
+      end
     end
 
-    assert_equal expected_num_crawled, num_crawled
+    assert_equal expected_num_crawled, crawled.length
     assert_equal expected_num_externals, ext_links.length
     assert_equal ext_links.uniq.length, ext_links.length
     assert crawler.urls.first.crawled?

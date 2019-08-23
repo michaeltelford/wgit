@@ -121,35 +121,31 @@ module Wgit
       doc = crawl_url(base_url, follow_external_redirects: false, &block)
       return nil if doc.nil?
 
-      path = base_url.path.nil? ? '/' : base_url.path
-      crawled_urls  = [path]
-      external_urls = doc.external_links
-      internal_urls = get_internal_links(doc)
+      alt_base_url = base_url.end_with?('/') ? base_url.chop : base_url + '/'
+      crawled      = [base_url, alt_base_url]
+      externals    = doc.external_links
+      internals    = get_internal_links(doc)
 
-      return doc.external_links.uniq if internal_urls.empty?
+      return doc.external_links.uniq if internals.empty?
 
       loop do
-        internal_urls.uniq!
+        internals.uniq!
 
-        links = internal_urls - crawled_urls
+        links = internals - crawled
         break if links.empty?
 
         links.each do |link|
-          doc = crawl_url(
-            Wgit::Url.concat(base_url.to_base, link),
-            follow_external_redirects: false,
-            &block
-          )
+          doc = crawl_url(link, follow_external_redirects: false, &block)
 
-          crawled_urls << link
+          crawled << link
           next if doc.nil?
 
-          internal_urls.concat(get_internal_links(doc))
-          external_urls.concat(doc.external_links)
+          internals.concat(get_internal_links(doc))
+          externals.concat(doc.external_links)
         end
       end
 
-      external_urls.uniq
+      externals.uniq
     end
 
   private
@@ -219,9 +215,8 @@ module Wgit
 
     # Pull out the doc's internal HTML page links for crawling.
     def get_internal_links(doc)
-      doc.internal_links.
+      doc.internal_full_links.
         map(&:without_anchor).
-        reject(&:empty?).
         reject do |link|
           ext = link.to_extension
           ext ? !['htm', 'html'].include?(ext) : false
