@@ -217,6 +217,7 @@ module Wgit
     def get_internal_links(doc)
       doc.internal_full_links.
         map(&:without_anchor).
+        uniq.
         reject do |link|
           ext = link.to_extension
           ext ? !['htm', 'html'].include?(ext) : false
