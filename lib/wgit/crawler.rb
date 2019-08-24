@@ -118,7 +118,7 @@ module Wgit
     def crawl_site(base_url = @urls.first, &block)
       assert_type(base_url, Wgit::Url)
 
-      doc = crawl_url(base_url, follow_external_redirects: false, &block)
+      doc = crawl_url(base_url, follow_external_redirects: true, &block)
       return nil if doc.nil?
 
       alt_base_url = base_url.end_with?('/') ? base_url.chop : base_url + '/'
@@ -135,7 +135,7 @@ module Wgit
         break if links.empty?
 
         links.each do |link|
-          doc = crawl_url(link, follow_external_redirects: false, &block)
+          doc = crawl_url(link, follow_external_redirects: true, &block)
 
           crawled << link
           next if doc.nil?
@@ -185,7 +185,7 @@ module Wgit
         redirect_limit: Wgit::Crawler.default_redirect_limit,
         follow_external_redirects: true
       )
-      raise 'url must respond to :normalise' unless url.respond_to?(:normalise)
+      raise 'url must respond to :to_uri' unless url.respond_to?(:to_uri)
       redirect_count = -1
 
       begin
