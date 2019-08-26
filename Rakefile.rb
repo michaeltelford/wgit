@@ -29,6 +29,15 @@ task :console do
   system "./bin/console"
 end
 
+desc "Compile all project Ruby files with warnings."
+task :compile do
+  paths = Dir["**/*.rb", "**/*.gemspec", "bin/console"]
+  paths.each do |file|
+    puts "\nCompiling #{file}..."
+    system "ruby -cw #{file}"
+  end
+end
+
 desc "Download/update a web page test fixture to test/mock/fixtures"
 task :save_page, [:url] do |t, args|
   system "ruby test/mock/save_page.rb #{args[:url]}"
@@ -39,15 +48,6 @@ desc "Download/update a web site test fixture to test/mock/fixtures"
 task :save_site, [:url] do |t, args|
   system "ruby test/mock/save_site.rb #{args[:url]}"
   puts "Don't forget to mock the site in test/mock/fixtures.rb"
-end
-
-desc "Compile all project Ruby files with warnings."
-task :compile do
-  paths = Dir["**/*.rb", "**/*.gemspec", "bin/console"]
-  paths.each do |file|
-    puts "\nCompiling #{file}..."
-    system "ruby -cw #{file}"
-  end
 end
 
 desc "The SAFE RELEASE task which double checks things ;-)"

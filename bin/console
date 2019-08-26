@@ -3,23 +3,8 @@
 require 'pry'
 require 'bundler/setup'
 require 'dotenv'
-require 'logger'
 require 'httplog'
 require 'byebug'
-
-# Monkey patch Net::HTTP GET to log its details.
-HttpLog.configure do |config|
-  config.log_connect    = false
-  config.log_request    = true
-  config.log_headers    = false
-  config.log_data       = false
-  config.log_status     = true
-  config.log_response   = false
-  config.log_benchmark  = true
-
-  config.compact_log    = true
-  config.json_log       = true
-end
 
 # Require the code and set the DB connection details from the ENV.
 load 'lib/wgit/database/connection_details.rb'
@@ -43,6 +28,23 @@ end
 # Load the most recent code into the session, include modules, connect to DB etc.
 reload
 
+# Monkey patch all Net:HTTP network calls and log them.
+HttpLog.configure do |config|
+  config.enabled        = true
+  config.logger         = Wgit.logger
+
+  config.log_connect    = false
+  config.log_request    = true
+  config.log_headers    = false
+  config.log_data       = false
+  config.log_status     = true
+  config.log_response   = false
+  config.log_benchmark  = false
+
+  config.compact_log    = false
+  config.json_log       = false
+end
+
 # Seed some fixture data for the session.
 crawler = Crawler.new
 url = Url.new "https://motherfuckingwebsite.com/"
@@ -60,9 +62,9 @@ def info
 end
 
 # Start the pry session.
-puts "\nStarting an interactive session to play, do great things...\n\n"
+puts "\nwgit v#{Wgit::VERSION}\n\n"
 info
 binding.pry
-puts "Interactive session complete, hope you had a good one!"
+puts "Interactive session complete!"
 
 # Do any post REPL cleanup tasks here...

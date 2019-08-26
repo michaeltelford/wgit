@@ -23,7 +23,11 @@ module Wgit
   # Returns the default Logger instance.
   # @return [Logger] The default Logger instance.
   def self.default_logger
-    Logger.new(STDOUT, progname: 'wgit', level: :info)
+    logger = Logger.new(STDOUT, progname: 'wgit', level: :info)
+    logger.formatter = proc do |severity, datetime, progname, msg|
+      "[#{progname}] #{msg}\n"
+    end
+    logger
   end
 
   # Sets the default Logger instance to be used by Wgit.
