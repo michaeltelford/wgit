@@ -12,10 +12,12 @@
 ## v0.0.17
 ### Added
 - Support for `<base>` element in `Wgit::Document`'s.
+- `Wgit::Url` methods: `without_query_string`, `is_query_string?`, `is_anchor?`.
 ### Changed/Removed
 - Breaking changes: Removed `Wgit::Document#internal_links_without_anchors` method.
+- Updated `Wgit::Document#base_url` to support an optional `link:` named parameter.
 ### Fixed
-- ...
+- Bug in `Wgit::Document#internal_full_links` affecting anchor and query string links including those used during `Wgit::Crawler#crawl_site`.
 ---
 
 ## v0.0.16

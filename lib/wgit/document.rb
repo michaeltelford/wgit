@@ -128,14 +128,34 @@ module Wgit
 
     # Returns the base URL of this Wgit::Document. The base URL is either the
     # <base> element's href value or @url (if @base is nil). If @base is
-    # present and relative, then @url + @base is returned. This method should
-    # be used instead of `doc.url.to_base` if manually building absolute links.
+    # present and relative, then @url.to_base + @base is returned. This method
+    # should be used instead of `doc.url.to_base` etc. if manually building
+    # absolute links.
     #
+    # Provide the `link:` parameter to get the correct base URL for that type
+    # of link. For example, a link of `#top` would always return @url because
+    # it applies to that page, not a different one. Query strings work in the
+    # same way. Use this parameter if manually concatting links e.g.
+    # `absolute_link = doc.base_url(link: link).concat(link)` etc.
+    #
+    # @param link [Wgit::Url] The link to obtain the correct base URL for.
     # @return [Wgit::Url] The base URL of this Document e.g.
     #   'http://example.com/public'.
-    def base_url
-      return @url.base unless @base
-      @base.is_relative? ? @url.to_base.concat(@base) : @base
+    def base_url(link: nil)
+      get_base = -> { @base.is_relative? ? @url.to_base.concat(@base) : @base }
+
+      if link
+        assert_type(link, Wgit::Url)
+        raise "link must be relative" unless link.is_relative?
+
+        if link.is_anchor? or link.is_query_string?
+          base_url = @base ? get_base.call : @url
+          return base_url.without_anchor.without_query_string
+        end
+      end
+
+      base_url = @base ? get_base.call : @url.base
+      base_url.without_anchor.without_query_string
     end
 
     # Returns a Hash containing this Document's instance vars.
@@ -251,7 +271,7 @@ module Wgit
     def internal_full_links
       links = internal_links
       return [] if links.empty?
-      links.map { |link| base_url.concat(link) }
+      links.map { |link| base_url(link: link).concat(link) }
     end
 
     # Get all the external links of this Document. External meaning a link to

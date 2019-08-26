@@ -20,8 +20,10 @@ stub_redirect 'http://redirect.com/4', 'http://redirect.com/5' # Fourth redirect
 stub_redirect 'http://redirect.com/5', 'http://redirect.com/6' # Fifth redirect.
 stub_redirect 'http://redirect.com/6', 'http://redirect.com/7' # Sixth redirect.
 stub_page 'http://redirect.com/7'
-stub_redirect 'http://test-site.com/sneaky', 'https://motherfuckingwebsite.com/'
 stub_page 'https://www.xn--ber-goa.com/about'
+stub_redirect 'http://test-site.com/sneaky', 'https://motherfuckingwebsite.com/'
+stub_page 'http://test-site.com/public/records?q=username', fixture: 'test-site.com/public/records'
+stub_page 'http://test-site.com/public/records#top', fixture: 'test-site.com/public/records'
 
 # Mock responses based on the fixtures saved to disk. Both single webpages and
 # full websites are supported.
