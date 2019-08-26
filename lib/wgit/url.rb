@@ -117,6 +117,15 @@ module Wgit
       Wgit::Url.new(host + separator + link)
     end
 
+    # Overrides String#replace setting the new_url @uri and String value.
+    #
+    # @param new_url [Wgit::Url, String] The new URL value.
+    # @return [String] The new URL value once set.
+    def replace(new_url)
+      @uri = Addressable::URI.parse(new_url)
+      super(new_url)
+    end
+
     # Returns true if self is a relative Url.
     #
     # All external links in a page are expected to have a protocol prefix e.g.

@@ -200,7 +200,8 @@ module Wgit
             raise 'External redirect encountered but not allowed'
           end
 
-          url = location.is_relative? ? url.to_base.concat(location) : location
+          location = url.to_base.concat(location) if location.is_relative?
+          url.replace(location)
         end
       end while response.is_a?(Net::HTTPRedirection)
 
@@ -213,7 +214,9 @@ module Wgit
       @urls << Wgit::Url.new(url)
     end
 
-    # Pull out the doc's internal HTML page links for crawling.
+    # Returns doc's internal HTML page links in absolute form for crawling.
+    # We remove anchors because they are client side and don't change the
+    # resulting page's HTML; unlike query strings for example, which do.
     def get_internal_links(doc)
       doc.internal_full_links.
         map(&:without_anchor).

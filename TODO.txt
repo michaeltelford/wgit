@@ -12,9 +12,10 @@ Secondary
 
 Refactoring
 -----------
-- Open up the required_ruby_version range, say from 2.2 upwards e.g. `~> 2.2`. Might need CI testing for the different versions of ruby.
+- Plan to open up the required_ruby_version range, say from 2.5 upwards e.g. `~> 2.5`. Will need CI testing for the different versions of ruby as we move onto support newer versions.
 - Refactor the 3 main classes and their tests (where needed): Url, Document & Crawler.
-- Think about reducing the amount of method aliases, pick the best for the method def and remove the aliases? Also, the Url#to_* don't make sense, the `to_` should be removed.
+- After the above refactor, move onto the rest of the code base.
+- Think about reducing the amount of method aliases, pick the best for the method def and remove the aliases? Also, do the Url#to_* make sense?
 - Replace method params with named parameters where applicable.
 - Possibly use refine instead of core-ext?
 - Think about potentially using DB._update's update_many func.

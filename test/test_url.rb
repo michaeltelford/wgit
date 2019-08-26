@@ -80,6 +80,24 @@ class TestUrl < TestHelper
                                                 @bad_url_str.dup)
   end
 
+  def test_replace__from_string
+    url = Wgit::Url.new "http://www.google.co.uk"
+    new_url = url.replace '/about'
+
+    assert_equal '/about', url
+    assert_equal '/about', new_url
+    assert_equal '/about', url.to_uri.to_s
+  end
+
+  def test_replace__from_url
+    url = Wgit::Url.new "http://www.google.co.uk"
+    new_url = url.replace Wgit::Url.new('/about')
+
+    assert_equal '/about', url
+    assert_equal '/about', new_url
+    assert_equal '/about', url.to_uri.to_s
+  end
+
   def test_relative_link?
     # Common type URL's.
     assert Wgit::Url.new(@link).is_relative?
@@ -472,6 +490,10 @@ class TestUrl < TestHelper
 
     url = Wgit::Url.new '#about'
     assert_empty url.without_anchor
+    assert_equal Wgit::Url, url.without_anchor.class
+
+    url = Wgit::Url.new '/about#'
+    assert_equal '/about', url.without_anchor
     assert_equal Wgit::Url, url.without_anchor.class
 
     url = Wgit::Url.new 'https://google.com/'

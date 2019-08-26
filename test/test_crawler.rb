@@ -1,4 +1,4 @@
-require_relative "helpers/test_helper"
+require_relative 'helpers/test_helper'
 
 # Test class for the Crawler methods.
 class TestCrawler < TestHelper
@@ -8,9 +8,9 @@ class TestCrawler < TestHelper
   # Runs before every test.
   def setup
     @url_strs = [
-      "https://www.google.co.uk",
-      "https://duckduckgo.com",
-      "http://www.bing.com"
+      'https://www.google.co.uk',
+      'https://duckduckgo.com',
+      'http://www.bing.com'
     ]
     @urls = @url_strs.map { |s| Wgit::Url.new(s) }
   end
@@ -45,11 +45,11 @@ class TestCrawler < TestHelper
     c.urls = @url_strs
     assert_urls c
 
-    c.urls = "https://duckduckgo.com"
-    assert_urls c, [Wgit::Url.new("https://duckduckgo.com")]
+    c.urls = 'https://duckduckgo.com'
+    assert_urls c, [Wgit::Url.new('https://duckduckgo.com')]
 
-    c.urls = Wgit::Url.new "https://duckduckgo.com"
-    assert_urls c, [Wgit::Url.new("https://duckduckgo.com")]
+    c.urls = Wgit::Url.new 'https://duckduckgo.com'
+    assert_urls c, [Wgit::Url.new('https://duckduckgo.com')]
   end
 
   def test_square_brackets
@@ -106,7 +106,7 @@ class TestCrawler < TestHelper
 
     # Test invalid url.
     c = Wgit::Crawler.new
-    url = Wgit::Url.new("doesnt_exist")
+    url = Wgit::Url.new('doesnt_exist')
     document = c.crawl_urls url do |doc|
       assert doc.empty?
       assert url.crawled
@@ -132,7 +132,7 @@ class TestCrawler < TestHelper
     assert_crawl c
 
     # Invalid URL.
-    url = Wgit::Url.new("doesnt_exist")
+    url = Wgit::Url.new('doesnt_exist')
     doc = c.crawl_url url
     assert_nil doc
     assert_nil c.last_response
@@ -145,7 +145,7 @@ class TestCrawler < TestHelper
     assert_equal 'https://www.über.com/about', url
 
     # String instead of Url instance.
-    url = "http://www.bing.com"
+    url = 'http://www.bing.com'
     assert_raises RuntimeError do
       c.crawl_url url
     end
@@ -153,60 +153,62 @@ class TestCrawler < TestHelper
 
   def test_crawl_site
     # Test largish site - Wordpress site with disgusting HTML.
-    url = Wgit::Url.new "http://www.belfastpilates.co.uk/"
+    url = Wgit::Url.new 'http://www.belfastpilates.co.uk/'
     c = Wgit::Crawler.new url
     assert_crawl_site c, 19, 10
 
     # Test small site - Static well formed HTML.
-    url = Wgit::Url.new "http://txti.es"
+    url = Wgit::Url.new 'http://txti.es'
     c = Wgit::Crawler.new url
     assert_crawl_site c, 7, 8
 
     # Test single web page with an external link.
-    url = Wgit::Url.new "https://motherfuckingwebsite.com/"
+    url = Wgit::Url.new 'https://motherfuckingwebsite.com/'
     c = Wgit::Crawler.new url
     assert_crawl_site c, 1, 1
 
+    skip 'TODO: Fix redirect bug'
+
     # Test custom small site.
-    url = Wgit::Url.new "http://test-site.com"
+    url = Wgit::Url.new 'http://test-site.com'
     c = Wgit::Crawler.new url
     assert_crawl_site c, 6, 0, expected_pages: test_site_pages
 
     # Test custom small site not starting on the index page.
-    url = Wgit::Url.new "http://test-site.com/search"
+    url = Wgit::Url.new 'http://test-site.com/search'
     c = Wgit::Crawler.new url
     assert_crawl_site c, 6, 0, expected_pages: test_site_pages
 
     # Test that an invalid url returns nil.
-    url = Wgit::Url.new "http://doesntexist_123"
+    url = Wgit::Url.new 'http://doesntexist_123'
     c = Wgit::Crawler.new url
     assert_nil c.crawl_site
   end
 
   def test_resolve__absolute_location
     c = Wgit::Crawler.new
-    url = Wgit::Url.new "http://twitter.com/" # Redirects once to https.
+    url = Wgit::Url.new 'http://twitter.com/' # Redirects once to https.
 
-    assert_resolve c, url
+    assert_resolve c, url, 'https://twitter.com'
   end
 
   def test_resolve__relative_location
     c = Wgit::Crawler.new
-    # Redirects twice to /de/folder/page2#anchor-on-page2 on host: example.com
-    url = Wgit::Url.new "https://cms.org"
+    # Redirects twice to https://example.com/de/folder/page2#anchor-on-page2
+    url = Wgit::Url.new 'https://cms.org'
 
-    assert_resolve c, url
+    assert_resolve c, url, 'https://example.com/de/folder/page2#anchor-on-page2'
   end
 
   def test_resolve__redirect_limit
     c = Wgit::Crawler.new
 
     # Redirects 5 times - should resolve.
-    url = Wgit::Url.new "http://redirect.com/2"
-    assert_resolve c, url
+    url = Wgit::Url.new 'http://redirect.com/2'
+    assert_resolve c, url, 'http://redirect.com/7'
 
     # Redirects 6 times - should fail.
-    url = Wgit::Url.new "http://redirect.com/1"
+    url = Wgit::Url.new 'http://redirect.com/1'
     assert_raises(RuntimeError) { c.send :resolve, url }
 
     # Disable redirects - should fail.
@@ -216,12 +218,12 @@ class TestCrawler < TestHelper
     end
 
     # Disable redirects - should pass as there's no redirect.
-    url = Wgit::Url.new "https://twitter.com/"
+    url = Wgit::Url.new 'https://twitter.com/'
     c.send :resolve, url, redirect_limit: 0
 
     # Test changing the default limit - should fail, too many redirects.
     Wgit::Crawler.default_redirect_limit = 3
-    url = Wgit::Url.new "http://redirect.com/2" # Would pass normally.
+    url = Wgit::Url.new 'http://redirect.com/2' # Would pass normally.
     assert_raises(RuntimeError) { c.send :resolve, url }
     Wgit::Crawler.default_redirect_limit = 5 # Back to the original default.
   end
@@ -230,12 +232,12 @@ private
 
   def test_site_pages
     [
-      "http://test-site.com",
-      "http://test-site.com/contact",
-      "http://test-site.com/search",
-      "http://test-site.com/about",
-      "http://test-site.com/public/records",
-      "http://test-site.com/public/records?q=username",
+      'http://test-site.com',
+      'http://test-site.com/contact',
+      'http://test-site.com/search',
+      'http://test-site.com/about',
+      'http://test-site.com/public/records',
+      'http://test-site.com/public/records?q=username',
     ]
   end
 
@@ -261,8 +263,7 @@ private
       assert doc.url.crawled?
 
       if doc.url == 'http://test-site.com/sneaky'
-        # assert_empty(doc)
-        skip 'TODO: Fix redirect bug'
+        assert_empty(doc)
       else
         refute_empty(doc)
         crawled << doc.url
@@ -284,10 +285,11 @@ private
     assert url.crawled if url
   end
 
-  def assert_resolve(crawler, url)
-    response = crawler.send :resolve, url
+  def assert_resolve(crawler, start_url, end_url)
+    response = crawler.send :resolve, start_url
     assert response.is_a? Net::HTTPResponse
-    assert_equal "200", response.code
+    assert_equal '200', response.code
     refute response.body.empty?
+    assert_equal end_url, start_url
   end
 end
