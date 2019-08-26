@@ -281,11 +281,11 @@ class TestUrl < TestHelper
 
   def test_to_query_string
     url = Wgit::Url.new @url_str_link + '?q=ruby&page=2'
-    assert_equal 'q=ruby&page=2', url.to_query_string
+    assert_equal '?q=ruby&page=2', url.to_query_string
     assert_equal Wgit::Url, url.to_query_string.class
 
     url = Wgit::Url.new 'https://www.über.com/about?q=ruby&page=2'
-    assert_equal 'q=ruby&page=2', url.to_query_string
+    assert_equal '?q=ruby&page=2', url.to_query_string
     assert_equal Wgit::Url, url.to_query_string.class
 
     url = Wgit::Url.new @url_str
@@ -402,6 +402,49 @@ class TestUrl < TestHelper
     assert_equal Wgit::Url, url.without_base.class
   end
 
+  def test_without_query_string
+    url = Wgit::Url.new 'http://google.com/search?q=hello&foo=bar'
+    assert_equal 'http://google.com/search', url.without_query_string
+    assert_equal Wgit::Url, url.without_query_string.class
+
+    url = Wgit::Url.new '/about.html'
+    assert_equal '/about.html', url.without_query_string
+    assert_equal Wgit::Url, url.without_query_string.class
+
+    url = Wgit::Url.new '/about.html?q=hello&foo=bar'
+    assert_equal '/about.html', url.without_query_string
+    assert_equal Wgit::Url, url.without_query_string.class
+
+    url = Wgit::Url.new '/about.html/hello?a=b&b=c#about'
+    assert_equal '/about.html/hello#about', url.without_query_string
+    assert_equal Wgit::Url, url.without_query_string.class
+
+    url = Wgit::Url.new '/about.html/hello#about?a=b&b=c' # Invalid anchor.
+    assert_equal '/about.html/hello#about?a=b&b=c', url.without_query_string
+    assert_equal Wgit::Url, url.without_query_string.class
+
+    url = Wgit::Url.new '/'
+    assert_equal url, url.without_query_string
+    assert_equal Wgit::Url, url.without_query_string.class
+
+    url = Wgit::Url.new '?q=hello&foo=bar'
+    assert_empty url.without_query_string
+    assert_equal Wgit::Url, url.without_query_string.class
+
+    url = Wgit::Url.new 'https://google.com/'
+    assert_equal url, url.without_query_string
+    assert_equal Wgit::Url, url.without_query_string.class
+
+    url = Wgit::Url.new 'https://google.com'
+    assert_equal url, url.without_query_string
+    assert_equal Wgit::Url, url.without_query_string.class
+
+    iri_without_anchor = 'https://www.über.com/about'
+    url = Wgit::Url.new iri_without_anchor + '?q=hello'
+    assert_equal iri_without_anchor, url.without_query_string
+    assert_equal Wgit::Url, url.without_query_string.class
+  end
+
   def test_without_anchor
     url = Wgit::Url.new 'http://google.com/search?q=foo#bar'
     assert_equal 'http://google.com/search?q=foo', url.without_anchor
@@ -442,6 +485,40 @@ class TestUrl < TestHelper
     url = Wgit::Url.new @iri
     assert_equal 'https://www.über.com/about', url.without_anchor
     assert_equal Wgit::Url, url.without_anchor.class
+  end
+
+  def test_is_query_string?
+    url = Wgit::Url.new '?q=hello'
+    assert url.is_query_string?
+
+    url = Wgit::Url.new '?q=hello&z=world'
+    assert url.is_query_string?
+
+    url = Wgit::Url.new '#top'
+    refute url.is_query_string?
+
+    url = Wgit::Url.new '/about?q=hello'
+    refute url.is_query_string?
+
+    url = Wgit::Url.new 'http://example.com?q=hello'
+    refute url.is_query_string?
+  end
+
+  def test_is_anchor?
+    url = Wgit::Url.new '#'
+    assert url.is_anchor?
+
+    url = Wgit::Url.new '?q=hello'
+    refute url.is_anchor?
+
+    url = Wgit::Url.new '/public#top'
+    refute url.is_anchor?
+
+    url = Wgit::Url.new 'http://example.com#top'
+    refute url.is_anchor?
+
+    url = Wgit::Url.new 'http://example.com/home#top'
+    refute url.is_anchor?
   end
 
   def test_to_h

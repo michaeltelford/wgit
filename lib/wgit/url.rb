@@ -245,12 +245,12 @@ module Wgit
     end
 
     # Returns a new Wgit::Url containing just the query string of this URL
-    # e.g. Given http://google.com?q=ruby, 'ruby' is returned.
+    # e.g. Given http://google.com?q=ruby, '?q=ruby' is returned.
     #
     # @return [Wgit::Url, nil] Containing just the query string or nil.
     def to_query_string
       query = @uri.query
-      query ? Wgit::Url.new(query) : nil
+      query ? Wgit::Url.new("?#{query}") : nil
     end
 
     # Returns a new Wgit::Url containing just the anchor string of this URL
@@ -318,6 +318,20 @@ module Wgit
         without_trailing_slash
     end
 
+    # Returns a new Wgit::Url with the query string portion removed e.g. Given
+    # http://google.com/search?q=hello, http://google.com/search is
+    # returned. Self is returned as is if no query string is present. A URL
+    # consisting of only a query string e.g. '?q=hello' will return an empty
+    # URL.
+    #
+    # @return [Wgit::Url] Self with the query string portion removed.
+    def without_query_string
+      query = to_query_string
+      without_query_string = query ? gsub(query, '') : self
+
+      Wgit::Url.new(without_query_string)
+    end
+
     # Returns a new Wgit::Url with the anchor portion removed e.g. Given
     # http://google.com/search#about, http://google.com/search is
     # returned. Self is returned as is if no anchor is present. A URL
@@ -331,6 +345,20 @@ module Wgit
       without_anchor = anchor ? gsub(anchor, '') : self
 
       Wgit::Url.new(without_anchor)
+    end
+
+    # Returns true if self is a URL query string e.g. ?q=hello etc.
+    #
+    # @return [Boolean] True if self is a query string, false otherwise.
+    def is_query_string?
+      start_with?('?')
+    end
+
+    # Returns true if self is a URL anchor/fragment e.g. #top etc.
+    #
+    # @return [Boolean] True if self is a anchor/fragment, false otherwise.
+    def is_anchor?
+      start_with?('#')
     end
 
     # Returns a Hash containing this Url's instance vars excluding @uri.
@@ -358,7 +386,10 @@ module Wgit
     alias :to_fragment :to_anchor
     alias :fragment :to_anchor
     alias :extension :to_extension
+    alias :without_query :without_query_string
     alias :without_fragment :without_anchor
+    alias :is_query? :is_query_string?
+    alias :is_fragment? :is_anchor?
     alias :relative_link? :is_relative?
     alias :internal_link? :is_relative?
     alias :is_internal? :is_relative?
