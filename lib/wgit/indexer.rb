@@ -219,7 +219,7 @@ site: #{url}")
     #   manipulation. Return nil or false from the block to prevent the
     #   document from being saved into the database.
     def index_this_page(url, insert_externals = true)
-      doc = @crawler.crawl_page(url) do |doc|
+      document = @crawler.crawl_page(url) do |doc|
         result = true
         if block_given?
           result = yield(doc)
@@ -236,7 +236,7 @@ site: #{url}")
       @db.url?(url) ? @db.update(url) : @db.insert(url)
 
       if insert_externals
-        ext_urls = doc.external_links
+        ext_urls = document.external_links
         write_urls_to_db(ext_urls)
         Wgit.logger.info("Found and saved #{ext_urls.length} external url(s)")
       end

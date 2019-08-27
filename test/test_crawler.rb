@@ -133,8 +133,8 @@ class TestCrawler < TestHelper
 
     # Invalid URL.
     url = Wgit::Url.new('doesnt_exist')
-    doc = c.crawl_url url
-    assert_nil doc
+    document = c.crawl_url url
+    assert_nil document
     assert_nil c.last_response
     assert url.crawled
 
@@ -149,6 +149,24 @@ class TestCrawler < TestHelper
     assert_raises RuntimeError do
       c.crawl_url url
     end
+
+    # Url (redirect) passed to crawler doesn't update.
+    url = Wgit::Url.new 'http://test-site.com/sneaky'
+    c = Wgit::Crawler.new url
+    c.crawl_url do |doc|
+      assert_equal 'https://motherfuckingwebsite.com/', doc.url
+      refute_empty doc
+    end
+    assert_equal 'http://test-site.com/sneaky', url
+
+    # Url (redirect) passed to method does update.
+    url = Wgit::Url.new 'http://test-site.com/sneaky'
+    c = Wgit::Crawler.new
+    c.crawl_url(url) do |doc|
+      assert_equal 'https://motherfuckingwebsite.com/', doc.url
+      refute_empty doc
+    end
+    assert_equal 'https://motherfuckingwebsite.com/', url
   end
 
   def test_crawl_site

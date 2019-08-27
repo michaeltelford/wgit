@@ -29,9 +29,12 @@ module Wgit
     # The Net::HTTPResponse of the most recently crawled URL or nil.
     attr_reader :last_response
 
-    # Initializes the Crawler by setting the @urls and @docs.
+    # Initializes the Crawler and sets the @urls and @docs.
     #
-    # @param urls [*Wgit::Url] The URLs to crawl.
+    # @param urls [*Wgit::Url] The URL's to crawl in the future using either
+    #   crawl_url or crawl_site. Note that the urls passed here will NOT update
+    #   if they happen to redirect when crawled. If in doubt, pass the url(s)
+    #   directly to the crawl_* method instead of to the new method.
     def initialize(*urls)
       self.[](*urls)
       @docs = []
