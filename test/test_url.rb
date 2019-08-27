@@ -106,41 +106,128 @@ class TestUrl < TestHelper
     # IRI's.
     assert Wgit::Url.new('/über').is_relative?
     refute Wgit::Url.new(@iri).is_relative?
-    assert Wgit::Url.new(@iri).is_relative? base: 'https://www.über.com'
-    refute Wgit::Url.new(@iri).is_relative? base: 'https://www.überon.com'
-
-    # URL's with paths (including slashes).
-    assert Wgit::Url.new(@url_str_link).is_relative? base: @url_str
-    assert Wgit::Url.new('https://www.google.co.uk').is_relative? base: @url_str # Diff protocol.
-    refute Wgit::Url.new(@url_str_link).is_relative? base: 'http://bing.com'
-    assert Wgit::Url.new(@url_str).is_relative? base: @url_str
-    assert Wgit::Url.new(@url_str + '/').is_relative? base: @url_str
-    assert Wgit::Url.new(@url_str + '/').is_relative? base: @url_str + '/'
 
     # Single slash URL's.
     assert Wgit::Url.new('/').is_relative?
-    assert Wgit::Url.new('/').is_relative? base: @url_str
 
     # Anchors/fragments.
     assert Wgit::Url.new('#about-us').is_relative?
     refute Wgit::Url.new(@url_str_anchor).is_relative?
-    assert Wgit::Url.new(@url_str_anchor).is_relative? base: @url_str
 
     # Query string params.
     assert Wgit::Url.new('?foo=bar').is_relative?
     refute Wgit::Url.new(@url_str_query).is_relative?
-    assert Wgit::Url.new(@url_str_query).is_relative? base: @url_str
-
-    # Domains.
-    assert Wgit::Url.new('http://www.example.com/search').is_relative? base: 'https://ftp.example.com'
-    assert 'http://www.example.com/search'.to_url.is_relative? base: 'https://ftp.example.com'.to_url
-    refute 'http://www.example.com/search'.to_url.is_relative? base: 'https://ftp.example.co.uk'.to_url
 
     # Valid error scenarios.
-    assert_raises(RuntimeError) do
-      Wgit::Url.new(@url_str_link).is_relative? base: 'bing.com'
+    ex = assert_raises(RuntimeError) { Wgit::Url.new('').is_relative? }
+    assert_equal "Invalid link: ", ex.message
+  end
+
+  def test_is_relative__with_host
+    # IRI's.
+    assert Wgit::Url.new(@iri).is_relative? host: 'https://www.über.com'
+    refute Wgit::Url.new(@iri).is_relative? host: 'https://www.überon.com'
+
+    # URL's with paths (including slashes).
+    assert Wgit::Url.new(@url_str_link).is_relative? host: @url_str
+    assert Wgit::Url.new('https://www.google.co.uk').is_relative? host: @url_str # Diff protocol.
+    refute Wgit::Url.new(@url_str_link).is_relative? host: 'http://bing.com'
+    assert Wgit::Url.new(@url_str).is_relative? host: @url_str
+    assert Wgit::Url.new(@url_str + '/').is_relative? host: @url_str
+    assert Wgit::Url.new(@url_str + '/').is_relative? host: @url_str + '/'
+
+    # Single slash URL's.
+    assert Wgit::Url.new('/').is_relative? host: @url_str
+
+    # Anchors/fragments.
+    assert Wgit::Url.new('#about-us').is_relative? host: @url_str
+    assert Wgit::Url.new(@url_str_anchor).is_relative? host: @url_str
+
+    # Query string params.
+    assert Wgit::Url.new('?foo=bar').is_relative? host: @url_str
+    assert Wgit::Url.new(@url_str_query).is_relative? host: @url_str
+
+    # URL specific.
+    refute(
+      Wgit::Url.new('http://www.example.com/search').is_relative? host: 'https://ftp.example.com'
+    )
+    refute(
+      'http://www.example.com/search'.to_url.is_relative? host: 'https://ftp.example.com'.to_url
+    )
+    refute(
+      'http://www.example.com/search'.to_url.is_relative? host: 'https://ftp.example.co.uk'.to_url
+    )
+    refute(
+      'https://server.example.com'.to_url.is_relative? host: 'https://example.com/en'.to_url
+    )
+
+    # Valid error scenarios.
+    ex = assert_raises(RuntimeError) do
+      Wgit::Url.new(@url_str_link).is_relative? host: 'bing.com'
     end
-    assert_raises(RuntimeError) { Wgit::Url.new('').is_relative? }
+    assert_equal(
+      "Invalid host, must be absolute and contain protocol: bing.com",
+      ex.message
+    )
+
+    ex = assert_raises(RuntimeError) { Wgit::Url.new('').is_relative? }
+    assert_equal "Invalid link: ", ex.message
+  end
+
+  def test_is_relative__with_domain
+    # IRI's.
+    assert Wgit::Url.new(@iri).is_relative? domain: 'https://www.über.com'
+    refute Wgit::Url.new(@iri).is_relative? domain: 'https://www.überon.com'
+
+    # URL's with paths (including slashes).
+    assert Wgit::Url.new(@url_str_link).is_relative? domain: @url_str
+    assert Wgit::Url.new('https://www.google.co.uk').is_relative? domain: @url_str # Diff protocol.
+    refute Wgit::Url.new(@url_str_link).is_relative? domain: 'http://bing.com'
+    assert Wgit::Url.new(@url_str).is_relative? domain: @url_str
+    assert Wgit::Url.new(@url_str + '/').is_relative? domain: @url_str
+    assert Wgit::Url.new(@url_str + '/').is_relative? domain: @url_str + '/'
+
+    # Single slash URL's.
+    assert Wgit::Url.new('/').is_relative? domain: @url_str
+
+    # Anchors/fragments.
+    assert Wgit::Url.new('#about-us').is_relative? domain: @url_str
+    assert Wgit::Url.new(@url_str_anchor).is_relative? domain: @url_str
+
+    # Query string params.
+    assert Wgit::Url.new('?foo=bar').is_relative? domain: @url_str
+    assert Wgit::Url.new(@url_str_query).is_relative? domain: @url_str
+
+    # URL specific.
+    assert(
+      Wgit::Url.new('http://www.example.com/search').is_relative? domain: 'https://ftp.example.com'
+    )
+    assert(
+      'http://www.example.com/search'.to_url.is_relative? domain: 'https://ftp.example.com'.to_url
+    )
+    refute(
+      'http://www.example.com/search'.to_url.is_relative? domain: 'https://ftp.example.co.uk'.to_url
+    )
+    assert(
+      'https://server.example.com'.to_url.is_relative? domain: 'https://example.com/en'.to_url
+    )
+
+    # Valid error scenarios.
+    ex = assert_raises(RuntimeError) do
+      Wgit::Url.new(@url_str_link).is_relative? domain: 'bing.com'
+    end
+    assert_equal(
+      "Invalid domain, must be absolute and contain protocol: bing.com",
+      ex.message
+    )
+
+    ex = assert_raises(RuntimeError) do
+      Wgit::Url.new('/about').is_relative?(host: '1', domain: '2')
+    end
+    assert_equal "Provide host or domain, not both", ex.message
+
+    ex = assert_raises(RuntimeError) { Wgit::Url.new('').is_relative? }
+    assert_equal "Invalid link: ", ex.message
   end
 
   def test_concat
@@ -240,6 +327,9 @@ class TestUrl < TestHelper
     assert_equal 'https://www.über.com', Wgit::Url.new(@iri).to_base
     assert_equal Wgit::Url, Wgit::Url.new(@iri).to_base.class
     assert_nil Wgit::Url.new('über').to_base
+
+    assert_equal 'https://www.über.com', 'https://www.über.com'.to_url.to_base
+    assert_equal Wgit::Url, 'https://www.über.com'.to_url.to_base.class
   end
 
   def test_to_path

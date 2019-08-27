@@ -38,6 +38,9 @@ class TestDocument < TestHelper
         "/blog#about-us",
         "https://example.com/blog#about-us",
         "/contents/",
+        "http://ftp.mytestsite.com",
+        "http://ftp.mytestsite.com/",
+        "http://ftp.mytestsite.com/files",
       ],
       "text" => [
         "Howdy!", "Welcome to my site, I hope you like what you \
@@ -49,11 +52,11 @@ and power matches the Ruby language in which it's developed."
     }
     @stats = {
       url: 30,
-      html: 2067,
+      html: 2277,
       title: 15,
       author: 15,
       keywords: 3,
-      links: 17,
+      links: 20,
       text_snippets: 4,
       text_bytes: 280
     }
@@ -195,6 +198,9 @@ Minitest framework."
       "http://www.bing.com",
       "https://duckduckgo.com/search?q=hello&page=2",
       "https://example.com/blog#about-us",
+      "http://ftp.mytestsite.com",
+      "http://ftp.mytestsite.com/",
+      "http://ftp.mytestsite.com/files",
     ], doc.external_links
     assert doc.external_links.all? { |link| link.instance_of?(Wgit::Url) }
 

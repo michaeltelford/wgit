@@ -130,27 +130,41 @@ module Wgit
     #
     # All external links in a page are expected to have a protocol prefix e.g.
     # "http://", otherwise the link is treated as an internal link (regardless
-    # of whether it's valid or not). The only exception is if base is provided
-    # and self is a page on that domain; then the link is relative.
+    # of whether it's valid or not). The only exception is if host or domain is
+    # provided and self is a page belonging to that host/domain; then the link
+    # is relative.
     #
-    # @param base [Wgit::Url, String] The Url base e.g. http://www.google.com.
-    #   The base must be absolute and prefixed with a protocol.
+    # @param host [Wgit::Url, String] The Url host e.g.
+    #   http://www.google.com/how which gives a host of www.google.com.
+    #   The host must be absolute and prefixed with a protocol.
+    # @param domain [Wgit::Url, String] The Url domain e.g.
+    #   http://www.google.com/how which gives a domain of google.com. The
+    #   domain must be absolute and prefixed with a protocol.
     # @return [Boolean] True if relative, false if absolute.
     # @raise [RuntimeError] If self is invalid e.g. empty.
-    def is_relative?(base: nil)
+    def is_relative?(host: nil, domain: nil)
       raise "Invalid link: #{self}" if nil? or empty?
+      raise "Provide host or domain, not both" if host and domain
 
-      if base
-        base = Wgit::Url.new(base)
-        if base.to_domain.nil?
-          raise "Invalid base, must be absolute and contain protocol: #{base}"
+      if host
+        host = Wgit::Url.new(host)
+        if host.to_base.nil?
+          raise "Invalid host, must be absolute and contain protocol: #{host}"
+        end
+      end
+
+      if domain
+        domain = Wgit::Url.new(domain)
+        if domain.to_base.nil?
+          raise "Invalid domain, must be absolute and contain protocol: #{domain}"
         end
       end
 
       if @uri.relative?
         true
       else
-        base ? to_domain == base.to_domain : false
+        return host   ? to_host   == host.to_host     : false if host
+        return domain ? to_domain == domain.to_domain : false if domain
       end
     end
 
@@ -245,9 +259,7 @@ module Wgit
       path = @uri.path
       return nil if path.nil? or path.empty?
       return Wgit::Url.new('/') if path == '/'
-      Wgit::Url.new(path).
-        without_leading_slash.
-        without_trailing_slash
+      Wgit::Url.new(path).without_slashes
     end
 
     # Returns the endpoint of this URL e.g. the bit after the host with any
@@ -332,9 +344,7 @@ module Wgit
       without_base = base_url ? gsub(base_url, '') : self
 
       return self if ['', '/'].include?(without_base)
-      Wgit::Url.new(without_base).
-        without_leading_slash.
-        without_trailing_slash
+      Wgit::Url.new(without_base).without_slashes
     end
 
     # Returns a new Wgit::Url with the query string portion removed e.g. Given

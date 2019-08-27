@@ -133,7 +133,10 @@ class TestCrawler < TestHelper
 
     # Invalid URL.
     url = Wgit::Url.new('doesnt_exist')
-    document = c.crawl_url url
+    document = c.crawl_url(url) do |doc|
+      assert_equal url, doc.url
+      assert_empty doc
+    end
     assert_nil document
     assert_nil c.last_response
     assert url.crawled
@@ -146,11 +149,12 @@ class TestCrawler < TestHelper
 
     # String instead of Url instance.
     url = 'http://www.bing.com'
-    assert_raises RuntimeError do
-      c.crawl_url url
-    end
+    ex = assert_raises(RuntimeError) { c.crawl_url url }
+    assert_equal 'Expected: Wgit::Url, Actual: String', ex.message
+  end
 
-    # Url (redirect) passed to crawler doesn't update.
+  def test_crawl_url__redirects
+    # Url redirect passed to crawler doesn't update.
     url = Wgit::Url.new 'http://test-site.com/sneaky'
     c = Wgit::Crawler.new url
     c.crawl_url do |doc|
@@ -159,43 +163,113 @@ class TestCrawler < TestHelper
     end
     assert_equal 'http://test-site.com/sneaky', url
 
-    # Url (redirect) passed to method does update.
-    url = Wgit::Url.new 'http://test-site.com/sneaky'
+    # Url redirect passed to method does update.
     c = Wgit::Crawler.new
+    url = Wgit::Url.new 'http://test-site.com/sneaky'
     c.crawl_url(url) do |doc|
       assert_equal 'https://motherfuckingwebsite.com/', doc.url
       refute_empty doc
     end
     assert_equal 'https://motherfuckingwebsite.com/', url
+
+    # Url redirect not affected by random base_domain.
+    url = Wgit::Url.new 'http://test-site.com/sneaky'
+    c.crawl_url(url, base_domain: url.to_base) do |doc|
+      assert_equal 'https://motherfuckingwebsite.com/', doc.url
+      refute_empty doc
+    end
+    assert_equal 'https://motherfuckingwebsite.com/', url
+
+    # Url redirect not allowed.
+    url = Wgit::Url.new 'http://test-site.com/sneaky'
+    c.crawl_url(
+      url,
+      follow_external_redirects: false,
+      base_domain: url.to_base
+    ) do |doc|
+      assert_equal 'http://test-site.com/sneaky', doc.url
+      assert_empty doc
+    end
+    assert_equal 'http://test-site.com/sneaky', url
+
+    # Url redirect parameter error.
+    url = Wgit::Url.new 'http://test-site.com/sneaky'
+    ex = assert_raises(RuntimeError) do
+      c.crawl_url(url, follow_external_redirects: false)
+    end
+    assert_equal 'http://test-site.com/sneaky', url
+    assert_equal 'base_domain cannot be nil if follow_external_redirects is false', ex.message
   end
 
   def test_crawl_site
     # Test largish site - Wordpress site with disgusting HTML.
     url = Wgit::Url.new 'http://www.belfastpilates.co.uk/'
     c = Wgit::Crawler.new url
-    assert_crawl_site c, 19, 10
+    assert_crawl_site c, 19, 10, expected_pages: [
+      "http://www.belfastpilates.co.uk/",
+      "http://www.belfastpilates.co.uk/about-us",
+      "http://www.belfastpilates.co.uk/about-us/the-team",
+      "http://www.belfastpilates.co.uk/about-us/our-facilities",
+      "http://www.belfastpilates.co.uk/about-us/testimonials",
+      "http://www.belfastpilates.co.uk/privacy-policy",
+      "http://www.belfastpilates.co.uk/pilates/what-is-pilates",
+      "http://www.belfastpilates.co.uk/pilates/pilates-classes",
+      "http://www.belfastpilates.co.uk/pilates/pilates-classes/pilates-classes-timetable",
+      "http://www.belfastpilates.co.uk/pilates/pilates-faqs",
+      "http://www.belfastpilates.co.uk/physiotheraphy",
+      "http://www.belfastpilates.co.uk/latest-news",
+      "http://www.belfastpilates.co.uk/contact-us",
+      "http://www.belfastpilates.co.uk/official-launch-party",
+      "http://www.belfastpilates.co.uk/author/adminbpp",
+      "http://www.belfastpilates.co.uk/category/uncategorized",
+      "http://www.belfastpilates.co.uk/youre-invited",
+      "http://www.belfastpilates.co.uk/gift-vouchers-now-available-to-purchase",
+      "http://www.belfastpilates.co.uk/pilates",
+    ]
 
     # Test small site - Static well formed HTML.
     url = Wgit::Url.new 'http://txti.es'
     c = Wgit::Crawler.new url
-    assert_crawl_site c, 7, 8
+    assert_crawl_site c, 7, 8, expected_pages: [
+      "http://txti.es",
+      "http://txti.es/about",
+      "http://txti.es/how",
+      "http://txti.es/terms",
+      "http://txti.es/images",
+      "http://txti.es/barry/json",
+      "http://txti.es/images/images"
+    ]
 
-    # Test single web page with an external link.
+    # Test single web page with a single external link.
     url = Wgit::Url.new 'https://motherfuckingwebsite.com/'
     c = Wgit::Crawler.new url
-    assert_crawl_site c, 1, 1
-
-    skip 'TODO: Fix redirect bug'
+    assert_crawl_site c, 1, 1, expected_pages: [
+      'https://motherfuckingwebsite.com/',
+    ]
 
     # Test custom small site.
     url = Wgit::Url.new 'http://test-site.com'
     c = Wgit::Crawler.new url
-    assert_crawl_site c, 6, 0, expected_pages: test_site_pages
+    assert_crawl_site c, 6, 0, expected_pages: [
+      'http://test-site.com',
+      'http://test-site.com/contact',
+      'http://test-site.com/search',
+      'http://test-site.com/about',
+      'http://test-site.com/public/records',
+      'http://test-site.com/public/records?q=username',
+    ]
 
     # Test custom small site not starting on the index page.
     url = Wgit::Url.new 'http://test-site.com/search'
     c = Wgit::Crawler.new url
-    assert_crawl_site c, 6, 0, expected_pages: test_site_pages
+    assert_crawl_site c, 6, 0, expected_pages: [
+      'http://test-site.com/search',
+      'http://test-site.com/',
+      'http://test-site.com/contact',
+      'http://test-site.com/about',
+      'http://test-site.com/public/records',
+      'http://test-site.com/public/records?q=username',
+    ]
 
     # Test that an invalid url returns nil.
     url = Wgit::Url.new 'http://doesntexist_123'
@@ -227,37 +301,70 @@ class TestCrawler < TestHelper
 
     # Redirects 6 times - should fail.
     url = Wgit::Url.new 'http://redirect.com/1'
-    assert_raises(RuntimeError) { c.send :resolve, url }
+    ex = assert_raises(RuntimeError) { c.send :resolve, url }
+    assert_equal 'Too many redirects', ex.message
+    assert_equal 'http://redirect.com/6', url
 
     # Disable redirects - should fail.
     url = Wgit::Url.new 'http://twitter.com/'
-    assert_raises RuntimeError do
-      c.send :resolve, url, redirect_limit: 0
-    end
+    ex = assert_raises(RuntimeError) { c.send :resolve, url, redirect_limit: 0 }
+    assert_equal 'Too many redirects', ex.message
+    assert_equal 'http://twitter.com/', url
 
     # Disable redirects - should pass as there's no redirect.
     url = Wgit::Url.new 'https://twitter.com/'
     c.send :resolve, url, redirect_limit: 0
+    assert_equal 'https://twitter.com/', url
 
     # Test changing the default limit - should fail, too many redirects.
     Wgit::Crawler.default_redirect_limit = 3
+
     url = Wgit::Url.new 'http://redirect.com/2' # Would pass normally.
-    assert_raises(RuntimeError) { c.send :resolve, url }
+    ex = assert_raises(RuntimeError) { c.send :resolve, url }
+    assert_equal 'Too many redirects', ex.message
+    assert_equal 'http://redirect.com/5', url
+
     Wgit::Crawler.default_redirect_limit = 5 # Back to the original default.
   end
 
-private
+  def test_resolve__uri_error
+    c = Wgit::Crawler.new
+    url = 'http://redirect.com/1'
 
-  def test_site_pages
-    [
-      'http://test-site.com',
-      'http://test-site.com/contact',
-      'http://test-site.com/search',
-      'http://test-site.com/about',
-      'http://test-site.com/public/records',
-      'http://test-site.com/public/records?q=username',
-    ]
+    ex = assert_raises(RuntimeError) { c.send :resolve, url }
+    assert_equal 'url must respond to :to_uri', ex.message
+    assert_equal 'http://redirect.com/1', url
   end
+
+  def test_resolve__redirect_not_allowed
+    c = Wgit::Crawler.new
+    url = 'http://twitter.com'.to_url
+
+    ex = assert_raises(RuntimeError) do
+      c.send(
+        :resolve,
+        url,
+        follow_external_redirects: false,
+        base_domain: 'http://twitter.co.uk'
+      )
+    end
+    assert_equal 'External redirect encountered but not allowed', ex.message
+    assert_equal 'http://twitter.com', url
+  end
+
+  def test_resolve__redirect_to_any_external_url_fails
+    c = Wgit::Crawler.new
+    url = 'http://twitter.com'.to_url
+
+    ex = assert_raises(RuntimeError) do
+      # Because base_domain defaults to nil, any external redirect will fail.
+      c.send :resolve, url, follow_external_redirects: false
+    end
+    assert_equal 'External redirect encountered but not allowed', ex.message
+    assert_equal 'http://twitter.com', url
+  end
+
+private
 
   def assert_urls(crawler, urls = @urls)
     assert crawler.urls.all? { |url| url.instance_of?(Wgit::Url) }
