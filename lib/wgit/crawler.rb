@@ -42,7 +42,10 @@ module Wgit
 
     # Sets this Crawler's @urls.
     #
-    # @param urls [Array<Wgit::Url>] The URLs to crawl.
+    # @param urls [*Wgit::Url] The URL's to crawl in the future using either
+    #   crawl_url or crawl_site. Note that the urls passed here will NOT update
+    #   if they happen to redirect when crawled. If in doubt, pass the url(s)
+    #   directly to the crawl_* method instead of to the new method.
     def urls=(urls)
       @urls = []
       Wgit::Utils.each(urls) { |url| add_url(url) }
@@ -50,7 +53,10 @@ module Wgit
 
     # Sets this Crawler's @urls.
     #
-    # @param urls [*Wgit::Url] The URLs to crawl.
+    # @param urls [*Wgit::Url] The URL's to crawl in the future using either
+    #   crawl_url or crawl_site. Note that the urls passed here will NOT update
+    #   if they happen to redirect when crawled. If in doubt, pass the url(s)
+    #   directly to the crawl_* method instead of to the new method.
     def [](*urls)
       # If urls is nil then add_url (when called later) will set @urls = []
       # so we do nothing here.
@@ -71,7 +77,10 @@ module Wgit
 
     # Adds the url to this Crawler's @urls.
     #
-    # @param url [Wgit::Url] A URL to crawl.
+    # @param url [Wgit::Url] A URL to crawl later by calling a crawl_* method.
+    #   Note that the url added here will NOT update if it happens to
+    #   redirect when crawled. If in doubt, pass the url directly to the
+    #   crawl_* method instead of to the new method.
     def <<(url)
       add_url(url)
     end

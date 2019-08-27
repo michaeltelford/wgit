@@ -98,7 +98,7 @@ class TestUrl < TestHelper
     assert_equal '/about', url.to_uri.to_s
   end
 
-  def test_relative_link?
+  def test_is_relative?
     # Common type URL's.
     assert Wgit::Url.new(@link).is_relative?
     refute Wgit::Url.new(@url_str).is_relative?
@@ -130,6 +130,11 @@ class TestUrl < TestHelper
     assert Wgit::Url.new('?foo=bar').is_relative?
     refute Wgit::Url.new(@url_str_query).is_relative?
     assert Wgit::Url.new(@url_str_query).is_relative? base: @url_str
+
+    # Domains.
+    assert Wgit::Url.new('http://www.example.com/search').is_relative? base: 'https://ftp.example.com'
+    assert 'http://www.example.com/search'.to_url.is_relative? base: 'https://ftp.example.com'.to_url
+    refute 'http://www.example.com/search'.to_url.is_relative? base: 'https://ftp.example.co.uk'.to_url
 
     # Valid error scenarios.
     assert_raises(RuntimeError) do
@@ -210,6 +215,21 @@ class TestUrl < TestHelper
     assert_equal "www.über.com", Wgit::Url.new(@iri).to_host
     assert_equal Wgit::Url, Wgit::Url.new(@iri).to_host.class
     assert_nil Wgit::Url.new('über').to_host
+  end
+
+  def test_to_domain
+    assert_equal "google.co.uk", Wgit::Url.new(@url_str_link).to_domain
+    assert_equal Wgit::Url, Wgit::Url.new(@url_str_link).to_domain.class
+    assert_nil Wgit::Url.new(@link).to_domain
+
+    assert_equal "über.com", Wgit::Url.new(@iri).to_domain
+    assert_equal Wgit::Url, Wgit::Url.new(@iri).to_domain.class
+    assert_nil Wgit::Url.new('über').to_domain
+
+    assert_nil Wgit::Url.new("google.co.uk").to_domain
+    assert_nil Wgit::Url.new('/about').to_domain
+    assert_nil Wgit::Url.new('?q=hello').to_domain
+    assert_nil Wgit::Url.new('#top').to_domain
   end
 
   def test_to_base

@@ -131,9 +131,10 @@ module Wgit
     # All external links in a page are expected to have a protocol prefix e.g.
     # "http://", otherwise the link is treated as an internal link (regardless
     # of whether it's valid or not). The only exception is if base is provided
-    # and self is a page within that site; then the link is relative.
+    # and self is a page on that domain; then the link is relative.
     #
     # @param base [Wgit::Url, String] The Url base e.g. http://www.google.com.
+    #   The base must be absolute and prefixed with a protocol.
     # @return [Boolean] True if relative, false if absolute.
     # @raise [RuntimeError] If self is invalid e.g. empty.
     def is_relative?(base: nil)
@@ -141,15 +142,15 @@ module Wgit
 
       if base
         base = Wgit::Url.new(base)
-        if base.to_scheme.nil?
-          raise "Invalid base, must contain protocol prefix: #{base}"
+        if base.to_domain.nil?
+          raise "Invalid base, must be absolute and contain protocol: #{base}"
         end
       end
 
       if @uri.relative?
         true
       else
-        base ? to_host == base.to_host : false
+        base ? to_domain == base.to_domain : false
       end
     end
 
@@ -214,6 +215,15 @@ module Wgit
     def to_host
       host = @uri.host
       host ? Wgit::Url.new(host) : nil
+    end
+
+    # Returns a new Wgit::Url containing just the domain of this URL e.g.
+    # Given http://www.google.co.uk/about.html, google.co.uk is returned.
+    #
+    # @return [Wgit::Url, nil] Containing just the domain or nil.
+    def to_domain
+      domain = @uri.domain
+      domain ? Wgit::Url.new(domain) : nil
     end
 
     # Returns only the base of this URL e.g. the protocol and host combined.
@@ -386,6 +396,7 @@ module Wgit
     alias :to_protocol :to_scheme
     alias :protocol :to_scheme
     alias :host :to_host
+    alias :domain :to_domain
     alias :base :to_base
     alias :path :to_path
     alias :endpoint :to_endpoint
@@ -402,6 +413,7 @@ module Wgit
     alias :relative_link? :is_relative?
     alias :internal_link? :is_relative?
     alias :is_internal? :is_relative?
+    alias :relative? :is_relative?
     alias :crawled? :crawled
     alias :normalize :normalise
   end
