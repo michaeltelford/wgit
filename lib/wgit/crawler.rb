@@ -129,15 +129,17 @@ module Wgit
       return doc.external_links.uniq if internals.empty?
 
       loop do
+        crawled.uniq!
         internals.uniq!
 
         links = internals - crawled
         break if links.empty?
 
         links.each do |link|
+          orig_link = link.dup
           doc = crawl_url(link, follow_external_redirects: true, &block)
 
-          crawled << link
+          crawled.push(orig_link, link) # Push both in case of redirects.
           next if doc.nil?
 
           internals.concat(get_internal_links(doc))
