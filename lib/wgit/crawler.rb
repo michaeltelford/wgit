@@ -109,10 +109,10 @@ module Wgit
     # @param url [Wgit::Document] The URL to crawl.
     # @param follow_external_redirects [Boolean] Whether or not to follow
     #   an external redirect. False will return nil for such a crawl. If false,
-    #   you must also provide a `base_domain:` parameter.
-    # @param base_domain [Wgit::Url, String] Specify the domain by which
+    #   you must also provide a `domain:` parameter.
+    # @param domain [Wgit::Url, String] Specify the domain by which
     #   a redirect is determined to be internal or not. For example, a
-    #   `base_domain:` of 'http://www.example.com' will only allow redirects to
+    #   `domain:` of 'http://www.example.com' will only allow redirects to
     #   Urls with a `to_domain` value of 'example.com'.
     # @yield [Wgit::Document] The crawled HTML Document regardless if the
     #   crawl was successful or not. Therefore, the Document#url can be used.
@@ -121,17 +121,17 @@ module Wgit
     def crawl_url(
         url = @urls.first,
         follow_external_redirects: true,
-        base_domain: nil
+        domain: nil
       )
       assert_type(url, Wgit::Url)
-      if !follow_external_redirects and base_domain.nil?
-        raise 'base_domain cannot be nil if follow_external_redirects is false'
+      if !follow_external_redirects and domain.nil?
+        raise 'domain cannot be nil if follow_external_redirects is false'
       end
 
       html = fetch(
         url,
         follow_external_redirects: follow_external_redirects,
-        base_domain: base_domain
+        domain: domain
       )
       url.crawled = true
 
@@ -149,26 +149,26 @@ module Wgit
     # redirect to 'https://ftp.example.co.uk' will be allowed whereas a
     # redirect to 'http://www.example.com' will not.
     #
-    # @param base_url [Wgit::Url] The base URL of the website to be crawled.
+    # @param url [Wgit::Url] The base URL of the website to be crawled.
     #   It is recommended that this URL be the index page of the site to give a
     #   greater chance of finding all pages within that site/domain.
     # @yield [Wgit::Document] Given each crawled Document/page of the site.
     #   A block is the only way to interact with each crawled Document.
     # @return [Array<Wgit::Url>, nil] Unique Array of external urls collected
-    #   from all of the site's pages or nil if the base_url could not be
+    #   from all of the site's pages or nil if the url could not be
     #   crawled successfully.
-    def crawl_site(base_url = @urls.first, &block)
-      assert_type(base_url, Wgit::Url)
+    def crawl_site(url = @urls.first, &block)
+      assert_type(url, Wgit::Url)
       opts = {
         follow_external_redirects: false,
-        base_domain: base_url.to_base,
+        domain: url.to_base,
       }.freeze
 
-      doc = crawl_url(base_url, opts, &block)
+      doc = crawl_url(url, opts, &block)
       return nil if doc.nil?
 
-      alt_base_url = base_url.end_with?('/') ? base_url.chop : base_url + '/'
-      crawled      = [base_url, alt_base_url]
+      alt_url      = url.end_with?('/') ? url.chop : url + '/'
+      crawled      = [url, alt_url]
       externals    = doc.external_links
       internals    = get_internal_links(doc)
 
@@ -213,11 +213,11 @@ module Wgit
     # Invalid urls or any HTTP response that doesn't return a HTML body will be
     # ignored and nil will be returned. Otherwise, the HTML is returned.
     # External redirects are followed by default but can be disabled.
-    def fetch(url, follow_external_redirects: true, base_domain: nil)
+    def fetch(url, follow_external_redirects: true, domain: nil)
       response = resolve(
         url,
         follow_external_redirects: follow_external_redirects,
-        base_domain: base_domain
+        domain: domain
       )
       @last_response = response
       response.body.empty? ? nil : response.body
@@ -238,7 +238,7 @@ module Wgit
         url,
         redirect_limit: Wgit::Crawler.default_redirect_limit,
         follow_external_redirects: true,
-        base_domain: nil
+        domain: nil
       )
       raise 'url must respond to :to_uri' unless url.respond_to?(:to_uri)
       redirect_count = 0
@@ -249,7 +249,7 @@ module Wgit
 
         if not location.empty?
           if  !follow_external_redirects and
-              !location.is_relative?(base: base_domain)
+              !location.is_relative?(domain: domain)
             raise 'External redirect encountered but not allowed'
           end
 

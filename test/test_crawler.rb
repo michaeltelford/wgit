@@ -172,9 +172,9 @@ class TestCrawler < TestHelper
     end
     assert_equal 'https://motherfuckingwebsite.com/', url
 
-    # Url redirect not affected by random base_domain.
+    # Url redirect not affected by random domain.
     url = Wgit::Url.new 'http://test-site.com/sneaky'
-    c.crawl_url(url, base_domain: url.to_base) do |doc|
+    c.crawl_url(url, domain: url.to_base) do |doc|
       assert_equal 'https://motherfuckingwebsite.com/', doc.url
       refute_empty doc
     end
@@ -185,7 +185,7 @@ class TestCrawler < TestHelper
     c.crawl_url(
       url,
       follow_external_redirects: false,
-      base_domain: url.to_base
+      domain: url.to_base
     ) do |doc|
       assert_equal 'http://test-site.com/sneaky', doc.url
       assert_empty doc
@@ -198,7 +198,7 @@ class TestCrawler < TestHelper
       c.crawl_url(url, follow_external_redirects: false)
     end
     assert_equal 'http://test-site.com/sneaky', url
-    assert_equal 'base_domain cannot be nil if follow_external_redirects is false', ex.message
+    assert_equal 'domain cannot be nil if follow_external_redirects is false', ex.message
   end
 
   def test_crawl_site
@@ -345,7 +345,7 @@ class TestCrawler < TestHelper
         :resolve,
         url,
         follow_external_redirects: false,
-        base_domain: 'http://twitter.co.uk'
+        domain: 'http://twitter.co.uk'
       )
     end
     assert_equal 'External redirect encountered but not allowed', ex.message
@@ -357,7 +357,7 @@ class TestCrawler < TestHelper
     url = 'http://twitter.com'.to_url
 
     ex = assert_raises(RuntimeError) do
-      # Because base_domain defaults to nil, any external redirect will fail.
+      # Because domain defaults to nil, any external redirect will fail.
       c.send :resolve, url, follow_external_redirects: false
     end
     assert_equal 'External redirect encountered but not allowed', ex.message
