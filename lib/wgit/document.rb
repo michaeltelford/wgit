@@ -146,7 +146,7 @@ module Wgit
 
       if link
         assert_type(link, Wgit::Url)
-        raise "link must be relative" unless link.is_relative?
+        raise "link must be relative: #{link}" unless link.is_relative?
 
         if link.is_anchor? or link.is_query_string?
           base_url = @base ? get_base.call : @url
@@ -253,7 +253,7 @@ module Wgit
       return [] if @links.empty?
 
       links = @links.
-        reject { |link| !link.is_relative?(base: @url.to_base) }.
+        reject { |link| !link.is_relative?(host: @url.to_base) }.
         map(&:without_base).
         map do |link| # We map @url.to_host into / because it's a duplicate.
           link.to_host == @url.to_host ? Wgit::Url.new('/') : link
@@ -282,7 +282,7 @@ module Wgit
       return [] if @links.empty?
 
       links = @links.
-        reject { |link| link.relative_link?(base: @url.to_base) }.
+        reject { |link| link.relative_link?(host: @url.to_base) }.
         map(&:without_trailing_slash)
 
       Wgit::Utils.process_arr(links)

@@ -52,7 +52,7 @@ and power matches the Ruby language in which it's developed."
     }
     @stats = {
       url: 30,
-      html: 2277,
+      html: 2317,
       title: 15,
       author: 15,
       keywords: 3,
@@ -199,7 +199,6 @@ Minitest framework."
       "https://duckduckgo.com/search?q=hello&page=2",
       "https://example.com/blog#about-us",
       "http://ftp.mytestsite.com",
-      "http://ftp.mytestsite.com/",
       "http://ftp.mytestsite.com/files",
     ], doc.external_links
     assert doc.external_links.all? { |link| link.instance_of?(Wgit::Url) }
