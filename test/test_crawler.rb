@@ -279,6 +279,21 @@ class TestCrawler < TestHelper
       "http://ftp.test-site.com",
     ]
 
+    # Test custom small site with an initial host redirect.
+    url = Wgit::Url.new 'http://myserver.com' # Redirects to test-site.com.
+    c = Wgit::Crawler.new url
+    assert_crawl_site c, 6, 2, expected_pages: [
+      'http://test-site.com',
+      'http://test-site.com/contact',
+      'http://test-site.com/search',
+      'http://test-site.com/about',
+      'http://test-site.com/public/records',
+      'http://test-site.com/public/records?q=username',
+    ], expected_externals: [
+      "http://test-site.co.uk",
+      "http://ftp.test-site.com",
+    ]
+
     # Test that an invalid url returns nil.
     url = Wgit::Url.new 'http://doesntexist_123'
     c = Wgit::Crawler.new url

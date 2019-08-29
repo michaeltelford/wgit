@@ -26,6 +26,8 @@ stub_page 'http://test-site.com/public/records?q=username', fixture: 'test-site.
 stub_page 'http://test-site.com/public/records#top', fixture: 'test-site.com/public/records'
 stub_redirect 'http://test-site.com/ftp', 'http://ftp.test-site.com'
 stub_page 'http://ftp.test-site.com', status: 404, fixture: 'test-site.com/not_found'
+stub_redirect 'http://myserver.com', 'http://www.myserver.com'
+stub_redirect 'http://www.myserver.com', 'http://test-site.com'
 
 # Mock responses based on the fixtures saved to disk. Both single webpages and
 # full websites are supported.

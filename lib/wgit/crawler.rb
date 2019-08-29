@@ -146,10 +146,13 @@ module Wgit
     # Crawls an entire website's HTML pages by recursively going through
     # its internal links. Each crawled Document is yielded to a block.
     #
-    # Only redirects on the same host are allowed. For example, the Url
+    # Only redirects to the same host are followed. For example, the Url
     # 'http://www.example.co.uk/how' has a host of 'www.example.co.uk' meaning
-    # a redirect to 'https://ftp.example.co.uk' or 'https://www.example.com'
-    # will not be followed.
+    # a link which redirects to 'https://ftp.example.co.uk' or
+    # 'https://www.example.com' will not be followed. The only exception to
+    # this is the initially crawled url which is allowed to redirect anywhere;
+    # it's host is then used for other link redirections on the site, as
+    # described above.
     #
     # @param url [Wgit::Url] The base URL of the website to be crawled.
     #   It is recommended that this URL be the index page of the site to give a
@@ -161,18 +164,15 @@ module Wgit
     #   crawled successfully.
     def crawl_site(url = @urls.first, &block)
       assert_type(url, Wgit::Url)
-      opts = {
-        follow_external_redirects: false,
-        host: url.to_base,
-      }.freeze
 
-      doc = crawl_url(url, opts, &block)
+      doc = crawl_url(url, &block)
       return nil if doc.nil?
 
-      alt_url      = url.end_with?('/') ? url.chop : url + '/'
-      crawled      = [url, alt_url]
-      externals    = doc.external_links
-      internals    = get_internal_links(doc)
+      host      = url.to_base
+      alt_url   = url.end_with?('/') ? url.chop : url + '/'
+      crawled   = [url, alt_url]
+      externals = doc.external_links
+      internals = get_internal_links(doc)
 
       return doc.external_links.uniq if internals.empty?
 
@@ -185,7 +185,9 @@ module Wgit
 
         links.each do |link|
           orig_link = link.dup
-          doc = crawl_url(link, opts, &block)
+          doc = crawl_url(
+            link, follow_external_redirects: false, host: host, &block
+          )
 
           crawled.push(orig_link, link) # Push both in case of redirects.
           next if doc.nil?
