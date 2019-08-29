@@ -247,10 +247,13 @@ module Wgit
         response = Net::HTTP.get_response(url.to_uri)
         location = Wgit::Url.new(response.fetch('location', ''))
 
+        yield(url, response, location) if block_given?
+
         if not location.empty?
           if  !follow_external_redirects and
               !location.is_relative?(domain: domain)
-            raise 'External redirect encountered but not allowed'
+            raise "External redirect not allowed - Redirected to: \
+'#{location}', allowed domain: '#{domain}'"
           end
 
           raise 'Too many redirects' if redirect_count >= redirect_limit

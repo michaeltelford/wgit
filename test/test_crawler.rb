@@ -245,30 +245,38 @@ class TestCrawler < TestHelper
     c = Wgit::Crawler.new url
     assert_crawl_site c, 1, 1, expected_pages: [
       'https://motherfuckingwebsite.com/',
+    ], expected_externals: [
+      'http://txti.es'
     ]
 
     # Test custom small site.
     url = Wgit::Url.new 'http://test-site.com'
     c = Wgit::Crawler.new url
-    assert_crawl_site c, 6, 0, expected_pages: [
+    assert_crawl_site c, 6, 2, expected_pages: [
       'http://test-site.com',
       'http://test-site.com/contact',
       'http://test-site.com/search',
       'http://test-site.com/about',
       'http://test-site.com/public/records',
       'http://test-site.com/public/records?q=username',
+    ], expected_externals: [
+      "http://test-site.co.uk",
+      "http://ftp.test-site.com",
     ]
 
     # Test custom small site not starting on the index page.
     url = Wgit::Url.new 'http://test-site.com/search'
     c = Wgit::Crawler.new url
-    assert_crawl_site c, 6, 0, expected_pages: [
+    assert_crawl_site c, 6, 2, expected_pages: [
       'http://test-site.com/search',
       'http://test-site.com/',
       'http://test-site.com/contact',
       'http://test-site.com/about',
       'http://test-site.com/public/records',
       'http://test-site.com/public/records?q=username',
+    ], expected_externals: [
+      "http://test-site.co.uk",
+      "http://ftp.test-site.com",
     ]
 
     # Test that an invalid url returns nil.
@@ -348,7 +356,8 @@ class TestCrawler < TestHelper
         domain: 'http://twitter.co.uk'
       )
     end
-    assert_equal 'External redirect encountered but not allowed', ex.message
+    assert_equal "External redirect not allowed - Redirected to: \
+'https://twitter.com', allowed domain: 'http://twitter.co.uk'", ex.message
     assert_equal 'http://twitter.com', url
   end
 
@@ -360,8 +369,28 @@ class TestCrawler < TestHelper
       # Because domain defaults to nil, any external redirect will fail.
       c.send :resolve, url, follow_external_redirects: false
     end
-    assert_equal 'External redirect encountered but not allowed', ex.message
+    assert_equal "External redirect not allowed - Redirected to: \
+'https://twitter.com', allowed domain: ''", ex.message
     assert_equal 'http://twitter.com', url
+  end
+
+  def test_resolve__redirect_yielded
+    i = 0
+    c = Wgit::Crawler.new
+    orig_url = Wgit::Url.new 'http://redirect.com/5' # Redirects twice to 7.
+
+    resp = c.send(:resolve, orig_url) do |url, response, location|
+      i += 1
+      path = url.to_path.to_i + 1
+
+      assert_instance_of Wgit::Url, url
+      assert_instance_of Wgit::Url, location
+      assert response.is_a?(Net::HTTPRedirection) unless location.empty?
+
+      assert_equal orig_url, url if i == 1
+      assert_equal path, location.to_path.to_i unless location.empty?
+    end
+    assert_instance_of Net::HTTPOK, resp
   end
 
 private
@@ -377,10 +406,11 @@ private
     else
       document = crawler.crawl_url { |doc| assert doc.title }
     end
+
     assert_crawl_output crawler, document, url
   end
 
-  def assert_crawl_site(crawler, expected_num_crawled, expected_num_externals, expected_pages: nil)
+  def assert_crawl_site(crawler, expected_num_crawled, expected_num_externals, expected_pages: nil, expected_externals: nil)
     crawled = []
 
     ext_links = crawler.crawl_site do |doc|
@@ -398,7 +428,8 @@ private
     assert_equal expected_num_crawled, crawled.length
     assert_equal expected_pages, crawled if expected_pages
     assert_equal expected_num_externals, ext_links.length
-    assert_equal ext_links.uniq.length, ext_links.length
+    assert_equal expected_externals, ext_links if expected_externals
+    assert_nil ext_links.uniq!
     assert crawler.urls.first.crawled?
   end
 
@@ -406,12 +437,14 @@ private
     assert crawler.last_response.is_a? Net::HTTPResponse
     assert doc
     refute doc.empty?
+
     url = crawler.urls.first if url.nil?
     assert url.crawled if url
   end
 
   def assert_resolve(crawler, start_url, end_url)
     response = crawler.send :resolve, start_url
+
     assert response.is_a? Net::HTTPResponse
     assert_equal '200', response.code
     refute response.body.empty?
