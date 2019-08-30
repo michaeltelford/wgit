@@ -241,12 +241,12 @@ module Wgit
     end
 
     # Get all the internal links of this Document in relative form. Internal
-    # meaning a link to another document on this domain. This Document's domain
+    # meaning a link to another document on the same host. This Document's host
     # is used to determine if an absolute URL is actually a relative link e.g.
-    # For a Document representing http://server.com/about, an absolute link of
-    # <a href='http://server.com/search'> will be recognized and returned as an
-    # internal link because both Documents live on the same domain. Also see
-    # Wgit::Document#internal_full_links.
+    # For a Document representing http://www.server.com/about, an absolute link
+    # of <a href='http://www.server.com/search'> will be recognized and
+    # returned as an internal link because both Documents live on the same
+    # host. Also see Wgit::Document#internal_full_links.
     #
     # @return [Array<Wgit::Url>] self's internal/relative URL's.
     def internal_links
@@ -275,7 +275,7 @@ module Wgit
     end
 
     # Get all the external links of this Document. External meaning a link to
-    # a different domain.
+    # a different host.
     #
     # @return [Array<Wgit::Url>] self's external/absolute URL's.
     def external_links
