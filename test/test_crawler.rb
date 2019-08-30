@@ -400,8 +400,9 @@ class TestCrawler < TestHelper
   def test_resolve__redirect_yielded
     i = 0
     c = Wgit::Crawler.new
-    orig_url = Wgit::Url.new 'http://redirect.com/5' # Redirects twice to 7.
 
+    # Redirects twice to 7.
+    orig_url = Wgit::Url.new 'http://redirect.com/5'
     resp = c.send(:resolve, orig_url) do |url, response, location|
       i += 1
       path = url.to_path.to_i + 1
@@ -412,6 +413,18 @@ class TestCrawler < TestHelper
 
       assert_equal orig_url, url if i == 1
       assert_equal path, location.to_path.to_i unless location.empty?
+    end
+    assert_instance_of Net::HTTPOK, resp
+
+    # Doesn't redirect.
+    orig_url = Wgit::Url.new 'https://twitter.com'
+    resp = c.send(:resolve, orig_url) do |url, response, location|
+      assert_instance_of Wgit::Url, url
+      assert_instance_of Wgit::Url, location
+      assert response.is_a?(Net::HTTPOK)
+
+      assert_equal orig_url, url
+      assert_empty location
     end
     assert_instance_of Net::HTTPOK, resp
   end
