@@ -1,5 +1,13 @@
 # Wgit
 
+[![Gem Version](https://badge.fury.io/rb/wgit.svg)](https://rubygems.org/gems/wgit)
+[![Gem Downloads](https://img.shields.io/gem/dt/wgit)](https://rubygems.org/gems/wgit)
+[![Build Status](https://travis-ci.org/michaeltelford/wgit.svg?branch=master)](https://travis-ci.org/michaeltelford/wgit)
+[![Yardoc Coverage](https://img.shields.io/badge/yard%20docs-100%25-brightgreen)](https://www.rubydoc.info/gems/wgit)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/d5a0de62e78b460997cb8ce1127cea9e)](https://www.codacy.com/app/michaeltelford/wgit?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=michaeltelford/wgit&amp;utm_campaign=Badge_Grade)
+
+---
+
 Wgit is a Ruby gem similar in nature to GNU's `wget` tool. It provides an easy to use API for programmatic web scraping, indexing and searching.
 
 Fundamentally, Wgit is a WWW indexer/scraper which crawls URL's, retrieves and serialises their page contents for later use. You can use Wgit to copy entire websites if required. Wgit also provides a means to search indexed documents stored in a database. Therefore, this library provides the main components of a WWW search engine. The Wgit API is easily extended allowing you to pull out the parts of a webpage that are important to you, the code snippets or tables for example. As Wgit is a library, it has uses in many different application types.
