@@ -1,10 +1,11 @@
-require_relative "helpers/test_helper"
+# frozen_string_literal: true
+
+require_relative 'helpers/test_helper'
 
 # Test class for the Wgit Logger methods.
 class TestLogger < TestHelper
   # Runs before every test.
-  def setup
-  end
+  def setup; end
 
   # Runs after every test.
   def teardown
@@ -18,7 +19,7 @@ class TestLogger < TestHelper
 
   def test_logger=
     stdout = Logger.new STDOUT
-    assert_equal stdout, Wgit.logger=(stdout)
+    assert_equal stdout, Wgit.logger = stdout
   end
 
   def test_default_logger

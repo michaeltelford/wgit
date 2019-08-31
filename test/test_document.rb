@@ -1,4 +1,4 @@
-require_relative "helpers/test_helper"
+require_relative 'helpers/test_helper'
 
 # Test class for the Document methods.
 class TestDocument < TestHelper
@@ -7,48 +7,48 @@ class TestDocument < TestHelper
 
   # Runs before every test.
   def setup
-    @doc_url = Wgit::Url.new("http://www.mytestsite.com/home")
-    @domain = Wgit::Url.new("http://www.mytestsite.com")
+    @doc_url = Wgit::Url.new('http://www.mytestsite.com/home')
+    @domain = Wgit::Url.new('http://www.mytestsite.com')
     @rel_base_url = '/public'
     @base_url = 'http://server.com' + @rel_base_url
-    @html = File.read("test/mock/fixtures/test_doc.html")
+    @html = File.read('test/mock/fixtures/test_doc.html')
     @mongo_doc_dup = {
-      "url" => @doc_url.to_s,
-      "html" => @html,
-      "score" => 12.05,
-      "base" => nil, # Set if using html_with_base.
-      "title" => "My Test Webpage",
-      "author" => "Michael Telford",
-      "keywords" => ["Minitest", "Ruby", "Test Document"],
-      "links" => [
-        "#welcome",
-        "?foo=bar",
-        "http://www.google.co.uk",
-        "http://www.mytestsite.com/security.html",
-        "/about.html",
-        "about.html/",
-        "/",
-        "http://www.yahoo.com",
-        "/contact.html",
-        "http://www.bing.com/",
-        "http://www.mytestsite.com",
-        "http://www.mytestsite.com/",
-        "http://www.mytestsite.com/tests.html",
-        "https://duckduckgo.com/search?q=hello&page=2",
-        "/blog#about-us",
-        "https://example.com/blog#about-us",
-        "/contents/",
-        "http://ftp.mytestsite.com",
-        "http://ftp.mytestsite.com/",
-        "http://ftp.mytestsite.com/files",
+      'url' => @doc_url.to_s,
+      'html' => @html,
+      'score' => 12.05,
+      'base' => nil, # Set if using html_with_base.
+      'title' => 'My Test Webpage',
+      'author' => 'Michael Telford',
+      'keywords' => ['Minitest', 'Ruby', 'Test Document'],
+      'links' => [
+        '#welcome',
+        '?foo=bar',
+        'http://www.google.co.uk',
+        'http://www.mytestsite.com/security.html',
+        '/about.html',
+        'about.html/',
+        '/',
+        'http://www.yahoo.com',
+        '/contact.html',
+        'http://www.bing.com/',
+        'http://www.mytestsite.com',
+        'http://www.mytestsite.com/',
+        'http://www.mytestsite.com/tests.html',
+        'https://duckduckgo.com/search?q=hello&page=2',
+        '/blog#about-us',
+        'https://example.com/blog#about-us',
+        '/contents/',
+        'http://ftp.mytestsite.com',
+        'http://ftp.mytestsite.com/',
+        'http://ftp.mytestsite.com/files'
       ],
-      "text" => [
-        "Howdy!", "Welcome to my site, I hope you like what you \
+      'text' => [
+        'Howdy!', "Welcome to my site, I hope you like what you \
 see and enjoy browsing the various randomness.", "This page is \
 primarily for testing the Ruby code used in Wgit with the \
 Minitest framework.", "Minitest rocks!! It's simplicity \
 and power matches the Ruby language in which it's developed."
-      ],
+      ]
     }
     @stats = {
       url: 30,
@@ -99,7 +99,7 @@ Minitest framework."
     doc = Wgit::Document.new @mongo_doc_dup
 
     assert_doc doc
-    assert_equal @mongo_doc_dup["score"], doc.score
+    assert_equal @mongo_doc_dup['score'], doc.score
     assert_nil doc.base
   end
 
@@ -110,7 +110,7 @@ Minitest framework."
     doc = Wgit::Document.new @domain, @html
     assert_internal_links doc
 
-    doc = Wgit::Document.new @doc_url, "<p>Hello World!</p>"
+    doc = Wgit::Document.new @doc_url, '<p>Hello World!</p>'
     assert_empty doc.internal_links
   end
 
@@ -125,7 +125,7 @@ Minitest framework."
       "#{@domain}/contact.html",
       "#{@domain}/tests.html",
       "#{@domain}/blog#about-us",
-      "#{@domain}/contents",
+      "#{@domain}/contents"
     ], doc.internal_full_links
     assert doc.internal_full_links.all? do |link|
       link.instance_of?(Wgit::Url)
@@ -141,13 +141,13 @@ Minitest framework."
       "#{@domain}/contact.html",
       "#{@domain}/tests.html",
       "#{@domain}/blog#about-us",
-      "#{@domain}/contents",
+      "#{@domain}/contents"
     ], doc.internal_full_links
     assert doc.internal_full_links.all? do |link|
       link.instance_of?(Wgit::Url)
     end
 
-    doc = Wgit::Document.new @doc_url, "<p>Hello World!</p>"
+    doc = Wgit::Document.new @doc_url, '<p>Hello World!</p>'
     assert_empty doc.internal_full_links
   end
 
@@ -164,7 +164,7 @@ Minitest framework."
       "#{@base_url}/contact.html",
       "#{@base_url}/tests.html",
       "#{@base_url}/blog#about-us",
-      "#{@base_url}/contents",
+      "#{@base_url}/contents"
     ], doc.internal_full_links
     assert doc.internal_full_links.all? do |link|
       link.instance_of?(Wgit::Url)
@@ -183,7 +183,7 @@ Minitest framework."
       "#{expected_base}/contact.html",
       "#{expected_base}/tests.html",
       "#{expected_base}/blog#about-us",
-      "#{expected_base}/contents",
+      "#{expected_base}/contents"
     ], doc.internal_full_links
     assert doc.internal_full_links.all? do |link|
       link.instance_of?(Wgit::Url)
@@ -193,17 +193,17 @@ Minitest framework."
   def test_external_links
     doc = Wgit::Document.new @doc_url, @html
     assert_equal [
-      "http://www.google.co.uk",
-      "http://www.yahoo.com",
-      "http://www.bing.com",
-      "https://duckduckgo.com/search?q=hello&page=2",
-      "https://example.com/blog#about-us",
-      "http://ftp.mytestsite.com",
-      "http://ftp.mytestsite.com/files",
+      'http://www.google.co.uk',
+      'http://www.yahoo.com',
+      'http://www.bing.com',
+      'https://duckduckgo.com/search?q=hello&page=2',
+      'https://example.com/blog#about-us',
+      'http://ftp.mytestsite.com',
+      'http://ftp.mytestsite.com/files'
     ], doc.external_links
     assert doc.external_links.all? { |link| link.instance_of?(Wgit::Url) }
 
-    doc = Wgit::Document.new @doc_url, "<p>Hello World!</p>"
+    doc = Wgit::Document.new @doc_url, '<p>Hello World!</p>'
     assert_empty doc.external_links
   end
 
@@ -220,23 +220,23 @@ Minitest framework."
   def test_to_h
     doc = Wgit::Document.new @doc_url, @html
     hash = @mongo_doc_dup.dup
-    hash["score"] = 0.0
+    hash['score'] = 0.0
     assert_equal hash, doc.to_h(true)
 
-    hash.delete("html")
+    hash.delete('html')
     assert_equal hash, doc.to_h
 
     doc = Wgit::Document.new @mongo_doc_dup
     hash = @mongo_doc_dup.dup
-    hash.delete("html")
+    hash.delete('html')
     assert_equal hash, doc.to_h
 
     html = html_with_base @base_url
     doc = Wgit::Document.new @doc_url, html
     hash = @mongo_doc_dup.dup
-    hash.delete("html")
-    hash["score"] = 0.0
-    hash["base"] = @base_url
+    hash.delete('html')
+    hash['score'] = 0.0
+    hash['base'] = @base_url
     assert_equal hash, doc.to_h
   end
 
@@ -263,7 +263,7 @@ Minitest framework."
 
   def test_date_crawled
     timestamp = Time.now
-    url = Wgit::Url.new "http://www.mytestsite.com", true, timestamp
+    url = Wgit::Url.new 'http://www.mytestsite.com', true, timestamp
     doc = Wgit::Document.new url
     assert_equal timestamp, doc.date_crawled
   end
@@ -370,7 +370,7 @@ Minitest framework."
     doc = Wgit::Document.new @doc_url, @html
     refute doc.empty?
 
-    @mongo_doc_dup.delete("html")
+    @mongo_doc_dup.delete('html')
     doc = Wgit::Document.new @mongo_doc_dup
     assert doc.empty?
 
@@ -380,30 +380,30 @@ Minitest framework."
 
   def test_search
     doc = Wgit::Document.new @doc_url, @html
-    results = doc.search("minitest", 80)
+    results = doc.search('minitest', 80)
     assert_equal @search_results, results
   end
 
   def test_search!
     doc = Wgit::Document.new @doc_url, @html
     orig_text = doc.text
-    assert_equal orig_text, doc.search!("minitest", 80)
+    assert_equal orig_text, doc.search!('minitest', 80)
     assert_equal @search_results, doc.text
   end
 
   def test_xpath
     doc = Wgit::Document.new @doc_url, @html
-    results = doc.xpath("//title")
-    assert_equal @mongo_doc_dup["title"], results.first.content
+    results = doc.xpath('//title')
+    assert_equal @mongo_doc_dup['title'], results.first.content
   end
 
   def test_css
     doc = Wgit::Document.new @doc_url, @html
-    results = doc.css("title")
-    assert_equal @mongo_doc_dup["title"], results.first.content
+    results = doc.css('title')
+    assert_equal @mongo_doc_dup['title'], results.first.content
   end
 
-private
+  private
 
   # Inserts a <base> element into @html.
   def html_with_base(href)
@@ -418,25 +418,25 @@ private
     assert_equal @doc_url, doc.url
     assert_instance_of Wgit::Url, doc.url
     assert_equal html, doc.html
-    assert_equal @mongo_doc_dup["title"], doc.title
-    assert_equal @mongo_doc_dup["author"], doc.author
-    assert_equal @mongo_doc_dup["keywords"], doc.keywords
-    assert_equal @mongo_doc_dup["links"], doc.links
+    assert_equal @mongo_doc_dup['title'], doc.title
+    assert_equal @mongo_doc_dup['author'], doc.author
+    assert_equal @mongo_doc_dup['keywords'], doc.keywords
+    assert_equal @mongo_doc_dup['links'], doc.links
     assert doc.links.all? { |link| link.instance_of? Wgit::Url }
-    assert_equal @mongo_doc_dup["text"], doc.text
+    assert_equal @mongo_doc_dup['text'], doc.text
   end
 
   def assert_internal_links(doc)
     assert_equal [
-      "#welcome",
-      "?foo=bar",
-      "security.html",
-      "about.html",
-      "/",
-      "contact.html",
-      "tests.html",
-      "blog#about-us",
-      "contents",
+      '#welcome',
+      '?foo=bar',
+      'security.html',
+      'about.html',
+      '/',
+      'contact.html',
+      'tests.html',
+      'blog#about-us',
+      'contents'
     ], doc.internal_links
     assert doc.internal_links.all? { |link| link.instance_of?(Wgit::Url) }
   end

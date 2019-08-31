@@ -1,4 +1,6 @@
 #!/usr/bin/env ruby
+# frozen_string_literal: true
+
 #
 # Script to save an entire website's HTML to disk. For example,
 # http://blah.com/admin/about will be saved as:
@@ -14,7 +16,7 @@ base_url = Wgit::Url.new(ARGV[0])
 path = "#{File.expand_path(__dir__)}/fixtures/#{base_url.host}"
 crawler = Wgit::Crawler.new(base_url)
 
-Dir.mkdir(path) unless Dir.exists?(path)
+Dir.mkdir(path) unless Dir.exist?(path)
 Dir.chdir(path)
 
 # Save the site to disk.
@@ -45,7 +47,7 @@ crawler.crawl_site do |doc|
 
   # Create the directory if necessary.
   if dir != ''
-    FileUtils.mkdir_p(dir) unless Dir.exists?(dir)
+    FileUtils.mkdir_p(dir) unless Dir.exist?(dir)
     dir += '/'
   end
 

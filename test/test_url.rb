@@ -1,4 +1,6 @@
-require_relative "helpers/test_helper"
+# frozen_string_literal: true
+
+require_relative 'helpers/test_helper'
 
 # Test class for Url methods.
 class TestUrl < TestHelper
@@ -7,18 +9,18 @@ class TestUrl < TestHelper
 
   # Runs before every test.
   def setup
-    @url_str = "http://www.google.co.uk"
-    @bad_url_str = "my_server"
-    @link = "/about.html"
+    @url_str = 'http://www.google.co.uk'
+    @bad_url_str = 'my_server'
+    @link = '/about.html'
     @url_str_link = "#{@url_str}#{@link}"
     @url_str_anchor = "#{@url_str_link}#about-us"
     @url_str_query = "#{@url_str_link}?foo=bar"
-    @iri = "https://www.über.com/about#top"
+    @iri = 'https://www.über.com/about#top'
     @time_stamp = Time.new
     @mongo_doc_dup = {
-      "url" => @url_str,
-      "crawled" => true,
-      "date_crawled" => @time_stamp
+      'url' => @url_str,
+      'crawled' => true,
+      'date_crawled' => @time_stamp
     }
   end
 
@@ -75,13 +77,15 @@ class TestUrl < TestHelper
 
   def test_prefix_protocol
     assert_equal "https://#{@bad_url_str}", Wgit::Url.prefix_protocol(
-                                                @bad_url_str.dup, true)
+      @bad_url_str.dup, true
+    )
     assert_equal "http://#{@bad_url_str}", Wgit::Url.prefix_protocol(
-                                                @bad_url_str.dup)
+      @bad_url_str.dup
+    )
   end
 
   def test_replace__from_string
-    url = Wgit::Url.new "http://www.google.co.uk"
+    url = Wgit::Url.new 'http://www.google.co.uk'
     new_url = url.replace '/about'
 
     assert_equal '/about', url
@@ -90,7 +94,7 @@ class TestUrl < TestHelper
   end
 
   def test_replace__from_url
-    url = Wgit::Url.new "http://www.google.co.uk"
+    url = Wgit::Url.new 'http://www.google.co.uk'
     new_url = url.replace Wgit::Url.new('/about')
 
     assert_equal '/about', url
@@ -120,7 +124,7 @@ class TestUrl < TestHelper
 
     # Valid error scenarios.
     ex = assert_raises(RuntimeError) { Wgit::Url.new('').is_relative? }
-    assert_equal "Invalid link: ", ex.message
+    assert_equal 'Invalid link: ', ex.message
   end
 
   def test_is_relative__with_host
@@ -149,16 +153,16 @@ class TestUrl < TestHelper
 
     # URL specific.
     refute(
-      Wgit::Url.new('http://www.example.com/search').is_relative? host: 'https://ftp.example.com'
+      Wgit::Url.new('http://www.example.com/search').is_relative?(host: 'https://ftp.example.com')
     )
     refute(
-      'http://www.example.com/search'.to_url.is_relative? host: 'https://ftp.example.com'.to_url
+      'http://www.example.com/search'.to_url.is_relative?(host: 'https://ftp.example.com'.to_url)
     )
     refute(
-      'http://www.example.com/search'.to_url.is_relative? host: 'https://ftp.example.co.uk'.to_url
+      'http://www.example.com/search'.to_url.is_relative?(host: 'https://ftp.example.co.uk'.to_url)
     )
     refute(
-      'https://server.example.com'.to_url.is_relative? host: 'https://example.com/en'.to_url
+      'https://server.example.com'.to_url.is_relative?(host: 'https://example.com/en'.to_url)
     )
 
     # Valid error scenarios.
@@ -166,12 +170,12 @@ class TestUrl < TestHelper
       Wgit::Url.new(@url_str_link).is_relative? host: 'bing.com'
     end
     assert_equal(
-      "Invalid host, must be absolute and contain protocol: bing.com",
+      'Invalid host, must be absolute and contain protocol: bing.com',
       ex.message
     )
 
     ex = assert_raises(RuntimeError) { Wgit::Url.new('').is_relative? }
-    assert_equal "Invalid link: ", ex.message
+    assert_equal 'Invalid link: ', ex.message
   end
 
   def test_is_relative__with_domain
@@ -200,16 +204,16 @@ class TestUrl < TestHelper
 
     # URL specific.
     assert(
-      Wgit::Url.new('http://www.example.com/search').is_relative? domain: 'https://ftp.example.com'
+      Wgit::Url.new('http://www.example.com/search').is_relative?(domain: 'https://ftp.example.com')
     )
     assert(
-      'http://www.example.com/search'.to_url.is_relative? domain: 'https://ftp.example.com'.to_url
+      'http://www.example.com/search'.to_url.is_relative?(domain: 'https://ftp.example.com'.to_url)
     )
     refute(
-      'http://www.example.com/search'.to_url.is_relative? domain: 'https://ftp.example.co.uk'.to_url
+      'http://www.example.com/search'.to_url.is_relative?(domain: 'https://ftp.example.co.uk'.to_url)
     )
     assert(
-      'https://server.example.com'.to_url.is_relative? domain: 'https://example.com/en'.to_url
+      'https://server.example.com'.to_url.is_relative?(domain: 'https://example.com/en'.to_url)
     )
 
     # Valid error scenarios.
@@ -217,17 +221,17 @@ class TestUrl < TestHelper
       Wgit::Url.new(@url_str_link).is_relative? domain: 'bing.com'
     end
     assert_equal(
-      "Invalid domain, must be absolute and contain protocol: bing.com",
+      'Invalid domain, must be absolute and contain protocol: bing.com',
       ex.message
     )
 
     ex = assert_raises(RuntimeError) do
       Wgit::Url.new('/about').is_relative?(host: '1', domain: '2')
     end
-    assert_equal "Provide host or domain, not both", ex.message
+    assert_equal 'Provide host or domain, not both', ex.message
 
     ex = assert_raises(RuntimeError) { Wgit::Url.new('').is_relative? }
-    assert_equal "Invalid link: ", ex.message
+    assert_equal 'Invalid link: ', ex.message
   end
 
   def test_concat
@@ -295,25 +299,25 @@ class TestUrl < TestHelper
   end
 
   def test_to_host
-    assert_equal "www.google.co.uk", Wgit::Url.new(@url_str_link).to_host
+    assert_equal 'www.google.co.uk', Wgit::Url.new(@url_str_link).to_host
     assert_equal Wgit::Url, Wgit::Url.new(@url_str_link).to_host.class
     assert_nil Wgit::Url.new(@link).to_host
 
-    assert_equal "www.über.com", Wgit::Url.new(@iri).to_host
+    assert_equal 'www.über.com', Wgit::Url.new(@iri).to_host
     assert_equal Wgit::Url, Wgit::Url.new(@iri).to_host.class
     assert_nil Wgit::Url.new('über').to_host
   end
 
   def test_to_domain
-    assert_equal "google.co.uk", Wgit::Url.new(@url_str_link).to_domain
+    assert_equal 'google.co.uk', Wgit::Url.new(@url_str_link).to_domain
     assert_equal Wgit::Url, Wgit::Url.new(@url_str_link).to_domain.class
     assert_nil Wgit::Url.new(@link).to_domain
 
-    assert_equal "über.com", Wgit::Url.new(@iri).to_domain
+    assert_equal 'über.com', Wgit::Url.new(@iri).to_domain
     assert_equal Wgit::Url, Wgit::Url.new(@iri).to_domain.class
     assert_nil Wgit::Url.new('über').to_domain
 
-    assert_nil Wgit::Url.new("google.co.uk").to_domain
+    assert_nil Wgit::Url.new('google.co.uk').to_domain
     assert_nil Wgit::Url.new('/about').to_domain
     assert_nil Wgit::Url.new('?q=hello').to_domain
     assert_nil Wgit::Url.new('#top').to_domain

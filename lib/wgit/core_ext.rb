@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Script which extends Ruby's core functionality when parsed.
 # Needs to be required separately using `require 'wgit/core_ext'`.
 
@@ -15,7 +17,7 @@ end
 
 # Extend the standard Enumerable functionality.
 module Enumerable
-  # Converts each String instance into a Wgit::Url object and returns the new 
+  # Converts each String instance into a Wgit::Url object and returns the new
   # Array.
   #
   # @return [Array<Wgit::Url>] The converted URL's.
@@ -24,8 +26,8 @@ module Enumerable
       process_url_element(element)
     end
   end
-  
-  # Converts each String instance into a Wgit::Url object and returns the 
+
+  # Converts each String instance into a Wgit::Url object and returns the
   # updated array. Modifies the receiver.
   #
   # @return [Array<Wgit::Url>] Self containing the converted URL's.

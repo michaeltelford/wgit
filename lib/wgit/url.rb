@@ -1,10 +1,11 @@
+# frozen_string_literal: true
+
 require_relative 'utils'
 require_relative 'assertable'
 require 'uri'
 require 'addressable/uri'
 
 module Wgit
-
   # Class modeling a web based URL.
   # Can be an internal/relative link e.g. "about.html" or a full URL
   # e.g. "http://www.google.co.uk". Is a subclass of String and uses
@@ -37,11 +38,11 @@ module Wgit
       # Else init from a database object/document.
       else
         obj = url_or_obj
-        assert_respond_to(obj, [:fetch, :[]])
+        assert_respond_to(obj, %i[fetch \[\]])
 
-        url = obj.fetch("url") # Should always be present.
-        crawled = obj.fetch("crawled", false)
-        date_crawled = obj["date_crawled"]
+        url = obj.fetch('url') # Should always be present.
+        crawled = obj.fetch('crawled', false)
+        date_crawled = obj['date_crawled']
       end
 
       @uri = Addressable::URI.parse(url)
@@ -56,7 +57,7 @@ module Wgit
     # @param str [String] The URL string to parse.
     # @return [Wgit::Url] The parsed Url object.
     def self.parse(str)
-      self.new(str)
+      new(str)
     end
 
     # Raises an exception if url is not a valid HTTP URL.
@@ -65,13 +66,11 @@ module Wgit
     # @raise [RuntimeError] If url is invalid.
     def self.validate(url)
       url = Wgit::Url.new(url)
-      if url.relative_link?
-        raise "Invalid url (or a relative link): #{url}"
-      end
-      unless url.start_with?("http://") or url.start_with?("https://")
+      raise "Invalid url (or a relative link): #{url}" if url.relative_link?
+      unless url.start_with?('http://') || url.start_with?('https://')
         raise "Invalid url (missing protocol prefix): #{url}"
       end
-      if URI.regexp.match(url.normalise).nil?
+      if URI::DEFAULT_PARSER.make_regexp.match(url.normalise).nil?
         raise "Invalid url: #{url}"
       end
     end
@@ -83,7 +82,7 @@ module Wgit
     def self.valid?(url)
       Wgit::Url.validate(url)
       true
-    rescue
+    rescue StandardError
       false
     end
 
@@ -95,7 +94,7 @@ module Wgit
     # @param https [Boolean] Whether the protocol prefix is https or http.
     # @return [Wgit::Url] The url with a protocol prefix.
     def self.prefix_protocol(url, https = false)
-      unless url.start_with?("http://") or url.start_with?("https://")
+      unless url.start_with?('http://') || url.start_with?('https://')
         if https
           url.replace("https://#{url}")
         else
@@ -113,7 +112,7 @@ module Wgit
     def self.concat(host, link)
       host = Wgit::Url.new(host).without_trailing_slash
       link = Wgit::Url.new(link).without_leading_slash
-      separator = (link.start_with?('#') or link.start_with?('?')) ? '' : '/'
+      separator = (link.start_with?('#') || link.start_with?('?')) ? '' : '/'
       Wgit::Url.new(host + separator + link)
     end
 
@@ -143,8 +142,8 @@ module Wgit
     # @return [Boolean] True if relative, false if absolute.
     # @raise [RuntimeError] If self is invalid e.g. empty.
     def is_relative?(host: nil, domain: nil)
-      raise "Invalid link: #{self}" if nil? or empty?
-      raise "Provide host or domain, not both" if host and domain
+      raise "Invalid link: #{self}" if nil? || empty?
+      raise 'Provide host or domain, not both' if host && domain
 
       if host
         host = Wgit::Url.new(host)
@@ -244,7 +243,8 @@ module Wgit
     #
     # @return [Wgit::Url, nil] Base of self e.g. http://www.google.co.uk or nil.
     def to_base
-      return nil if @uri.scheme.nil? or @uri.host.nil?
+      return nil if @uri.scheme.nil? || @uri.host.nil?
+
       base = "#{@uri.scheme}://#{@uri.host}"
       Wgit::Url.new(base)
     end
@@ -257,8 +257,9 @@ module Wgit
     # @return [Wgit::Url, nil] Path of self e.g. about.html or nil.
     def to_path
       path = @uri.path
-      return nil if path.nil? or path.empty?
+      return nil if path.nil? || path.empty?
       return Wgit::Url.new('/') if path == '/'
+
       Wgit::Url.new(path).without_slashes
     end
 
@@ -300,6 +301,7 @@ module Wgit
     def to_extension
       path = to_path
       return nil unless path
+
       segs = path.split('.')
       segs.length > 1 ? Wgit::Url.new(segs.last) : nil
     end
@@ -344,6 +346,7 @@ module Wgit
       without_base = base_url ? gsub(base_url, '') : self
 
       return self if ['', '/'].include?(without_base)
+
       Wgit::Url.new(without_base).without_slashes
     end
 
@@ -395,36 +398,36 @@ module Wgit
     #
     # @return [Hash] self's instance vars as a Hash.
     def to_h
-      ignore = ["@uri"]
+      ignore = ['@uri']
       h = Wgit::Utils.to_h(self, ignore)
-      Hash[h.to_a.insert(0, ["url", self])] # Insert url at position 0.
+      Hash[h.to_a.insert(0, ['url', self])] # Insert url at position 0.
     end
 
-    alias :uri :to_uri
-    alias :url :to_url
-    alias :scheme :to_scheme
-    alias :to_protocol :to_scheme
-    alias :protocol :to_scheme
-    alias :host :to_host
-    alias :domain :to_domain
-    alias :base :to_base
-    alias :path :to_path
-    alias :endpoint :to_endpoint
-    alias :query_string :to_query_string
-    alias :query :to_query_string
-    alias :anchor :to_anchor
-    alias :to_fragment :to_anchor
-    alias :fragment :to_anchor
-    alias :extension :to_extension
-    alias :without_query :without_query_string
-    alias :without_fragment :without_anchor
-    alias :is_query? :is_query_string?
-    alias :is_fragment? :is_anchor?
-    alias :relative_link? :is_relative?
-    alias :internal_link? :is_relative?
-    alias :is_internal? :is_relative?
-    alias :relative? :is_relative?
-    alias :crawled? :crawled
-    alias :normalize :normalise
+    alias uri to_uri
+    alias url to_url
+    alias scheme to_scheme
+    alias to_protocol to_scheme
+    alias protocol to_scheme
+    alias host to_host
+    alias domain to_domain
+    alias base to_base
+    alias path to_path
+    alias endpoint to_endpoint
+    alias query_string to_query_string
+    alias query to_query_string
+    alias anchor to_anchor
+    alias to_fragment to_anchor
+    alias fragment to_anchor
+    alias extension to_extension
+    alias without_query without_query_string
+    alias without_fragment without_anchor
+    alias is_query? is_query_string?
+    alias is_fragment? is_anchor?
+    alias relative_link? is_relative?
+    alias internal_link? is_relative?
+    alias is_internal? is_relative?
+    alias relative? is_relative?
+    alias crawled? crawled
+    alias normalize normalise
   end
 end

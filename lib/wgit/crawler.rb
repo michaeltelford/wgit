@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative 'url'
 require_relative 'document'
 require_relative 'utils'
@@ -5,7 +7,6 @@ require_relative 'assertable'
 require 'net/http' # Requires 'uri'.
 
 module Wgit
-
   # The Crawler class provides a means of crawling web based Wgit::Url's, turning
   # their HTML into Wgit::Document instances.
   class Crawler
@@ -61,7 +62,7 @@ module Wgit
     def [](*urls)
       # If urls is nil then add_url (when called later) will set @urls = []
       # so we do nothing here.
-      if not urls.nil?
+      unless urls.nil?
         # Due to *urls you can end up with [[url1,url2,url3]] etc. where the
         # outer array is bogus so we use the inner one only.
         if  urls.is_a?(Enumerable) &&
@@ -97,11 +98,12 @@ module Wgit
     #   by Crawler#docs after this method returns.
     # @return [Wgit::Document] The last Document crawled.
     def crawl_urls(urls = @urls, &block)
-      raise "No urls to crawl" unless urls
+      raise 'No urls to crawl' unless urls
+
       @docs = []
       doc = nil
       Wgit::Utils.each(urls) { |url| doc = handle_crawl_block(url, &block) }
-      doc ? doc : @docs.last
+      doc || @docs.last
     end
 
     # Crawl the url returning the response Wgit::Document or nil if an error
@@ -121,12 +123,12 @@ module Wgit
     # @return [Wgit::Document, nil] The crawled HTML Document or nil if the
     #   crawl was unsuccessful.
     def crawl_url(
-        url = @urls.first,
-        follow_external_redirects: true,
-        host: nil
-      )
+      url = @urls.first,
+      follow_external_redirects: true,
+      host: nil
+    )
       assert_type(url, Wgit::Url)
-      if !follow_external_redirects and host.nil?
+      if !follow_external_redirects && host.nil?
         raise 'host cannot be nil if follow_external_redirects is false'
       end
 
@@ -200,7 +202,7 @@ module Wgit
       externals.uniq
     end
 
-  private
+    private
 
     # Add the document to the @docs array for later processing or let the block
     # process it here and now.
@@ -225,9 +227,9 @@ module Wgit
       )
       @last_response = response
       response.body.empty? ? nil : response.body
-    rescue Exception => ex
+    rescue Exception => e
       Wgit.logger.debug(
-        "Wgit::Crawler#fetch('#{url}') exception: #{ex.message}"
+        "Wgit::Crawler#fetch('#{url}') exception: #{e.message}"
       )
       @last_response = nil
       nil
@@ -239,12 +241,13 @@ module Wgit
     # External redirects are followed by default but can be disabled.
     # The Net::HTTPResponse will be returned.
     def resolve(
-        url,
-        redirect_limit: Wgit::Crawler.default_redirect_limit,
-        follow_external_redirects: true,
-        host: nil
-      )
+      url,
+      redirect_limit: Wgit::Crawler.default_redirect_limit,
+      follow_external_redirects: true,
+      host: nil
+    )
       raise 'url must respond to :to_uri' unless url.respond_to?(:to_uri)
+
       redirect_count = 0
 
       begin
@@ -253,14 +256,15 @@ module Wgit
 
         yield(url, response, location) if block_given?
 
-        if not location.empty?
-          if  !follow_external_redirects and
+        unless location.empty?
+          if  !follow_external_redirects &&
               !location.is_relative?(host: host)
             raise "External redirect not allowed - Redirected to: \
 '#{location}', which is outside of host: '#{host}'"
           end
 
           raise 'Too many redirects' if redirect_count >= redirect_limit
+
           redirect_count += 1
 
           location = url.to_base.concat(location) if location.is_relative?
@@ -281,18 +285,18 @@ module Wgit
     # We remove anchors because they are client side and don't change the
     # resulting page's HTML; unlike query strings for example, which do.
     def get_internal_links(doc)
-      doc.internal_full_links.
-        map(&:without_anchor).
-        uniq.
-        reject do |link|
-          ext = link.to_extension
-          ext ? !['htm', 'html'].include?(ext) : false
-        end
+      doc.internal_full_links
+         .map(&:without_anchor)
+         .uniq
+         .reject do |link|
+        ext = link.to_extension
+        ext ? !%w[htm html].include?(ext) : false
+      end
     end
 
-    alias :crawl :crawl_urls
-    alias :crawl_pages :crawl_urls
-    alias :crawl_page :crawl_url
-    alias :crawl_r :crawl_site
+    alias crawl crawl_urls
+    alias crawl_pages crawl_urls
+    alias crawl_page crawl_url
+    alias crawl_r crawl_site
   end
 end

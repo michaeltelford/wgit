@@ -1,4 +1,4 @@
-require_relative "helpers/test_helper"
+require_relative 'helpers/test_helper'
 
 # Test class for testing the Indexer methods.
 # WARNING: The DB is cleared down prior to each test run.
@@ -21,7 +21,7 @@ class TestIndexer < TestHelper
   end
 
   def test_index_the_web__one_site
-    url_str = "https://motherfuckingwebsite.com/"
+    url_str = 'https://motherfuckingwebsite.com/'
     seed { url url: url_str, crawled: false }
 
     # Index only one site.
@@ -38,7 +38,7 @@ class TestIndexer < TestHelper
   end
 
   def test_index_the_web__two_sites
-    url_str = "https://motherfuckingwebsite.com/"
+    url_str = 'https://motherfuckingwebsite.com/'
     seed { url url: url_str, crawled: false }
 
     # Index two sites.
@@ -54,7 +54,7 @@ class TestIndexer < TestHelper
   end
 
   def test_index_the_web__max_data
-    url_str = "https://motherfuckingwebsite.com/"
+    url_str = 'https://motherfuckingwebsite.com/'
     seed { url url: url_str, crawled: false }
 
     # Index nothing because max_data_size is zero.
@@ -67,7 +67,7 @@ class TestIndexer < TestHelper
   end
 
   def test_index_this_site__without_externals
-    url = Wgit::Url.new "https://motherfuckingwebsite.com/"
+    url = Wgit::Url.new 'https://motherfuckingwebsite.com/'
 
     refute url? url: url
 
@@ -83,7 +83,7 @@ class TestIndexer < TestHelper
   end
 
   def test_index_this_site__with_externals
-    url = "https://motherfuckingwebsite.com/"
+    url = 'https://motherfuckingwebsite.com/'
     num_pages_crawled = 0
 
     refute url? url: url
@@ -91,7 +91,7 @@ class TestIndexer < TestHelper
     # Index the site and don't insert the external urls.
     Wgit.index_this_site url do |doc|
       assert_instance_of Wgit::Document, doc
-      num_pages_crawled +=1
+      num_pages_crawled += 1
       true # To insert the doc into the DB.
     end
 
@@ -107,7 +107,7 @@ class TestIndexer < TestHelper
   def test_index_this_site__no_doc_insert
     # Test that returning nil/false from the block prevents saving the doc to
     # the DB.
-    url = Wgit::Url.new "https://motherfuckingwebsite.com/"
+    url = Wgit::Url.new 'https://motherfuckingwebsite.com/'
 
     refute url? url: url
 
@@ -126,7 +126,7 @@ class TestIndexer < TestHelper
   end
 
   def test_index_this_page__without_externals
-    url = Wgit::Url.new "https://motherfuckingwebsite.com/"
+    url = Wgit::Url.new 'https://motherfuckingwebsite.com/'
 
     refute url? url: url
 
@@ -142,7 +142,7 @@ class TestIndexer < TestHelper
   end
 
   def test_index_this_page__with_externals
-    url = "https://motherfuckingwebsite.com/"
+    url = 'https://motherfuckingwebsite.com/'
 
     refute url? url: url
 
@@ -160,7 +160,7 @@ class TestIndexer < TestHelper
   def test_index_this_page__no_doc_insert
     # Test that returning nil/false from the block prevents saving the doc to
     # the DB.
-    url = Wgit::Url.new "https://motherfuckingwebsite.com/"
+    url = Wgit::Url.new 'https://motherfuckingwebsite.com/'
 
     refute url? url: url
 
@@ -181,6 +181,6 @@ class TestIndexer < TestHelper
   def test_indexed_search
     # Because this is a convienence method, the search and format have been
     # tested in Database and Utils; so we just check it runs without error.
-    assert_nil Wgit.indexed_search "abcdefghijklmnopqrstuvwxyz"
+    assert_nil Wgit.indexed_search 'abcdefghijklmnopqrstuvwxyz'
   end
 end

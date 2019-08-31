@@ -1,17 +1,18 @@
-module Wgit
+# frozen_string_literal: true
 
+module Wgit
   # Module containing assert methods including type checking which can be used
   # for asserting the integrity of method definitions etc.
   module Assertable
     # Default type fail message.
-    DEFAULT_TYPE_FAIL_MSG = "Expected: %s, Actual: %s".freeze
+    DEFAULT_TYPE_FAIL_MSG = 'Expected: %s, Actual: %s'
     # Wrong method message.
-    WRONG_METHOD_MSG = "arr must be Enumerable, use a different method".freeze
+    WRONG_METHOD_MSG = 'arr must be Enumerable, use a different method'
     # Default duck fail message.
-    DEFAULT_DUCK_FAIL_MSG = "%s doesn't respond_to? %s".freeze
+    DEFAULT_DUCK_FAIL_MSG = "%s doesn't respond_to? %s"
     # Default required keys message.
-    DEFAULT_REQUIRED_KEYS_MSG = "Some or all of the required keys are not present: %s".freeze
-  
+    DEFAULT_REQUIRED_KEYS_MSG = 'Some or all of the required keys are not present: %s'
+
     # Tests if the obj is of a given type.
     #
     # @param obj [Object] The Object to test.
@@ -20,17 +21,18 @@ module Wgit
     # @param msg [String] The raised RuntimeError message, if provided.
     # @return [Object] The given obj on successful assertion.
     def assert_types(obj, type_or_types, msg = nil)
-      msg ||= DEFAULT_TYPE_FAIL_MSG % [type_or_types, obj.class]
-      if type_or_types.respond_to?(:any?)
-        match = type_or_types.any? { |type| obj.instance_of?(type) }
-      else
-        match = obj.instance_of?(type_or_types)
-      end
+      msg ||= format(DEFAULT_TYPE_FAIL_MSG, type_or_types, obj.class)
+      match = if type_or_types.respond_to?(:any?)
+                type_or_types.any? { |type| obj.instance_of?(type) }
+              else
+                obj.instance_of?(type_or_types)
+              end
       raise msg unless match
+
       obj
     end
-  
-    # Each object within arr must match one of the types listed in 
+
+    # Each object within arr must match one of the types listed in
     # type_or_types or an exception is raised using msg, if provided.
     #
     # @param arr [Enumerable#each] Enumerable of objects to type check.
@@ -39,12 +41,13 @@ module Wgit
     # @return [Object] The given arr on successful assertion.
     def assert_arr_types(arr, type_or_types, msg = nil)
       raise WRONG_METHOD_MSG unless arr.respond_to?(:each)
+
       arr.each do |obj|
         assert_types(obj, type_or_types, msg)
       end
     end
 
-    # The obj_or_objs must respond_to? all of the given methods or an 
+    # The obj_or_objs must respond_to? all of the given methods or an
     # Exception is raised using msg, if provided.
     #
     # @param obj_or_objs [Object, Enumerable#each] The objects to duck check.
@@ -70,29 +73,32 @@ module Wgit
     # @param msg [String] The raised KeyError message, if provided.
     # @return [Hash] The given hash on successful assertion.
     def assert_required_keys(hash, keys, msg = nil)
-      msg ||= DEFAULT_REQUIRED_KEYS_MSG % [keys.join(', ')]
+      msg ||= format(DEFAULT_REQUIRED_KEYS_MSG, keys.join(', '))
       all_present = keys.all? { |key| hash.keys.include? key }
-      raise KeyError.new(msg) unless all_present
+      raise KeyError, msg unless all_present
+
       hash
     end
 
-  private
-  
+    private
+
     # obj must respond_to? all methods or an exception is raised.
     def _assert_respond_to(obj, methods, msg = nil)
-      raise "methods must respond_to? :all?" unless methods.respond_to?(:all?)
-      msg ||= DEFAULT_DUCK_FAIL_MSG % ["#{obj.class} (#{obj})", methods]
+      raise 'methods must respond_to? :all?' unless methods.respond_to?(:all?)
+
+      msg ||= format(DEFAULT_DUCK_FAIL_MSG, "#{obj.class} (#{obj})", methods)
       match = methods.all? { |method| obj.respond_to?(method) }
       raise msg unless match
+
       obj
     end
-  
-    alias :assert_type :assert_types
-    alias :type :assert_types
-    alias :types :assert_types
-    alias :assert_arr_type :assert_arr_types
-    alias :arr_type :assert_arr_types
-    alias :arr_types :assert_arr_types
-    alias :respond_to :assert_respond_to
+
+    alias assert_type assert_types
+    alias type assert_types
+    alias types assert_types
+    alias assert_arr_type assert_arr_types
+    alias arr_type assert_arr_types
+    alias arr_types assert_arr_types
+    alias respond_to assert_respond_to
   end
 end

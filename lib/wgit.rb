@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative 'wgit/version'
 require_relative 'wgit/logger'
 require_relative 'wgit/assertable'
@@ -10,4 +12,4 @@ require_relative 'wgit/database/connection_details'
 require_relative 'wgit/database/model'
 require_relative 'wgit/database/database'
 require_relative 'wgit/indexer'
-#require_relative 'wgit/core_ext' - Must be explicitly required.
+# require_relative 'wgit/core_ext' - Must be explicitly required.

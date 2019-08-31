@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Development script which loads (any code changes), includes modules and
 # connects to the database when called/executed.
 #

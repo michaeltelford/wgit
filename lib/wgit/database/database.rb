@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative '../document'
 require_relative '../url'
 require_relative '../utils'
@@ -7,7 +9,6 @@ require 'logger'
 require 'mongo'
 
 module Wgit
-
   # Class modeling a DB connection and CRUD operations for the Url and
   # Document collections.
   class Database
@@ -73,7 +74,7 @@ module Wgit
     # @yield [url] Given each Url returned from the DB.
     # @return [Array<Wgit::Url>] The Urls obtained from the DB.
     def urls(crawled = nil, limit = 0, skip = 0)
-      crawled.nil? ? query = {} : query = { crawled: crawled }
+      query = crawled.nil? ? {} : { crawled: crawled }
 
       sort = { date_added: 1 }
       results = retrieve(:urls, query, sort, {}, limit, skip)
@@ -129,12 +130,12 @@ module Wgit
     # @return [Array<Wgit::Document>] The search results obtained from the DB.
     def search(query, whole_sentence = false, limit = 10, skip = 0)
       query.strip!
-      query.replace("\"" + query + "\"") if whole_sentence
+      query.replace('"' + query + '"') if whole_sentence
 
       # The sort_proj sorts based on the most search hits.
       # We use the sort_proj hash as both a sort and a projection below.
       # :$caseSensitive => case_sensitive, 3.2+ only.
-      sort_proj = { score: { :$meta => "textScore" } }
+      sort_proj = { score: { :$meta => 'textScore' } }
       query = { :$text => { :$search => query } }
 
       results = retrieve(:documents, query, sort_proj, sort_proj, limit, skip)
@@ -188,8 +189,8 @@ module Wgit
     # @param url [Wgit::Url] The Url to search the DB for.
     # @return [Boolean] True if url exists, otherwise false.
     def url?(url)
-      h = { "url" => url }
-      not @@client[:urls].find(h).none?
+      h = { 'url' => url }
+      @@client[:urls].find(h).any?
     end
 
     # Returns whether or not a record with the given doc.url (which is unique)
@@ -199,8 +200,8 @@ module Wgit
     # @return [Boolean] True if doc exists, otherwise false.
     def doc?(doc)
       url = doc.respond_to?(:url) ? doc.url : doc
-      h = { "url" => url }
-      not @@client[:documents].find(h).none?
+      h = { 'url' => url }
+      @@client[:documents].find(h).any?
     end
 
     ### Update Data ###
@@ -220,19 +221,19 @@ module Wgit
       end
     end
 
-  private
+    private
 
     # Return if the write to the DB succeeded or not.
     def write_succeeded?(result, count = 1, multi = false)
       case result.class.to_s
       # Single create result.
-      when "Mongo::Operation::Insert::Result"
+      when 'Mongo::Operation::Insert::Result'
         result.documents.first[:err].nil?
       # Multiple create result.
-      when "Mongo::BulkWrite::Result"
+      when 'Mongo::BulkWrite::Result'
         result.inserted_count == count
       # Single and multiple update result.
-      when "Mongo::Operation::Update::Result"
+      when 'Mongo::Operation::Update::Result'
         if multi
           result.n == count
         else
@@ -240,35 +241,35 @@ module Wgit
         end
       # Class no longer used, have you upgraded the 'mongo' gem?
       else
-        raise "Result class not currently supported: #{result.class.to_s}"
+        raise "Result class not currently supported: #{result.class}"
       end
     end
 
     # Insert one or more Url objects into the DB.
     def insert_urls(url_or_urls)
-      unless url_or_urls.respond_to?(:map)
-        assert_type(url_or_urls, Url)
-        url_or_urls = Wgit::Model.url(url_or_urls)
-      else
+      if url_or_urls.respond_to?(:map)
         assert_arr_types(url_or_urls, Url)
         url_or_urls = url_or_urls.map do |url|
           Wgit::Model.url(url)
         end
+      else
+        assert_type(url_or_urls, Url)
+        url_or_urls = Wgit::Model.url(url_or_urls)
       end
       create(:urls, url_or_urls)
     end
 
     # Insert one or more Document objects into the DB.
     def insert_docs(doc_or_docs)
-      unless doc_or_docs.respond_to?(:map)
-        assert_type(doc_or_docs, [Document, Hash])
-        unless doc_or_docs.is_a?(Hash)
-          doc_or_docs = Wgit::Model.document(doc_or_docs)
-        end
-      else
+      if doc_or_docs.respond_to?(:map)
         assert_arr_types(doc_or_docs, [Document, Hash])
         doc_or_docs = doc_or_docs.map do |doc|
           Wgit::Model.document(doc) unless doc.is_a?(Hash)
+        end
+      else
+        assert_type(doc_or_docs, [Document, Hash])
+        unless doc_or_docs.is_a?(Hash)
+          doc_or_docs = Wgit::Model.document(doc_or_docs)
         end
       end
       create(:documents, doc_or_docs)
@@ -281,9 +282,8 @@ module Wgit
       if data.is_a?(Hash)
         data.merge!(Wgit::Model.common_insert_data)
         result = @@client[collection.to_sym].insert_one(data)
-        unless write_succeeded?(result)
-          raise "DB write (insert) failed"
-        end
+        raise 'DB write (insert) failed' unless write_succeeded?(result)
+
         result.n
       # Multiple docs.
       elsif data.is_a?(Array)
@@ -292,9 +292,8 @@ module Wgit
           data_hash.merge(Wgit::Model.common_insert_data)
         end
         result = @@client[collection.to_sym].insert_many(data)
-        unless write_succeeded?(result, data.length)
-          raise "DB write(s) failed"
-        end
+        raise 'DB write(s) failed' unless write_succeeded?(result, data.length)
+
         result.inserted_count
       else
         raise "data must be a Hash or an Array of Hash's"
@@ -307,7 +306,7 @@ module Wgit
                  limit = 0, skip = 0)
       assert_type(query, Hash)
       @@client[collection.to_sym].find(query).projection(projection)
-                                   .skip(skip).limit(limit).sort(sort)
+                                 .skip(skip).limit(limit).sort(sort)
     end
 
     # Update a Url object in the DB.
@@ -315,7 +314,7 @@ module Wgit
       assert_type(url, Url)
       selection = { url: url }
       url_hash = Wgit::Model.url(url).merge(Wgit::Model.common_update_data)
-      update = { "$set" => url_hash }
+      update = { '$set' => url_hash }
       _update(true, :urls, selection, update)
     end
 
@@ -324,7 +323,7 @@ module Wgit
       assert_type(doc, Document)
       selection = { url: doc.url }
       doc_hash = Wgit::Model.document(doc).merge(Wgit::Model.common_update_data)
-      update = { "$set" => doc_hash }
+      update = { '$set' => doc_hash }
       _update(true, :documents, selection, update)
     end
 
@@ -333,21 +332,22 @@ module Wgit
     # method as the update param can be bespoke due to its nature.
     def _update(single, collection, selection, update)
       assert_arr_types([selection, update], Hash)
-      if single
-        result = @@client[collection.to_sym].update_one(selection, update)
-      else
-        result = @@client[collection.to_sym].update_many(selection, update)
-      end
-      raise "DB write (update) failed" unless write_succeeded?(result)
+      result = if single
+                 @@client[collection.to_sym].update_one(selection, update)
+               else
+                 @@client[collection.to_sym].update_many(selection, update)
+               end
+      raise 'DB write (update) failed' unless write_succeeded?(result)
+
       result.n
     end
 
-    alias :count :size
-    alias :length :size
-    alias :num_documents :num_docs
-    alias :document? :doc?
-    alias :insert_url :insert_urls
-    alias :insert_doc :insert_docs
-    alias :num_objects :num_records
+    alias count size
+    alias length size
+    alias num_documents num_docs
+    alias document? doc?
+    alias insert_url insert_urls
+    alias insert_doc insert_docs
+    alias num_objects num_records
   end
 end

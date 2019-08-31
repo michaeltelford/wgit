@@ -19,10 +19,10 @@ class TestConnectionDetails < TestHelper
 
   def test_set_connection_details
     h = {
-      'DB_CONNECTION_STRING' => 'mongodb://me:pass@server.com:27017/test',
+      'DB_CONNECTION_STRING' => 'mongodb://me:pass@server.com:27017/test'
     }
     expected = {
-      connection_string: 'mongodb://me:pass@server.com:27017/test',
+      connection_string: 'mongodb://me:pass@server.com:27017/test'
     }
 
     assert_equal(expected, Wgit.set_connection_details(h))
@@ -33,7 +33,7 @@ class TestConnectionDetails < TestHelper
   def test_set_connection_details_fails
     req_keys = 'DB_CONNECTION_STRING'
     h = {
-      'DB_HOST' => 'blah.mongolab.com', # Missing connection string.
+      'DB_HOST' => 'blah.mongolab.com' # Missing connection string.
     }
 
     ex = assert_raises(KeyError) { Wgit.set_connection_details(h) }
@@ -45,7 +45,7 @@ class TestConnectionDetails < TestHelper
 
   def test_set_connection_details_from_env
     assert_equal([
-      :connection_string
-    ], Wgit.set_connection_details_from_env.keys)
+                   :connection_string
+                 ], Wgit.set_connection_details_from_env.keys)
   end
 end

@@ -1,9 +1,10 @@
-require_relative "database_default_data"
-require "mongo"
-require "logger"
+# frozen_string_literal: true
+
+require_relative 'database_default_data'
+require 'mongo'
+require 'logger'
 
 module Wgit
-
   # Helper class for the Database to manipulate data. Used for testing and
   # development. This class isn't packaged in the gem and is for dev only so it
   # doesn't currently have unit tests. This class was originally
@@ -13,7 +14,7 @@ module Wgit
   # :num_urls, :num_docs, :num_records
   module DatabaseHelper
     # A connection to the database is established when this module is included.
-    def self.included(base)
+    def self.included(_base)
       @@client = Database.connect
 
       @@urls = []
@@ -48,7 +49,7 @@ module Wgit
     #     doc     # Seeds 1 of the default doc records.
     #   end
     def seed(&block)
-      raise "Must provide a block" unless block_given?
+      raise 'Must provide a block' unless block_given?
 
       @@urls.clear
       @@docs.clear
@@ -61,9 +62,9 @@ module Wgit
         @@client[:documents].insert_many(@@docs)
 
         @@urls.count + @@docs.count
-      rescue Exception => ex
-        err_msg = ex.message
-        err_msg = ex.result["writeErrors"] if ex.respond_to?(:result)
+      rescue Exception => e
+        err_msg = e.message
+        err_msg = e.result['writeErrors'] if e.respond_to?(:result)
         raise "Write to DB failed, remember that both urls and docs won't \
 accept duplicate urls. Exception details: #{err_msg}"
       end
@@ -71,12 +72,12 @@ accept duplicate urls. Exception details: #{err_msg}"
 
     # Return if the url_hash/record exists in the DB.
     def url?(url_hash)
-      not @@client[:urls].find(url_hash).none?
+      @@client[:urls].find(url_hash).any?
     end
 
     # Return if the doc_hash/record exists in the DB.
     def doc?(doc_hash)
-      not @@client[:documents].find(doc_hash).none?
+      @@client[:documents].find(doc_hash).any?
     end
 
     # Helper method which takes a url and recursively indexes the site storing
@@ -112,12 +113,12 @@ accept duplicate urls. Exception details: #{err_msg}"
       num_urls + num_docs
     end
 
-  private
+    private
 
     # DSL method used within the block passed to DatabaseHelper#seed.
     # Seeds a Url into the DB.
     def url(hashes_or_int = 1)
-      if hashes_or_int and hash_or_array?(hashes_or_int)
+      if hashes_or_int && hash_or_array?(hashes_or_int)
         if hashes_or_int.is_a?(Hash)
           @@urls << hashes_or_int
         else
@@ -131,7 +132,7 @@ accept duplicate urls. Exception details: #{err_msg}"
     # DSL method used within the block passed to DatabaseHelper#seed.
     # Seeds a Document into the DB.
     def doc(hashes_or_int = 1)
-      if hashes_or_int and hash_or_array?(hashes_or_int)
+      if hashes_or_int && hash_or_array?(hashes_or_int)
         if hashes_or_int.is_a?(Hash)
           @@docs << hashes_or_int
         else
@@ -144,16 +145,16 @@ accept duplicate urls. Exception details: #{err_msg}"
 
     # Returns whether or not the obj is a Hash or Array instance.
     def hash_or_array?(obj)
-      obj.is_a?(Hash) or obj.is_a?(Array)
+      obj.is_a?(Hash) || obj.is_a?(Array)
     end
 
-    alias :nuke :clear_db
-    alias :clear_documents :clear_docs
-    alias :document? :doc?
-    alias :document :doc
-    alias :urls :url
-    alias :docs :doc
-    alias :num_objects :num_records
-    alias :index :index_site
+    alias nuke clear_db
+    alias clear_documents clear_docs
+    alias document? doc?
+    alias document doc
+    alias urls url
+    alias docs doc
+    alias num_objects num_records
+    alias index index_site
   end
 end

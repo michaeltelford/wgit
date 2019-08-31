@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # FYI: The default logger is set at the bottom of this file.
 
 require 'logger'
@@ -24,7 +26,7 @@ module Wgit
   # @return [Logger] The default Logger instance.
   def self.default_logger
     logger = Logger.new(STDOUT, progname: 'wgit', level: :info)
-    logger.formatter = proc do |severity, datetime, progname, msg|
+    logger.formatter = proc do |_severity, _datetime, progname, msg|
       "[#{progname}] #{msg}\n"
     end
     logger
@@ -33,7 +35,7 @@ module Wgit
   # Sets the default Logger instance to be used by Wgit.
   # @return [Logger] The default Logger instance.
   def self.use_default_logger
-    @logger = self.default_logger
+    @logger = default_logger
   end
 end
 

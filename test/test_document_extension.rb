@@ -1,4 +1,4 @@
-require_relative "helpers/test_helper"
+require_relative 'helpers/test_helper'
 
 # Tests the ability to extend the Wgit::Document functionality by extracting
 # custom page elements that aren't extracted by default.
@@ -9,8 +9,7 @@ class TestDocumentExtension < TestHelper
   include Wgit::DatabaseHelper
 
   # Runs before every test.
-  def setup
-  end
+  def setup; end
 
   # Runs after every test and should remove all defined extensions
   # to avoid affecting other tests.
@@ -82,24 +81,24 @@ class TestDocumentExtension < TestHelper
     Wgit::Document.text_elements << :a
 
     doc = Wgit::Document.new(
-      "http://some_url.com".to_url,
+      'http://some_url.com'.to_url,
       "<html><p>Hello world!</p>\
 <a href='https://made-up-link.com'>Click this link.</a></html>"
     )
 
-    assert ["https://made-up-link.com"], doc.links
-    assert ["Hello world!", "Click this link."], doc.text
+    assert ['https://made-up-link.com'], doc.links
+    assert ['Hello world!', 'Click this link.'], doc.text
 
     assert_equal :a, Wgit::Document.text_elements.delete(:a)
   end
 
   def test_document_extension_with_defaults
     # Test default scenario - singleton: true and text_content_only: true.
-    name = Wgit::Document.define_extension(:table_text, "//table",
-                                    singleton: true, text_content_only: true)
+    name = Wgit::Document.define_extension(:table_text, '//table',
+                                           singleton: true, text_content_only: true)
 
     doc = Wgit::Document.new(
-      "http://some_url.com".to_url,
+      'http://some_url.com'.to_url,
       "<html><p>Hello world!</p><table><th>Header Text</th>\
 <th>Another Header</th></table></html>"
     )
@@ -109,17 +108,17 @@ class TestDocumentExtension < TestHelper
     table_text = doc.table_text
 
     assert_instance_of String, table_text
-    assert_equal "Header TextAnother Header", table_text
+    assert_equal 'Header TextAnother Header', table_text
   end
 
   def test_document_extension_with_non_defaults
     # Test singleton: false and text_content_only: false
     # NOTE: test_readme_code_examples defines :tables so we use :tables2.
-    name = Wgit::Document.define_extension(:tables2, "//table",
-                                    singleton: false, text_content_only: false)
+    name = Wgit::Document.define_extension(:tables2, '//table',
+                                           singleton: false, text_content_only: false)
 
     doc = Wgit::Document.new(
-      "http://some_url.com".to_url,
+      'http://some_url.com'.to_url,
       "<html><p>Hello world!</p>\
 <table><th>Header Text</th><th>Another Header</th></table></html>"
     )
@@ -138,14 +137,14 @@ class TestDocumentExtension < TestHelper
     # Test singleton: false and text_content_only: true
     name = Wgit::Document.define_extension(
       :code_snippets,
-      "//code",
+      '//code',
       singleton: false,
       text_content_only: true
     )
 
     doc = Wgit::Document.new(
-      "http://some_url.com".to_url,
-      "<html><code>curl</code><code>wget</code><code>wgit</code></html>"
+      'http://some_url.com'.to_url,
+      '<html><code>curl</code><code>wget</code><code>wgit</code></html>'
     )
 
     assert_equal :init_code_snippets, name
@@ -155,21 +154,21 @@ class TestDocumentExtension < TestHelper
     assert_instance_of Array, snippets
     assert_equal 3, snippets.length
     assert snippets.all? { |snippet| snippet.instance_of? String }
-    assert_equal ['curl', 'wget', 'wgit'], snippets
+    assert_equal %w[curl wget wgit], snippets
   end
 
   def test_document_extension_with_mixed_defaults_2
     # Test singleton: true and text_content_only: false
     name = Wgit::Document.define_extension(
       :code_snippet,
-      "//code",
+      '//code',
       singleton: true,
       text_content_only: false
     )
 
     doc = Wgit::Document.new(
-      "http://some_url.com".to_url,
-      "<html><code>curl</code><code>wget</code><code>wgit</code></html>"
+      'http://some_url.com'.to_url,
+      '<html><code>curl</code><code>wget</code><code>wgit</code></html>'
     )
 
     assert_equal :init_code_snippet, name
@@ -183,12 +182,12 @@ class TestDocumentExtension < TestHelper
   def test_document_extension_change_simple_value
     # We get the first image's alt text value and then upcase it.
     # default_opts = { singleton: true, text_content_only: true }
-    name = Wgit::Document.define_extension(:img_alt, "//img/@alt") do |value|
-      value.upcase if value
+    name = Wgit::Document.define_extension(:img_alt, '//img/@alt') do |value|
+      value&.upcase
     end
 
     doc = Wgit::Document.new(
-      "http://some_url.com".to_url,
+      'http://some_url.com'.to_url,
       '<html><p>Hello world!</p>\
 <img src="smiley.gif" alt="Smiley face" height="10" width="12"></html>'
     )
@@ -198,7 +197,7 @@ class TestDocumentExtension < TestHelper
     alt_text = doc.img_alt
 
     assert_instance_of String, alt_text
-    assert_equal "SMILEY FACE", alt_text
+    assert_equal 'SMILEY FACE', alt_text
   end
 
   def test_document_extension_examine_value
@@ -208,7 +207,7 @@ class TestDocumentExtension < TestHelper
     area = 0.0
 
     opts = { singleton: true, text_content_only: false }
-    name = Wgit::Document.define_extension(:img, "//img", opts) do |img_obj|
+    name = Wgit::Document.define_extension(:img, '//img', opts) do |img_obj|
       obj = img_obj
       height = img_obj.get_attribute(:height).to_i
       width = img_obj.get_attribute(:width).to_i
@@ -217,7 +216,7 @@ class TestDocumentExtension < TestHelper
     end
 
     doc = Wgit::Document.new(
-      "http://some_url.com".to_url,
+      'http://some_url.com'.to_url,
       '<html><p>Hello world!</p>\
 <img src="smiley.gif" alt="Smiley face" height="10" width="12"></html>'
     )
@@ -234,9 +233,9 @@ class TestDocumentExtension < TestHelper
   def test_define_extension_when_crawled
     # We get the first blockquote on the crawled page.
     # default_opts = { singleton: true, text_content_only: true }
-    name = Wgit::Document.define_extension(:blockquote, "//blockquote")
+    name = Wgit::Document.define_extension(:blockquote, '//blockquote')
 
-    doc = Wgit::Crawler.new("https://motherfuckingwebsite.com/").crawl_url
+    doc = Wgit::Crawler.new('https://motherfuckingwebsite.com/').crawl_url
 
     assert_equal :init_blockquote, name
     assert doc.respond_to? :blockquote
@@ -254,12 +253,12 @@ class TestDocumentExtension < TestHelper
 
     # Define a Document extension.
     name = Wgit::Document.define_extension(
-      :table_text2, "//table",
-      singleton: true, text_content_only: true,
+      :table_text2, '//table',
+      singleton: true, text_content_only: true
     )
 
     doc = Wgit::Document.new(
-      "http://some_url.com".to_url,
+      'http://some_url.com'.to_url,
       "<html><p>Hello world!</p>\
 <a href='https://made-up-link.com'>Click this link.</a>\
 <table><th>Header Text</th><th>Another Header</th></table></html>"
@@ -267,37 +266,37 @@ class TestDocumentExtension < TestHelper
 
     # Some basic Document assertions before the database interactions.
     assert_equal :init_table_text2, name
-    assert ["https://made-up-link.com"], doc.links
+    assert ['https://made-up-link.com'], doc.links
     assert doc.respond_to? :table_text2
-    assert_equal "Header TextAnother Header", doc.table_text2
+    assert_equal 'Header TextAnother Header', doc.table_text2
 
     db = Wgit::Database.new
     db.insert doc # Uses Document#to_h and Model.document.
 
-    assert doc?({
-      url: "http://some_url.com",
+    assert doc?(
+      url: 'http://some_url.com',
       score: 0.0,
       title: nil,
       author: nil,
       keywords: nil,
-      links: ["https://made-up-link.com"],
-      text: ["Hello world!", "Click this link."],
-      table_text2: "Header TextAnother Header"
-    })
+      links: ['https://made-up-link.com'],
+      text: ['Hello world!', 'Click this link.'],
+      table_text2: 'Header TextAnother Header'
+    )
 
-    results = db.search "Hello world"
+    results = db.search 'Hello world'
     assert_equal 1, results.length
 
     db_doc = results.first
     refute_equal doc.object_id, db_doc.object_id
 
     assert_instance_of Wgit::Document, db_doc
-    assert_equal "http://some_url.com", db_doc.url
-    assert_equal ["https://made-up-link.com"], db_doc.links
-    assert_equal ["Hello world!", "Click this link."], db_doc.text
+    assert_equal 'http://some_url.com', db_doc.url
+    assert_equal ['https://made-up-link.com'], db_doc.links
+    assert_equal ['Hello world!', 'Click this link.'], db_doc.text
     assert db_doc.respond_to? :table_text2
     assert_instance_of String, db_doc.table_text2
-    assert_equal "Header TextAnother Header", db_doc.table_text2
+    assert_equal 'Header TextAnother Header', db_doc.table_text2
     assert_equal :a, Wgit::Document.text_elements.delete(:a)
   end
 
@@ -305,32 +304,32 @@ class TestDocumentExtension < TestHelper
     # Simulate a Wgit::Document with extensions initialized and stored in
     # MongoDB before being retrieved as a Hash instance.
     extended_mongo_doc = {
-        "url"   => "https://google.co.uk",
-        "score" => 2.1,
-        "title" => "Test Page 233",
-        "code"  => "puts 'hello world'",
+      'url' => 'https://google.co.uk',
+      'score' => 2.1,
+      'title' => 'Test Page 233',
+      'code' => "puts 'hello world'"
     }
 
     # Define the 'code' Document extension.
-    name = Wgit::Document.define_extension(:code, "//code",
-      singleton: true, text_content_only: true)
+    name = Wgit::Document.define_extension(:code, '//code',
+                                           singleton: true, text_content_only: true)
 
     doc = Wgit::Document.new extended_mongo_doc
 
     assert_equal :init_code, name
     assert doc.respond_to? :code
-    assert_equal extended_mongo_doc["url"], doc.url
-    assert_equal extended_mongo_doc["score"], doc.score
-    assert_equal extended_mongo_doc["title"], doc.title
-    assert_equal extended_mongo_doc["code"], doc.code
+    assert_equal extended_mongo_doc['url'], doc.url
+    assert_equal extended_mongo_doc['score'], doc.score
+    assert_equal extended_mongo_doc['title'], doc.title
+    assert_equal extended_mongo_doc['code'], doc.code
   end
 
   def test_document_empty_singleton_value_from_html
-    name = Wgit::Document.define_extension(:single, "//single",
-      singleton: true, text_content_only: true)
+    name = Wgit::Document.define_extension(:single, '//single',
+                                           singleton: true, text_content_only: true)
 
     doc = Wgit::Document.new(
-      "http://some_url.com".to_url,
+      'http://some_url.com'.to_url,
       "<html><p>Hello world!</p><table><th>Header Text</th>\
 <th>Another Header</th></table></html>"
     )
@@ -341,11 +340,11 @@ class TestDocumentExtension < TestHelper
   end
 
   def test_document_empty_array_value_from_html
-    name = Wgit::Document.define_extension(:array, "//array",
-      singleton: false, text_content_only: true)
+    name = Wgit::Document.define_extension(:array, '//array',
+                                           singleton: false, text_content_only: true)
 
     doc = Wgit::Document.new(
-      "http://some_url.com".to_url,
+      'http://some_url.com'.to_url,
       "<html><p>Hello world!</p><table><th>Header Text</th>\
 <th>Another Header</th></table></html>"
     )
@@ -356,12 +355,12 @@ class TestDocumentExtension < TestHelper
   end
 
   def test_document_empty_singleton_value_from_obj
-    name = Wgit::Document.define_extension(:single2, "//single",
-      singleton: true, text_content_only: true)
+    name = Wgit::Document.define_extension(:single2, '//single',
+                                           singleton: true, text_content_only: true)
 
-    doc = Wgit::Document.new({
-      "url" => "https://google.co.uk"
-    })
+    doc = Wgit::Document.new(
+      'url' => 'https://google.co.uk'
+    )
 
     assert_equal :init_single2, name
     assert doc.respond_to? :single2
@@ -369,12 +368,12 @@ class TestDocumentExtension < TestHelper
   end
 
   def test_document_empty_array_value_from_obj
-    name = Wgit::Document.define_extension(:array2, "//array",
-      singleton: false, text_content_only: true)
+    name = Wgit::Document.define_extension(:array2, '//array',
+                                           singleton: false, text_content_only: true)
 
-    doc = Wgit::Document.new({
-      "url" => "https://google.co.uk"
-    })
+    doc = Wgit::Document.new(
+      'url' => 'https://google.co.uk'
+    )
 
     assert_equal :init_array2, name
     assert doc.respond_to? :array2
@@ -382,26 +381,26 @@ class TestDocumentExtension < TestHelper
   end
 
   def test_second_block_value__html
-    Wgit::Document.define_extension(:code2, "//code") do |value, source|
+    Wgit::Document.define_extension(:code2, '//code') do |value, source|
       refute_nil value
       assert_equal :html, source
     end
 
     Wgit::Document.new(
-      "http://some_url.com".to_url,
-      "<html><code>puts 'hello world'</code</html>",
+      'http://some_url.com'.to_url,
+      "<html><code>puts 'hello world'</code</html>"
     )
   end
 
   def test_second_block_value__object
     extended_mongo_doc = {
-      "url"   => "https://google.co.uk",
-      "score" => 2.1,
-      "title" => "Test Page 233",
-      "code3"  => "puts 'hello world'",
+      'url' => 'https://google.co.uk',
+      'score' => 2.1,
+      'title' => 'Test Page 233',
+      'code3' => "puts 'hello world'"
     }
 
-    Wgit::Document.define_extension(:code3, "//code") do |value, source|
+    Wgit::Document.define_extension(:code3, '//code') do |value, source|
       refute_nil value
       assert_equal :object, source
     end
@@ -410,7 +409,7 @@ class TestDocumentExtension < TestHelper
   end
 
   def test_remove_extension_success
-    Wgit::Document.define_extension(:blah, "//blah")
+    Wgit::Document.define_extension(:blah, '//blah')
     assert Wgit::Document.remove_extension(:blah)
   end
 

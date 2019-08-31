@@ -1,8 +1,8 @@
-module Wgit
+# frozen_string_literal: true
 
+module Wgit
   # Utility module containing generic methods.
   module Utils
-
     # Returns the current time stamp.
     #
     # @return [Time] The current time stamp.
@@ -21,6 +21,7 @@ module Wgit
       hash = {}
       obj.instance_variables.each do |var|
         next if ignore.include?(var.to_s)
+
         key = var.to_s[1..-1]
         key = key.to_sym unless use_strings_as_keys
         hash[key] = obj.instance_variable_get(var)
@@ -33,8 +34,8 @@ module Wgit
     # @param model_hash [Hash] The model Hash to process.
     # @return [Hash] The model Hash with non bson types removed.
     def self.remove_non_bson_types(model_hash)
-      model_hash.reject do |k, v|
-        not v.respond_to? :bson_type
+      model_hash.select do |_k, v|
+        v.respond_to? :bson_type
       end
     end
 
@@ -65,9 +66,9 @@ module Wgit
     #     is less. The full sentence is returned if the sentence_limit is 0.
     # @return [String] The sentence once formatted.
     def self.format_sentence_length(sentence, index, sentence_limit)
-      raise "A sentence value must be provided" if sentence.empty?
-      raise "The sentence length value must be even" if sentence_limit.odd?
-      if index < 0 or index > sentence.length
+      raise 'A sentence value must be provided' if sentence.empty?
+      raise 'The sentence length value must be even' if sentence_limit.odd?
+      if (index < 0) || (index > sentence.length)
         raise "Incorrect index value: #{index}"
       end
 
@@ -130,10 +131,11 @@ module Wgit
     # @param stream [#puts] Any object that respond_to? :puts. It is used
     #     to output text somewhere e.g. STDOUT (the default).
     # @return [nil]
-    def self.printf_search_results(results, query = nil, case_sensitive = false,
+    def self.printf_search_results(results, query = nil, _case_sensitive = false,
                                    sentence_length = 80, keyword_count = 5,
                                    stream = Kernel)
-      raise "stream must respond_to? :puts" unless stream.respond_to? :puts
+      raise 'stream must respond_to? :puts' unless stream.respond_to? :puts
+
       keyword_count -= 1 # Because Array's are zero indexed.
 
       results.each do |doc|
@@ -149,7 +151,7 @@ module Wgit
                     end
         stream.puts doc.title
         unless doc.keywords.nil? || doc.keywords.empty?
-          stream.puts doc.keywords[0..keyword_count].join(", ")
+          stream.puts doc.keywords[0..keyword_count].join(', ')
         end
         stream.puts sentence unless sentence.nil?
         stream.puts doc.url

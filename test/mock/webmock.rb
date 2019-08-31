@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'webmock'
 require 'uri'
 
@@ -7,7 +9,7 @@ WebMock.enable!
 WebMock.disable_net_connect!
 
 def fixtures_dir
-  "test/mock/fixtures".freeze
+  'test/mock/fixtures'
 end
 
 # Return the contents of a fixture HTML file.
@@ -46,12 +48,12 @@ def stub_dir(url, path, dir)
   url  += "/#{dir}" unless URI(url).host == dir
   path += "/#{dir}"
 
-  objects = Dir["#{path}/{*,.*}"].
-    reject { |f| f.end_with?('.') or f.end_with?('..') }
-  files = objects.
-    select { |obj| File.file?(obj) }.
-    reject { |f| f.end_with?('index.html') }.
-    map { |f| f.end_with?('.html') ? f[0..-6] : f }
+  objects = Dir["#{path}/{*,.*}"]
+            .reject { |f| f.end_with?('.') || f.end_with?('..') }
+  files = objects
+          .select { |obj| File.file?(obj) }
+          .reject { |f| f.end_with?('index.html') }
+          .map { |f| f.end_with?('.html') ? f[0..-6] : f }
   dirs = objects.select { |obj| File.directory?(obj) }
 
   files.each { |f| stub_page("#{url}/#{f.split('/').last}", fixture: f) }

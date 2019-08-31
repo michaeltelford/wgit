@@ -5,7 +5,6 @@ require 'nokogiri'
 require 'json'
 
 module Wgit
-
   # Class modeling a HTML web document. Also doubles as a search result when
   # loading Documents from the database.
   #
@@ -19,9 +18,9 @@ module Wgit
     # The HTML elements that make up the visible text on a page.
     # These elements are used to initialize the @text of the Document.
     # See the README.md for how to add to this Array dynamically.
-    @text_elements = [
-      :dd, :div, :dl, :dt, :figcaption, :figure, :hr, :li,
-      :main, :ol, :p, :pre, :span, :ul, :h1, :h2, :h3, :h4, :h5
+    @text_elements = %i[
+      dd div dl dt figcaption figure hr li
+      main ol p pre span ul h1 h2 h3 h4 h5
     ]
 
     class << self
@@ -58,14 +57,14 @@ module Wgit
     #   keys.
     # @param html [String] The crawled web page's HTML. This param is only
     #   required if url_or_obj is a String representing the web page's URL.
-    def initialize(url_or_obj, html = "")
+    def initialize(url_or_obj, html = '')
       # Init from URL String and HTML String.
       if url_or_obj.is_a?(String)
         url = url_or_obj
         assert_type(url, Wgit::Url)
 
         @url = url
-        @html = html ||= ""
+        @html = html ||= ''
         @doc = init_nokogiri
         @score = 0.0
 
@@ -73,9 +72,9 @@ module Wgit
 
         # Dynamically run the init_*_from_html methods.
         Document.private_instance_methods(false).each do |method|
-          if method.to_s.start_with?("init_") &&
-                method.to_s.end_with?("_from_html")
-            self.send(method)
+          if method.to_s.start_with?('init_') &&
+             method.to_s.end_with?('_from_html')
+            send(method)
           end
         end
       # Init from a Hash like object containing Strings as keys e.g. Mongo
@@ -84,18 +83,18 @@ module Wgit
         obj = url_or_obj
         assert_respond_to(obj, :fetch)
 
-        @url = Wgit::Url.new(obj.fetch("url")) # Should always be present.
-        @html = obj.fetch("html", "")
+        @url = Wgit::Url.new(obj.fetch('url')) # Should always be present.
+        @html = obj.fetch('html', '')
         @doc = init_nokogiri
-        @score = obj.fetch("score", 0.0)
+        @score = obj.fetch('score', 0.0)
 
         process_url_and_html
 
         # Dynamically run the init_*_from_object methods.
         Document.private_instance_methods(false).each do |method|
-          if method.to_s.start_with?("init_") &&
-                method.to_s.end_with?("_from_object")
-            self.send(method, obj)
+          if method.to_s.start_with?('init_') &&
+             method.to_s.end_with?('_from_object')
+            send(method, obj)
           end
         end
       end
@@ -108,7 +107,8 @@ module Wgit
     # @return [Boolean] True if @url and @html are equal, false if not.
     def ==(other_doc)
       return false unless other_doc.is_a? Wgit::Document
-      @url == other_doc.url and @html == other_doc.html
+
+      (@url == other_doc.url) && (@html == other_doc.html)
     end
 
     # Is a shortcut for calling Document#html[range].
@@ -148,7 +148,7 @@ module Wgit
         assert_type(link, Wgit::Url)
         raise "link must be relative: #{link}" unless link.is_relative?
 
-        if link.is_anchor? or link.is_query_string?
+        if link.is_anchor? || link.is_query_string?
           base_url = @base ? get_base.call : @url
           return base_url.without_anchor.without_query_string
         end
@@ -166,8 +166,8 @@ module Wgit
     #   returned Hash.
     # @return [Hash] Containing self's instance vars.
     def to_h(include_html = false)
-      ignore = include_html ? [] : ["@html"]
-      ignore << "@doc" # Always ignore "@doc"
+      ignore = include_html ? [] : ['@html']
+      ignore << '@doc' # Always ignore "@doc"
       Wgit::Utils.to_h(self, ignore)
     end
 
@@ -200,8 +200,9 @@ module Wgit
         # Else take the var's #length method return value.
         else
           next unless instance_variable_get(var).respond_to?(:length)
+
           hash[var[1..-1].to_sym] =
-                              instance_variable_get(var).send(:length)
+            instance_variable_get(var).send(:length)
         end
       end
       hash
@@ -219,6 +220,7 @@ module Wgit
     # @return [Boolean] True if @html is nil/empty, false otherwise.
     def empty?
       return true if @html.nil?
+
       @html.empty?
     end
 
@@ -252,12 +254,12 @@ module Wgit
     def internal_links
       return [] if @links.empty?
 
-      links = @links.
-        reject { |link| !link.is_relative?(host: @url.to_base) }.
-        map(&:without_base).
-        map do |link| # We map @url.to_host into / because it's a duplicate.
-          link.to_host == @url.to_host ? Wgit::Url.new('/') : link
-        end
+      links = @links
+              .select { |link| link.is_relative?(host: @url.to_base) }
+              .map(&:without_base)
+              .map do |link| # We map @url.to_host into / because it's a duplicate.
+        link.to_host == @url.to_host ? Wgit::Url.new('/') : link
+      end
 
       Wgit::Utils.process_arr(links)
     end
@@ -271,6 +273,7 @@ module Wgit
     def internal_full_links
       links = internal_links
       return [] if links.empty?
+
       links.map { |link| base_url(link: link).concat(link) }
     end
 
@@ -281,9 +284,9 @@ module Wgit
     def external_links
       return [] if @links.empty?
 
-      links = @links.
-        reject { |link| link.relative_link?(host: @url.to_base) }.
-        map(&:without_trailing_slash)
+      links = @links
+              .reject { |link| link.relative_link?(host: @url.to_base) }
+              .map(&:without_trailing_slash)
 
       Wgit::Utils.process_arr(links)
     end
@@ -304,24 +307,25 @@ module Wgit
     #   sentence.
     # @return [Array<String>] Representing the search results.
     def search(query, sentence_limit = 80)
-      raise "A search query must be provided" if query.empty?
-      raise "The sentence_limit value must be even" if sentence_limit.odd?
+      raise 'A search query must be provided' if query.empty?
+      raise 'The sentence_limit value must be even' if sentence_limit.odd?
 
       results = {}
       regex = Regexp.new(query, Regexp::IGNORECASE)
 
       @text.each do |sentence|
         hits = sentence.scan(regex).count
-        if hits > 0
-          sentence.strip!
-          index = sentence.index(regex)
-          Wgit::Utils.format_sentence_length(sentence, index, sentence_limit)
-          results[sentence] = hits
-        end
+        next unless hits > 0
+
+        sentence.strip!
+        index = sentence.index(regex)
+        Wgit::Utils.format_sentence_length(sentence, index, sentence_limit)
+        results[sentence] = hits
       end
 
       return [] if results.empty?
-      results = Hash[results.sort_by { |k, v| v }]
+
+      results = Hash[results.sort_by { |_k, v| v }]
       results.keys.reverse
     end
 
@@ -347,12 +351,13 @@ module Wgit
     #
     # @return [String] An xpath String to obtain a webpage's text elements.
     def self.text_elements_xpath
-      xpath = ""
+      xpath = ''
       return xpath if Wgit::Document.text_elements.empty?
-      el_xpath = "//%s/text()"
+
+      el_xpath = '//%s/text()'
       Wgit::Document.text_elements.each_with_index do |el, i|
-        xpath += " | " unless i == 0
-        xpath += el_xpath % [el]
+        xpath += ' | ' unless i == 0
+        xpath += format(el_xpath, el)
       end
       xpath
     end
@@ -429,14 +434,15 @@ module Wgit
       false
     end
 
-  private
+    private
 
     # Initializes the nokogiri object using @html, which must be already set.
     def init_nokogiri
-      raise "@html must be set" unless @html
+      raise '@html must be set' unless @html
+
       Nokogiri::HTML(@html) do |config|
         # TODO: Remove #'s below when crawling in production.
-        #config.options = Nokogiri::XML::ParseOptions::STRICT |
+        # config.options = Nokogiri::XML::ParseOptions::STRICT |
         #                 Nokogiri::XML::ParseOptions::NONET
       end
     end
@@ -457,7 +463,7 @@ module Wgit
       xpath = xpath.call if xpath.respond_to?(:call)
       results = @doc.xpath(xpath)
 
-      if results and not results.empty?
+      if results && !results.empty?
         result =  if singleton
                     text_content_only ? results.first.content : results.first
                   else
@@ -503,7 +509,7 @@ module Wgit
     def init_var(var, value)
       # instance_var_name starts with @, var_name doesn't.
       var = var.to_s
-      var_name = (var.start_with?("@") ? var[1..-1] : var).to_sym
+      var_name = (var.start_with?('@') ? var[1..-1] : var).to_sym
       instance_var_name = "@#{var_name}".to_sym
 
       instance_variable_set(instance_var_name, value)
@@ -513,13 +519,13 @@ module Wgit
       end
     end
 
-    alias :relative_links :internal_links
-    alias :relative_urls :internal_links
-    alias :relative_full_links :internal_full_links
-    alias :relative_full_urls :internal_full_links
-    alias :internal_absolute_links :internal_full_links
-    alias :relative_absolute_links :internal_full_links
-    alias :relative_absolute_urls :internal_full_links
-    alias :external_urls :external_links
+    alias relative_links internal_links
+    alias relative_urls internal_links
+    alias relative_full_links internal_full_links
+    alias relative_full_urls internal_full_links
+    alias internal_absolute_links internal_full_links
+    alias relative_absolute_links internal_full_links
+    alias relative_absolute_urls internal_full_links
+    alias external_urls external_links
   end
 end

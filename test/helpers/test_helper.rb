@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 $VERBOSE = nil # Suppress ruby warnings for the test run.
 
 require 'minitest/autorun'
@@ -39,7 +41,7 @@ class TestHelper < Minitest::Test
   # Flunk (fail) the test if an exception is raised in the given block.
   def refute_exception
     yield
-  rescue Exception => ex
-    flunk ex.message
+  rescue Exception => e
+    flunk e.message
   end
 end

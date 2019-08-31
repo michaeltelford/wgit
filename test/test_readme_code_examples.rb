@@ -1,5 +1,5 @@
-require_relative "helpers/test_helper"
-require "securerandom"
+require_relative 'helpers/test_helper'
+require 'securerandom'
 
 # Test class for code snippets in the README.md.
 # WARNING: The DB is cleared down at the start of the database example test.
@@ -7,8 +7,7 @@ class TestReadmeCodeExamples < TestHelper
   include Wgit::DatabaseHelper
 
   # Runs before every test.
-  def setup
-  end
+  def setup; end
 
   def test_basic_usage
     ### PUT README CODE BELOW ###
@@ -16,7 +15,7 @@ class TestReadmeCodeExamples < TestHelper
     require 'wgit'
 
     crawler = Wgit::Crawler.new
-    url = Wgit::Url.new "https://wikileaks.org/What-is-Wikileaks.html"
+    url = Wgit::Url.new 'https://wikileaks.org/What-is-Wikileaks.html'
 
     doc = crawler.crawl url
 
@@ -24,20 +23,20 @@ class TestReadmeCodeExamples < TestHelper
     doc.stats # => {
     # :url=>44, :html=>28133, :title=>17, :keywords=>0,
     # :links=>35, :text_snippets=>67, :text_bytes=>13735
-    #}
+    # }
 
     # doc responds to the following methods:
     Wgit::Document.instance_methods(false).sort
 
-    results = doc.search "corruption"
+    results = doc.search 'corruption'
     results.first # => "ial materials involving war, spying and corruption.
-                  #     It has so far published more"
+    #     It has so far published more"
 
     ### PUT README CODE ABOVE ###
 
     refute(doc.stats.empty?) # The stats change a lot so just assert presence.
-    assert_equal([:==, :[], :author, :base, :base_url, :css, :date_crawled, :doc, :empty?, :external_links, :external_urls, :html, :internal_absolute_links, :internal_full_links, :internal_links, :keywords, :links, :relative_absolute_links, :relative_absolute_urls, :relative_full_links, :relative_full_urls, :relative_links, :relative_urls, :score, :search, :search!, :size, :stats, :text, :title, :to_h, :to_json, :url, :xpath], Wgit::Document.instance_methods(false).sort)
-    assert_equal("ial materials involving war, spying and corruption. It has so far published more", results.first)
+    assert_equal(%i[== \[\] author base base_url css date_crawled doc empty? external_links external_urls html internal_absolute_links internal_full_links internal_links keywords links relative_absolute_links relative_absolute_urls relative_full_links relative_full_urls relative_links relative_urls score search search! size stats text title to_h to_json url xpath], Wgit::Document.instance_methods(false).sort)
+    assert_equal('ial materials involving war, spying and corruption. It has so far published more', results.first)
   end
 
   def test_css_indexer
@@ -47,7 +46,7 @@ class TestReadmeCodeExamples < TestHelper
     require 'wgit/core_ext' # Provides the String#to_url and Enumerable#to_urls methods.
 
     crawler = Wgit::Crawler.new
-    url = "https://www.facebook.com".to_url
+    url = 'https://www.facebook.com'.to_url
 
     doc = crawler.crawl url
 
@@ -63,7 +62,7 @@ class TestReadmeCodeExamples < TestHelper
     ### PUT README CODE ABOVE ###
 
     assert_instance_of Nokogiri::XML::NodeSet, hrefs
-    assert href.start_with?("https://static.xx.fbcdn.net/rsrc.php/v3")
+    assert href.start_with?('https://static.xx.fbcdn.net/rsrc.php/v3')
     refute_empty css
   end
 
@@ -72,13 +71,13 @@ class TestReadmeCodeExamples < TestHelper
 
     require 'wgit'
 
-    my_pages_keywords = ["Everest", "mountaineering school", "adventure"]
+    my_pages_keywords = ['Everest', 'mountaineering school', 'adventure']
     my_pages_missing_keywords = []
 
     competitor_urls = [
-      "http://altitudejunkies.com",
-      "http://www.mountainmadness.com",
-      "http://www.adventureconsultants.com"
+      'http://altitudejunkies.com',
+      'http://www.mountainmadness.com',
+      'http://www.adventureconsultants.com'
     ]
 
     crawler = Wgit::Crawler.new competitor_urls
@@ -126,7 +125,7 @@ class TestReadmeCodeExamples < TestHelper
     # Here we create our own document rather than crawling the web (which works in the same way).
     # We pass the web page's URL and HTML Strings.
     doc = Wgit::Document.new(
-      "http://test-url.com".to_url,
+      'http://test-url.com'.to_url,
       "<html><p>How now brown cow.</p><a href='http://www.google.co.uk'>Click me!</a></html>"
     )
     db.insert doc
@@ -134,11 +133,11 @@ class TestReadmeCodeExamples < TestHelper
     ### SEARCH THE DATABASE ###
 
     # Searching the database returns Wgit::Document's which have fields containing the query.
-    query = "cow"
+    query = 'cow'
     results = db.search query
 
     search_result = results.first
-    search_result.class           # => Wgit::Document
+    search_result.class # => Wgit::Document
     # doc.url == search_result.url  # => true
 
     ### PULL OUT THE BITS THAT MATCHED OUR QUERY ###
@@ -156,7 +155,7 @@ class TestReadmeCodeExamples < TestHelper
 
     assert_instance_of Wgit::Document, search_result
     assert_equal doc.url, search_result.url
-    assert_equal "How now brown cow.", search_result.search(query).first
+    assert_equal 'How now brown cow.', search_result.search(query).first
     assert_equal urls_to_crawl.length, search_result.external_links.length
   end
 
@@ -169,17 +168,17 @@ class TestReadmeCodeExamples < TestHelper
     # Let's get all the page's table elements.
     Wgit::Document.define_extension(
       :tables,                  # Wgit::Document#tables will return the page's tables.
-      "//table",                # The xpath to extract the tables.
+      '//table',                # The xpath to extract the tables.
       singleton: false,         # True returns the first table found, false returns all.
-      text_content_only: false, # True returns one or more Strings of the tables text,
-                                # false returns the tables as Nokogiri objects (see below).
+      text_content_only: false # True returns one or more Strings of the tables text,
+      # false returns the tables as Nokogiri objects (see below).
     ) do |tables|
       # Here we can manipulate the object(s) before they're set as Wgit::Document#tables.
     end
 
     # Our Document has a table which we're interested in.
     doc = Wgit::Document.new(
-      "http://some_url.com".to_url,
+      'http://some_url.com'.to_url,
       "<html><p>Hello world!</p>\
     <table><th>Header Text</th><th>Another Header</th></table></html>"
     )

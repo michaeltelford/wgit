@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative '../assertable'
 
 module Wgit
@@ -9,7 +11,7 @@ module Wgit
   CONNECTION_DETAILS = {}
 
   # The keys required for a successful database connection.
-  CONNECTION_KEYS_REQUIRED = ['DB_CONNECTION_STRING']
+  CONNECTION_KEYS_REQUIRED = ['DB_CONNECTION_STRING'].freeze
 
   # Set the database's connection details from the given hash. It is your
   # responsibility to ensure the correct hash vars are present and set.
@@ -34,6 +36,6 @@ module Wgit
   # @raise [KeyError] If any of the required connection details are missing.
   # @return [Hash] Containing the database connection details from the ENV.
   def self.set_connection_details_from_env
-    self.set_connection_details(ENV)
+    set_connection_details(ENV)
   end
 end

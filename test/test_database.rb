@@ -1,4 +1,4 @@
-require_relative "helpers/test_helper"
+require_relative 'helpers/test_helper'
 
 # Test class for the Database methods.
 # WARNING: The DB is cleared down prior to each test run.
@@ -28,7 +28,7 @@ class TestDatabase < TestHelper
   def test_initialize_connects_to_db
     Wgit::Database.new
     pass
-  rescue
+  rescue StandardError
     flunk
   end
 
@@ -100,7 +100,7 @@ class TestDatabase < TestHelper
   end
 
   def test_search
-    query = "Everest Depart Kathmandu"
+    query = 'Everest Depart Kathmandu'
 
     @docs.last.text << query
     doc_hashes = @docs.map(&:to_h)
@@ -190,17 +190,17 @@ class TestDatabase < TestHelper
   end
 
   def test_update_doc
-    title = "Climb Everest!"
+    title = 'Climb Everest!'
     seed { doc @doc.to_h }
     set_doc_title(@doc, title)
     db = Wgit::Database.new
     result = db.update @doc
     assert_equal 1, result
     assert doc? @doc.to_h
-    refute doc? url: @doc.url, title: "Altitude Junkies | Everest"
+    refute doc? url: @doc.url, title: 'Altitude Junkies | Everest'
   end
 
-private
+  private
 
   def set_doc_title(doc, title)
     doc.instance_variable_set :@title, title

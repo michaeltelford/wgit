@@ -1,4 +1,6 @@
 #!/usr/bin/env ruby
+# frozen_string_literal: true
+
 #
 # Script to save a single web page's HTML to disk. For example,
 # http://blah.com/admin/about will be saved as:

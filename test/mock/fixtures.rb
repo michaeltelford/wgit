@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # See `bundle exec rake` tasks: `save_page` and `save_site` for saving a web
 # fixture to disk; then mock its HTTP response below so it's available to crawl
 # in the tests using Wgit. Note that you can mock a response without a fixture.
@@ -38,13 +40,13 @@ pages = [
   'https://static.xx.fbcdn.net/rsrc.php/v3/y1/l/0,cross/NvZ4mNTW3Fd.css',
   'http://altitudejunkies.com',
   'http://www.mountainmadness.com',
-  'http://www.adventureconsultants.com',
+  'http://www.adventureconsultants.com'
 ]
 
 sites = [
   'http://txti.es/',
   'http://www.belfastpilates.co.uk/',
-  'http://test-site.com',
+  'http://test-site.com'
 ]
 
 stub_fixtures pages, sites

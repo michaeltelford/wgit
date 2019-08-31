@@ -1,8 +1,9 @@
+# frozen_string_literal: true
+
 require_relative 'crawler'
 require_relative 'database/database'
 
 module Wgit
-
   # Convience method to index the World Wide Web using
   # Wgit::Indexer#index_the_web.
   #
@@ -18,7 +19,7 @@ module Wgit
   #   scraped from the web (default is 1GB). Note, that this value is used to
   #   determine when to stop crawling; it's not a guarantee of the max data
   #   that will be obtained.
-  def self.index_the_web(max_sites_to_crawl = -1, max_data_size = 1048576000)
+  def self.index_the_web(max_sites_to_crawl = -1, max_data_size = 1_048_576_000)
     db = Wgit::Database.new
     indexer = Wgit::Indexer.new(db)
     indexer.index_the_web(max_sites_to_crawl, max_data_size)
@@ -81,7 +82,6 @@ module Wgit
 
   # Class which sets up a crawler and saves the indexed docs to a database.
   class Indexer
-
     # The crawler used to scrape the WWW.
     attr_reader :crawler
 
@@ -109,19 +109,19 @@ module Wgit
     #   scraped from the web (default is 1GB). Note, that this value is used to
     #   determine when to stop crawling; it's not a guarantee of the max data
     #   that will be obtained.
-    def index_the_web(max_sites_to_crawl = -1, max_data_size = 1048576000)
+    def index_the_web(max_sites_to_crawl = -1, max_data_size = 1_048_576_000)
       if max_sites_to_crawl < 0
         Wgit.logger.info("Indexing until the database has been filled or it runs out of \
 urls to crawl (which might be never).")
       end
       site_count = 0
 
-      while keep_crawling?(site_count, max_sites_to_crawl, max_data_size) do
+      while keep_crawling?(site_count, max_sites_to_crawl, max_data_size)
         Wgit.logger.info("Current database size: #{@db.size}")
         @crawler.urls = @db.uncrawled_urls
 
         if @crawler.urls.empty?
-          Wgit.logger.info("No urls to crawl, exiting.")
+          Wgit.logger.info('No urls to crawl, exiting.')
           return
         end
         Wgit.logger.info("Starting crawl loop for: #{@crawler.urls}")
@@ -181,9 +181,7 @@ iteration.")
 
       ext_urls = @crawler.crawl_site(url) do |doc|
         result = true
-        if block_given?
-          result = yield(doc)
-        end
+        result = yield(doc) if block_given?
 
         if result
           if write_doc_to_db(doc)
@@ -221,9 +219,7 @@ site: #{url}")
     def index_this_page(url, insert_externals = true)
       document = @crawler.crawl_page(url) do |doc|
         result = true
-        if block_given?
-          result = yield(doc)
-        end
+        result = yield(doc) if block_given?
 
         if result
           if write_doc_to_db(doc)
@@ -244,11 +240,12 @@ site: #{url}")
       nil
     end
 
-  private
+    private
 
     # Keep crawling or not based on DB size and current loop iteration.
     def keep_crawling?(site_count, max_sites_to_crawl, max_data_size)
       return false if @db.size >= max_data_size
+
       # If max_sites_to_crawl is -1 for example then crawl away.
       if max_sites_to_crawl < 0
         true
@@ -273,13 +270,11 @@ site: #{url}")
       count = 0
       if urls.respond_to?(:each)
         urls.each do |url|
-          begin
-            @db.insert(url)
-            count += 1
-            Wgit.logger.info("Inserted url: #{url}")
-          rescue Mongo::Error::OperationFailure
-            Wgit.logger.info("Url already exists: #{url}")
-          end
+          @db.insert(url)
+          count += 1
+          Wgit.logger.info("Inserted url: #{url}")
+        rescue Mongo::Error::OperationFailure
+          Wgit.logger.info("Url already exists: #{url}")
         end
       end
       count

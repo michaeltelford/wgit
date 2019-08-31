@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative 'helpers/test_helper'
 
 # Test class for the Crawler methods.
@@ -206,45 +208,45 @@ class TestCrawler < TestHelper
     url = Wgit::Url.new 'http://www.belfastpilates.co.uk/'
     c = Wgit::Crawler.new url
     assert_crawl_site c, 19, 10, expected_pages: [
-      "http://www.belfastpilates.co.uk/",
-      "http://www.belfastpilates.co.uk/about-us",
-      "http://www.belfastpilates.co.uk/about-us/the-team",
-      "http://www.belfastpilates.co.uk/about-us/our-facilities",
-      "http://www.belfastpilates.co.uk/about-us/testimonials",
-      "http://www.belfastpilates.co.uk/privacy-policy",
-      "http://www.belfastpilates.co.uk/pilates/what-is-pilates",
-      "http://www.belfastpilates.co.uk/pilates/pilates-classes",
-      "http://www.belfastpilates.co.uk/pilates/pilates-classes/pilates-classes-timetable",
-      "http://www.belfastpilates.co.uk/pilates/pilates-faqs",
-      "http://www.belfastpilates.co.uk/physiotheraphy",
-      "http://www.belfastpilates.co.uk/latest-news",
-      "http://www.belfastpilates.co.uk/contact-us",
-      "http://www.belfastpilates.co.uk/official-launch-party",
-      "http://www.belfastpilates.co.uk/author/adminbpp",
-      "http://www.belfastpilates.co.uk/category/uncategorized",
-      "http://www.belfastpilates.co.uk/youre-invited",
-      "http://www.belfastpilates.co.uk/gift-vouchers-now-available-to-purchase",
-      "http://www.belfastpilates.co.uk/pilates",
+      'http://www.belfastpilates.co.uk/',
+      'http://www.belfastpilates.co.uk/about-us',
+      'http://www.belfastpilates.co.uk/about-us/the-team',
+      'http://www.belfastpilates.co.uk/about-us/our-facilities',
+      'http://www.belfastpilates.co.uk/about-us/testimonials',
+      'http://www.belfastpilates.co.uk/privacy-policy',
+      'http://www.belfastpilates.co.uk/pilates/what-is-pilates',
+      'http://www.belfastpilates.co.uk/pilates/pilates-classes',
+      'http://www.belfastpilates.co.uk/pilates/pilates-classes/pilates-classes-timetable',
+      'http://www.belfastpilates.co.uk/pilates/pilates-faqs',
+      'http://www.belfastpilates.co.uk/physiotheraphy',
+      'http://www.belfastpilates.co.uk/latest-news',
+      'http://www.belfastpilates.co.uk/contact-us',
+      'http://www.belfastpilates.co.uk/official-launch-party',
+      'http://www.belfastpilates.co.uk/author/adminbpp',
+      'http://www.belfastpilates.co.uk/category/uncategorized',
+      'http://www.belfastpilates.co.uk/youre-invited',
+      'http://www.belfastpilates.co.uk/gift-vouchers-now-available-to-purchase',
+      'http://www.belfastpilates.co.uk/pilates'
     ]
 
     # Test small site - Static well formed HTML.
     url = Wgit::Url.new 'http://txti.es'
     c = Wgit::Crawler.new url
     assert_crawl_site c, 7, 8, expected_pages: [
-      "http://txti.es",
-      "http://txti.es/about",
-      "http://txti.es/how",
-      "http://txti.es/terms",
-      "http://txti.es/images",
-      "http://txti.es/barry/json",
-      "http://txti.es/images/images"
+      'http://txti.es',
+      'http://txti.es/about',
+      'http://txti.es/how',
+      'http://txti.es/terms',
+      'http://txti.es/images',
+      'http://txti.es/barry/json',
+      'http://txti.es/images/images'
     ]
 
     # Test single web page with a single external link.
     url = Wgit::Url.new 'https://motherfuckingwebsite.com/'
     c = Wgit::Crawler.new url
     assert_crawl_site c, 1, 1, expected_pages: [
-      'https://motherfuckingwebsite.com/',
+      'https://motherfuckingwebsite.com/'
     ], expected_externals: [
       'http://txti.es'
     ]
@@ -258,10 +260,10 @@ class TestCrawler < TestHelper
       'http://test-site.com/search',
       'http://test-site.com/about',
       'http://test-site.com/public/records',
-      'http://test-site.com/public/records?q=username',
+      'http://test-site.com/public/records?q=username'
     ], expected_externals: [
-      "http://test-site.co.uk",
-      "http://ftp.test-site.com",
+      'http://test-site.co.uk',
+      'http://ftp.test-site.com'
     ]
 
     # Test custom small site not starting on the index page.
@@ -273,10 +275,10 @@ class TestCrawler < TestHelper
       'http://test-site.com/contact',
       'http://test-site.com/about',
       'http://test-site.com/public/records',
-      'http://test-site.com/public/records?q=username',
+      'http://test-site.com/public/records?q=username'
     ], expected_externals: [
-      "http://test-site.co.uk",
-      "http://ftp.test-site.com",
+      'http://test-site.co.uk',
+      'http://ftp.test-site.com'
     ]
 
     # Test custom small site with an initial host redirect.
@@ -288,10 +290,10 @@ class TestCrawler < TestHelper
       'http://test-site.com/search',
       'http://test-site.com/about',
       'http://test-site.com/public/records',
-      'http://test-site.com/public/records?q=username',
+      'http://test-site.com/public/records?q=username'
     ], expected_externals: [
-      "http://test-site.co.uk",
-      "http://ftp.test-site.com",
+      'http://test-site.co.uk',
+      'http://ftp.test-site.com'
     ]
 
     # Test that an invalid url returns nil.
@@ -429,7 +431,7 @@ class TestCrawler < TestHelper
     assert_instance_of Net::HTTPOK, resp
   end
 
-private
+  private
 
   def assert_urls(crawler, urls = @urls)
     assert crawler.urls.all? { |url| url.instance_of?(Wgit::Url) }
@@ -437,11 +439,11 @@ private
   end
 
   def assert_crawl(crawler, url = nil)
-    if url
-      document = crawler.crawl_url(url) { |doc| assert doc.title }
-    else
-      document = crawler.crawl_url { |doc| assert doc.title }
-    end
+    document = if url
+                 crawler.crawl_url(url) { |doc| assert doc.title }
+               else
+                 crawler.crawl_url { |doc| assert doc.title }
+               end
 
     assert_crawl_output crawler, document, url
   end
@@ -453,8 +455,8 @@ private
       assert_equal crawler.urls.first.to_host, doc.url.to_host
       assert doc.url.crawled?
 
-      if  doc.url == 'http://test-site.com/sneaky' or
-          doc.url == 'http://test-site.com/ftp'
+      if  (doc.url == 'http://test-site.com/sneaky') ||
+          (doc.url == 'http://test-site.com/ftp')
         assert_empty(doc)
       else
         refute_empty(doc)
