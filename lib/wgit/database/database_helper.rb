@@ -62,7 +62,7 @@ module Wgit
         @@client[:documents].insert_many(@@docs)
 
         @@urls.count + @@docs.count
-      rescue Exception => e
+      rescue StandardError => e
         err_msg = e.message
         err_msg = e.result['writeErrors'] if e.respond_to?(:result)
         raise "Write to DB failed, remember that both urls and docs won't \

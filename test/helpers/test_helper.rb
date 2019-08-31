@@ -41,7 +41,7 @@ class TestHelper < Minitest::Test
   # Flunk (fail) the test if an exception is raised in the given block.
   def refute_exception
     yield
-  rescue Exception => e
+  rescue StandardError => e
     flunk e.message
   end
 end

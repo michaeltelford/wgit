@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 # See `bundle exec rake` tasks: `save_page` and `save_site` for saving a web
 # fixture to disk; then mock its HTTP response below so it's available to crawl
 # in the tests using Wgit. Note that you can mock a response without a fixture.
@@ -27,9 +25,10 @@ stub_redirect 'http://test-site.com/sneaky', 'https://motherfuckingwebsite.com/'
 stub_page 'http://test-site.com/public/records?q=username', fixture: 'test-site.com/public/records'
 stub_page 'http://test-site.com/public/records#top', fixture: 'test-site.com/public/records'
 stub_redirect 'http://test-site.com/ftp', 'http://ftp.test-site.com'
-stub_page 'http://ftp.test-site.com', status: 404, fixture: 'test-site.com/not_found'
+stub_not_found 'http://ftp.test-site.com'
 stub_redirect 'http://myserver.com', 'http://www.myserver.com'
 stub_redirect 'http://www.myserver.com', 'http://test-site.com'
+stub_timeout 'http://doesntexist_123'
 
 # Mock responses based on the fixtures saved to disk. Both single webpages and
 # full websites are supported.

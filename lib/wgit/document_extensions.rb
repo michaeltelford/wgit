@@ -9,7 +9,7 @@ Wgit::Document.define_extension(
   singleton: true,
   text_content_only: true
 ) do |base|
-  base = Wgit::Url.new(base) if base
+  Wgit::Url.new(base) if base
 end
 
 # Title.

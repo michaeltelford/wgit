@@ -13,8 +13,9 @@ module Wgit
   class Url < String
     include Assertable
 
-    # Whether or not the Url has been crawled or not.
-    attr_accessor :crawled
+    # Whether or not the Url has been crawled or not. A custom crawled= method
+    # is also provided by this class.
+    attr_reader :crawled
 
     # The date which the Url was crawled.
     attr_accessor :date_crawled

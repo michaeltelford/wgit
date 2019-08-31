@@ -28,9 +28,14 @@ end
 # http://blah.com and http://blah.com/ (with trailing slash).
 def stub_page(url, status: 200, body: default_html, fixture: nil)
   body = fixture(fixture) if fixture
-  alt_url = url.end_with?('/') ? url[0..-2] : "#{url}/"
+  alt_url = url.end_with?('/') ? url.chop : "#{url}/"
   stub_request(:get, url).to_return(status: status, body: body)
   stub_request(:get, alt_url).to_return(status: status, body: body)
+end
+
+# Stub a single page 404 not found.
+def stub_not_found(url)
+  stub_page(url, status: 404, fixture: 'not_found')
 end
 
 # Stub a single page 301 redirect.
@@ -38,12 +43,17 @@ def stub_redirect(from, to)
   stub_request(:get, from).to_return(status: 301, headers: { 'Location': to })
 end
 
+# Stub a single page network timeout/unknown host error.
+def stub_timeout(url)
+  stub_request(:get, url).to_timeout
+end
+
 # Stub an entire website recursively according to what's saved on the file
 # system. Assumes the fixture data exists on disk.
 def stub_dir(url, path, dir)
-  url  = url[0..-2]  if url.end_with?('/')  # Remove trailing slash.
-  path = path[0..-2] if path.end_with?('/') #   "
-  dir  = dir[0..-2]  if dir.end_with?('/')  #   "
+  url.chop!  if url.end_with?('/')  # Remove trailing slash.
+  path.chop! if path.end_with?('/') #   "
+  dir.chop!  if dir.end_with?('/')  #   "
 
   url  += "/#{dir}" unless URI(url).host == dir
   path += "/#{dir}"

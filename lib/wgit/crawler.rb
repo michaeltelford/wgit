@@ -227,7 +227,7 @@ module Wgit
       )
       @last_response = response
       response.body.empty? ? nil : response.body
-    rescue Exception => e
+    rescue StandardError => e
       Wgit.logger.debug(
         "Wgit::Crawler#fetch('#{url}') exception: #{e.message}"
       )
@@ -249,11 +249,13 @@ module Wgit
       raise 'url must respond to :to_uri' unless url.respond_to?(:to_uri)
 
       redirect_count = 0
+      response = nil
 
-      begin
+      loop do
         response = Net::HTTP.get_response(url.to_uri)
         location = Wgit::Url.new(response.fetch('location', ''))
 
+        break unless response.is_a?(Net::HTTPRedirection)
         yield(url, response, location) if block_given?
 
         unless location.empty?
@@ -270,7 +272,7 @@ module Wgit
           location = url.to_base.concat(location) if location.is_relative?
           url.replace(location)
         end
-      end while response.is_a?(Net::HTTPRedirection)
+      end
 
       response
     end

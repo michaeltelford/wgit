@@ -64,7 +64,7 @@ module Wgit
         assert_type(url, Wgit::Url)
 
         @url = url
-        @html = html ||= ''
+        @html = html || ''
         @doc = init_nokogiri
         @score = 0.0
 
