@@ -80,7 +80,7 @@ results.first # => "ial materials involving war, spying and corruption.
 
 ## Documentation
 
-To see what's possible with the Wgit gem see the [docs](https://www.rubydoc.info/gems/wgit) or the [Practical Examples](#Practical-Examples) section below.
+100% of Wgit's code is documented using [YARD](https://yardoc.org/), deployed to [Rubydocs](https://www.rubydoc.info/gems/wgit). This greatly benefits developers in using Wgit in their own programs. Another good source of information (as to how the library behaves) are the tests. Also, see the [Practical Examples](#Practical-Examples) section below for real working examples of Wgit in action.
 
 ## Practical Examples
 
