@@ -221,9 +221,15 @@ module Wgit
       end
     end
 
-    private
+    protected
 
     # Return if the write to the DB succeeded or not.
+    #
+    # @param result [Mongo::Object] The operation result.
+    # @param count [Integer] The number of records written to.
+    # @param multi [Boolean] True if more than one record is being written to.
+    # @raise [RuntimeError] If result.class isn't supported.
+    # @return [Boolean] True if the write was successful.
     def write_succeeded?(result, count = 1, multi = false)
       case result.class.to_s
       # Single create result.
@@ -246,6 +252,11 @@ module Wgit
     end
 
     # Insert one or more Url objects into the DB.
+    #
+    # @param url_or_urls [Wgit::Url, Array<Wgit::Url>] The Url or Url's to
+    #   insert.
+    # @raise [RuntimeError] If url_or_urls isn't of the correct type.
+    # @return [Integer] The number of inserted Url's.
     def insert_urls(url_or_urls)
       if url_or_urls.respond_to?(:map)
         assert_arr_types(url_or_urls, Url)
@@ -260,6 +271,11 @@ module Wgit
     end
 
     # Insert one or more Document objects into the DB.
+    #
+    # @param doc_or_docs [Wgit::Document, Array<Wgit::Document>] The Document
+    #   or Document's to insert.
+    # @raise [RuntimeError] If doc_or_docs isn't of the correct type.
+    # @return [Integer] The number of inserted Document's.
     def insert_docs(doc_or_docs)
       if doc_or_docs.respond_to?(:map)
         assert_arr_types(doc_or_docs, [Document, Hash])
@@ -276,6 +292,12 @@ module Wgit
     end
 
     # Create/insert one or more Url or Document records into the DB.
+    #
+    # @param collection [Symbol] Either :urls or :documents.
+    # @param data [Hash, Array<Wgit::Url, Wgit::Document>] The data to insert.
+    # @raise [RuntimeError] If the data type is incorrect or if the write
+    #   fails.
+    # @return [Integer] The number of inserted Objects.
     def create(collection, data)
       assert_type(data, [Hash, Array])
       # Single doc.
@@ -301,6 +323,14 @@ module Wgit
     end
 
     # Retrieve Url or Document records from the DB.
+    #
+    # @param collection [Symbol] Either :urls or :documents.
+    # @param query [Hash] The query used during the retrieval.
+    # @param sort [Hash] The sort to use.
+    # @param projection [Hash] The projection to use.
+    # @param limit [Integer] The limit to use.
+    # @param skip [Integer] The skip to use.
+    # @return [Mongo::Object] The Mongo client find result.
     def retrieve(collection, query,
                  sort = {}, projection = {},
                  limit = 0, skip = 0)
@@ -310,6 +340,9 @@ module Wgit
     end
 
     # Update a Url object in the DB.
+    #
+    # @param url [Wgit::Url] The Url to update.
+    # @return [Integer] The number of updated records.
     def update_url(url)
       assert_type(url, Url)
       selection = { url: url }
@@ -319,6 +352,9 @@ module Wgit
     end
 
     # Update a Document object in the DB.
+    #
+    # @param doc [Wgit::Document] The Document to update.
+    # @return [Integer] The number of updated records.
     def update_doc(doc)
       assert_type(doc, Document)
       selection = { url: doc.url }
@@ -327,9 +363,11 @@ module Wgit
       _update(true, :documents, selection, update)
     end
 
+    private
+
     # Update one or more Url or Document records in the DB.
     # NOTE: The Model.common_update_data should be merged in the calling
-    # method as the update param can be bespoke due to its nature.
+    # method as the update param can be bespoke, due to its nature.
     def _update(single, collection, selection, update)
       assert_arr_types([selection, update], Hash)
       result = if single

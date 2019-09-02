@@ -9,6 +9,15 @@
 - ...
 ---
 
+## v0.0.18
+### Added
+- ...
+### Changed/Removed
+- Changed some private methods to protected instead. These are now documented on rubydocs as a result.
+### Fixed
+- ...
+---
+
 ## v0.0.17
 ### Added
 - Support for `<base>` element in `Wgit::Document`'s.

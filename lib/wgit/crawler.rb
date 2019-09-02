@@ -202,23 +202,24 @@ module Wgit
       externals.uniq
     end
 
-    private
+    protected
 
-    # Add the document to the @docs array for later processing or let the block
-    # process it here and now.
-    def handle_crawl_block(url, &block)
-      if block_given?
-        crawl_url(url, &block)
-      else
-        @docs << crawl_url(url)
-        nil
-      end
-    end
-
-    # The fetch method performs a HTTP GET to obtain the HTML document.
-    # Invalid urls or any HTTP response that doesn't return a HTML body will be
-    # ignored and nil will be returned. Otherwise, the HTML is returned.
-    # External redirects are followed by default but can be disabled.
+    # This method calls Wgit::Crawler#resolve to obtain the page HTML, handling
+    # any errors that arise and setting the @last_response. Errors or any
+    # HTTP response that doesn't return a HTML body will be ignored and nil
+    # will be returned; otherwise, the HTML String is returned.
+    #
+    # @param url [Wgit::Url] The URL to fetch the HTML for.
+    # @param follow_external_redirects [Boolean] Whether or not to follow
+    #   an external redirect. False will return nil for such a crawl. If false,
+    #   you must also provide a `host:` parameter.
+    # @param host [Wgit::Url, String] Specify the host by which
+    #   an absolute redirect is determined to be internal or not. Must be
+    #   absolute and contain a protocol prefix. For example, a `host:` of
+    #   'http://www.example.com' will only allow redirects for Urls with a
+    #   `to_host` value of 'www.example.com'.
+    # @return [String, nil] The crawled HTML or nil if the crawl was
+    #   unsuccessful.
     def fetch(url, follow_external_redirects: true, host: nil)
       response = resolve(
         url,
@@ -235,11 +236,24 @@ module Wgit
       nil
     end
 
-    # The resolve method performs a HTTP GET to obtain the HTML document.
-    # A certain amount of redirects will be followed by default before raising
-    # an exception. Redirects can be disabled by setting `redirect_limit: 0`.
-    # External redirects are followed by default but can be disabled.
-    # The Net::HTTPResponse will be returned.
+    # The resolve method performs a HTTP GET to obtain the HTML response. The
+    # Net::HTTPResponse will be returned or an error raised. Redirects can be
+    # disabled by setting `redirect_limit: 0`.
+    #
+    # @param url [Wgit::Url] The URL to fetch the HTML from.
+    # @param redirect_limit [Integer] The number of redirect hops to allow
+    #   before raising an error.
+    # @param follow_external_redirects [Boolean] Whether or not to follow
+    #   an external redirect. If false, you must also provide a `host:`
+    #   parameter.
+    # @param host [Wgit::Url, String] Specify the host by which
+    #   an absolute redirect is determined to be internal or not. Must be
+    #   absolute and contain a protocol prefix. For example, a `host:` of
+    #   'http://www.example.com' will only allow redirects for Urls with a
+    #   `to_host` value of 'www.example.com'.
+    # @raise [StandardError] If !url.respond_to? :to_uri or a redirect isn't
+    #   allowed.
+    # @return [Net::HTTPResponse] The HTTP response of the GET request.
     def resolve(
       url,
       redirect_limit: Wgit::Crawler.default_redirect_limit,
@@ -277,23 +291,41 @@ module Wgit
       response
     end
 
-    # Add the url to @urls ensuring it is cast to a Wgit::Url if necessary.
-    def add_url(url)
-      @urls = [] if @urls.nil?
-      @urls << Wgit::Url.new(url)
-    end
-
-    # Returns doc's internal HTML page links in absolute form for crawling.
-    # We remove anchors because they are client side and don't change the
-    # resulting page's HTML; unlike query strings for example, which do.
+    # Returns a doc's internal HTML page links in absolute form; used when
+    # crawling a site. Override this method in a subclass to change how a site
+    # is crawled; not what is extracted from each page (Document extensions
+    # should be used for this purpose instead).
+    #
+    # @param doc [Wgit::Document] The document from which to extract it's
+    #   internal page links.
+    # @return [Array<Wgit::Url>] The internal page links from doc.
     def get_internal_links(doc)
       doc.internal_full_links
-         .map(&:without_anchor)
+         .map(&:without_anchor) # Because anchors don't change page content.
          .uniq
          .reject do |link|
         ext = link.to_extension
         ext ? !%w[htm html].include?(ext) : false
       end
+    end
+
+    private
+
+    # Add the document to the @docs array for later processing or let the block
+    # process it here and now.
+    def handle_crawl_block(url, &block)
+      if block_given?
+        crawl_url(url, &block)
+      else
+        @docs << crawl_url(url)
+        nil
+      end
+    end
+
+    # Add the url to @urls ensuring it is cast to a Wgit::Url if necessary.
+    def add_url(url)
+      @urls = [] if @urls.nil?
+      @urls << Wgit::Url.new(url)
     end
 
     alias crawl crawl_urls

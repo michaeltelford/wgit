@@ -35,7 +35,7 @@ class TestReadmeCodeExamples < TestHelper
     ### PUT README CODE ABOVE ###
 
     refute(doc.stats.empty?) # The stats change a lot so just assert presence.
-    assert_equal(%i[== \[\] author base base_url css date_crawled doc empty? external_links external_urls html internal_absolute_links internal_full_links internal_links keywords links relative_absolute_links relative_absolute_urls relative_full_links relative_full_urls relative_links relative_urls score search search! size stats text title to_h to_json url xpath], Wgit::Document.instance_methods(false).sort)
+    assert_equal([:==, :[], :author, :base, :base_url, :css, :date_crawled, :doc, :empty?, :external_links, :external_urls, :find_in_html, :find_in_object, :html, :init_nokogiri, :internal_absolute_links, :internal_full_links, :internal_links, :keywords, :links, :relative_absolute_links, :relative_absolute_urls, :relative_full_links, :relative_full_urls, :relative_links, :relative_urls, :score, :search, :search!, :size, :stats, :text, :title, :to_h, :to_json, :url, :xpath], Wgit::Document.instance_methods(false).sort)
     assert_equal('ial materials involving war, spying and corruption. It has so far published more', results.first)
   end
 

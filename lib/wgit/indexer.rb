@@ -240,9 +240,17 @@ site: #{url}")
       nil
     end
 
-    private
+    protected
 
-    # Keep crawling or not based on DB size and current loop iteration.
+    # Returns whether or not to keep crawling based on the DB size and current
+    # loop iteration.
+    #
+    # @param site_count [Integer] The current number of crawled sites.
+    # @param max_sites_to_crawl [Integer] The maximum number of sites to crawl
+    #   before stopping.
+    # @param max_data_size [Integer] The maximum amount of data to crawl before
+    #   stopping.
+    # @return [Boolean] True if the crawl should continue, false otherwise.
     def keep_crawling?(site_count, max_sites_to_crawl, max_data_size)
       return false if @db.size >= max_data_size
 
@@ -254,8 +262,11 @@ site: #{url}")
       end
     end
 
-    # The unique url index on the documents collection prevents duplicate
-    # inserts.
+    # Write the doc to the DB. Note that the unique url index on the documents
+    # collection deliberately prevents duplicate inserts.
+    #
+    # @param doc [Wgit::Document] The document to write to the DB.
+    # @return [Boolean] True if the write was successful, false otherwise.
     def write_doc_to_db(doc)
       @db.insert(doc)
       Wgit.logger.info("Saved document for url: #{doc.url}")
@@ -265,7 +276,11 @@ site: #{url}")
       false
     end
 
-    # The unique url index on the urls collection prevents duplicate inserts.
+    # Write the urls to the DB. Note that the unique url index on the urls
+    # collection deliberately prevents duplicate inserts.
+    #
+    # @param urls [Array<Wgit::Url>] The urls to write to the DB.
+    # @return [Boolean] True if the write was successful, false otherwise.
     def write_urls_to_db(urls)
       count = 0
       if urls.respond_to?(:each)

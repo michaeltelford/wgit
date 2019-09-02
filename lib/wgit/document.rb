@@ -434,9 +434,13 @@ module Wgit
       false
     end
 
-    private
+    protected
 
-    # Initializes the nokogiri object using @html, which must be already set.
+    # Initializes the nokogiri object using @html, which cannot be nil.
+    # Override this method to custom configure the Nokogiri object returned.
+    # Gets called from Wgit::Document.new.
+    #
+    # @return [Nokogiri::HTML] The initialised Nokogiri HTML object.
     def init_nokogiri
       raise '@html must be set' unless @html
 
@@ -447,18 +451,20 @@ module Wgit
       end
     end
 
-    # Ensure the @url and @html Strings are correctly encoded etc.
-    def process_url_and_html
-      @url = Wgit::Utils.process_str(@url)
-      @html = Wgit::Utils.process_str(@html)
-    end
-
-    # Returns an object/value from this Document's @html using the provided
-    # xpath param.
-    # singleton ? results.first (single Object) : results (Array)
-    # text_content_only ? result.content (String) : result (nokogiri Object)
-    # A block can be used to set the final value before it is returned.
-    # Return nil from the block if you don't want to override the value.
+    # Returns a value/object from this Document's @html using the given xpath
+    # parameter.
+    #
+    # @param xpath [String] Used to find the value/object in @html.
+    # @param singleton [Boolean] singleton ? results.first (single Nokogiri
+    #   Object) : results (Array).
+    # @param text_content_only [Boolean] text_content_only ? result.content
+    #   (String) : result (Nokogiri Object).
+    # @yield [String/Object, Symbol] Given the value before it's set as an
+    #   instance variable so that you can inspect/alter the value if desired.
+    #   Return nil from the block if you don't want to override the value. Also
+    #   given the source which is always :html.
+    # @return [String, Object] The value found in the html or the default value
+    #   (singleton ? nil : []).
     def find_in_html(xpath, singleton: true, text_content_only: true)
       xpath = xpath.call if xpath.respond_to?(:call)
       results = @doc.xpath(xpath)
@@ -483,10 +489,17 @@ module Wgit
       result
     end
 
-    # Finds a value in the obj using the key.
-    # singleton is used to set the value if not found in obj.
-    # A block can be used to set the final value before it is returned.
-    # Return nil from the block if you don't want to override the value.
+    # Returns a value from the obj using the given key via obj#fetch.
+    #
+    # @param obj [Object#fetch] The object containing the key/value.
+    # @param key [String] Used to find the value in the obj.
+    # @param singleton [Boolean] True if a single value, false otherwise.
+    # @yield [String/Object, Symbol] Given the value before it's set as an
+    #   instance variable so that you can inspect/alter the value if desired.
+    #   Return nil from the block if you don't want to override the value. Also
+    #   given the source which is always :object.
+    # @return [String, Object] The value found in the obj or the default value
+    #   (singleton ? nil : []).
     def find_in_object(obj, key, singleton: true)
       assert_respond_to(obj, :fetch)
 
@@ -502,7 +515,10 @@ module Wgit
       result
     end
 
+    private
+
     # Initialises an instance variable and defines a getter method for it.
+    #
     # @param var [Symbol] The name of the variable to be initialized.
     # @param value [Object] The newly initialized variable's value.
     # @return [Symbol] The name of the newly created getter method.
@@ -517,6 +533,12 @@ module Wgit
       Document.send(:define_method, var_name) do
         instance_variable_get(instance_var_name)
       end
+    end
+
+    # Ensure the @url and @html Strings are correctly encoded etc.
+    def process_url_and_html
+      @url = Wgit::Utils.process_str(@url)
+      @html = Wgit::Utils.process_str(@html)
     end
 
     alias relative_links internal_links
