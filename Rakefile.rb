@@ -9,12 +9,12 @@ require 'dotenv/tasks'
 # Things that require .env vars.
 # end
 
+desc 'Print help information'
+task default: :help
+
 Rake::TestTask.new do |t|
   t.libs << 'test'
 end
-
-desc 'Print help information'
-task default: :help
 
 desc 'Print help information'
 task :help do

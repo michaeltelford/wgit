@@ -4,19 +4,20 @@ lib = File.expand_path('lib', __dir__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require 'wgit/version'
 
-# Returns all files to be packaged within the gem.
+# Returns all files to be packaged as part of the gem.
 def get_gem_files
   rb_files = Dir['./lib/**/*.rb']
-  non_rb_files = ['README.md']
+  non_rb_files = %w[CHANGELOG.md LICENSE.txt README.md TODO.txt]
 
   # List any ruby files that should NOT be packaged in the built gem.
-  # The full file path should be provided e.g. "./lib/wgit/file.rb".
+  # The full file path should be provided e.g. './lib/wgit/file.rb'.
   ignore_files = [
     './lib/wgit/database/database_default_data.rb',
     './lib/wgit/database/database_helper.rb'
   ]
 
   files = ((rb_files + non_rb_files) - ignore_files).uniq
+
   raise 'A file path is incorrect' if files.any? { |f| !File.exist? f }
   raise 'An ignored file path is incorrect' if files.any? { |f| ignore_files.include? f }
 
@@ -31,16 +32,18 @@ Gem::Specification.new do |s|
   s.description           = "Fundamentally, Wgit is a WWW indexer/scraper which crawls URL's, retrieves and serialises their page contents for later use. You can use Wgit to copy entire websites if required. Wgit also provides a means to search indexed documents stored in a database. Therefore, this library provides the main components of a WWW search engine. The Wgit API is easily extended allowing you to pull out the parts of a webpage that are important to you, the code snippets or tables for example. As Wgit is a library, it has uses in many different application types."
   s.author                = 'Michael Telford'
   s.email                 = 'michael.telford@live.com'
-  s.require_paths         = ['lib']
-  s.files                 = get_gem_files
-  # s.executables          << "wgit"
   s.homepage              = 'https://github.com/michaeltelford/wgit'
   s.license               = 'MIT'
+
+  s.require_paths         = ['lib']
+  s.files                 = get_gem_files
+  # s.executables           << 'wgit'
   s.metadata              = {
     'source_code_uri' => 'https://github.com/michaeltelford/wgit',
-    'yard.run' => 'yri' # Use "yard" to build full HTML docs.
+    'yard.run' => 'yri' # Use YARD to generate the docs.
   }
-  s.required_ruby_version = '~> 2.5' # Only works with ruby 2.5.x
+
+  s.required_ruby_version = '~> 2.5'
 
   s.add_development_dependency 'byebug', '~> 10.0'
   s.add_development_dependency 'dotenv', '~> 2.5'

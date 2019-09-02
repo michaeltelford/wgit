@@ -355,6 +355,6 @@ For a full list of available Rake tasks, run `bundle exec rake help`. The most c
 
 After checking out the repo, run `bundle exec rake setup` to install the dependencies (requires `bundler`). Then, run `bundle exec rake test` to run the tests. You can also run `bundle exec rake console` for an interactive (`pry`) REPL that will allow you to experiment with the code.
 
-To generate code documentation run `bundle exec yard doc`. To browse the generated documentation run `bundle exec yard server -r`.
+To generate code documentation run `bundle exec yardoc`. To browse the generated documentation run `bundle exec yard server -r`.
 
 To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, see the *Gem Publishing Checklist* section of the `TODO.txt` file.

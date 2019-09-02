@@ -122,7 +122,7 @@ module Wgit
     # @param results [Array<Wgit::Document>] An Array whose
     #     Wgit::Documents#text matches the query at least once.
     # @param query [String] The text query to search for.
-    # @param case_sensitive [Boolean] Whether or not the search should be
+    # @param _case_sensitive [Boolean] Whether or not the search should be
     #     case sensitive or not.
     # @param sentence_length [Integer] The length of the matching text of the
     #     search results to be outputted to the stream.
