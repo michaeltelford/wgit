@@ -13,7 +13,7 @@
 ### Added
 - ...
 ### Changed/Removed
-- Changed some private methods to protected instead. These are now documented on rubydocs as a result.
+- Updated the documentation by changing some `private` methods to `protected`. These methods are now documented (on rubydocs) as a result.
 ### Fixed
 - ...
 ---

@@ -302,6 +302,35 @@ class TestCrawler < TestHelper
     assert_nil c.crawl_site
   end
 
+  # We crawl the site by it's <a> tags that link to jpg images.
+  class ImageCrawler < Wgit::Crawler
+    def get_internal_links(doc)
+      doc.internal_full_links
+         .select { |link| %w[jpg jpeg].include?(link.to_extension) }
+    end
+  end
+
+  def test_crawl_site__get_internal_links_override
+    url = Wgit::Url.new 'http://www.belfastpilates.co.uk/'
+    crawled = []
+
+    crawler = ImageCrawler.new url
+    crawler.crawl_site do |doc|
+      crawled << doc.url
+    end
+
+    assert_equal [
+      "http://www.belfastpilates.co.uk/",
+      "http://www.belfastpilates.co.uk/wp-content/uploads/2016/11/launch.jpg",
+      "http://www.belfastpilates.co.uk/wp-content/uploads/2016/11/Belfast-Pilates-Invitation.jpg",
+      "http://www.belfastpilates.co.uk/wp-content/uploads/2016/11/Belfast-Pilates-Gift-Voucher.jpg",
+      "http://www.belfastpilates.co.uk/wp-content/uploads/2016/09/180-1024x569.jpg",
+      "http://www.belfastpilates.co.uk/wp-content/uploads/2016/09/179-1024x569.jpg",
+      "http://www.belfastpilates.co.uk/wp-content/uploads/2016/09/185-1024x569.jpg",
+      "http://www.belfastpilates.co.uk/wp-content/uploads/2016/09/studio-1024x661.jpg"
+    ], crawled
+  end
+
   def test_resolve__absolute_location
     c = Wgit::Crawler.new
     url = Wgit::Url.new 'http://twitter.com/' # Redirects once to https.
@@ -429,6 +458,25 @@ class TestCrawler < TestHelper
       assert_empty location
     end
     assert_instance_of Net::HTTPOK, resp
+  end
+
+  def test_get_internal_links
+    url = Wgit::Url.new('http://www.mytestsite.com/home')
+    html = File.read('test/mock/fixtures/test_doc.html')
+    doc = Wgit::Document.new(url, html)
+    crawler = Wgit::Crawler.new
+
+    assert_equal [
+      "http://www.mytestsite.com/home",
+      "http://www.mytestsite.com/home?foo=bar",
+      "http://www.mytestsite.com/security.html",
+      "http://www.mytestsite.com/about.html",
+      "http://www.mytestsite.com/",
+      "http://www.mytestsite.com/contact.html",
+      "http://www.mytestsite.com/tests.html",
+      "http://www.mytestsite.com/blog",
+      "http://www.mytestsite.com/contents"
+    ], crawler.send(:get_internal_links, doc)
   end
 
   private
