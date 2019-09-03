@@ -124,7 +124,7 @@ class TestUrl < TestHelper
 
     # Valid error scenarios.
     ex = assert_raises(RuntimeError) { Wgit::Url.new('').is_relative? }
-    assert_equal 'Invalid link: ', ex.message
+    assert_equal "Invalid link: ''", ex.message
   end
 
   def test_is_relative__with_host
@@ -175,7 +175,7 @@ class TestUrl < TestHelper
     )
 
     ex = assert_raises(RuntimeError) { Wgit::Url.new('').is_relative? }
-    assert_equal 'Invalid link: ', ex.message
+    assert_equal "Invalid link: ''", ex.message
   end
 
   def test_is_relative__with_domain
@@ -228,10 +228,70 @@ class TestUrl < TestHelper
     ex = assert_raises(RuntimeError) do
       Wgit::Url.new('/about').is_relative?(host: '1', domain: '2')
     end
-    assert_equal 'Provide host or domain, not both', ex.message
+    assert_equal 'Provide only one of: [:host, :domain, :brand]', ex.message
 
     ex = assert_raises(RuntimeError) { Wgit::Url.new('').is_relative? }
-    assert_equal 'Invalid link: ', ex.message
+    assert_equal "Invalid link: ''", ex.message
+  end
+
+  def test_is_relative__with_brand
+    # IRI's.
+    assert Wgit::Url.new(@iri).is_relative? brand: 'https://www.über.com'
+    assert Wgit::Url.new(@iri).is_relative? brand: 'https://www.über.co.uk'
+
+    # URL's with paths (including slashes).
+    assert Wgit::Url.new(@url_str_link).is_relative? brand: @url_str
+    assert Wgit::Url.new('https://www.google.co.uk').is_relative? brand: @url_str # Diff protocol.
+    assert Wgit::Url.new(@url_str_link).is_relative? brand: 'https://www.google.com'
+    refute Wgit::Url.new(@url_str_link).is_relative? brand: 'http://bing.com'
+    assert Wgit::Url.new(@url_str).is_relative? brand: @url_str
+    assert Wgit::Url.new(@url_str + '/').is_relative? brand: @url_str
+    assert Wgit::Url.new(@url_str + '/').is_relative? brand: @url_str + '/'
+
+    # Single slash URL's.
+    assert Wgit::Url.new('/').is_relative? brand: @url_str
+
+    # Anchors/fragments.
+    assert Wgit::Url.new('#about-us').is_relative? brand: @url_str
+    assert Wgit::Url.new(@url_str_anchor).is_relative? brand: @url_str
+
+    # Query string params.
+    assert Wgit::Url.new('?foo=bar').is_relative? brand: @url_str
+    assert Wgit::Url.new(@url_str_query).is_relative? brand: @url_str
+
+    # URL specific.
+    assert(
+      Wgit::Url.new('http://www.example.com/search').is_relative?(brand: 'https://ftp.example.com')
+    )
+    assert(
+      Wgit::Url.new('http://www.example.co.uk/search').is_relative?(brand: 'https://ftp.example.com')
+    )
+    assert(
+      'http://www.example.com/search'.to_url.is_relative?(brand: 'https://ftp.example.com'.to_url)
+    )
+    assert(
+      'http://www.example.com/search'.to_url.is_relative?(brand: 'https://ftp.example.co.uk'.to_url)
+    )
+    refute(
+      'https://server.example.com'.to_url.is_relative?(brand: 'https://example2.com/en'.to_url)
+    )
+
+    # Valid error scenarios.
+    ex = assert_raises(RuntimeError) do
+      Wgit::Url.new(@url_str_link).is_relative? brand: 'bing.com'
+    end
+    assert_equal(
+      'Invalid brand, must be absolute and contain protocol: bing.com',
+      ex.message
+    )
+
+    ex = assert_raises(RuntimeError) do
+      Wgit::Url.new('/about').is_relative?(host: '1', brand: '2')
+    end
+    assert_equal 'Provide only one of: [:host, :domain, :brand]', ex.message
+
+    ex = assert_raises(RuntimeError) { Wgit::Url.new('').is_relative? }
+    assert_equal "Invalid link: ''", ex.message
   end
 
   def test_concat

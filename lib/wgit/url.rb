@@ -39,7 +39,7 @@ module Wgit
       # Else init from a database object/document.
       else
         obj = url_or_obj
-        assert_respond_to(obj, %i[fetch \[\]])
+        assert_respond_to(obj, [:fetch, :[]])
 
         url = obj.fetch('url') # Should always be present.
         crawled = obj.fetch('crawled', false)
@@ -126,26 +126,35 @@ module Wgit
       super(new_url)
     end
 
-    # Returns true if self is a relative Url.
+    # Returns true if self is a relative Url; false if absolute.
     #
     # All external links in a page are expected to have a protocol prefix e.g.
     # "http://", otherwise the link is treated as an internal link (regardless
-    # of whether it's valid or not). The only exception is if host or domain is
-    # provided and self is a page belonging to that host/domain; then the link
-    # is relative.
+    # of whether it's valid or not). The only exception is if an opts arg is
+    # provided and self is a page belonging to that arg type e.g. domain; then
+    # the link is relative.
     #
-    # @param host [Wgit::Url, String] The Url host e.g.
-    #   http://www.google.com/how which gives a host of www.google.com.
+    # @param opts [Hash] The options with which to check relativity.
+    # @option opts [Wgit::Url, String] :host The Url host e.g.
+    #   http://www.google.com/how which gives a host of 'www.google.com'.
     #   The host must be absolute and prefixed with a protocol.
-    # @param domain [Wgit::Url, String] The Url domain e.g.
-    #   http://www.google.com/how which gives a domain of google.com. The
+    # @option opts [Wgit::Url, String] :domain The Url domain e.g.
+    #   http://www.google.com/how which gives a domain of 'google.com'. The
     #   domain must be absolute and prefixed with a protocol.
-    # @return [Boolean] True if relative, false if absolute.
+    # @option opts [Wgit::Url, String] :brand The Url brand e.g.
+    #   http://www.google.com/how which gives a domain of 'google'. The
+    #   brand must be absolute and prefixed with a protocol.
     # @raise [RuntimeError] If self is invalid e.g. empty.
-    def is_relative?(host: nil, domain: nil)
-      raise "Invalid link: #{self}" if nil? || empty?
-      raise 'Provide host or domain, not both' if host && domain
+    # @return [Boolean] True if relative, false if absolute.
+    def is_relative?(opts = {})
+      opts = { host: nil, domain: nil, brand: nil }.merge(opts)
 
+      raise "Invalid link: '#{self}'" if empty?
+      if opts.values.count(nil) < (opts.length - 1)
+        raise "Provide only one of: #{opts.keys}"
+      end
+
+      host = opts[:host]
       if host
         host = Wgit::Url.new(host)
         if host.to_base.nil?
@@ -153,10 +162,19 @@ module Wgit
         end
       end
 
+      domain = opts[:domain]
       if domain
         domain = Wgit::Url.new(domain)
         if domain.to_base.nil?
           raise "Invalid domain, must be absolute and contain protocol: #{domain}"
+        end
+      end
+
+      brand = opts[:brand]
+      if brand
+        brand = Wgit::Url.new(brand)
+        if brand.to_base.nil?
+          raise "Invalid brand, must be absolute and contain protocol: #{brand}"
         end
       end
 
@@ -165,6 +183,9 @@ module Wgit
       else
         return host   ? to_host   == host.to_host     : false if host
         return domain ? to_domain == domain.to_domain : false if domain
+        return brand  ? to_brand  == brand.to_brand   : false if brand
+
+        false
       end
     end
 
