@@ -240,6 +240,15 @@ module Wgit
       domain ? Wgit::Url.new(domain) : nil
     end
 
+    # Returns a new Wgit::Url containing just the brand of this URL e.g.
+    # Given http://www.google.co.uk/about.html, google is returned.
+    #
+    # @return [Wgit::Url, nil] Containing just the brand or nil.
+    def to_brand
+      domain = to_domain
+      domain ? Wgit::Url.new(domain.split('.').first) : nil
+    end
+
     # Returns only the base of this URL e.g. the protocol and host combined.
     #
     # @return [Wgit::Url, nil] Base of self e.g. http://www.google.co.uk or nil.
@@ -411,6 +420,7 @@ module Wgit
     alias protocol to_scheme
     alias host to_host
     alias domain to_domain
+    alias brand to_brand
     alias base to_base
     alias path to_path
     alias endpoint to_endpoint

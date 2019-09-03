@@ -323,6 +323,22 @@ class TestUrl < TestHelper
     assert_nil Wgit::Url.new('#top').to_domain
   end
 
+  def test_to_brand
+    assert_equal 'google', Wgit::Url.new(@url_str_link).to_brand
+    assert_equal Wgit::Url, Wgit::Url.new(@url_str_link).to_brand.class
+    assert_nil Wgit::Url.new(@link).to_brand
+
+    assert_equal 'über', Wgit::Url.new(@iri).to_brand
+    assert_equal Wgit::Url, Wgit::Url.new(@iri).to_brand.class
+
+    assert_nil Wgit::Url.new('über').to_brand
+    assert_nil Wgit::Url.new('/').to_brand
+    assert_nil Wgit::Url.new('').to_brand
+    assert_nil Wgit::Url.new('/about').to_brand
+    assert_nil Wgit::Url.new('?q=hello').to_brand
+    assert_nil Wgit::Url.new('#top').to_brand
+  end
+
   def test_to_base
     assert_equal @url_str, Wgit::Url.new(@url_str_link).to_base
     assert_equal Wgit::Url, Wgit::Url.new(@url_str_link).to_base.class
