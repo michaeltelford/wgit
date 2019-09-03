@@ -25,12 +25,17 @@ def default_html
 end
 
 # Stub a single webpage. Stubs both:
-# http://blah.com and http://blah.com/ (with trailing slash).
+# http://blah.com/hi and http://blah.com/hi/ (with trailing slash).
 def stub_page(url, status: 200, body: default_html, fixture: nil)
   body = fixture(fixture) if fixture
-  alt_url = url.end_with?('/') ? url.chop : "#{url}/"
   stub_request(:get, url).to_return(status: status, body: body)
-  stub_request(:get, alt_url).to_return(status: status, body: body)
+
+  # Webmock only mocks a trailing slash if there's no path so we do it.
+  path = URI(url).path
+  unless path.empty? or path == '/'
+    alt_url = url.end_with?('/') ? url.chop : "#{url}/"
+    stub_request(:get, alt_url).to_return(status: status, body: body)
+  end
 end
 
 # Stub a single page 404 not found.
