@@ -1,49 +1,52 @@
 # frozen_string_literal: true
 
-lib = File.expand_path('lib', __dir__)
-$LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require 'wgit/version'
+require 'rake'
+require_relative './lib/wgit/version'
 
-# Returns all files to be packaged as part of the gem.
-def get_gem_files
-  rb_files = Dir['./lib/**/*.rb']
-  non_rb_files = %w[CHANGELOG.md LICENSE.txt README.md TODO.txt]
-
+# Returns all ruby files to be packaged as part of the gem.
+def get_rb_files
   # List any ruby files that should NOT be packaged in the built gem.
   # The full file path should be provided e.g. './lib/wgit/file.rb'.
-  ignore_files = [
+  ignored_rb_files = [
     './lib/wgit/database/database_default_data.rb',
     './lib/wgit/database/database_helper.rb'
   ]
 
-  files = ((rb_files + non_rb_files) - ignore_files).uniq
-
-  raise 'A file path is incorrect' if files.any? { |f| !File.exist? f }
-  raise 'An ignored file path is incorrect' if files.any? { |f| ignore_files.include? f }
-
-  files
+  FileList.new('./lib/**/*.rb') do |fl|
+    fl.exclude(*ignored_rb_files)
+  end.resolve
 end
 
 Gem::Specification.new do |s|
   s.name                  = 'wgit'
   s.version               = Wgit::VERSION
-  s.date                  = '2016-03-07'
-  s.summary               = "Wgit is a Ruby gem similar in nature to GNU's `wget` tool. It provides an easy to use API for programmatic web scraping, indexing and searching."
-  s.description           = "Fundamentally, Wgit is a WWW indexer/scraper which crawls URL's, retrieves and serialises their page contents for later use. You can use Wgit to copy entire websites if required. Wgit also provides a means to search indexed documents stored in a database. Therefore, this library provides the main components of a WWW search engine. The Wgit API is easily extended allowing you to pull out the parts of a webpage that are important to you, the code snippets or tables for example. As Wgit is a library, it has uses in many different application types."
+  s.date                  = Time.now.strftime('%Y-%m-%d')
   s.author                = 'Michael Telford'
   s.email                 = 'michael.telford@live.com'
   s.homepage              = 'https://github.com/michaeltelford/wgit'
   s.license               = 'MIT'
 
-  s.require_paths         = ['lib']
-  s.files                 = get_gem_files
-  # s.executables           << 'wgit'
+  s.summary               = <<-eof
+    Wgit is a Ruby gem similar in nature to GNU's `wget` tool. It provides an easy to use API for programmatic web scraping, indexing and searching.
+  eof
+  s.description           = <<-eof
+    Fundamentally, Wgit is a WWW indexer/scraper which crawls URL's, retrieves and serialises their page contents for later use. You can use Wgit to copy entire websites if required. Wgit also provides a means to search indexed documents stored in a database. Therefore, this library provides the main components of a WWW search engine. The Wgit API is easily extended allowing you to pull out the parts of a webpage that are important to you, the code snippets or tables for example. As Wgit is a library, it has uses in many different application types.
+  eof
+
+  s.require_paths         = %w[lib]
+  s.files                 = get_rb_files
+  s.executables           = %w[]
   s.metadata              = {
     'source_code_uri' => 'https://github.com/michaeltelford/wgit',
-    'yard.run' => 'yri' # Use YARD to generate the docs.
+    'yard.run'        => 'yri'
   }
 
+  s.platform              = Gem::Platform::RUBY
   s.required_ruby_version = '~> 2.5'
+
+  s.add_runtime_dependency 'addressable', '~> 2.6.0'
+  s.add_runtime_dependency 'mongo', '~> 2.9.0'
+  s.add_runtime_dependency 'nokogiri', '~> 1.10.3'
 
   s.add_development_dependency 'byebug', '~> 10.0'
   s.add_development_dependency 'dotenv', '~> 2.5'
@@ -53,16 +56,12 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'rake', '~> 12.3'
   s.add_development_dependency 'webmock', '~> 3.6'
   s.add_development_dependency 'yard', ['>= 0.9.20', '< 1.0']
+  s.add_development_dependency 'inch', '~> 0.8'
 
-  s.add_runtime_dependency 'addressable', '~> 2.6.0'
-  s.add_runtime_dependency 'mongo', '~> 2.9.0'
-  s.add_runtime_dependency 'nokogiri', '~> 1.10.3'
-
-  # Prevent pushing this gem to RubyGems.org. To allow pushes either set the 'allowed_push_host'
-  # to allow pushing to a single host or delete this section to allow pushing to any host.
+  # Only allow gem pushes to rubygems.org.
   if s.respond_to?(:metadata)
     s.metadata['allowed_push_host'] = 'https://rubygems.org'
   else
-    raise 'RubyGems 2.0 or newer is required to protect against public gem pushes.'
+    raise 'RubyGems 2.0 or newer is required to protect against public gem pushes'
   end
 end
