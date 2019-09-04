@@ -53,7 +53,7 @@ Below shows an example of API usage in action and gives an idea of how you can u
 require 'wgit'
 
 crawler = Wgit::Crawler.new
-url = Wgit::Url.new "https://wikileaks.org/What-is-Wikileaks.html"
+url = Wgit::Url.new 'https://wikileaks.org/What-is-Wikileaks.html'
 
 doc = crawler.crawl url
 
@@ -74,7 +74,7 @@ Wgit::Document.instance_methods(false).sort # => [
 #   :text, :title, :to_h, :to_json, :url, :xpath
 # ]
 
-results = doc.search "corruption"
+results = doc.search 'corruption'
 results.first # => "ial materials involving war, spying and corruption.
               #     It has so far published more"
 ```
@@ -110,7 +110,7 @@ require 'wgit'
 require 'wgit/core_ext' # Provides the String#to_url and Enumerable#to_urls methods.
 
 crawler = Wgit::Crawler.new
-url = "https://www.facebook.com".to_url
+url = 'https://www.facebook.com'.to_url
 
 doc = crawler.crawl url
 
@@ -131,13 +131,13 @@ The below script downloads the contents of several webpages and pulls out their 
 ```ruby
 require 'wgit'
 
-my_pages_keywords = ["Everest", "mountaineering school", "adventure"]
+my_pages_keywords = ['Everest', 'mountaineering school', 'adventure']
 my_pages_missing_keywords = []
 
 competitor_urls = [
-  "http://altitudejunkies.com",
-  "http://www.mountainmadness.com",
-  "http://www.adventureconsultants.com"
+  'http://altitudejunkies.com',
+  'http://www.mountainmadness.com',
+  'http://www.adventureconsultants.com'
 ]
 
 crawler = Wgit::Crawler.new competitor_urls
@@ -151,9 +151,9 @@ crawler.crawl do |doc|
 end
 
 if my_pages_missing_keywords.empty?
-  puts "Your pages are missing no keywords, nice one!"
+  puts 'Your pages are missing no keywords, nice one!'
 else
-  puts "Your pages compared to your competitors are missing the following keywords:"
+  puts 'Your pages compared to your competitors are missing the following keywords:'
   puts my_pages_missing_keywords.uniq
 end
 ```
@@ -162,7 +162,7 @@ end
 
 This next example requires a configured database instance. Currently the only supported DBMS is MongoDB. See [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) for a free (small) account or provide your own MongoDB instance.
 
-`Wgit::Database` provides a light wrapper of logic around the `mongo` gem allowing for simple database interactivity and serialisation. With Wgit you can index webpages, store them in a database and then search through all that's been indexed. The use of a database is entirely optional however and isn't required for crawling/indexing.
+`Wgit::Database` provides a light wrapper of logic around the `mongo` gem allowing for simple database interactivity and object serialisation. Using Wgit you can index webpages, store them in a database and then search through all that's been indexed. The use of a database is entirely optional however and isn't required for crawling/indexing.
 
 The following versions of MongoDB are supported:
 
@@ -210,7 +210,7 @@ db = Wgit::Database.new # Connects to the database...
 # Here we create our own document rather than crawling the web (which works in the same way).
 # We pass the web page's URL and HTML Strings.
 doc = Wgit::Document.new(
-  "http://test-url.com".to_url,
+  'http://test-url.com'.to_url,
   "<html><p>How now brown cow.</p><a href='http://www.google.co.uk'>Click me!</a></html>"
 )
 db.insert doc
@@ -218,7 +218,7 @@ db.insert doc
 ### SEARCH THE DATABASE ###
 
 # Searching the database returns Wgit::Document's which have fields containing the query.
-query = "cow"
+query = 'cow'
 results = db.search query
 
 search_result = results.first
@@ -264,7 +264,7 @@ Wgit::Document.text_elements << :a
 
 # Our Document has a link whose's text we're interested in.
 doc = Wgit::Document.new(
-  "http://some_url.com".to_url,
+  'http://some_url.com'.to_url,
   "<html><p>Hello world!</p>\
 <a href='https://made-up-link.com'>Click this link.</a></html>"
 )
@@ -290,7 +290,7 @@ require 'wgit/core_ext'
 # Let's get all the page's table elements.
 Wgit::Document.define_extension(
   :tables,                  # Wgit::Document#tables will return the page's tables.
-  "//table",                # The xpath to extract the tables.
+  '//table',                # The xpath to extract the tables.
   singleton: false,         # True returns the first table found, false returns all.
   text_content_only: false, # True returns one or more Strings of the tables text,
                             # false returns the tables as Nokogiri objects (see below).
@@ -300,9 +300,9 @@ end
 
 # Our Document has a table which we're interested in.
 doc = Wgit::Document.new(
-  "http://some_url.com".to_url,
-  "<html><p>Hello world!</p>\
-<table><th>Header Text</th><th>Another Header</th></table></html>"
+  'http://some_url.com'.to_url,
+  '<html><p>Hello world!</p>\
+<table><th>Header Text</th><th>Another Header</th></table></html>'
 )
 
 # Call our newly defined method to obtain the table data we're interested in.
@@ -356,6 +356,6 @@ For a full list of available Rake tasks, run `bundle exec rake help`. The most c
 
 After checking out the repo, run `bundle exec rake setup` to install the dependencies (requires `bundler`). Then, run `bundle exec rake test` to run the tests. You can also run `bundle exec rake console` for an interactive (`pry`) REPL that will allow you to experiment with the code.
 
-To generate code documentation run `bundle exec yardoc`. To browse the generated documentation run `bundle exec yard server -r`.
+To generate code documentation run `bundle exec yardoc`. To browse the generated documentation in a browser run `bundle exec yard server -r`. You can also use the `yri` command line tool e.g. `yri Wgit::Crawler#crawl_site` etc.
 
 To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, see the *Gem Publishing Checklist* section of the `TODO.txt` file.

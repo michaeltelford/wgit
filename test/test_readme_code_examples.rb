@@ -179,8 +179,8 @@ class TestReadmeCodeExamples < TestHelper
     # Our Document has a table which we're interested in.
     doc = Wgit::Document.new(
       'http://some_url.com'.to_url,
-      "<html><p>Hello world!</p>\
-    <table><th>Header Text</th><th>Another Header</th></table></html>"
+      '<html><p>Hello world!</p>\
+    <table><th>Header Text</th><th>Another Header</th></table></html>'
     )
 
     # Call our newly defined method to obtain the table data we're interested in.
