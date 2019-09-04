@@ -19,10 +19,7 @@ def reload
   $VERBOSE = nil              # Suppress warning messages (when reloading CONSTANTS).
   load 'load.rb'              # Reload all code changes.
   $VERBOSE = original_verbose # Activate warning messages again globally.
-
-  # Set the Wgit logger level to Logger::DEBUG.
   Wgit.logger.level = Logger::DEBUG
-
   true
 end
 
@@ -54,18 +51,19 @@ db = Database.new
 
 # Print some basic usage information.
 def info
-  puts "To load your code changes type: reload\n"
+  puts 'To load your code changes type: reload'
   puts 'See the DatabaseHelper module for DB interaction methods which include:'
-  puts "nuke, seed, index, search, num_urls, num_docs, num_records\n"
+  puts 'nuke, seed, index, search, num_urls, num_docs, num_records'
   puts 'Available fixture vars include: crawler, url, doc, db'
   puts 'To see this help information again type: info'
-  puts "When you're finished type: exit"
+  puts "When you're finished type: exit (or press Ctrl+D)"
 end
 
 # Start the pry session.
 puts "\nwgit v#{Wgit::VERSION}\n\n"
 info
+
 binding.pry
-puts 'Interactive session complete!'
 
 # Do any post REPL cleanup tasks here...
+puts 'Interactive session complete!'
