@@ -12,8 +12,20 @@ require 'dotenv/tasks'
 desc 'Print help information'
 task default: :help
 
-Rake::TestTask.new do |t|
+Rake::TestTask.new(:test) do |t|
+  t.description = 'Run tests'
   t.libs << 'test'
+end
+
+Rake::TestTask.new(:smoke) do |t|
+  t.description = 'Run a sub set of tests (as a sanity check)'
+  t.libs << 'test'
+  t.test_files = FileList[
+    'test/test_url.rb',
+    'test/test_document.rb',
+    'test/test_crawler.rb',
+    'test/test_readme_code_examples.rb'
+  ]
 end
 
 desc 'Print help information'
