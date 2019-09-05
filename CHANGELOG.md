@@ -13,7 +13,7 @@
 ### Added
 - `Wgit::Url#to_brand` method and updated `Wgit::Url#is_relative?` to support it.
 ### Changed/Removed
-- Updated the documentation by changing some `private` methods to `protected`. These methods are now documented (on rubydocs) as a result.
+- ...
 ### Fixed
 - ...
 ---
