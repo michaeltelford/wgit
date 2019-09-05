@@ -46,7 +46,7 @@ end
 # Seed some fixture data for the session.
 crawler = Crawler.new
 url = Url.new 'https://motherfuckingwebsite.com/'
-doc = Document.new 'http://www.mytestsite.com'.to_url, File.read('test/mock/fixtures/test_doc.html')
+doc = Document.new 'http://www.mytestsite.com/home'.to_url, File.read('test/mock/fixtures/test_doc.html')
 db = Database.new
 
 # Print some basic usage information.
