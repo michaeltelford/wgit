@@ -32,3 +32,4 @@ Gem Publishing Checklist
 - Run `bundle exec yardoc` to update documentation - should be 100% coverage.
 - Commit, merge to master & push any changes made from the above steps.
 - Run `bundle exec rake RELEASE[origin]` to tag, build and push everything to github.com and rubygems.org.
+
