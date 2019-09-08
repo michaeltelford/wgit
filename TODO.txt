@@ -1,24 +1,21 @@
 
 Primary
 -------
-- Update Database#search & Document#search to have optional case sensitivity.
+- Update Database#search & Document#search to have optional case sensitivity and whole sentence search support.
 - Have the ability to crawl sub sections of a site only e.g. https://www.honda.co.uk/motorcycles.html as the base url and crawl any links containing this as a prefix. For example, https://www.honda.co.uk/cars.html would not be crawled but https://www.honda.co.uk/motorcycles/africa-twin.html would be.
 - Create an executable based on the ./bin/console shipped as `wpry` or `wgit`.
 
 Secondary
 ---------
-- Think about how we handle invalid Url's on crawled documents. Setup tests and implement logic for this scenario.
+- Think about how we handle invalid Url's/links found on crawled documents. Setup tests and implement logic for this scenario.
 - Check if Document::TEXT_ELEMENTS is expansive enough.
+- Add Database methods: #url(url) and #doc(doc#url) methods which pull the matching record from the DB, #delete(obj#url), #upsert(obj#url).
 
 Refactoring
 -----------
 - Plan to open up the required_ruby_version range, say from 2.5 upwards e.g. `~> 2.5`. Will need CI testing for the different versions of ruby as we move onto support newer versions.
-- Refactor the 3 main classes and their tests (where needed): Url, Document & Crawler.
-- After the above refactor, move onto the rest of the code base.
-- Think about reducing the amount of method aliases, pick the best for the method def and remove the aliases? Also, do the Url#to_* make sense?
-- Replace method params with named parameters where applicable.
-- Possibly use refine instead of core-ext?
-- Think about potentially using DB._update's update_many func.
+- Possibly use refine instead of core_ext?
+- Think about potentially using DB.mutate's update_many func.
 
 Gem Publishing Checklist
 ------------------------

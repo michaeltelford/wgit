@@ -8,9 +8,9 @@
 
 ---
 
-Wgit is a Ruby gem similar in nature to GNU's `wget` tool. It provides an easy to use API for programmatic web scraping, indexing and searching.
+Wgit is a Ruby gem similar in nature to GNU's `wget` tool. It provides an easy to use API for programmatic URL parsing, HTML indexing and searching.
 
-Fundamentally, Wgit is a WWW indexer/scraper which crawls URL's, retrieves and serialises their page contents for later use. You can use Wgit to copy entire websites if required. Wgit also provides a means to search indexed documents stored in a database. Therefore, this library provides the main components of a WWW search engine. The Wgit API is easily extended allowing you to pull out the parts of a webpage that are important to you, the code snippets or tables for example. As Wgit is a library, it supports many different use cases including data mining, analytics, web indexing and URL parsing to name a few.
+Fundamentally, Wgit is a HTTP indexer/scraper which crawls URL's to retrieve and serialise their page contents for later use. You can use Wgit to copy entire websites if required. Wgit also provides a means to search indexed documents stored in a database. Therefore, this library provides the main components of a WWW search engine. The Wgit API is easily extended allowing you to pull out the parts of a webpage that are important to you, the code snippets or tables for example. As Wgit is a library, it supports many different use cases including data mining, analytics, web indexing and URL parsing to name a few.
 
 Check out this [example application](https://search-engine-rb.herokuapp.com) - a search engine (see its [repository](https://github.com/michaeltelford/search_engine)) built using Wgit and Sinatra, deployed to Heroku. Heroku's free tier is used so the initial page load may be slow. Try searching for "Ruby" or something else that's Ruby related.
 
@@ -47,8 +47,6 @@ Or install it yourself as:
 
 ## Basic Usage
 
-Below shows an example of API usage in action and gives an idea of how you can use Wgit in your own code.
-
 ```ruby
 require 'wgit'
 
@@ -64,14 +62,11 @@ doc.stats # => {
 #}
 
 # doc responds to the following methods:
-Wgit::Document.instance_methods(false).sort # => [
-#   :==, :[], :author, :base, :base_url, :css, :date_crawled, :doc, :empty?,
-#   :external_links, :external_urls, :find_in_html, :find_in_object, :html,
-#   :init_nokogiri, :internal_absolute_links, :internal_full_links,
-#   :internal_links, :keywords, :links, :relative_absolute_links,
-#   :relative_absolute_urls, :relative_full_links, :relative_full_urls,
-#   :relative_links, :relative_urls, :score, :search, :search!, :size, :stats,
-#   :text, :title, :to_h, :to_json, :url, :xpath
+Wgit::Document.public_instance_methods(false).sort # => [
+# :==, :[], :author, :base, :base_url, :css, :date_crawled, :doc, :empty?, :external_links,
+# :external_urls, :html, :internal_absolute_links, :internal_absolute_urls, :internal_links,
+# :internal_urls, :keywords, :links, :score, :search, :search!, :size, :stats, :text, :title,
+# :to_h, :to_json, :url, :xpath
 # ]
 
 results = doc.search 'corruption'
@@ -89,7 +84,7 @@ Below are some practical examples of Wgit in use. You can copy and run the code 
 
 ### WWW HTML Indexer
 
-See the `Wgit::Indexer#index_the_web` documentation and source code for an already built example of a WWW HTML indexer. It will crawl any external url's (in the database) and index their markup for later use, be it searching or otherwise. It will literally crawl the WWW forever if you let it!
+See the `Wgit::Indexer#index_www` documentation and source code for an already built example of a WWW HTML indexer. It will crawl any external url's (in the database) and index their HTML for later use, be it searching or otherwise. It will literally crawl the WWW forever if you let it!
 
 See the [Practical Database Example](#Practical-Database-Example) for information on how to setup a database for use with Wgit.
 
@@ -130,6 +125,7 @@ The below script downloads the contents of several webpages and pulls out their 
 
 ```ruby
 require 'wgit'
+require 'wgit/core_ext' # => Provides the String#to_url and Enumerable#to_urls methods.
 
 my_pages_keywords = ['Everest', 'mountaineering school', 'adventure']
 my_pages_missing_keywords = []
@@ -138,11 +134,11 @@ competitor_urls = [
   'http://altitudejunkies.com',
   'http://www.mountainmadness.com',
   'http://www.adventureconsultants.com'
-]
+].to_urls
 
-crawler = Wgit::Crawler.new competitor_urls
+crawler = Wgit::Crawler.new
 
-crawler.crawl do |doc|
+crawler.crawl_urls(*competitor_urls) do |doc|
   # If there are keywords present in the web document.
   if doc.keywords.respond_to? :-
     puts "The keywords for #{doc.url} are: \n#{doc.keywords}\n\n"
@@ -186,7 +182,6 @@ Follow the steps below to configure MongoDB for use with Wgit. This is only need
   "title": "text"
 }
 ```
-5) Set the connection details for your MongoDB instance (see below) using `Wgit.set_connection_details` (prior to calling `Wgit::Database#new`)
 
 **Note**: The *text search index* (in step 4) lists all document fields to be searched by MongoDB when calling `Wgit::Database#search`. Therefore, you should append this list with any other fields that you want searched. For example, if you [extend the API](#Extending-The-API) then you might want to search your new fields in the database by adding them to the index above.
 
@@ -196,21 +191,18 @@ The below script shows how to use Wgit's database functionality to index and the
 
 ```ruby
 require 'wgit'
-require 'wgit/core_ext' # => Provides the String#to_url and Enumerable#to_urls methods.
 
 ### CONNECT TO THE DATABASE ###
 
-# Set your connection details manually (as below) or from the environment using
-# Wgit.set_connection_details_from_env
-Wgit.set_connection_details('DB_CONNECTION_STRING' => '<your_connection_string>')
-db = Wgit::Database.new # Connects to the database...
+# In the absence of a connection string parameter, ENV['WGIT_CONNECTION_STRING'] will be used.
+db = Wgit::Database.connect '<your_connection_string>'
 
 ### SEED SOME DATA ###
 
 # Here we create our own document rather than crawling the web (which works in the same way).
-# We pass the web page's URL and HTML Strings.
+# We provide the web page's URL and HTML Strings.
 doc = Wgit::Document.new(
-  'http://test-url.com'.to_url,
+  'http://test-url.com',
   "<html><p>How now brown cow.</p><a href='http://www.google.co.uk'>Click me!</a></html>"
 )
 db.insert doc
@@ -257,14 +249,13 @@ If you'd like the text of additional webpage elements to be returned from `Wgit:
 
 ```ruby
 require 'wgit'
-require 'wgit/core_ext'
 
 # Let's add the text of links e.g. <a> tags.
 Wgit::Document.text_elements << :a
 
 # Our Document has a link whose's text we're interested in.
 doc = Wgit::Document.new(
-  'http://some_url.com'.to_url,
+  'http://some_url.com',
   "<html><p>Hello world!</p>\
 <a href='https://made-up-link.com'>Click this link.</a></html>"
 )
@@ -285,7 +276,6 @@ Here's how to add a Document extension to index a specific page element:
 
 ```ruby
 require 'wgit'
-require 'wgit/core_ext'
 
 # Let's get all the page's table elements.
 Wgit::Document.define_extension(
@@ -300,9 +290,18 @@ end
 
 # Our Document has a table which we're interested in.
 doc = Wgit::Document.new(
-  'http://some_url.com'.to_url,
-  '<html><p>Hello world!</p>\
-<table><th>Header Text</th><th>Another Header</th></table></html>'
+  'http://some_url.com',
+  <<-HTML
+  <html>
+    <p>Hello world! Welcome to my site.</p>
+    <table>
+      <tr><th>Name</th><th>Age</th></tr>
+      <tr><td>Socrates</td><td>101</td></tr>
+      <tr><td>Plato</td><td>106</td></tr>
+    </table>
+    <p>I hope you enjoyed your visit :-)</p>
+  </html>
+  HTML
 )
 
 # Call our newly defined method to obtain the table data we're interested in.
@@ -311,9 +310,14 @@ tables = doc.tables
 # Both the collection and each table within the collection are plain Nokogiri objects.
 tables.class        # => Nokogiri::XML::NodeSet
 tables.first.class  # => Nokogiri::XML::Element
+
+# Notice how the Document's stats will include our 'tables' extension.
+doc.stats # => {
+#   :url=>19, :html=>290, :links=>0, :text_snippets=>2, :text_bytes=>65, :tables=>1
+# }
 ```
 
-**Note**: Wgit uses Document extensions to provide much of it's core functionality, providing access to a webpages text or links for example. These [default Document extensions](https://github.com/michaeltelford/wgit/blob/master/lib/wgit/document_extensions.rb) provide examples for your own.
+**Note**: Wgit uses Document extensions to provide much of it's core indexing functionality, providing access to a webpage's text or links for example. These [default Document extensions](https://github.com/michaeltelford/wgit/blob/master/lib/wgit/document_extensions.rb) provide examples for your own.
 
 **Extension Notes**:
 
@@ -326,7 +330,7 @@ Below are some points to keep in mind when using Wgit:
 
 - All absolute `Wgit::Url`'s must be prefixed with an appropiate protocol e.g. `https://` etc.
 - By default, up to 5 URL redirects will be followed; this is configurable however.
-- IRI's (URL's containing non ASCII characters) are supported and will be normalised/escaped prior to being crawled.
+- IRI's (URL's containing non ASCII characters) **are** supported and will be normalised/escaped prior to being crawled.
 
 ## Executable
 
@@ -342,7 +346,7 @@ See the [CHANGELOG.md](https://github.com/michaeltelford/wgit/blob/master/CHANGE
 
 ## License
 
-The gem is available as open source under the terms of the [MIT License](http://opensource.org/licenses/MIT).
+The gem is available as open source under the terms of the MIT License. See [LICENSE.txt](https://github.com/michaeltelford/wgit/blob/master/LICENSE.txt) for more details.
 
 ## Contributing
 
@@ -354,8 +358,8 @@ The current road map is rudimentally listed in the [TODO.txt](https://github.com
 
 For a full list of available Rake tasks, run `bundle exec rake help`. The most commonly used tasks are listed below...
 
-After checking out the repo, run `bundle exec rake setup` to install the dependencies (requires `bundler`). Then, run `bundle exec rake test` to run the tests. You can also run `bundle exec rake console` for an interactive (`pry`) REPL that will allow you to experiment with the code.
+After checking out the repo, run `./bin/setup`. Then, `bundle exec rake test` to run the tests. You can also run `bundle exec rake console` for an interactive (`pry`) REPL that will allow you to experiment with the code.
 
 To generate code documentation run `bundle exec yardoc`. To browse the generated documentation in a browser run `bundle exec yard server -r`. You can also use the `yri` command line tool e.g. `yri Wgit::Crawler#crawl_site` etc.
 
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, see the *Gem Publishing Checklist* section of the `TODO.txt` file.
+To install this gem onto your local machine, run `bundle exec rake install`.

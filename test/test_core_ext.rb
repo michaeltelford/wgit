@@ -13,7 +13,7 @@ class TestCoreExt < TestHelper
   def test_string_to_url
     s = 'http://www.google.co.uk'
     url = s.to_url
-    assert_type url, Wgit::Url
+    assert_instance_of Wgit::Url, url
     assert_equal s, url
   end
 

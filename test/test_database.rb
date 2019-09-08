@@ -9,27 +9,41 @@ class TestDatabase < TestHelper
   def setup
     clear_db
 
-    @url = Wgit::Url.new(Wgit::DatabaseDefaultData.url)
-    @doc = Wgit::Document.new(Wgit::DatabaseDefaultData.doc)
+    @url = Wgit::Url.new(Wgit::DatabaseDevData.url)
+    @doc = Wgit::Document.new(Wgit::DatabaseDevData.doc)
 
-    records = 3
+    @urls = Array.new(3) { Wgit::Url.new(Wgit::DatabaseDevData.url) }
+    @docs = Array.new(3) { Wgit::Document.new(Wgit::DatabaseDevData.doc) }
+  end
 
-    @urls = []
-    records.times do
-      @urls << Wgit::Url.new(Wgit::DatabaseDefaultData.url)
-    end
+  def test_initialize
+    db = Wgit::Database.new
+    refute_nil db.connection_string
+    refute_nil db.client
 
-    @docs = []
-    records.times do
-      @docs << Wgit::Document.new(Wgit::DatabaseDefaultData.doc)
+    db = Wgit::Database.new ENV['WGIT_CONNECTION_STRING']
+    refute_nil db.connection_string
+    refute_nil db.client
+
+    reset_connection_string do
+      e = assert_raises(StandardError) { Wgit::Database.new }
+      assert_equal "connection_string and ENV['WGIT_CONNECTION_STRING'] are nil", e.message
     end
   end
 
-  def test_initialize_connects_to_db
-    Wgit::Database.new
-    pass
-  rescue StandardError
-    flunk
+  def test_connect
+    db = Wgit::Database.connect
+    refute_nil db.connection_string
+    refute_nil db.client
+
+    db = Wgit::Database.connect ENV['WGIT_CONNECTION_STRING']
+    refute_nil db.connection_string
+    refute_nil db.client
+
+    reset_connection_string do
+      e = assert_raises(StandardError) { Wgit::Database.connect }
+      assert_equal "connection_string and ENV['WGIT_CONNECTION_STRING'] are nil", e.message
+    end
   end
 
   def test_insert_urls
@@ -44,10 +58,13 @@ class TestDatabase < TestHelper
     # Insert several urls.
     num_inserted = db.insert @urls
     assert_equal @urls.length, num_inserted
+
     @urls.each { |url| assert url?(url.to_h) }
     assert_equal @urls.length + 1, db.num_urls
-
     assert_equal db.num_urls, db.num_records
+
+    e = assert_raises(StandardError) { db.insert true }
+    assert_equal 'Unsupported type - TrueClass: true', e.message
   end
 
   def test_insert_docs
@@ -64,7 +81,6 @@ class TestDatabase < TestHelper
     assert_equal @docs.length, num_inserted
     @docs.each { |doc| assert doc?(doc.to_h) }
     assert_equal @docs.length + 1, db.num_docs
-
     assert_equal db.num_docs, db.num_records
   end
 
@@ -72,9 +88,9 @@ class TestDatabase < TestHelper
     db = Wgit::Database.new
 
     # Test empty urls result.
-    assert_empty_array db.urls
-    assert_empty_array db.crawled_urls
-    assert_empty_array db.uncrawled_urls
+    assert_empty db.urls
+    assert_empty db.crawled_urls
+    assert_empty db.uncrawled_urls
 
     # Seed url data to the DB.
     # Url 1 crawled == true, Url 2 & 3 crawled == false.
@@ -87,15 +103,15 @@ class TestDatabase < TestHelper
     uncrawled_urls = db.uncrawled_urls
 
     # Test urls.
-    assert_arr_types urls, Wgit::Url
+    assert urls.all? { |url| url.instance_of? Wgit::Url }
     assert_equal 3, urls.count
 
     # Test crawled_urls
-    assert_arr_types crawled_urls, Wgit::Url
+    assert crawled_urls.all? { |url| url.instance_of? Wgit::Url }
     assert_equal 1, crawled_urls.count
 
     # Test uncrawled_urls.
-    assert_arr_types uncrawled_urls, Wgit::Url
+    assert uncrawled_urls.all? { |url| url.instance_of? Wgit::Url }
     assert_equal 2, uncrawled_urls.count
   end
 
@@ -109,18 +125,19 @@ class TestDatabase < TestHelper
     db = Wgit::Database.new
 
     # Test no results.
-    assert_empty_array db.search "doesn't_exist_123"
+    assert_empty db.search "doesn't_exist_123"
 
-    # Test whole_sentence = false.
+    # Test whole_sentence: false.
     results = db.search query
-    assert_arr_types results, Wgit::Document
+    assert results.all? { |doc| doc.instance_of? Wgit::Document }
     assert_equal @docs.count, results.count
 
-    # Test whole_sentence = true and block.
-    num_results_from_block = 0
-    results = db.search(query, true) { num_results_from_block += 1 }
-    assert_arr_types results, Wgit::Document
-    assert_equal 1, num_results_from_block
+    # Test whole_sentence: true and block.
+    count = 0
+    results = db.search(query, whole_sentence: true) { count += 1 }
+
+    assert results.all? { |doc| doc.instance_of? Wgit::Document }
+    assert_equal 1, count
     assert_equal 1, results.count
     assert_equal @docs.last.url, results.last.url
   end
@@ -128,6 +145,7 @@ class TestDatabase < TestHelper
   def test_stats
     db = Wgit::Database.new
     stats = db.stats
+
     refute_nil stats
     refute stats.empty?
   end
@@ -135,13 +153,15 @@ class TestDatabase < TestHelper
   def test_size
     db = Wgit::Database.new
     size = db.size
-    assert_type size, Integer
+
+    assert_instance_of Integer, size
     refute_nil size
   end
 
   def test_num_urls
     db = Wgit::Database.new
     assert_equal 0, db.num_urls
+
     seed { url 3 }
     assert_equal 3, db.num_urls
   end
@@ -149,6 +169,7 @@ class TestDatabase < TestHelper
   def test_num_docs
     db = Wgit::Database.new
     assert_equal 0, db.num_docs
+
     seed { doc 3 }
     assert_equal 3, db.num_docs
   end
@@ -156,16 +177,15 @@ class TestDatabase < TestHelper
   def test_num_records
     db = Wgit::Database.new
     assert_equal 0, db.num_records
-    seed do
-      url 3
-      doc 2
-    end
+
+    seed { url 3; doc 2 }
     assert_equal 5, db.num_records
   end
 
   def test_url?
     db = Wgit::Database.new
     refute db.url? @url
+
     seed { url @url.to_h }
     assert db.url? @url
   end
@@ -174,27 +194,30 @@ class TestDatabase < TestHelper
     db = Wgit::Database.new
     refute db.doc? @doc
     refute db.doc? @doc.url.to_s
+
     seed { doc @doc.to_h }
     assert db.doc? @doc
     assert db.doc? @doc.url.to_s
   end
 
-  def test_update_url
+  def test_update__url
     seed { url @url.to_h }
     @url.crawled = true
     db = Wgit::Database.new
     result = db.update @url
+
     assert_equal 1, result
     assert url? @url.to_h
     refute url? url: @url, crawled: false
   end
 
-  def test_update_doc
+  def test_update__doc
     title = 'Climb Everest!'
     seed { doc @doc.to_h }
-    set_doc_title(@doc, title)
+    @doc.instance_variable_set :@title, title
     db = Wgit::Database.new
     result = db.update @doc
+
     assert_equal 1, result
     assert doc? @doc.to_h
     refute doc? url: @doc.url, title: 'Altitude Junkies | Everest'
@@ -202,13 +225,10 @@ class TestDatabase < TestHelper
 
   private
 
-  def set_doc_title(doc, title)
-    doc.instance_variable_set :@title, title
-  end
-
-  # Assertion helper method.
-  def assert_empty_array(array)
-    assert_type array, Array
-    assert_empty array
+  # Reset the WGIT_CONNECTION_STRING after the block executes.
+  def reset_connection_string
+    connection_string = ENV.delete 'WGIT_CONNECTION_STRING'
+    yield # Run assertions etc. here.
+    ENV['WGIT_CONNECTION_STRING'] = connection_string
   end
 end

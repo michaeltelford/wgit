@@ -9,9 +9,6 @@ class TestGem < TestHelper
 
   # Test the wgit.rb file loads the API correctly.
   def test_require
-    require('wgit')
-    pass
-  rescue StandardError
-    flunk
+    refute_exception { require('wgit') }
   end
 end

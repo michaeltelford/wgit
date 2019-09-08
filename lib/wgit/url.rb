@@ -6,10 +6,11 @@ require 'uri'
 require 'addressable/uri'
 
 module Wgit
-  # Class modeling a web based URL.
+  # Class modeling a web based HTTP URL.
+  #
   # Can be an internal/relative link e.g. "about.html" or a full URL
-  # e.g. "http://www.google.co.uk". Is a subclass of String and uses
-  # 'uri' and 'addressable/uri' internally.
+  # e.g. "http://www.google.co.uk". Is a subclass of String and uses 'uri' and
+  # 'addressable/uri' internally.
   class Url < String
     include Assertable
 
@@ -17,104 +18,73 @@ module Wgit
     # is also provided by this class.
     attr_reader :crawled
 
-    # The date which the Url was crawled.
+    # The Time which the Url was crawled.
     attr_accessor :date_crawled
 
     # Initializes a new instance of Wgit::Url which represents a web based
     # HTTP URL.
     #
-    # @param url_or_obj [String, Object#fetch#[]] Is either a String based
-    #     URL or an object representing a Database record e.g. a MongoDB
-    #     document/object.
-    # @param crawled [Boolean] Whether or not the HTML of the URL's web
-    #     page has been scraped or not.
-    # @param date_crawled [Time] Should only be provided if crawled is
-    #     true. A suitable object can be returned from
-    #     Wgit::Utils.time_stamp.
-    # @raise [RuntimeError] If url_or_obj is an Object with missing methods.
-    def initialize(url_or_obj, crawled = false, date_crawled = nil)
+    # @param url_or_obj [String, Wgit::Url, Object#fetch#[]] Is either a String
+    #   based URL or an object representing a Database record e.g. a MongoDB
+    #   document/object.
+    # @param crawled [Boolean] Whether or not the HTML of the URL's web page
+    #   has been crawled or not. Only used if url_or_obj is a String.
+    # @param date_crawled [Time] Should only be provided if crawled is true. A
+    #   suitable object can be returned from Wgit::Utils.time_stamp. Only used
+    #   if url_or_obj is a String.
+    # @raise [StandardError] If url_or_obj is an Object with missing methods.
+    def initialize(url_or_obj, crawled: false, date_crawled: nil)
       # Init from a URL String.
       if url_or_obj.is_a?(String)
         url = url_or_obj.to_s
-      # Else init from a database object/document.
+      # Else init from a Hash like object e.g. database object.
       else
         obj = url_or_obj
-        assert_respond_to(obj, [:fetch, :[]])
+        assert_respond_to(obj, :fetch)
 
-        url = obj.fetch('url') # Should always be present.
-        crawled = obj.fetch('crawled', false)
-        date_crawled = obj['date_crawled']
+        url          = obj.fetch('url') # Should always be present.
+        crawled      = obj.fetch('crawled', false)
+        date_crawled = obj.fetch('date_crawled', nil)
       end
 
-      @uri = Addressable::URI.parse(url)
-      @crawled = crawled
+      @uri          = Addressable::URI.parse(url)
+      @crawled      = crawled
       @date_crawled = date_crawled
 
       super(url)
     end
 
-    # A class alias for Url.new.
+    # Initialises a new Wgit::Url instance from a String or subclass of String
+    # e.g. Wgit::Url. Any other obj type will raise an error.
     #
-    # @param str [String] The URL string to parse.
-    # @return [Wgit::Url] The parsed Url object.
-    def self.parse(str)
-      new(str)
+    # If obj is already a Wgit::Url then it will be returned as is to maintain
+    # it's state. Otherwise, a new Wgit::Url is instantiated and returned. This
+    # differs from Wgit::Url.new which always instantiates a new Wgit::Url.
+    #
+    # Note: Only use this method if you are allowing obj to be either a String
+    # or a Wgit::Url whose state you want to preserve e.g. when passing a URL
+    # to a crawl method which might redirect (calling Wgit::Url#replace). If
+    # you're sure of the type or don't care about preserving the state of the
+    # Wgit::Url, use Wgit::Url.new instead.
+    #
+    # @param obj [Object] The object to parse, which #is_a?(String).
+    # @raise [StandardError] If obj.is_a?(String) is false.
+    # @return [Wgit::Url] A Wgit::Url instance.
+    def self.parse(obj)
+      raise 'Can only parse if obj#is_a?(String)' unless obj.is_a?(String)
+
+      # Return a Wgit::Url as is to avoid losing state e.g. date_crawled etc.
+      obj.is_a?(Wgit::Url) ? obj : new(obj)
     end
 
-    # Raises an exception if url is not a valid HTTP URL.
+    # Sets the @crawled instance var, also setting @date_crawled to the
+    # current time or nil (depending on the bool value).
     #
-    # @param url [Wgit::Url, String] The Url to validate.
-    # @raise [RuntimeError] If url is invalid.
-    def self.validate(url)
-      url = Wgit::Url.new(url)
-      raise "Invalid url (or a relative link): #{url}" if url.relative_link?
-      unless url.start_with?('http://') || url.start_with?('https://')
-        raise "Invalid url (missing protocol prefix): #{url}"
-      end
-      if URI::DEFAULT_PARSER.make_regexp.match(url.normalise).nil?
-        raise "Invalid url: #{url}"
-      end
-    end
-
-    # Determines if the Url is valid or not.
-    #
-    # @param url [Wgit::Url, String] The Url to validate.
-    # @return [Boolean] True if valid, otherwise false.
-    def self.valid?(url)
-      Wgit::Url.validate(url)
-      true
-    rescue StandardError
-      false
-    end
-
-    # Modifies the receiver url by prefixing it with a protocol.
-    # Returns the url whether its been modified or not.
-    # The default protocol prefix is http://.
-    #
-    # @param url [Wgit::Url, String] The url to be prefixed with a protocol.
-    # @param https [Boolean] Whether the protocol prefix is https or http.
-    # @return [Wgit::Url] The url with a protocol prefix.
-    def self.prefix_protocol(url, https = false)
-      unless url.start_with?('http://') || url.start_with?('https://')
-        if https
-          url.replace("https://#{url}")
-        else
-          url.replace("http://#{url}")
-        end
-      end
-      url
-    end
-
-    # Concats the host and link Strings and returns the result.
-    #
-    # @param host [Wgit::Url, String] The Url host.
-    # @param link [Wgit::Url, String] The link to add to the host prefix.
-    # @return [Wgit::Url] host + "/" + link
-    def self.concat(host, link)
-      host = Wgit::Url.new(host).without_trailing_slash
-      link = Wgit::Url.new(link).without_leading_slash
-      separator = (link.start_with?('#') || link.start_with?('?')) ? '' : '/'
-      Wgit::Url.new(host + separator + link)
+    # @param bool [Boolean] True if self has been crawled, false otherwise.
+    # @return [Time, NilClass] Returns the date crawled, if set.
+    def crawled=(bool)
+      @crawled = bool
+      @date_crawled = bool ? Wgit::Utils.time_stamp : nil
     end
 
     # Overrides String#replace setting the new_url @uri and String value.
@@ -123,108 +93,138 @@ module Wgit
     # @return [String] The new URL value once set.
     def replace(new_url)
       @uri = Addressable::URI.parse(new_url)
+
       super(new_url)
     end
 
     # Returns true if self is a relative Url; false if absolute.
     #
     # All external links in a page are expected to have a protocol prefix e.g.
-    # "http://", otherwise the link is treated as an internal link (regardless
+    # 'http://', otherwise the link is treated as an internal link (regardless
     # of whether it's valid or not). The only exception is if an opts arg is
-    # provided and self is a page belonging to that arg type e.g. domain; then
+    # provided and self is a page belonging to that arg type e.g. host; then
     # the link is relative.
     #
-    # @param opts [Hash] The options with which to check relativity.
+    # @param opts [Hash] The options with which to check relativity. Only one
+    #   opts param should be provided. The provided opts param Url must be
+    #   absolute and be prefixed with a protocol. Consider using the output of
+    #   Wgit::Url#to_base which should work unless it's nil.
+    # @option opts [Wgit::Url, String] :base The Url base e.g.
+    #   http://www.google.com/how which gives a base of
+    #   'http://www.google.com'.
     # @option opts [Wgit::Url, String] :host The Url host e.g.
     #   http://www.google.com/how which gives a host of 'www.google.com'.
-    #   The host must be absolute and prefixed with a protocol.
     # @option opts [Wgit::Url, String] :domain The Url domain e.g.
-    #   http://www.google.com/how which gives a domain of 'google.com'. The
-    #   domain must be absolute and prefixed with a protocol.
+    #   http://www.google.com/how which gives a domain of 'google.com'.
     # @option opts [Wgit::Url, String] :brand The Url brand e.g.
-    #   http://www.google.com/how which gives a domain of 'google'. The
-    #   brand must be absolute and prefixed with a protocol.
-    # @raise [RuntimeError] If self is invalid e.g. empty.
+    #   http://www.google.com/how which gives a domain of 'google'.
+    # @raise [StandardError] If self is invalid e.g. empty or an invalid opts
+    #   param has been provided.
     # @return [Boolean] True if relative, false if absolute.
-    def is_relative?(opts = {})
-      opts = { host: nil, domain: nil, brand: nil }.merge(opts)
+    def relative?(opts = {})
+      defaults = { base: nil, host: nil, domain: nil, brand: nil }
+      opts = defaults.merge(opts)
+      raise 'Url (self) cannot be empty' if empty?
 
-      raise "Invalid link: '#{self}'" if empty?
-      if opts.values.count(nil) < (opts.length - 1)
-        raise "Provide only one of: #{opts.keys}"
-      end
+      return true if @uri.relative?
 
-      host = opts[:host]
-      if host
-        host = Wgit::Url.new(host)
-        if host.to_base.nil?
-          raise "Invalid host, must be absolute and contain protocol: #{host}"
-        end
-      end
+      # Self is absolute but may be relative to the opts param e.g. host.
+      opts.select! { |_k, v| v }
+      raise "Provide only one of: #{defaults.keys}" if opts.length > 1
 
-      domain = opts[:domain]
-      if domain
-        domain = Wgit::Url.new(domain)
-        if domain.to_base.nil?
-          raise "Invalid domain, must be absolute and contain protocol: #{domain}"
-        end
-      end
+      return false if opts.empty?
 
-      brand = opts[:brand]
-      if brand
-        brand = Wgit::Url.new(brand)
-        if brand.to_base.nil?
-          raise "Invalid brand, must be absolute and contain protocol: #{brand}"
-        end
-      end
+      type, url = opts.first
+      url = Wgit::Url.new(url)
+      raise "Invalid opts param value, Url must be absolute and contain \
+protocol: #{url}" unless url.to_base
 
-      if @uri.relative?
-        true
+      case type
+      when :base   # http://www.google.com
+        to_base   == url.to_base
+      when :host   # www.google.com
+        to_host   == url.to_host
+      when :domain # google.com
+        to_domain == url.to_domain
+      when :brand  # google
+        to_brand  == url.to_brand
       else
-        return host   ? to_host   == host.to_host     : false if host
-        return domain ? to_domain == domain.to_domain : false if domain
-        return brand  ? to_brand  == brand.to_brand   : false if brand
-
-        false
+        raise "Unknown opts param: :#{type}, use one of: #{defaults.keys}"
       end
     end
 
-    # Determines if self is a valid Url or not.
+    # Returns true if self is an absolute Url; false if relative.
     #
-    # @return [Boolean] True if valid, otherwise false.
+    # @return [Boolean] True if absolute, false if relative.
+    def absolute?
+      @uri.absolute?
+    end
+
+    # Returns if self is a valid and absolute HTTP Url or not.
+    #
+    # @return [Boolean] True if valid and absolute, otherwise false.
     def valid?
-      Wgit::Url.valid?(self)
+      return false if relative?
+      return false unless start_with?('http://') || start_with?('https://')
+      return false if URI::DEFAULT_PARSER.make_regexp.match(normalize).nil?
+
+      true
     end
 
-    # Concats self and the link.
+    # Concats self and path together before returning a new Url. Self is not
+    # modified.
     #
-    # @param link [Wgit::Url, String] The link to concat with self.
-    # @return [Wgit::Url] self + "/" + link
-    def concat(link)
-      Wgit::Url.concat(self, link)
+    # @param path [Wgit::Url, String] The path to concat onto the end of self.
+    # @return [Wgit::Url] self + separator + path, separator depends on path.
+    def concat(path)
+      path = Wgit::Url.new(path)
+      raise 'path must be relative' unless path.is_relative?
+
+      path = path.without_leading_slash
+      separator = path.start_with?('#') || path.start_with?('?') ? '' : '/'
+
+      Wgit::Url.new(without_trailing_slash + separator + path)
     end
 
-    # Sets the @crawled instance var, also setting @date_crawled to the
-    # current time or nil (depending on the bool value).
+    # Normalises/escapes self and returns a new Wgit::Url. Self isn't modified.
     #
-    # @param bool [Boolean] True if self has been crawled, false otherwise.
-    def crawled=(bool)
-      @crawled = bool
-      @date_crawled = bool ? Wgit::Utils.time_stamp : nil
-    end
-
-    # Normalises/escapes self and returns a new Wgit::Url.
-    #
-    # @return [Wgit::Url] An encoded version of self.
-    def normalise
+    # @return [Wgit::Url] An escaped version of self.
+    def normalize
       Wgit::Url.new(@uri.normalize.to_s)
+    end
+
+    # Modifies self by prefixing it with a protocol. Returns the url whether
+    # its been modified or not. The default protocol prefix is http://.
+    #
+    # @param protocol [Symbol] Either :http or :https.
+    # @return [Wgit::Url] The url with protocol prefix (having been modified).
+    def prefix_protocol(protocol: :http)
+      unless %i[http https].include?(protocol)
+        raise 'protocol must be :http or :https'
+      end
+
+      unless start_with?('http://') || start_with?('https://')
+        protocol == :http ? replace("http://#{url}") : replace("https://#{url}")
+      end
+
+      self
+    end
+
+    # Returns a Hash containing this Url's instance vars excluding @uri.
+    # Used when storing the URL in a Database e.g. MongoDB etc.
+    #
+    # @return [Hash] self's instance vars as a Hash.
+    def to_h
+      ignore = ['@uri']
+      h = Wgit::Utils.to_h(self, ignore: ignore)
+      Hash[h.to_a.insert(0, ['url', self])] # Insert url at position 0.
     end
 
     # Returns a normalised URI object for this URL.
     #
     # @return [URI::HTTP, URI::HTTPS] The URI object of self.
     def to_uri
-      URI(normalise)
+      URI(normalize)
     end
 
     # Returns self.
@@ -311,7 +311,7 @@ module Wgit
     # e.g. Given http://google.com?q=ruby, '?q=ruby' is returned.
     #
     # @return [Wgit::Url, nil] Containing just the query string or nil.
-    def to_query_string
+    def to_query
       query = @uri.query
       query ? Wgit::Url.new("?#{query}") : nil
     end
@@ -361,9 +361,8 @@ module Wgit
     #
     # @return [Wgit::Url] Self without leading or trailing slashes.
     def without_slashes
-      self.
-        without_leading_slash.
-        without_trailing_slash
+      without_leading_slash
+      .without_trailing_slash
     end
 
     # Returns a new Wgit::Url with the base (proto and host) removed e.g. Given
@@ -388,8 +387,8 @@ module Wgit
     # URL.
     #
     # @return [Wgit::Url] Self with the query string portion removed.
-    def without_query_string
-      query = to_query_string
+    def without_query
+      query = to_query
       without_query_string = query ? gsub(query, '') : self
 
       Wgit::Url.new(without_query_string)
@@ -410,56 +409,43 @@ module Wgit
       Wgit::Url.new(without_anchor)
     end
 
-    # Returns true if self is a URL query string e.g. ?q=hello etc.
+    # Returns true if self is a URL query string e.g. ?q=hello etc. Note this
+    # shouldn't be used to determine if self contains a query.
     #
     # @return [Boolean] True if self is a query string, false otherwise.
-    def is_query_string?
+    def query?
       start_with?('?')
     end
 
-    # Returns true if self is a URL anchor/fragment e.g. #top etc.
+    # Returns true if self is a URL anchor/fragment e.g. #top etc. Note this
+    # shouldn't be used to determine if self contains an anchor/fragment.
     #
     # @return [Boolean] True if self is a anchor/fragment, false otherwise.
-    def is_anchor?
+    def anchor?
       start_with?('#')
     end
 
-    # Returns a Hash containing this Url's instance vars excluding @uri.
-    # Used when storing the URL in a Database e.g. MongoDB etc.
-    #
-    # @return [Hash] self's instance vars as a Hash.
-    def to_h
-      ignore = ['@uri']
-      h = Wgit::Utils.to_h(self, ignore)
-      Hash[h.to_a.insert(0, ['url', self])] # Insert url at position 0.
-    end
-
-    alias uri to_uri
-    alias url to_url
-    alias scheme to_scheme
-    alias to_protocol to_scheme
-    alias protocol to_scheme
-    alias host to_host
-    alias domain to_domain
-    alias brand to_brand
-    alias base to_base
-    alias path to_path
-    alias endpoint to_endpoint
-    alias query_string to_query_string
-    alias query to_query_string
-    alias anchor to_anchor
-    alias to_fragment to_anchor
-    alias fragment to_anchor
-    alias extension to_extension
-    alias without_query without_query_string
+    alias crawled?         crawled
+    alias is_relative?     relative?
+    alias is_absolute?     absolute?
+    alias is_valid?        valid?
+    alias normalise        normalize
+    alias uri              to_uri
+    alias url              to_url
+    alias scheme           to_scheme
+    alias host             to_host
+    alias domain           to_domain
+    alias brand            to_brand
+    alias base             to_base
+    alias path             to_path
+    alias endpoint         to_endpoint
+    alias query            to_query
+    alias anchor           to_anchor
+    alias fragment         to_anchor
+    alias extension        to_extension
     alias without_fragment without_anchor
-    alias is_query? is_query_string?
-    alias is_fragment? is_anchor?
-    alias relative_link? is_relative?
-    alias internal_link? is_relative?
-    alias is_internal? is_relative?
-    alias relative? is_relative?
-    alias crawled? crawled
-    alias normalize normalise
+    alias is_query?        query?
+    alias is_anchor?       anchor?
+    alias fragment?        anchor?
   end
 end

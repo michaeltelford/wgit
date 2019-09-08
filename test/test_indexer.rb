@@ -25,7 +25,7 @@ class TestIndexer < TestHelper
     seed { url url: url_str, crawled: false }
 
     # Index only one site.
-    Wgit.index_the_web 1
+    Wgit.index_www max_sites: 1
 
     # Assert that url.crawled gets updated.
     refute url? url: url_str, crawled: false
@@ -42,7 +42,7 @@ class TestIndexer < TestHelper
     seed { url url: url_str, crawled: false }
 
     # Index two sites.
-    Wgit.index_the_web 2
+    Wgit.index_www max_sites: 2
 
     # Assert that url.crawled gets updated.
     refute url? url: url_str, crawled: false
@@ -57,8 +57,8 @@ class TestIndexer < TestHelper
     url_str = 'https://motherfuckingwebsite.com/'
     seed { url url: url_str, crawled: false }
 
-    # Index nothing because max_data_size is zero.
-    Wgit.index_the_web(-1, 0)
+    # Index nothing because max_data is zero.
+    Wgit.index_www(max_sites: -1, max_data: 0)
 
     # Assert nothing was indexed. The only DB record is the original url.
     refute url? url: url_str, crawled: true
@@ -72,7 +72,7 @@ class TestIndexer < TestHelper
     refute url? url: url
 
     # Index the site and don't insert the external urls.
-    Wgit.index_this_site url, false
+    Wgit.index_site url, insert_externals: false
 
     # Assert that url.crawled gets updated.
     assert url? url: url, crawled: true
@@ -89,7 +89,7 @@ class TestIndexer < TestHelper
     refute url? url: url
 
     # Index the site and don't insert the external urls.
-    Wgit.index_this_site url do |doc|
+    Wgit.index_site url do |doc|
       assert_instance_of Wgit::Document, doc
       num_pages_crawled += 1
       true # To insert the doc into the DB.
@@ -112,7 +112,7 @@ class TestIndexer < TestHelper
     refute url? url: url
 
     # Index the site and don't insert the external urls.
-    Wgit.index_this_site url, false do |doc|
+    Wgit.index_site url, insert_externals: false do |doc|
       assert_instance_of Wgit::Document, doc
       false # To avoid inserting the doc into the DB.
     end
@@ -125,13 +125,34 @@ class TestIndexer < TestHelper
     assert_equal 0, @db.num_docs
   end
 
+  def test_index_this_site__invalid_url
+    # Test that an invalid URL isn't indexed.
+    url = Wgit::Url.new 'http://doesntexist_123'
+
+    refute url? url: url
+
+    # Index the site and insert the external urls.
+    Wgit.index_site url do |doc|
+      assert_equal url, doc.url
+      assert_empty doc
+      true # Try to insert the crawled page (but shouldn't because it's nil).
+    end
+
+    # Assert that url.crawled gets updated.
+    assert url? url: url, crawled: true
+
+    # The url's doc wasn't indexed because it's nil due to an invalid url.
+    assert_equal 1, @db.num_urls
+    assert_equal 0, @db.num_docs
+  end
+
   def test_index_this_page__without_externals
     url = Wgit::Url.new 'https://motherfuckingwebsite.com/'
 
     refute url? url: url
 
     # Index the page and don't insert the external urls.
-    Wgit.index_this_page url, false
+    Wgit.index_page url, insert_externals: false
 
     # Assert that url.crawled gets updated.
     assert url? url: url, crawled: true
@@ -147,7 +168,7 @@ class TestIndexer < TestHelper
     refute url? url: url
 
     # Index the page and insert the external urls.
-    Wgit.index_this_page url
+    Wgit.index_page url
 
     # Assert that url.crawled gets updated.
     assert url? url: url, crawled: true
@@ -165,9 +186,30 @@ class TestIndexer < TestHelper
     refute url? url: url
 
     # Index the page and don't insert the external urls.
-    Wgit.index_this_page url, false do |doc|
+    Wgit.index_page url, insert_externals: false do |doc|
       assert_instance_of Wgit::Document, doc
       false # To avoid inserting the doc into the DB.
+    end
+
+    # Assert that url.crawled gets updated.
+    assert url? url: url, crawled: true
+
+    # The site has one doc plus its url.
+    assert_equal 1, @db.num_urls
+    assert_equal 0, @db.num_docs
+  end
+
+  def test_index_this_page__invalid_url
+    # Test that an invalid URL isn't indexed.
+    url = Wgit::Url.new 'http://doesntexist_123'
+
+    refute url? url: url
+
+    # Index the page and insert the external urls.
+    Wgit.index_page url do |doc|
+      assert_equal url, doc.url
+      assert_empty doc
+      true # Try to insert the crawled page (but shouldn't because it's nil).
     end
 
     # Assert that url.crawled gets updated.

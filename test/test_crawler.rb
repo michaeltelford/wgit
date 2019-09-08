@@ -1,6 +1,12 @@
-# frozen_string_literal: true
-
 require_relative 'helpers/test_helper'
+
+# Crawl the site by it's <a> tags that link to jpg's (in the below test).
+class ImageCrawler < Wgit::Crawler
+  def get_internal_links(doc)
+    doc.internal_absolute_links
+       .select { |link| %w[jpg jpeg].include?(link.to_extension) }
+  end
+end
 
 # Test class for the Crawler methods.
 class TestCrawler < TestHelper
@@ -8,164 +14,54 @@ class TestCrawler < TestHelper
   parallelize_me!
 
   # Runs before every test.
-  def setup
-    @url_strs = [
-      'https://www.google.co.uk',
-      'https://duckduckgo.com',
-      'http://www.bing.com'
-    ]
-    @urls = @url_strs.map { |s| Wgit::Url.new(s) }
-  end
+  def setup; end
 
   def test_initialise
     c = Wgit::Crawler.new
-    assert_empty c.docs
-    assert_empty c.urls
+
     assert_nil c.last_response
-
-    c = Wgit::Crawler.new(*@url_strs)
-    assert_empty c.docs
-    assert_urls c
-    assert_nil c.last_response
-
-    c = Wgit::Crawler.new(*@urls)
-    assert_empty c.docs
-    assert_urls c
-    assert_nil c.last_response
-
-    c = Wgit::Crawler.new(@urls)
-    assert_empty c.docs
-    assert_urls c
-    assert_nil c.last_response
-  end
-
-  def test_urls=
-    c = Wgit::Crawler.new
-    c.urls = @urls
-    assert_urls c
-
-    c.urls = @url_strs
-    assert_urls c
-
-    c.urls = 'https://duckduckgo.com'
-    assert_urls c, [Wgit::Url.new('https://duckduckgo.com')]
-
-    c.urls = Wgit::Url.new 'https://duckduckgo.com'
-    assert_urls c, [Wgit::Url.new('https://duckduckgo.com')]
-  end
-
-  def test_square_brackets
-    c = Wgit::Crawler.new
-    c[*@urls]
-    assert_urls c
-
-    c[@urls]
-    assert_urls c
-
-    c[*@url_strs]
-    assert_urls c
-  end
-
-  def test_double_chevron
-    c = Wgit::Crawler.new
-    c << @urls.first
-    assert_urls c, @urls.first(1)
-
-    c.urls.clear
-    c << @url_strs.first
-    assert_urls c, @url_strs.first(1)
-  end
-
-  def test_crawl_urls
-    c = Wgit::Crawler.new
-    i = 0
-
-    # Test array of urls as parameter.
-    urls = @urls.dup
-    document = c.crawl_urls urls do |doc|
-      assert_crawl_output c, doc, urls[i]
-      i += 1
-    end
-    assert_crawl_output c, document, urls.last
-
-    # Test array of urls as instance var.
-    urls = @urls.dup
-    c = Wgit::Crawler.new(*urls)
-    i = 0
-    document = c.crawl_urls do |doc|
-      assert_crawl_output c, doc, c.urls[i]
-      i += 1
-    end
-    assert_crawl_output c, document, urls.last
-
-    # Test one url as parameter.
-    c = Wgit::Crawler.new
-    url = @urls.dup.first
-    document = c.crawl_urls url do |doc|
-      assert_crawl_output c, doc, url
-    end
-    assert_crawl_output c, document, url
-
-    # Test invalid url.
-    c = Wgit::Crawler.new
-    url = Wgit::Url.new('doesnt_exist')
-    document = c.crawl_urls url do |doc|
-      assert doc.empty?
-      assert url.crawled
-    end
-    assert_nil document
-
-    # Test no block given.
-    urls = @urls.dup
-    document = c.crawl_urls urls
-    assert_crawl_output c, document, urls.last
-    assert_equal urls.length, c.docs.length
-    assert_equal urls, c.docs.map(&:url)
   end
 
   def test_crawl_url
-    # Valid URL passed to method.
+    # Valid Url.
     c = Wgit::Crawler.new
-    url = @urls.first.dup
-    assert_crawl c, url
+    url = 'https://duckduckgo.com'.to_url
+    doc = c.crawl_url(url) { |d| assert_crawl(d) }
+    assert c.last_response.instance_of? Net::HTTPOK
+    assert_equal 'https://duckduckgo.com', url
+    assert_equal url, doc.url
+    assert_crawl doc
 
-    # Valid URL passed to constructor.
-    c = Wgit::Crawler.new(*@urls.dup)
-    assert_crawl c
-
-    # Invalid URL.
+    # Invalid Url.
+    c = Wgit::Crawler.new
     url = Wgit::Url.new('doesnt_exist')
-    document = c.crawl_url(url) do |doc|
-      assert_equal url, doc.url
-      assert_empty doc
+    doc = c.crawl_url(url) do |d|
+      assert_equal url, d.url
+      assert_empty d
     end
-    assert_nil document
+    assert_nil doc
     assert_nil c.last_response
+    assert_equal 'doesnt_exist', url
     assert url.crawled
+    refute_nil url.date_crawled
 
-    # Non ASCII chars in the URL.
+    # IRI (non ASCII) Url.
     c = Wgit::Crawler.new
     url = Wgit::Url.new 'https://www.über.com/about'
-    assert_crawl c, url
+    doc = c.crawl_url(url) { |d| assert_crawl(d) }
+    assert c.last_response.instance_of? Net::HTTPOK
     assert_equal 'https://www.über.com/about', url
+    assert_equal url, doc.url
+    assert_crawl doc
 
     # String instead of Url instance.
     url = 'http://www.bing.com'
-    ex = assert_raises(RuntimeError) { c.crawl_url url }
-    assert_equal 'Expected: Wgit::Url, Actual: String', ex.message
+    e = assert_raises(StandardError) { c.crawl_url url }
+    assert_equal 'Expected: Wgit::Url, Actual: String', e.message
   end
 
   def test_crawl_url__redirects
-    # Url redirect passed to crawler doesn't update.
-    url = Wgit::Url.new 'http://test-site.com/sneaky'
-    c = Wgit::Crawler.new url
-    c.crawl_url do |doc|
-      assert_equal 'https://motherfuckingwebsite.com/', doc.url
-      refute_empty doc
-    end
-    assert_equal 'http://test-site.com/sneaky', url
-
-    # Url redirect passed to method does update.
+    # Url passed to method updates on redirect.
     c = Wgit::Crawler.new
     url = Wgit::Url.new 'http://test-site.com/sneaky'
     c.crawl_url(url) do |doc|
@@ -174,7 +70,7 @@ class TestCrawler < TestHelper
     end
     assert_equal 'https://motherfuckingwebsite.com/', url
 
-    # Url redirect not affected by random host.
+    # Url redirect not affected by host: X if follow_external_redirects: true.
     url = Wgit::Url.new 'http://test-site.com/sneaky'
     c.crawl_url(url, host: url.to_base) do |doc|
       assert_equal 'https://motherfuckingwebsite.com/', doc.url
@@ -196,18 +92,81 @@ class TestCrawler < TestHelper
 
     # Url redirect parameter error.
     url = Wgit::Url.new 'http://test-site.com/sneaky'
-    ex = assert_raises(RuntimeError) do
+    e = assert_raises(StandardError) do
       c.crawl_url(url, follow_external_redirects: false)
     end
     assert_equal 'http://test-site.com/sneaky', url
-    assert_equal 'host cannot be nil if follow_external_redirects is false', ex.message
+    assert_equal 'host cannot be nil if follow_external_redirects is false', e.message
+  end
+
+  def test_crawl_urls
+    # Test several valid Urls.
+    c = Wgit::Crawler.new
+    urls = [
+      'https://duckduckgo.com',
+      'https://www.google.co.uk',
+      'http://www.bing.com'
+    ].to_urls
+    i = 0
+    doc = c.crawl_urls(*urls) do |d|
+      assert c.last_response.instance_of? Net::HTTPOK
+      assert_crawl d
+      i += 1
+    end
+    assert_crawl doc
+    assert_equal urls.length, i
+    assert_equal urls.last, doc.url
+
+    # Test one valid Url.
+    c = Wgit::Crawler.new
+    url = 'https://duckduckgo.com'.to_url
+    i = 0
+    doc = c.crawl_urls(url) do |d|
+      assert c.last_response.instance_of? Net::HTTPOK
+      assert_crawl d
+      i += 1
+    end
+    assert_crawl doc
+    assert_equal 1, i
+    assert_equal url, doc.url
+
+    # Test one invalid Url.
+    c = Wgit::Crawler.new
+    url = Wgit::Url.new('doesnt_exist')
+    doc = c.crawl_urls(url) do |d|
+      assert_nil c.last_response
+      assert d.empty?
+      assert d.url.crawled
+    end
+    assert_nil doc
+    assert url.crawled
+    refute_nil url.date_crawled
+
+    # Test a mixture of valid and invalid Urls.
+    c = Wgit::Crawler.new
+    urls = [
+      'https://duckduckgo.com',
+      'doesnt_exist',
+      'http://www.bing.com'
+    ].to_urls
+    i = 0
+    doc = c.crawl_urls(*urls) do |d|
+      if i == 1
+        assert_nil c.last_response
+        assert_empty d
+      else
+        assert c.last_response.instance_of? Net::HTTPOK
+        assert_crawl d
+      end
+      i += 1
+    end
   end
 
   def test_crawl_site
     # Test largish site - Wordpress site with disgusting HTML.
     url = Wgit::Url.new 'http://www.belfastpilates.co.uk/'
-    c = Wgit::Crawler.new url
-    assert_crawl_site c, 19, 10, expected_pages: [
+    c = Wgit::Crawler.new
+    assert_crawl_site c, url, 19, 10, expected_pages: [
       'http://www.belfastpilates.co.uk/',
       'http://www.belfastpilates.co.uk/about-us',
       'http://www.belfastpilates.co.uk/about-us/the-team',
@@ -231,8 +190,8 @@ class TestCrawler < TestHelper
 
     # Test small site - Static well formed HTML.
     url = Wgit::Url.new 'http://txti.es'
-    c = Wgit::Crawler.new url
-    assert_crawl_site c, 7, 8, expected_pages: [
+    c = Wgit::Crawler.new
+    assert_crawl_site c, url, 7, 8, expected_pages: [
       'http://txti.es',
       'http://txti.es/about',
       'http://txti.es/how',
@@ -244,8 +203,8 @@ class TestCrawler < TestHelper
 
     # Test single web page with a single external link.
     url = Wgit::Url.new 'https://motherfuckingwebsite.com/'
-    c = Wgit::Crawler.new url
-    assert_crawl_site c, 1, 1, expected_pages: [
+    c = Wgit::Crawler.new
+    assert_crawl_site c, url, 1, 1, expected_pages: [
       'https://motherfuckingwebsite.com/'
     ], expected_externals: [
       'http://txti.es'
@@ -253,8 +212,8 @@ class TestCrawler < TestHelper
 
     # Test custom small site.
     url = Wgit::Url.new 'http://test-site.com'
-    c = Wgit::Crawler.new url
-    assert_crawl_site c, 6, 2, expected_pages: [
+    c = Wgit::Crawler.new
+    assert_crawl_site c, url, 6, 2, expected_pages: [
       'http://test-site.com',
       'http://test-site.com/contact',
       'http://test-site.com/search',
@@ -268,8 +227,8 @@ class TestCrawler < TestHelper
 
     # Test custom small site not starting on the index page.
     url = Wgit::Url.new 'http://test-site.com/search'
-    c = Wgit::Crawler.new url
-    assert_crawl_site c, 6, 2, expected_pages: [
+    c = Wgit::Crawler.new
+    assert_crawl_site c, url, 6, 2, expected_pages: [
       'http://test-site.com/search',
       'http://test-site.com/',
       'http://test-site.com/contact',
@@ -283,8 +242,8 @@ class TestCrawler < TestHelper
 
     # Test custom small site with an initial host redirect.
     url = Wgit::Url.new 'http://myserver.com' # Redirects to test-site.com.
-    c = Wgit::Crawler.new url
-    assert_crawl_site c, 6, 2, expected_pages: [
+    c = Wgit::Crawler.new
+    assert_crawl_site c, url, 6, 2, expected_pages: [
       'http://test-site.com',
       'http://test-site.com/contact',
       'http://test-site.com/search',
@@ -298,36 +257,47 @@ class TestCrawler < TestHelper
 
     # Test that an invalid url returns nil.
     url = Wgit::Url.new 'http://doesntexist_123'
-    c = Wgit::Crawler.new url
-    assert_nil c.crawl_site
+    c = Wgit::Crawler.new
+    assert_nil c.crawl_site(url)
   end
 
-  # We crawl the site by it's <a> tags that link to jpg images.
-  class ImageCrawler < Wgit::Crawler
-    def get_internal_links(doc)
-      doc.internal_full_links
-         .select { |link| %w[jpg jpeg].include?(link.to_extension) }
-    end
+  def test_crawl_site__not_mocked
+    # We turn off webmock to sanity check the HTTP crawl logic.
+    WebMock.allow_net_connect!
+
+    url = 'https://vlang.io/'.to_url
+    crawler = Wgit::Crawler.new
+
+    crawled = []
+    externals = crawler.crawl_site(url) { |doc| crawled << doc.url }
+
+    # Because real websites change over time we deliberately don't assert much.
+    refute_empty crawled
+    assert crawled.include?(url)
+    refute_empty externals
+
+    WebMock.disable_net_connect!
   end
 
   def test_crawl_site__get_internal_links_override
     url = Wgit::Url.new 'http://www.belfastpilates.co.uk/'
     crawled = []
 
-    crawler = ImageCrawler.new url
-    crawler.crawl_site do |doc|
+    # We use ImageCrawler defined at the top of the file.
+    crawler = ImageCrawler.new
+    crawler.crawl_site(url) do |doc|
       crawled << doc.url
     end
 
     assert_equal [
-      "http://www.belfastpilates.co.uk/",
-      "http://www.belfastpilates.co.uk/wp-content/uploads/2016/11/launch.jpg",
-      "http://www.belfastpilates.co.uk/wp-content/uploads/2016/11/Belfast-Pilates-Invitation.jpg",
-      "http://www.belfastpilates.co.uk/wp-content/uploads/2016/11/Belfast-Pilates-Gift-Voucher.jpg",
-      "http://www.belfastpilates.co.uk/wp-content/uploads/2016/09/180-1024x569.jpg",
-      "http://www.belfastpilates.co.uk/wp-content/uploads/2016/09/179-1024x569.jpg",
-      "http://www.belfastpilates.co.uk/wp-content/uploads/2016/09/185-1024x569.jpg",
-      "http://www.belfastpilates.co.uk/wp-content/uploads/2016/09/studio-1024x661.jpg"
+      'http://www.belfastpilates.co.uk/',
+      'http://www.belfastpilates.co.uk/wp-content/uploads/2016/11/launch.jpg',
+      'http://www.belfastpilates.co.uk/wp-content/uploads/2016/11/Belfast-Pilates-Invitation.jpg',
+      'http://www.belfastpilates.co.uk/wp-content/uploads/2016/11/Belfast-Pilates-Gift-Voucher.jpg',
+      'http://www.belfastpilates.co.uk/wp-content/uploads/2016/09/180-1024x569.jpg',
+      'http://www.belfastpilates.co.uk/wp-content/uploads/2016/09/179-1024x569.jpg',
+      'http://www.belfastpilates.co.uk/wp-content/uploads/2016/09/185-1024x569.jpg',
+      'http://www.belfastpilates.co.uk/wp-content/uploads/2016/09/studio-1024x661.jpg'
     ], crawled
   end
 
@@ -355,14 +325,14 @@ class TestCrawler < TestHelper
 
     # Redirects 6 times - should fail.
     url = Wgit::Url.new 'http://redirect.com/1'
-    ex = assert_raises(RuntimeError) { c.send :resolve, url }
-    assert_equal 'Too many redirects', ex.message
+    e = assert_raises(StandardError) { c.send :resolve, url }
+    assert_equal 'Too many redirects: 5', e.message
     assert_equal 'http://redirect.com/6', url
 
     # Disable redirects - should fail.
     url = Wgit::Url.new 'http://twitter.com/'
-    ex = assert_raises(RuntimeError) { c.send :resolve, url, redirect_limit: 0 }
-    assert_equal 'Too many redirects', ex.message
+    e = assert_raises(StandardError) { c.send :resolve, url, redirect_limit: 0 }
+    assert_equal 'Too many redirects: 0', e.message
     assert_equal 'http://twitter.com/', url
 
     # Disable redirects - should pass as there's no redirect.
@@ -374,8 +344,8 @@ class TestCrawler < TestHelper
     Wgit::Crawler.default_redirect_limit = 3
 
     url = Wgit::Url.new 'http://redirect.com/2' # Would pass normally.
-    ex = assert_raises(RuntimeError) { c.send :resolve, url }
-    assert_equal 'Too many redirects', ex.message
+    e = assert_raises(StandardError) { c.send :resolve, url }
+    assert_equal 'Too many redirects: 3', e.message
     assert_equal 'http://redirect.com/5', url
 
     Wgit::Crawler.default_redirect_limit = 5 # Back to the original default.
@@ -385,8 +355,8 @@ class TestCrawler < TestHelper
     c = Wgit::Crawler.new
     url = 'http://redirect.com/1'
 
-    ex = assert_raises(RuntimeError) { c.send :resolve, url }
-    assert_equal 'url must respond to :to_uri', ex.message
+    e = assert_raises(StandardError) { c.send :resolve, url }
+    assert_equal 'url must respond to :to_uri', e.message
     assert_equal 'http://redirect.com/1', url
   end
 
@@ -402,16 +372,14 @@ class TestCrawler < TestHelper
     c = Wgit::Crawler.new
     url = 'http://twitter.com'.to_url
 
-    ex = assert_raises(RuntimeError) do
+    e = assert_raises(StandardError) do
       c.send(
-        :resolve,
-        url,
-        follow_external_redirects: false,
-        host: 'http://twitter.co.uk'
+        :resolve, url,
+        follow_external_redirects: false, host: 'http://twitter.co.uk'
       )
     end
     assert_equal "External redirect not allowed - Redirected to: \
-'https://twitter.com', which is outside of host: 'http://twitter.co.uk'", ex.message
+'https://twitter.com', which is outside of host: 'http://twitter.co.uk'", e.message
     assert_equal 'http://twitter.com', url
   end
 
@@ -419,12 +387,12 @@ class TestCrawler < TestHelper
     c = Wgit::Crawler.new
     url = 'http://twitter.com'.to_url
 
-    ex = assert_raises(RuntimeError) do
+    e = assert_raises(StandardError) do
       # Because host defaults to nil, any external redirect will fail.
       c.send :resolve, url, follow_external_redirects: false
     end
     assert_equal "External redirect not allowed - Redirected to: \
-'https://twitter.com', which is outside of host: ''", ex.message
+'https://twitter.com', which is outside of host: ''", e.message
     assert_equal 'http://twitter.com', url
   end
 
@@ -452,7 +420,7 @@ class TestCrawler < TestHelper
     resp = c.send(:resolve, orig_url) do |url, response, location|
       assert_instance_of Wgit::Url, url
       assert_instance_of Wgit::Url, location
-      assert response.is_a?(Net::HTTPOK)
+      assert response.instance_of? Net::HTTPOK
 
       assert_equal orig_url, url
       assert_empty location
@@ -467,42 +435,42 @@ class TestCrawler < TestHelper
     crawler = Wgit::Crawler.new
 
     assert_equal [
-      "http://www.mytestsite.com/home",
-      "http://www.mytestsite.com/home?foo=bar",
-      "http://www.mytestsite.com/security.html",
-      "http://www.mytestsite.com/about.html",
-      "http://www.mytestsite.com/",
-      "http://www.mytestsite.com/contact.html",
-      "http://www.mytestsite.com/tests.html",
-      "http://www.mytestsite.com/blog",
-      "http://www.mytestsite.com/contents"
+      'http://www.mytestsite.com/home',
+      'http://www.mytestsite.com/home?foo=bar',
+      'http://www.mytestsite.com/security.html',
+      'http://www.mytestsite.com/about.html',
+      'http://www.mytestsite.com/',
+      'http://www.mytestsite.com/contact.html',
+      'http://www.mytestsite.com/tests.html',
+      'http://www.mytestsite.com/blog',
+      'http://www.mytestsite.com/contents'
     ], crawler.send(:get_internal_links, doc)
   end
 
   private
 
-  def assert_urls(crawler, urls = @urls)
-    assert crawler.urls.all? { |url| url.instance_of?(Wgit::Url) }
-    assert_equal urls, crawler.urls
+  def assert_crawl(doc)
+    assert doc
+    assert_instance_of Wgit::Document, doc
+    assert_instance_of Wgit::Url, doc.url
+    refute doc.empty?
+    assert doc.url.crawled
+    refute_nil doc.date_crawled
   end
 
-  def assert_crawl(crawler, url = nil)
-    document = if url
-                 crawler.crawl_url(url) { |doc| assert doc.title }
-               else
-                 crawler.crawl_url { |doc| assert doc.title }
-               end
-
-    assert_crawl_output crawler, document, url
-  end
-
-  def assert_crawl_site(crawler, expected_num_crawled, expected_num_externals, expected_pages: nil, expected_externals: nil)
+  def assert_crawl_site(
+    crawler, url,
+    expected_num_crawled, expected_num_externals,
+    expected_pages: nil, expected_externals: nil
+  )
     crawled = []
 
-    ext_links = crawler.crawl_site do |doc|
-      assert_equal crawler.urls.first.to_host, doc.url.to_host
+    ext_links = crawler.crawl_site(url) do |doc|
+      assert_equal url.to_host, doc.url.to_host
       assert doc.url.crawled?
+      refute_nil doc.date_crawled
 
+      # The following docs shouldn't be crawled.
       if  (doc.url == 'http://test-site.com/sneaky') ||
           (doc.url == 'http://test-site.com/ftp')
         assert_empty(doc)
@@ -517,22 +485,14 @@ class TestCrawler < TestHelper
     assert_equal expected_num_externals, ext_links.length
     assert_equal expected_externals, ext_links if expected_externals
     assert_nil ext_links.uniq!
-    assert crawler.urls.first.crawled?
-  end
-
-  def assert_crawl_output(crawler, doc, url = nil)
-    assert crawler.last_response.is_a? Net::HTTPResponse
-    assert doc
-    refute doc.empty?
-
-    url = crawler.urls.first if url.nil?
-    assert url.crawled if url
+    assert url.crawled?
+    refute_nil url.date_crawled
   end
 
   def assert_resolve(crawler, start_url, end_url)
     response = crawler.send :resolve, start_url
 
-    assert response.is_a? Net::HTTPResponse
+    assert response.instance_of? Net::HTTPOK
     assert_equal '200', response.code
     refute response.body.empty?
     assert_equal end_url, start_url

@@ -1,84 +1,100 @@
 # frozen_string_literal: true
 
-require_relative '../document'
 require_relative '../url'
-require_relative '../utils'
+require_relative '../document'
+require_relative '../logger'
 require_relative '../assertable'
 require_relative 'model'
 require 'logger'
 require 'mongo'
 
 module Wgit
-  # Class modeling a DB connection and CRUD operations for the Url and
-  # Document collections.
+  # Class modeling a DB connection and CRUD operations for the Url and Document
+  # collections.
   class Database
     include Assertable
 
-    # Initializes a database connection client.
+    # The connection string for the database.
+    attr_reader :connection_string
+
+    # The database client object. Gets set when a connection is established.
+    attr_reader :client
+
+    # Initializes a connected database client using the provided
+    # connection_string or ENV['WGIT_CONNECTION_STRING'].
     #
-    # @raise [RuntimeError] If Wgit::CONNECTION_DETAILS aren't set.
-    def initialize
-      @@client = Database.connect
+    # @raise [StandardError] If a connection string isn't provided, either as a
+    #   parameter or via the environment.
+    def initialize(connection_string = nil)
+      connection_string ||= ENV['WGIT_CONNECTION_STRING']
+      raise "connection_string and ENV['WGIT_CONNECTION_STRING'] are nil" \
+      unless connection_string
+
+      @client = Database.establish_connection(connection_string)
+      @connection_string = connection_string
     end
 
-    # Initializes a database connection client.
+    # A class alias for Database.new.
     #
-    # @raise [RuntimeError] If Wgit::CONNECTION_DETAILS aren't set.
-    def self.connect
-      unless Wgit::CONNECTION_DETAILS[:connection_string]
-        raise "Wgit::CONNECTION_DETAILS must be defined and include \
-:connection_string"
-      end
+    # @return [Wgit::Database] The connected database client.
+    def self.connect(connection_string = nil)
+      new(connection_string)
+    end
 
-      # Only log for error (or more severe) scenarios.
+    # Initializes a connected database client using the connection string.
+    #
+    # @raise [StandardError] If a connection cannot be established.
+    # @return [Mong::Client] The connected MongoDB client.
+    def self.establish_connection(connection_string)
+      # Only log for error (and more severe) scenarios.
       Mongo::Logger.logger          = Wgit.logger.clone
       Mongo::Logger.logger.progname = 'mongo'
       Mongo::Logger.logger.level    = Logger::ERROR
 
       # Connects to the database here.
-      Mongo::Client.new(Wgit::CONNECTION_DETAILS[:connection_string])
+      Mongo::Client.new(connection_string)
     end
 
     ### Create Data ###
 
     # Insert one or more Url or Document objects into the DB.
     #
-    # @param data [Hash, Enumerable<Hash>] Hash(es) returned from
-    #   Wgit::Model.url or Wgit::Model.document.
-    # @raise [RuntimeError] If the data is not valid.
+    # @param data [Wgit::Url, Wgit::Document, Enumerable<Wgit::Url,
+    #   Wgit::Document>] Hash(es) returned from Wgit::Model.url or
+    #   Wgit::Model.document.
+    # @raise [StandardError] If data isn't valid.
     def insert(data)
-      if data.is_a?(Url)
+      type = data.is_a?(Enumerable) ? data.first : data
+      case type
+      when Wgit::Url
         insert_urls(data)
-      elsif data.is_a?(Document)
+      when Wgit::Document
         insert_docs(data)
-      elsif data.respond_to?(:first)
-        if data.first.is_a?(Url)
-          insert_urls(data)
-        else
-          insert_docs(data)
-        end
       else
-        raise "data is not in the correct format (all Url's or Document's)"
+        raise "Unsupported type - #{data.class}: #{data}"
       end
     end
 
     ### Retrieve Data ###
 
-    # Returns Url records from the DB. All Urls are sorted by date_added
-    # ascending, in other words the first url returned is the first one that
-    # was inserted into the DB.
+    # Returns Url records from the DB.
+    #
+    # All Urls are sorted by date_added ascending, in other words the first url
+    # returned is the first one that was inserted into the DB.
     #
     # @param crawled [Boolean] Filter by Url#crawled value. nil returns all.
     # @param limit [Integer] The max number of Url's to return. 0 returns all.
     # @param skip [Integer] Skip n amount of Url's.
-    # @yield [url] Given each Url returned from the DB.
+    # @yield [url] Given each Url object (Wgit::Url) returned from the DB.
     # @return [Array<Wgit::Url>] The Urls obtained from the DB.
-    def urls(crawled = nil, limit = 0, skip = 0)
+    def urls(crawled: nil, limit: 0, skip: 0)
       query = crawled.nil? ? {} : { crawled: crawled }
-
       sort = { date_added: 1 }
-      results = retrieve(:urls, query, sort, {}, limit, skip)
-      return [] if results.count < 1
+
+      results = retrieve(:urls, query,
+                         sort: sort, projection: {},
+                         limit: limit, skip: skip)
+      return [] if results.count < 1 # results#empty? doesn't exist.
 
       # results.respond_to? :map! is false so we use map and overwrite the var.
       results = results.map { |url_doc| Wgit::Url.new(url_doc) }
@@ -91,54 +107,59 @@ module Wgit
     #
     # @param limit [Integer] The max number of Url's to return. 0 returns all.
     # @param skip [Integer] Skip n amount of Url's.
-    # @yield [url] Given each Url returned from the DB.
+    # @yield [url] Given each Url object (Wgit::Url) returned from the DB.
     # @return [Array<Wgit::Url>] The crawled Urls obtained from the DB.
-    def crawled_urls(limit = 0, skip = 0, &block)
-      urls(true, limit, skip, &block)
+    def crawled_urls(limit: 0, skip: 0, &block)
+      urls(crawled: true, limit: limit, skip: skip, &block)
     end
 
-    # Returned Url records that haven't been crawled. Each Url is yielded to a
-    # block, if given.
+    # Returned Url records that haven't yet been crawled.
     #
     # @param limit [Integer] The max number of Url's to return. 0 returns all.
     # @param skip [Integer] Skip n amount of Url's.
-    # @yield [url] Given each Url returned from the DB.
+    # @yield [url] Given each Url object (Wgit::Url) returned from the DB.
     # @return [Array<Wgit::Url>] The uncrawled Urls obtained from the DB.
-    def uncrawled_urls(limit = 0, skip = 0, &block)
-      urls(false, limit, skip, &block)
+    def uncrawled_urls(limit: 0, skip: 0, &block)
+      urls(crawled: false, limit: limit, skip: skip, &block)
     end
 
-    # Searches against the indexed docs in the DB for the given query.
+    # Searches the database's Documents for the given query.
     #
     # Currently all searches are case insensitive.
     #
-    # The searched fields are decided by the text index setup against the
+    # The searched fields are decided by the text index setup on the
     # documents collection. Currently we search against the following fields:
-    # "author", "keywords", "title" and "text".
+    # "author", "keywords", "title" and "text" by default.
     #
-    # The MongoDB search ranks/sorts the results in order (highest first) based
-    # upon each documents textScore which records the number of query hits. We
-    # then store this textScore in each Document result object for use
-    # elsewhere if needed.
+    # The MongoDB search algorithm ranks/sorts the results in order (highest
+    # first) based on each document's "textScore" (which records the number of
+    # query hits). The "textScore" is then stored in each Document result
+    # object for use elsewhere if needed; accessed via Wgit::Document#score.
     #
     # @param query [String] The text query to search with.
+    # @param _case_sensitive [Boolean] Whether character case must match.
     # @param whole_sentence [Boolean] Whether multiple words should be searched
     #   for separately.
     # @param limit [Integer] The max number of results to return.
     # @param skip [Integer] The number of DB records to skip.
-    # @yield [doc] Given each search result (Wgit::Document).
+    # @yield [doc] Given each search result (Wgit::Document) returned from the
+    #   DB.
     # @return [Array<Wgit::Document>] The search results obtained from the DB.
-    def search(query, whole_sentence = false, limit = 10, skip = 0)
+    def search(query, _case_sensitive: false, whole_sentence: false, limit: 10, skip: 0)
       query.strip!
       query.replace('"' + query + '"') if whole_sentence
 
-      # The sort_proj sorts based on the most search hits.
+      # Sort based on the most search hits (aka "textScore").
       # We use the sort_proj hash as both a sort and a projection below.
-      # :$caseSensitive => case_sensitive, 3.2+ only.
       sort_proj = { score: { :$meta => 'textScore' } }
-      query = { :$text => { :$search => query } }
+      query = { :$text => {
+        :$search => query,
+        :$caseSensitive => false
+      } }
 
-      results = retrieve(:documents, query, sort_proj, sort_proj, limit, skip)
+      results = retrieve(:documents, query,
+                         sort: sort_proj, projection: sort_proj,
+                         limit: limit, skip: skip)
       return [] if results.count < 1 # respond_to? :empty? == false
 
       # results.respond_to? :map! is false so we use map and overwrite the var.
@@ -152,7 +173,7 @@ module Wgit
     #
     # @return [BSON::Document#[]#fetch] Similar to a Hash instance.
     def stats
-      @@client.command(dbStats: 0).documents[0]
+      @client.command(dbStats: 0).documents[0]
     end
 
     # Returns the current size of the database.
@@ -166,14 +187,14 @@ module Wgit
     #
     # @return [Integer] The current number of URL records.
     def num_urls
-      @@client[:urls].count
+      @client[:urls].count
     end
 
     # Returns the total number of Document records in the DB.
     #
     # @return [Integer] The current number of Document records.
     def num_docs
-      @@client[:documents].count
+      @client[:documents].count
     end
 
     # Returns the total number of records (urls + docs) in the DB.
@@ -183,209 +204,212 @@ module Wgit
       num_urls + num_docs
     end
 
-    # Returns whether or not a record with the given url (which is unique)
-    # exists in the database's 'urls' collection.
+    # Returns whether or not a record with the given 'url' field (which is
+    # unique) exists in the database's 'urls' collection.
     #
     # @param url [Wgit::Url] The Url to search the DB for.
     # @return [Boolean] True if url exists, otherwise false.
     def url?(url)
       h = { 'url' => url }
-      @@client[:urls].find(h).any?
+      @client[:urls].find(h).any?
     end
 
-    # Returns whether or not a record with the given doc.url (which is unique)
-    # exists in the database's 'documents' collection.
+    # Returns whether or not a record with the given doc 'url' field (which is
+    # unique) exists in the database's 'documents' collection.
     #
     # @param doc [Wgit::Document] The Document to search the DB for.
     # @return [Boolean] True if doc exists, otherwise false.
     def doc?(doc)
       url = doc.respond_to?(:url) ? doc.url : doc
       h = { 'url' => url }
-      @@client[:documents].find(h).any?
+      @client[:documents].find(h).any?
     end
 
     ### Update Data ###
 
     # Update a Url or Document object in the DB.
     #
-    # @param data [Hash, Enumerable<Hash>] Hash(es) returned from
-    #   Wgit::Model.url or Wgit::Model.document.
-    # @raise [RuntimeError] If the data is not valid.
+    # @param data [Wgit::Url, Wgit::Document] The data to update.
+    # @raise [StandardError] If the data is not valid.
     def update(data)
-      if data.is_a?(Url)
+      case data
+      when Wgit::Url
         update_url(data)
-      elsif data.is_a?(Document)
+      when Wgit::Document
         update_doc(data)
       else
-        raise "data is not in the correct format (all Url's or Document's)"
+        raise "Unsupported type - #{data.class}: #{data}"
       end
     end
 
     protected
 
+    # Insert one or more Url objects into the DB.
+    #
+    # @param data [Wgit::Url, Array<Wgit::Url>] One or more Urls to insert.
+    # @raise [StandardError] If data type isn't supported.
+    # @return [Integer] The number of inserted Urls.
+    def insert_urls(data)
+      if data.respond_to?(:map)
+        assert_arr_type(data, Wgit::Url)
+        data.map! { |url| Wgit::Model.url(url) }
+      else
+        assert_type(data, Wgit::Url)
+        data = Wgit::Model.url(data)
+      end
+
+      create(:urls, data)
+    end
+
+    # Insert one or more Document objects into the DB.
+    #
+    # @param data [Wgit::Document, Array<Wgit::Document>] One or more Documents
+    #   to insert.
+    # @raise [StandardError] If data type isn't supported.
+    # @return [Integer] The number of inserted Documents.
+    def insert_docs(data)
+      if data.respond_to?(:map)
+        assert_arr_types(data, Wgit::Document)
+        data.map! { |doc| Wgit::Model.document(doc) }
+      else
+        assert_types(data, Wgit::Document)
+        data = Wgit::Model.document(data)
+      end
+
+      create(:documents, data)
+    end
+
+    # Update a Url record in the DB.
+    #
+    # @param url [Wgit::Url] The Url to update.
+    # @return [Integer] The number of updated records.
+    def update_url(url)
+      assert_type(url, Wgit::Url)
+      selection = { url: url }
+      url_hash = Wgit::Model.url(url).merge(Wgit::Model.common_update_data)
+      update = { '$set' => url_hash }
+      mutate(true, :urls, selection, update)
+    end
+
+    # Update a Document record in the DB.
+    #
+    # @param doc [Wgit::Document] The Document to update.
+    # @return [Integer] The number of updated records.
+    def update_doc(doc)
+      assert_type(doc, Wgit::Document)
+      selection = { url: doc.url }
+      doc_hash = Wgit::Model.document(doc).merge(Wgit::Model.common_update_data)
+      update = { '$set' => doc_hash }
+      mutate(true, :documents, selection, update)
+    end
+
+    private
+
     # Return if the write to the DB succeeded or not.
     #
     # @param result [Mongo::Object] The operation result.
-    # @param count [Integer] The number of records written to.
-    # @param multi [Boolean] True if more than one record is being written to.
-    # @raise [RuntimeError] If result.class isn't supported.
-    # @return [Boolean] True if the write was successful.
-    def write_succeeded?(result, count = 1, multi = false)
-      case result.class.to_s
+    # @param records [Integer] The number of records written to.
+    # @param multi [Boolean] Whether several records are being written to.
+    # @raise [StandardError] If the result type isn't supported.
+    # @return [Boolean] True if the write was successful, false otherwise.
+    def write_succeeded?(result, records: 1, multi: false)
+      case result
       # Single create result.
-      when 'Mongo::Operation::Insert::Result'
+      when Mongo::Operation::Insert::Result
         result.documents.first[:err].nil?
       # Multiple create result.
-      when 'Mongo::BulkWrite::Result'
-        result.inserted_count == count
+      when Mongo::BulkWrite::Result
+        result.inserted_count == records
       # Single and multiple update result.
-      when 'Mongo::Operation::Update::Result'
-        if multi
-          result.n == count
-        else
-          result.documents.first[:err].nil?
-        end
+      when Mongo::Operation::Update::Result
+        multi ? result.n == records : result.documents.first[:err].nil?
       # Class no longer used, have you upgraded the 'mongo' gem?
       else
         raise "Result class not currently supported: #{result.class}"
       end
     end
 
-    # Insert one or more Url objects into the DB.
-    #
-    # @param url_or_urls [Wgit::Url, Array<Wgit::Url>] The Url or Url's to
-    #   insert.
-    # @raise [RuntimeError] If url_or_urls isn't of the correct type.
-    # @return [Integer] The number of inserted Url's.
-    def insert_urls(url_or_urls)
-      if url_or_urls.respond_to?(:map)
-        assert_arr_types(url_or_urls, Url)
-        url_or_urls = url_or_urls.map do |url|
-          Wgit::Model.url(url)
-        end
-      else
-        assert_type(url_or_urls, Url)
-        url_or_urls = Wgit::Model.url(url_or_urls)
-      end
-      create(:urls, url_or_urls)
-    end
-
-    # Insert one or more Document objects into the DB.
-    #
-    # @param doc_or_docs [Wgit::Document, Array<Wgit::Document>] The Document
-    #   or Document's to insert.
-    # @raise [RuntimeError] If doc_or_docs isn't of the correct type.
-    # @return [Integer] The number of inserted Document's.
-    def insert_docs(doc_or_docs)
-      if doc_or_docs.respond_to?(:map)
-        assert_arr_types(doc_or_docs, [Document, Hash])
-        doc_or_docs = doc_or_docs.map do |doc|
-          Wgit::Model.document(doc) unless doc.is_a?(Hash)
-        end
-      else
-        assert_type(doc_or_docs, [Document, Hash])
-        unless doc_or_docs.is_a?(Hash)
-          doc_or_docs = Wgit::Model.document(doc_or_docs)
-        end
-      end
-      create(:documents, doc_or_docs)
-    end
-
     # Create/insert one or more Url or Document records into the DB.
     #
     # @param collection [Symbol] Either :urls or :documents.
-    # @param data [Hash, Array<Wgit::Url, Wgit::Document>] The data to insert.
-    # @raise [RuntimeError] If the data type is incorrect or if the write
-    #   fails.
-    # @return [Integer] The number of inserted Objects.
+    # @param data [Hash, Array<Hash>] The data to insert.
+    # @raise [StandardError] If data type is unsupported or the write fails.
+    # @return [Integer] The number of inserted records.
     def create(collection, data)
-      assert_type(data, [Hash, Array])
+      assert_types(data, [Hash, Array])
+
       # Single doc.
-      if data.is_a?(Hash)
+      case data
+      when Hash
         data.merge!(Wgit::Model.common_insert_data)
-        result = @@client[collection.to_sym].insert_one(data)
+        result = @client[collection.to_sym].insert_one(data)
         raise 'DB write (insert) failed' unless write_succeeded?(result)
 
         result.n
       # Multiple docs.
-      elsif data.is_a?(Array)
+      when Array
         assert_arr_types(data, Hash)
-        data.map! do |data_hash|
-          data_hash.merge(Wgit::Model.common_insert_data)
-        end
-        result = @@client[collection.to_sym].insert_many(data)
-        raise 'DB write(s) failed' unless write_succeeded?(result, data.length)
+        data.map! { |hash| hash.merge(Wgit::Model.common_insert_data) }
+        result = @client[collection.to_sym].insert_many(data)
+        raise 'DB write(s) (insert) failed' unless write_succeeded?(
+          result, records: data.length
+        )
 
         result.inserted_count
       else
-        raise "data must be a Hash or an Array of Hash's"
+        raise 'data must be a Hash or an Array of Hashes'
       end
     end
 
     # Retrieve Url or Document records from the DB.
     #
     # @param collection [Symbol] Either :urls or :documents.
-    # @param query [Hash] The query used during the retrieval.
+    # @param query [Hash] The query used for the retrieval.
     # @param sort [Hash] The sort to use.
     # @param projection [Hash] The projection to use.
     # @param limit [Integer] The limit to use.
     # @param skip [Integer] The skip to use.
-    # @return [Mongo::Object] The Mongo client find result.
+    # @raise [StandardError] If query type isn't valid.
+    # @return [Mongo::Object] The Mongo client operation result.
     def retrieve(collection, query,
-                 sort = {}, projection = {},
-                 limit = 0, skip = 0)
+                 sort: {}, projection: {},
+                 limit: 0, skip: 0)
       assert_type(query, Hash)
-      @@client[collection.to_sym].find(query).projection(projection)
-                                 .skip(skip).limit(limit).sort(sort)
+      @client[collection.to_sym].find(query).projection(projection)
+                                .skip(skip).limit(limit).sort(sort)
     end
 
-    # Update a Url object in the DB.
+    # Mutate/update one or more Url or Document records in the DB.
     #
-    # @param url [Wgit::Url] The Url to update.
-    # @return [Integer] The number of updated records.
-    def update_url(url)
-      assert_type(url, Url)
-      selection = { url: url }
-      url_hash = Wgit::Model.url(url).merge(Wgit::Model.common_update_data)
-      update = { '$set' => url_hash }
-      _update(true, :urls, selection, update)
-    end
-
-    # Update a Document object in the DB.
+    # This method expects Model.common_update_data to have been merged in
+    # already by the calling method.
     #
-    # @param doc [Wgit::Document] The Document to update.
-    # @return [Integer] The number of updated records.
-    def update_doc(doc)
-      assert_type(doc, Document)
-      selection = { url: doc.url }
-      doc_hash = Wgit::Model.document(doc).merge(Wgit::Model.common_update_data)
-      update = { '$set' => doc_hash }
-      _update(true, :documents, selection, update)
-    end
-
-    private
-
-    # Update one or more Url or Document records in the DB.
-    # NOTE: The Model.common_update_data should be merged in the calling
-    # method as the update param can be bespoke, due to its nature.
-    def _update(single, collection, selection, update)
+    # @param single [Boolean] Wether or not a single record is being updated.
+    # @param collection [Symbol] Either :urls or :documents.
+    def mutate(single, collection, selection, update)
       assert_arr_types([selection, update], Hash)
+
+      collection = collection.to_sym
+      unless %i[urls documents].include?(collection)
+        raise "Invalid collection: #{collection}"
+      end
+
       result = if single
-                 @@client[collection.to_sym].update_one(selection, update)
+                 @client[collection].update_one(selection, update)
                else
-                 @@client[collection.to_sym].update_many(selection, update)
+                 @client[collection].update_many(selection, update)
                end
       raise 'DB write (update) failed' unless write_succeeded?(result)
 
       result.n
     end
 
-    alias count size
-    alias length size
+    alias count         size
+    alias length        size
     alias num_documents num_docs
-    alias document? doc?
-    alias insert_url insert_urls
-    alias insert_doc insert_docs
-    alias num_objects num_records
+    alias document?     doc?
+    alias insert_url    insert_urls
+    alias insert_doc    insert_docs
+    alias num_objects   num_records
   end
 end

@@ -7,16 +7,12 @@ class TestDocument < TestHelper
 
   # Runs before every test.
   def setup
-    @doc_url = Wgit::Url.new('http://www.mytestsite.com/home')
-    @domain = Wgit::Url.new('http://www.mytestsite.com')
-    @rel_base_url = '/public'
-    @base_url = 'http://server.com' + @rel_base_url
     @html = File.read('test/mock/fixtures/test_doc.html')
     @mongo_doc_dup = {
-      'url' => @doc_url.to_s,
+      'url' => 'http://www.mytestsite.com/home',
       'html' => @html,
       'score' => 12.05,
-      'base' => nil, # Set if using html_with_base.
+      'base' => nil, # Gets set if using html_with_base.
       'title' => 'My Test Webpage',
       'author' => 'Michael Telford',
       'keywords' => ['Minitest', 'Ruby', 'Test Document'],
@@ -69,17 +65,37 @@ Minitest framework."
   end
 
   def test_initialize__without_html
-    doc = Wgit::Document.new @doc_url
+    url = Wgit::Url.new(
+      'http://www.mytestsite.com/home',
+      crawled: true,
+      date_crawled: Time.now
+    )
+    doc = Wgit::Document.new url
 
-    assert_equal @doc_url, doc.url
+    assert_equal 'http://www.mytestsite.com/home', doc.url
     assert_instance_of Wgit::Url, doc.url
+    assert doc.url.crawled
+    refute_nil doc.url.date_crawled
+    refute_nil url.date_crawled
+    assert_empty doc.html
+    assert_equal 0.0, doc.score
+    assert_nil doc.base
+  end
+
+  def test_initialize__with_string_url_and_nil_html
+    doc = Wgit::Document.new 'http://www.mytestsite.com/home', nil
+
+    assert_equal 'http://www.mytestsite.com/home', doc.url
+    assert_instance_of Wgit::Url, doc.url
+    refute doc.url.crawled
+    assert_nil doc.url.date_crawled
     assert_empty doc.html
     assert_equal 0.0, doc.score
     assert_nil doc.base
   end
 
   def test_initialize__with_html
-    doc = Wgit::Document.new @doc_url, @html
+    doc = Wgit::Document.new 'http://www.mytestsite.com/home'.to_url, @html
 
     assert_doc doc
     assert_equal 0.0, doc.score
@@ -87,12 +103,12 @@ Minitest framework."
   end
 
   def test_initialize__with_base
-    html = html_with_base @base_url
-    doc = Wgit::Document.new @doc_url, html
+    html = html_with_base 'http://server.com/public'
+    doc = Wgit::Document.new 'http://www.mytestsite.com/home'.to_url, html
 
     assert_doc doc, html: html
     assert_equal 0.0, doc.score
-    assert_equal @base_url, doc.base
+    assert_equal 'http://server.com/public', doc.base
   end
 
   def test_initialize__with_mongo_doc
@@ -104,94 +120,93 @@ Minitest framework."
   end
 
   def test_internal_links
-    doc = Wgit::Document.new @doc_url, @html
+    doc = Wgit::Document.new 'http://www.mytestsite.com/home'.to_url, @html
     assert_internal_links doc
 
-    doc = Wgit::Document.new @domain, @html
+    doc = Wgit::Document.new 'http://www.mytestsite.com'.to_url, @html
     assert_internal_links doc
 
-    doc = Wgit::Document.new @doc_url, '<p>Hello World!</p>'
+    doc = Wgit::Document.new 'http://www.mytestsite.com/home'.to_url, '<p>Hello World!</p>'
     assert_empty doc.internal_links
   end
 
-  def test_internal_full_links
-    doc = Wgit::Document.new @doc_url, @html
+  def test_internal_absolute_links
+    doc = Wgit::Document.new 'http://www.mytestsite.com/home'.to_url, @html
     assert_equal [
-      "#{@doc_url}#welcome",
-      "#{@doc_url}?foo=bar",
-      "#{@domain}/security.html",
-      "#{@domain}/about.html",
-      "#{@domain}/",
-      "#{@domain}/contact.html",
-      "#{@domain}/tests.html",
-      "#{@domain}/blog#about-us",
-      "#{@domain}/contents"
-    ], doc.internal_full_links
-    assert doc.internal_full_links.all? do |link|
+      'http://www.mytestsite.com/home#welcome',
+      'http://www.mytestsite.com/home?foo=bar',
+      'http://www.mytestsite.com/security.html',
+      'http://www.mytestsite.com/about.html',
+      'http://www.mytestsite.com/',
+      'http://www.mytestsite.com/contact.html',
+      'http://www.mytestsite.com/tests.html',
+      'http://www.mytestsite.com/blog#about-us',
+      'http://www.mytestsite.com/contents'
+    ], doc.internal_absolute_links
+    assert doc.internal_absolute_links.all? do |link|
       link.instance_of?(Wgit::Url)
     end
 
-    doc = Wgit::Document.new @domain, @html
+    doc = Wgit::Document.new 'http://www.mytestsite.com'.to_url, @html
     assert_equal [
-      "#{@domain}#welcome",
-      "#{@domain}?foo=bar",
-      "#{@domain}/security.html",
-      "#{@domain}/about.html",
-      "#{@domain}/",
-      "#{@domain}/contact.html",
-      "#{@domain}/tests.html",
-      "#{@domain}/blog#about-us",
-      "#{@domain}/contents"
-    ], doc.internal_full_links
-    assert doc.internal_full_links.all? do |link|
+      'http://www.mytestsite.com#welcome',
+      'http://www.mytestsite.com?foo=bar',
+      'http://www.mytestsite.com/security.html',
+      'http://www.mytestsite.com/about.html',
+      'http://www.mytestsite.com/',
+      'http://www.mytestsite.com/contact.html',
+      'http://www.mytestsite.com/tests.html',
+      'http://www.mytestsite.com/blog#about-us',
+      'http://www.mytestsite.com/contents'
+    ], doc.internal_absolute_links
+    assert doc.internal_absolute_links.all? do |link|
       link.instance_of?(Wgit::Url)
     end
 
-    doc = Wgit::Document.new @doc_url, '<p>Hello World!</p>'
-    assert_empty doc.internal_full_links
+    doc = Wgit::Document.new 'http://www.mytestsite.com/home'.to_url, '<p>Hello World!</p>'
+    assert_empty doc.internal_absolute_links
   end
 
-  def test_internal_full_links__with_base
-    html = html_with_base @base_url
-    doc = Wgit::Document.new @doc_url, html
+  def test_internal_absolute_links__with_base
+    html = html_with_base 'http://server.com/public'
+    doc = Wgit::Document.new 'http://www.mytestsite.com/home'.to_url, html
 
     assert_equal [
-      "#{@base_url}#welcome",
-      "#{@base_url}?foo=bar",
-      "#{@base_url}/security.html",
-      "#{@base_url}/about.html",
-      "#{@base_url}/",
-      "#{@base_url}/contact.html",
-      "#{@base_url}/tests.html",
-      "#{@base_url}/blog#about-us",
-      "#{@base_url}/contents"
-    ], doc.internal_full_links
-    assert doc.internal_full_links.all? do |link|
+      'http://server.com/public#welcome',
+      'http://server.com/public?foo=bar',
+      'http://server.com/public/security.html',
+      'http://server.com/public/about.html',
+      'http://server.com/public/',
+      'http://server.com/public/contact.html',
+      'http://server.com/public/tests.html',
+      'http://server.com/public/blog#about-us',
+      'http://server.com/public/contents'
+    ], doc.internal_absolute_links
+    assert doc.internal_absolute_links.all? do |link|
       link.instance_of?(Wgit::Url)
     end
 
-    html = html_with_base @rel_base_url
-    doc = Wgit::Document.new @doc_url, html
-    expected_base = @domain + @rel_base_url
+    html = html_with_base '/public'
+    doc = Wgit::Document.new 'http://www.mytestsite.com/home'.to_url, html
 
     assert_equal [
-      "#{expected_base}#welcome",
-      "#{expected_base}?foo=bar",
-      "#{expected_base}/security.html",
-      "#{expected_base}/about.html",
-      "#{expected_base}/",
-      "#{expected_base}/contact.html",
-      "#{expected_base}/tests.html",
-      "#{expected_base}/blog#about-us",
-      "#{expected_base}/contents"
-    ], doc.internal_full_links
-    assert doc.internal_full_links.all? do |link|
+      'http://www.mytestsite.com/public#welcome',
+      'http://www.mytestsite.com/public?foo=bar',
+      'http://www.mytestsite.com/public/security.html',
+      'http://www.mytestsite.com/public/about.html',
+      'http://www.mytestsite.com/public/',
+      'http://www.mytestsite.com/public/contact.html',
+      'http://www.mytestsite.com/public/tests.html',
+      'http://www.mytestsite.com/public/blog#about-us',
+      'http://www.mytestsite.com/public/contents'
+    ], doc.internal_absolute_links
+    assert doc.internal_absolute_links.all? do |link|
       link.instance_of?(Wgit::Url)
     end
   end
 
   def test_external_links
-    doc = Wgit::Document.new @doc_url, @html
+    doc = Wgit::Document.new 'http://www.mytestsite.com/home'.to_url, @html
     assert_equal [
       'http://www.google.co.uk',
       'http://www.yahoo.com',
@@ -203,25 +218,25 @@ Minitest framework."
     ], doc.external_links
     assert doc.external_links.all? { |link| link.instance_of?(Wgit::Url) }
 
-    doc = Wgit::Document.new @doc_url, '<p>Hello World!</p>'
+    doc = Wgit::Document.new 'http://www.mytestsite.com/home'.to_url, '<p>Hello World!</p>'
     assert_empty doc.external_links
   end
 
   def test_stats
-    doc = Wgit::Document.new @doc_url, @html
+    doc = Wgit::Document.new 'http://www.mytestsite.com/home'.to_url, @html
     assert_equal @stats, doc.stats
   end
 
   def test_size
-    doc = Wgit::Document.new @doc_url, @html
+    doc = Wgit::Document.new 'http://www.mytestsite.com/home'.to_url, @html
     assert_equal @stats[:html], doc.size
   end
 
   def test_to_h
-    doc = Wgit::Document.new @doc_url, @html
+    doc = Wgit::Document.new 'http://www.mytestsite.com/home'.to_url, @html
     hash = @mongo_doc_dup.dup
     hash['score'] = 0.0
-    assert_equal hash, doc.to_h(true)
+    assert_equal hash, doc.to_h(include_html: true)
 
     hash.delete('html')
     assert_equal hash, doc.to_h
@@ -231,97 +246,97 @@ Minitest framework."
     hash.delete('html')
     assert_equal hash, doc.to_h
 
-    html = html_with_base @base_url
-    doc = Wgit::Document.new @doc_url, html
+    html = html_with_base 'http://server.com/public'
+    doc = Wgit::Document.new 'http://www.mytestsite.com/home'.to_url, html
     hash = @mongo_doc_dup.dup
     hash.delete('html')
     hash['score'] = 0.0
-    hash['base'] = @base_url
+    hash['base'] = 'http://server.com/public'
     assert_equal hash, doc.to_h
   end
 
   def test_to_json
-    doc = Wgit::Document.new @doc_url, @html
+    doc = Wgit::Document.new 'http://www.mytestsite.com/home'.to_url, @html
     refute doc.to_json.empty?
-    refute doc.to_json(true).empty?
+    refute doc.to_json(include_html: true).empty?
   end
 
   def test_double_equals
-    doc = Wgit::Document.new @doc_url, @html
+    doc = Wgit::Document.new 'http://www.mytestsite.com/home'.to_url, @html
     refute doc == Object.new
     assert doc == doc.clone
     refute doc.object_id == doc.clone.object_id
-    refute doc == Wgit::Document.new(Wgit::Url.new("#{@domain}/index"), @html)
-    refute doc == Wgit::Document.new(@domain, "#{@html}<?php echo 'Hello' ?>")
+    refute doc == Wgit::Document.new(Wgit::Url.new('http://www.mytestsite.com/index'), @html)
+    refute doc == Wgit::Document.new('http://www.mytestsite.com'.to_url, "#{@html}<?php echo 'Hello' ?>")
   end
 
   def test_square_brackets
     range = 0..50
-    doc = Wgit::Document.new @doc_url, @html
+    doc = Wgit::Document.new 'http://www.mytestsite.com/home'.to_url, @html
     assert_equal @html[range], doc[range]
   end
 
   def test_date_crawled
     timestamp = Time.now
-    url = Wgit::Url.new 'http://www.mytestsite.com', true, timestamp
+    url = Wgit::Url.new 'http://www.mytestsite.com', crawled: true, date_crawled: timestamp
     doc = Wgit::Document.new url
     assert_equal timestamp, doc.date_crawled
   end
 
   def test_base_url__no_base
-    doc = Wgit::Document.new @doc_url, @html
+    doc = Wgit::Document.new 'http://www.mytestsite.com/home'.to_url, @html
 
     base = doc.base_url
-    assert_equal @domain, base
+    assert_equal 'http://www.mytestsite.com'.to_url, base
     assert_instance_of Wgit::Url, base
 
-    base = doc.base_url link: Wgit::Url.new('?q=hello')
-    assert_equal @doc_url, base
+    base = doc.base_url link: '?q=hello'
+    assert_equal 'http://www.mytestsite.com/home'.to_url, base
     assert_instance_of Wgit::Url, base
 
     base = doc.base_url link: Wgit::Url.new('#top')
-    assert_equal @doc_url, base
+    assert_equal 'http://www.mytestsite.com/home'.to_url, base
     assert_instance_of Wgit::Url, base
 
-    base = doc.base_url link: Wgit::Url.new('/about')
-    assert_equal @domain, base
+    base = doc.base_url link: '/about'
+    assert_equal 'http://www.mytestsite.com'.to_url, base
     assert_instance_of Wgit::Url, base
 
-    assert_raises(RuntimeError) do
+    assert_raises(StandardError) do
       base = doc.base_url link: Wgit::Url.new('http://example.com/about')
     end
   end
 
   def test_base_url__absolute_base
-    html = html_with_base @base_url
-    doc = Wgit::Document.new @doc_url, html
+    html = html_with_base 'http://server.com/public'
+    doc = Wgit::Document.new 'http://www.mytestsite.com/home'.to_url, html
 
     base = doc.base_url
-    assert_equal @base_url, base
+    assert_equal 'http://server.com/public', base
     assert_instance_of Wgit::Url, base
 
     base = doc.base_url link: Wgit::Url.new('?q=hello')
-    assert_equal @base_url, base
+    assert_equal 'http://server.com/public', base
     assert_instance_of Wgit::Url, base
 
     base = doc.base_url link: Wgit::Url.new('#top')
-    assert_equal @base_url, base
+    assert_equal 'http://server.com/public', base
     assert_instance_of Wgit::Url, base
 
     base = doc.base_url link: Wgit::Url.new('/about')
-    assert_equal @base_url, base
+    assert_equal 'http://server.com/public', base
     assert_instance_of Wgit::Url, base
 
-    assert_raises(RuntimeError) do
+    assert_raises(StandardError) do
       base = doc.base_url link: Wgit::Url.new('http://example.com/about')
     end
   end
 
   def test_base_url__relative_base
-    expected_base = @domain + @rel_base_url
+    expected_base = 'http://www.mytestsite.com/public'
 
-    html = html_with_base @rel_base_url
-    doc = Wgit::Document.new @doc_url, html
+    html = html_with_base '/public'
+    doc = Wgit::Document.new 'http://www.mytestsite.com/home'.to_url, html
 
     base = doc.base_url
     assert_equal expected_base, base
@@ -339,12 +354,12 @@ Minitest framework."
     assert_equal expected_base, base
     assert_instance_of Wgit::Url, base
 
-    assert_raises(RuntimeError) do
+    assert_raises(StandardError) do
       base = doc.base_url link: Wgit::Url.new('http://example.com/about')
     end
   end
 
-  def test_base_url__no_base_query_string
+  def test_base_url__no_base__query_string
     url  = 'http://test-site.com/public/records?q=username'.to_url
     link = '?foo=bar'.to_url
 
@@ -355,7 +370,7 @@ Minitest framework."
     assert_instance_of Wgit::Url, base
   end
 
-  def test_base_url__no_base_anchor
+  def test_base_url__no_base__anchor
     url  = 'http://test-site.com/public/records#top'.to_url
     link = '#bottom'.to_url
 
@@ -367,38 +382,38 @@ Minitest framework."
   end
 
   def test_empty?
-    doc = Wgit::Document.new @doc_url, @html
+    doc = Wgit::Document.new 'http://www.mytestsite.com/home'.to_url, @html
     refute doc.empty?
 
     @mongo_doc_dup.delete('html')
     doc = Wgit::Document.new @mongo_doc_dup
     assert doc.empty?
 
-    doc = Wgit::Document.new @doc_url, nil
+    doc = Wgit::Document.new 'http://www.mytestsite.com/home'.to_url, nil
     assert doc.empty?
   end
 
   def test_search
-    doc = Wgit::Document.new @doc_url, @html
-    results = doc.search('minitest', 80)
+    doc = Wgit::Document.new 'http://www.mytestsite.com/home'.to_url, @html
+    results = doc.search('minitest', sentence_limit: 80)
     assert_equal @search_results, results
   end
 
   def test_search!
-    doc = Wgit::Document.new @doc_url, @html
+    doc = Wgit::Document.new 'http://www.mytestsite.com/home'.to_url, @html
     orig_text = doc.text
-    assert_equal orig_text, doc.search!('minitest', 80)
+    assert_equal orig_text, doc.search!('minitest', sentence_limit: 80)
     assert_equal @search_results, doc.text
   end
 
   def test_xpath
-    doc = Wgit::Document.new @doc_url, @html
+    doc = Wgit::Document.new 'http://www.mytestsite.com/home'.to_url, @html
     results = doc.xpath('//title')
     assert_equal @mongo_doc_dup['title'], results.first.content
   end
 
   def test_css
-    doc = Wgit::Document.new @doc_url, @html
+    doc = Wgit::Document.new 'http://www.mytestsite.com/home'.to_url, @html
     results = doc.css('title')
     assert_equal @mongo_doc_dup['title'], results.first.content
   end
@@ -415,7 +430,7 @@ Minitest framework."
 
   # We can override the doc's expected html for different test scenarios.
   def assert_doc(doc, html: @html)
-    assert_equal @doc_url, doc.url
+    assert_equal 'http://www.mytestsite.com/home'.to_url, doc.url
     assert_instance_of Wgit::Url, doc.url
     assert_equal html, doc.html
     assert_equal @mongo_doc_dup['title'], doc.title

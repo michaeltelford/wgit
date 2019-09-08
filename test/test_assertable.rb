@@ -2,81 +2,83 @@
 
 require_relative 'helpers/test_helper'
 
-# Test class for the Assertable funcs.
+# Test class for the Assertable module functions.
 class TestAssertable < TestHelper
+  include Wgit::Assertable
+
   # Run non DB tests in parallel for speed.
   parallelize_me!
 
   # Runs before every test.
-  def setup
-    @s  = 'Hello World!'
-    @a  = [1, 2, 3]
-    @a2 = [1, true, 'Boom!']
+  def setup; end
+
+  def test_assert_types__pass
+    assert_equal 'Hello World!', assert_types('Hello World!', String)
+    assert_equal [1, 2, 3], assert_types([1, 2, 3], [Array, String])
+    assert_equal '/about', assert_types('/about'.to_url, String)
   end
 
-  def test_assert_types_pass
-    assert_equal @s, assert_types(@s, String)
-    assert_equal @a, assert_types(@a, [Array, String])
-  end
+  def test_assert_types__fail
+    e = assert_raises(StandardError) { assert_types 'Hello World!', Integer }
+    assert_equal 'Expected: Integer, Actual: String', e.message
 
-  def test_assert_types_fail
-    ex = assert_raises RuntimeError do
-      assert_types @s, Integer
+    e = assert_raises StandardError do
+      assert_types [1, 2, 3], [TrueClass, Integer], 'An Array is expected'
     end
-    assert_equal 'Expected: Integer, Actual: String', ex.message
-
-    ex = assert_raises RuntimeError do
-      assert_types @a, [TrueClass, Integer], 'An Array is expected'
-    end
-    assert_equal 'An Array is expected', ex.message
+    assert_equal 'An Array is expected', e.message
   end
 
-  def test_assert_arr_types_pass
-    assert_equal @a2, assert_arr_types(@a2, [Integer, TrueClass, String])
+  def test_assert_arr_types__pass
+    assert_equal [1, true, 'Boom!'], assert_arr_types([1, true, 'Boom!'], [Integer, TrueClass, String])
+    assert_equal [1, true, '/about'], assert_arr_types([1, true, '/about'.to_url], [Integer, TrueClass, String])
   end
 
-  def test_assert_arr_types_fail
-    ex = assert_raises RuntimeError do
-      assert_arr_types @a2, [Integer, String]
+  def test_assert_arr_types__fail
+    e = assert_raises StandardError do
+      assert_arr_types [1, true, 'Boom!'], [Integer, String]
     end
     s = 'Expected: [Integer, String], Actual: TrueClass'
-    assert_equal s, ex.message
+
+    assert_equal s, e.message
   end
 
-  def test_assert_respond_to_pass
-    objs = [@s, @a]
+  def test_assert_respond_to__pass
+    objs = ['Hello World!', [1, 2, 3]]
+
     assert_equal objs, assert_respond_to(objs, %i[equal? include?])
   end
 
-  def test_assert_respond_to_fail
-    objs = [@s, @a]
-    ex = assert_raises RuntimeError do
+  def test_assert_respond_to__fail
+    objs = ['Hello World!', [1, 2, 3]]
+
+    e = assert_raises StandardError do
       assert_equal objs, assert_respond_to(objs, %i[equal? each])
     end
     assert_equal(
       "String (Hello World!) doesn't respond_to? [:equal?, :each]",
-      ex.message
+      e.message
     )
   end
 
-  def test_assert_respond_to_single_method
-    objs = [@s, @a]
+  def test_assert_respond_to__single_method
+    objs = ['Hello World!', [1, 2, 3]]
+
     assert_equal objs, assert_respond_to(objs, :length)
   end
 
-  def assert_required_keys_pass
+  def assert_required_keys__pass
     hash = { 'NAME': 'Mick', 'AGE': 30 }
+
     assert_equal hash, assert_required_keys(hash, %w[NAME AGE])
   end
 
-  def assert_required_keys_fail
+  def assert_required_keys__fail
     hash = { 'NAME': 'Mick', 'AGE': 30 }
-    ex = assert_raises KeyError do
-      assert_required_keys(hash, %w[NAME ADDRESS])
-    end
+
+    e = assert_raises KeyError { assert_required_keys(hash, %w[NAME ADDRESS]) }
     assert_equal(
       'Some or all of the required keys are not present: NAME, ADDRESS',
-      ex.message
+      e.message
     )
   end
 end

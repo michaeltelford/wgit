@@ -7,8 +7,8 @@ require_relative 'assertable'
 require 'net/http' # Requires 'uri'.
 
 module Wgit
-  # The Crawler class provides a means of crawling web based Wgit::Url's, turning
-  # their HTML into Wgit::Document instances.
+  # The Crawler class provides a means of crawling web based HTTP Wgit::Url's,
+  # serialising their HTML into Wgit::Document instances.
   class Crawler
     include Assertable
 
@@ -21,129 +21,11 @@ module Wgit
       attr_accessor :default_redirect_limit
     end
 
-    # The urls to crawl.
-    attr_reader :urls
-
-    # The docs of the crawled @urls.
-    attr_reader :docs
-
     # The Net::HTTPResponse of the most recently crawled URL or nil.
     attr_reader :last_response
 
-    # Initializes the Crawler and sets the @urls and @docs.
-    #
-    # @param urls [*Wgit::Url] The URL's to crawl in the future using either
-    #   Crawler#crawl_url or Crawler#crawl_site. Note that the urls passed here
-    #   will NOT update if they happen to redirect when crawled. If in doubt,
-    #   pass the url(s) directly to the crawl_* method instead of to the new
-    #   method.
-    def initialize(*urls)
-      self.[](*urls)
-      @docs = []
-    end
-
-    # Sets this Crawler's @urls.
-    #
-    # @param urls [*Wgit::Url] The URL's to crawl in the future using either
-    #   crawl_url or crawl_site. Note that the urls passed here will NOT update
-    #   if they happen to redirect when crawled. If in doubt, pass the url(s)
-    #   directly to the crawl_* method instead of to the new method.
-    def urls=(urls)
-      @urls = []
-      Wgit::Utils.each(urls) { |url| add_url(url) }
-    end
-
-    # Sets this Crawler's @urls.
-    #
-    # @param urls [*Wgit::Url] The URL's to crawl in the future using either
-    #   crawl_url or crawl_site. Note that the urls passed here will NOT update
-    #   if they happen to redirect when crawled. If in doubt, pass the url(s)
-    #   directly to the crawl_* method instead of to the new method.
-    def [](*urls)
-      # If urls is nil then add_url (when called later) will set @urls = []
-      # so we do nothing here.
-      unless urls.nil?
-        # Due to *urls you can end up with [[url1,url2,url3]] etc. where the
-        # outer array is bogus so we use the inner one only.
-        if  urls.is_a?(Enumerable) &&
-            urls.length == 1 &&
-            urls.first.is_a?(Enumerable)
-          urls = urls.first
-        end
-
-        # Here we call urls= method using self because the param name is also
-        # urls which conflicts.
-        self.urls = urls
-      end
-    end
-
-    # Adds the url to this Crawler's @urls.
-    #
-    # @param url [Wgit::Url] A URL to crawl later by calling a crawl_* method.
-    #   Note that the url added here will NOT update if it happens to
-    #   redirect when crawled. If in doubt, pass the url directly to the
-    #   crawl_* method instead of to the new method.
-    def <<(url)
-      add_url(url)
-    end
-
-    # Crawls one or more individual urls using Wgit::Crawler#crawl_url
-    # underneath. See Wgit::Crawler#crawl_site for crawling entire sites. Note
-    # that any external redirects are followed. Use Wgit::Crawler#crawl_url if
-    # this isn't desirable.
-    #
-    # @param urls [Array<Wgit::Url>] The URLs to crawl.
-    # @yield [Wgit::Document] If provided, the block is given each crawled
-    #   Document. Otherwise each doc is added to @docs which can be accessed
-    #   by Crawler#docs after this method returns.
-    # @return [Wgit::Document] The last Document crawled.
-    def crawl_urls(urls = @urls, &block)
-      raise 'No urls to crawl' unless urls
-
-      @docs = []
-      doc = nil
-      Wgit::Utils.each(urls) { |url| doc = handle_crawl_block(url, &block) }
-      doc || @docs.last
-    end
-
-    # Crawl the url returning the response Wgit::Document or nil if an error
-    # occurs.
-    #
-    # @param url [Wgit::Url] The URL to crawl.
-    # @param follow_external_redirects [Boolean] Whether or not to follow
-    #   an external redirect. False will return nil for such a crawl. If false,
-    #   you must also provide a `host:` parameter.
-    # @param host [Wgit::Url, String] Specify the host by which
-    #   an absolute redirect is determined to be internal or not. Must be
-    #   absolute and contain a protocol prefix. For example, a `host:` of
-    #   'http://www.example.com' will only allow redirects for Urls with a
-    #   `to_host` value of 'www.example.com'.
-    # @yield [Wgit::Document] The crawled HTML Document regardless if the
-    #   crawl was successful or not. Therefore, the Document#url can be used.
-    # @return [Wgit::Document, nil] The crawled HTML Document or nil if the
-    #   crawl was unsuccessful.
-    def crawl_url(
-      url = @urls.first,
-      follow_external_redirects: true,
-      host: nil
-    )
-      assert_type(url, Wgit::Url)
-      if !follow_external_redirects && host.nil?
-        raise 'host cannot be nil if follow_external_redirects is false'
-      end
-
-      html = fetch(
-        url,
-        follow_external_redirects: follow_external_redirects,
-        host: host
-      )
-      url.crawled = true
-
-      doc = Wgit::Document.new(url, html)
-      yield(doc) if block_given?
-
-      doc.empty? ? nil : doc
-    end
+    # Initializes and returns a Wgit::Crawler instance.
+    def initialize; end
 
     # Crawls an entire website's HTML pages by recursively going through
     # its internal links. Each crawled Document is yielded to a block.
@@ -159,18 +41,16 @@ module Wgit
     # @param url [Wgit::Url] The base URL of the website to be crawled.
     #   It is recommended that this URL be the index page of the site to give a
     #   greater chance of finding all pages within that site/host.
-    # @yield [Wgit::Document] Given each crawled Document/page of the site.
+    # @yield [doc] Given each crawled page (Wgit::Document) of the site.
     #   A block is the only way to interact with each crawled Document.
     # @return [Array<Wgit::Url>, nil] Unique Array of external urls collected
     #   from all of the site's pages or nil if the url could not be
     #   crawled successfully.
-    def crawl_site(url = @urls.first, &block)
-      assert_type(url, Wgit::Url)
-
+    def crawl_site(url, &block)
       doc = crawl_url(url, &block)
       return nil if doc.nil?
 
-      host      = url.to_base
+      opts      = { follow_external_redirects: false, host: url.to_base }
       alt_url   = url.end_with?('/') ? url.chop : url + '/'
       crawled   = [url, alt_url]
       externals = doc.external_links
@@ -187,9 +67,7 @@ module Wgit
 
         links.each do |link|
           orig_link = link.dup
-          doc = crawl_url(
-            link, follow_external_redirects: false, host: host, &block
-          )
+          doc = crawl_url(link, opts, &block)
 
           crawled.push(orig_link, link) # Push both in case of redirects.
           next if doc.nil?
@@ -200,6 +78,66 @@ module Wgit
       end
 
       externals.uniq
+    end
+
+    # Crawls one or more individual urls using Wgit::Crawler#crawl_url
+    # underneath. See Wgit::Crawler#crawl_site for crawling entire sites.
+    #
+    # @param urls [*Wgit::Url] The Url's to crawl.
+    # @yield [doc] Given each crawled page (Wgit::Document); this is the only
+    #   way to interact with them.
+    # @raise [StandardError] If no urls are provided.
+    # @return [Wgit::Document] The last Document crawled.
+    def crawl_urls(*urls, follow_external_redirects: true, host: nil, &block)
+      raise 'You must provide at least one Url' if urls.empty?
+
+      opts = {
+        follow_external_redirects: follow_external_redirects,
+        host: host
+      }
+      doc = nil
+
+      Wgit::Utils.each(urls) { |url| doc = crawl_url(url, opts, &block) }
+
+      doc
+    end
+
+    # Crawl the url returning the response Wgit::Document or nil if an error
+    # occurs.
+    #
+    # @param url [Wgit::Url] The Url to crawl.
+    # @param follow_external_redirects [Boolean] Whether or not to follow
+    #   an external redirect. External meaning to a different host. False will
+    #   return nil for such a crawl. If false, you must also provide a `host:`
+    #   parameter.
+    # @param host [Wgit::Url, String] Specify the host by which
+    #   an absolute redirect is determined to be internal or not. Must be
+    #   absolute and contain a protocol prefix. For example, a `host:` of
+    #   'http://www.example.com' will only allow redirects for Url's with a
+    #   `to_host` value of 'www.example.com'.
+    # @yield [doc] The crawled HTML page (Wgit::Document) regardless if the
+    #   crawl was successful or not. Therefore, Document#url etc. can be used.
+    # @return [Wgit::Document, nil] The crawled HTML Document or nil if the
+    #   crawl was unsuccessful.
+    def crawl_url(url, follow_external_redirects: true, host: nil)
+      # A String url isn't allowed because it's passed by value not reference,
+      # meaning a redirect isn't reflected; A Wgit::Url is passed by reference.
+      assert_type(url, Wgit::Url)
+      if !follow_external_redirects && host.nil?
+        raise 'host cannot be nil if follow_external_redirects is false'
+      end
+
+      html = fetch(
+        url,
+        follow_external_redirects: follow_external_redirects,
+        host: host
+      )
+      url.crawled = true
+
+      doc = Wgit::Document.new(url, html)
+      yield(doc) if block_given?
+
+      doc.empty? ? nil : doc
     end
 
     protected
@@ -227,12 +165,12 @@ module Wgit
         host: host
       )
       @last_response = response
+
       response.body.empty? ? nil : response.body
     rescue StandardError => e
-      Wgit.logger.debug(
-        "Wgit::Crawler#fetch('#{url}') exception: #{e.message}"
-      )
+      Wgit.logger.debug("Wgit::Crawler#fetch('#{url}') exception: #{e.message}")
       @last_response = nil
+
       nil
     end
 
@@ -267,25 +205,25 @@ module Wgit
 
       loop do
         response = Net::HTTP.get_response(url.to_uri)
-        location = Wgit::Url.new(response.fetch('location', ''))
-
         break unless response.is_a?(Net::HTTPRedirection)
+
+        location = Wgit::Url.new(response.fetch('location', ''))
+        raise 'Encountered redirect without Location header' if location.empty?
+
         yield(url, response, location) if block_given?
 
-        unless location.empty?
-          if  !follow_external_redirects &&
-              !location.is_relative?(host: host)
-            raise "External redirect not allowed - Redirected to: \
+        if !follow_external_redirects && !location.is_relative?(host: host)
+          raise "External redirect not allowed - Redirected to: \
 '#{location}', which is outside of host: '#{host}'"
-          end
-
-          raise 'Too many redirects' if redirect_count >= redirect_limit
-
-          redirect_count += 1
-
-          location = url.to_base.concat(location) if location.is_relative?
-          url.replace(location)
         end
+
+        raise "Too many redirects: #{redirect_count}" \
+        if redirect_count >= redirect_limit
+
+        redirect_count += 1
+
+        location = url.to_base.concat(location) if location.is_relative?
+        url.replace(location) # Update the url on redirect.
       end
 
       response
@@ -300,7 +238,7 @@ module Wgit
     #   internal page links.
     # @return [Array<Wgit::Url>] The internal page links from doc.
     def get_internal_links(doc)
-      doc.internal_full_links
+      doc.internal_absolute_links
          .map(&:without_anchor) # Because anchors don't change page content.
          .uniq
          .reject do |link|
@@ -309,28 +247,9 @@ module Wgit
       end
     end
 
-    private
-
-    # Add the document to the @docs array for later processing or let the block
-    # process it here and now.
-    def handle_crawl_block(url, &block)
-      if block_given?
-        crawl_url(url, &block)
-      else
-        @docs << crawl_url(url)
-        nil
-      end
-    end
-
-    # Add the url to @urls ensuring it is cast to a Wgit::Url if necessary.
-    def add_url(url)
-      @urls = [] if @urls.nil?
-      @urls << Wgit::Url.new(url)
-    end
-
-    alias crawl crawl_urls
+    alias crawl       crawl_urls
     alias crawl_pages crawl_urls
-    alias crawl_page crawl_url
-    alias crawl_r crawl_site
+    alias crawl_page  crawl_url
+    alias crawl_r     crawl_site
   end
 end

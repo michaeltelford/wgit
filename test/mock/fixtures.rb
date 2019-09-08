@@ -1,12 +1,12 @@
-# See `bundle exec rake` tasks: `save_page` and `save_site` for saving a web
-# fixture to disk; then mock its HTTP response below so it's available to crawl
-# in the tests using Wgit. Note that you can mock a response without a fixture.
+# See rake tasks: `save_page` and `save_site` for saving a web fixture to disk;
+# then mock it's HTTP response below so it's available to crawl in the tests
+# using Wgit. Note that you can mock a response without a saved fixture.
 
 require_relative 'webmock' # DSL for mocking HTTP responses.
 
 # Custom mock responses, outside of serving a saved fixture from disk.
-stub_page 'https://www.google.co.uk'
 stub_page 'https://duckduckgo.com'
+stub_page 'https://www.google.co.uk'
 stub_page 'http://www.bing.com'
 stub_redirect 'http://twitter.com', 'https://twitter.com'
 stub_page 'https://twitter.com'
@@ -30,7 +30,7 @@ stub_redirect 'http://myserver.com', 'http://www.myserver.com'
 stub_redirect 'http://www.myserver.com', 'http://test-site.com'
 stub_timeout 'http://doesntexist_123'
 
-# Match all .jpg URL's for belfastpilates.co.uk.
+# Match all *.jpg URL's for belfastpilates.co.uk.
 stub_request(:get, Regexp.new('http://www.belfastpilates.co.uk/(.*).(?:jpg|jpeg)'))
 
 # Mock responses based on the fixtures saved to disk. Both single webpages and

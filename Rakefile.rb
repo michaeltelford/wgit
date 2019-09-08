@@ -13,7 +13,7 @@ desc 'Print help information'
 task default: :help
 
 Rake::TestTask.new(:test) do |t|
-  t.description = 'Run tests'
+  t.description = 'Run all tests'
   t.libs << 'test'
 end
 
@@ -28,14 +28,17 @@ Rake::TestTask.new(:smoke) do |t|
   ]
 end
 
+desc 'Run entire test/test_* file or single test at line e.g. mtest[url.rb:100]'
+task :mtest, [:name] do |_t, args|
+  name = args[:name]
+  raise('Must provide arg for * in: test/test_* e.g. url.rb') unless name
+  name = "test/test_#{name}" unless name.include?('/')
+  system "bundle exec mtest #{name}"
+end
+
 desc 'Print help information'
 task :help do
   system 'bundle exec rake -D'
-end
-
-desc 'Run the setup script'
-task :setup do
-  system './bin/setup'
 end
 
 desc 'Run the development console'
@@ -66,12 +69,9 @@ end
 
 desc 'The SAFE RELEASE task which double checks things ;-)'
 task :RELEASE, [:remote] do |_t, args|
-  raise unless require_relative 'lib/wgit'
-  unless Wgit::CONNECTION_DETAILS.empty?
-    raise 'Clear the CONNECTION_DETAILS before releasing the gem'
-  end
+  raise 'Error requiring wgit' unless require_relative 'lib/wgit'
 
-  puts "Releasing gem version #{Wgit::VERSION}, using the #{args[:remote]} Git remote..."
+  puts "Releasing wgit v#{Wgit::VERSION}, using the '#{args[:remote]}' Git remote..."
   confirm "Have you went through the TODO.txt 'Gem Publishing Checklist'?"
 
   # Tag the repo, build and push the gem to rubygems.org.

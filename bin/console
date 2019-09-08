@@ -1,61 +1,66 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
+# NOTE: This console is designed to be run from the repo root directory. This
+# is reflected in the filepaths used below.
+
 require 'pry'
 require 'bundler/setup'
 require 'dotenv'
 require 'httplog'
 require 'byebug'
 
-# Require the code and set the DB connection details from the ENV.
-load 'lib/wgit/database/connection_details.rb'
-Dotenv.load
-Wgit.set_connection_details_from_env
-
-# Define a method to facilitate the reloading of code changes.
-# NOTE: The CWD is the project root, not the bin folder.
+# Define a method to facilitate the hot reloading of code changes.
 def reload
   original_verbose = $VERBOSE
-  $VERBOSE = nil              # Suppress warning messages (when reloading CONSTANTS).
-  load 'load.rb'              # Reload all code changes.
+  $VERBOSE = nil              # Suppress warning messages (from reloading CONSTANTS).
+  load 'load.rb'              # (Re)load all code changes.
   $VERBOSE = original_verbose # Activate warning messages again globally.
   Wgit.logger.level = Logger::DEBUG
+
   true
 end
 
-# Load the most recent code into the session, include modules, connect to DB etc.
+# Load the most recent code into the session and include modules etc.
 reload
+
+# Connect to the database.
+Dotenv.load
+include DatabaseHelper # Connects to the database here.
 
 # Monkey patch all Net:HTTP network calls and log them.
 HttpLog.configure do |config|
-  config.enabled        = true
-  config.logger         = Wgit.logger
+  config.enabled       = true
+  config.logger        = Wgit.logger
 
-  config.log_connect    = false
-  config.log_request    = true
-  config.log_headers    = false
-  config.log_data       = false
-  config.log_status     = true
-  config.log_response   = false
-  config.log_benchmark  = false
+  config.log_connect   = false
+  config.log_request   = true
+  config.log_headers   = false
+  config.log_data      = false
+  config.log_status    = true
+  config.log_response  = false
+  config.log_benchmark = false
 
-  config.compact_log    = false
-  config.json_log       = false
+  config.compact_log   = false
+  config.json_log      = false
 end
 
 # Seed some fixture data for the session.
+db      = Database.new
 crawler = Crawler.new
-url = Url.new 'https://motherfuckingwebsite.com/'
-doc = Document.new 'http://www.mytestsite.com/home'.to_url, File.read('test/mock/fixtures/test_doc.html')
-db = Database.new
+url     = Url.new('https://motherfuckingwebsite.com/')
+doc     = Document.new(
+  'http://www.mytestsite.com/home',
+  File.read('test/mock/fixtures/test_doc.html')
+)
 
 # Print some basic usage information.
 def info
   puts 'To load your code changes type: reload'
-  puts 'See the DatabaseHelper module for DB interaction methods which include:'
-  puts 'nuke, seed, index, search, num_urls, num_docs, num_records'
   puts 'Available fixture vars include: crawler, url, doc, db'
-  puts 'To see this help information again type: info'
+  puts 'Some helpful database manipulator methods include:'
+  puts 'nuke, seed, index_page, index (site), search, db.num_records etc.'
+  puts 'To see this information again type: info'
   puts "When you're finished type: exit (or press Ctrl+D)"
 end
 

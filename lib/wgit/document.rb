@@ -6,14 +6,17 @@ require 'json'
 
 module Wgit
   # Class modeling a HTML web document. Also doubles as a search result when
-  # loading Documents from the database.
+  # loading Documents from the database via Wgit::Database#search.
   #
-  # The initialize method dynamically initializes certain variables from the
+  # The initialize method dynamically initializes instance variables from the
   # Document HTML / Database object e.g. text. This bit is dynamic so that the
   # Document class can be easily extended allowing you to pull out the bits of
   # a webpage that are important to you. See Wgit::Document.define_extension.
   class Document
     include Assertable
+
+    # Regex for the allowed var names when defining an extension.
+    REGEX_EXTENSION_NAME = /[a-z0-9_]+/.freeze
 
     # The HTML elements that make up the visible text on a page.
     # These elements are used to initialize the @text of the Document.
@@ -25,7 +28,6 @@ module Wgit
 
     class << self
       # Class level instance reader method for @text_elements.
-      # Call using Wgit::Document.text_elements.
       attr_reader :text_elements
     end
 
@@ -35,7 +37,7 @@ module Wgit
     # The HTML of the webpage, an instance of String.
     attr_reader :html
 
-    # The Nokogiri document object initialized from @html.
+    # The Nokogiri::HTML document object initialized from @html.
     attr_reader :doc
 
     # The score is only used following a Database#search and records matches.
@@ -43,72 +45,140 @@ module Wgit
 
     # Initialize takes either two strings (representing the URL and HTML) or an
     # object representing a database record (of a HTTP crawled web page). This
-    # allows for initialisation from both crawled web pages and (afterwards)
-    # documents/web pages retrieved from the database.
+    # allows for initialisation from both crawled web pages and documents/web
+    # pages retrieved from the database.
     #
-    # During initialisation, the Document will call any
-    # 'init_*_from_html' and 'init_*_from_object' methods it can find. Some
-    # default init_* methods exist while others can be defined by the user.
-    # See the README and Wgit::Document.define_extension for more info.
+    # During initialisation, the Document will call any private
+    # 'init_*_from_html' and 'init_*_from_object' methods it can find. See the
+    # README.md and Wgit::Document.define_extension method for more details.
     #
-    # @param url_or_obj [String, Object#fetch] Either a String representing a
-    #   URL or a Hash-like object responding to :fetch. e.g. a MongoDB
-    #   collection object. The Object's :fetch method should support Strings as
-    #   keys.
-    # @param html [String] The crawled web page's HTML. This param is only
-    #   required if url_or_obj is a String representing the web page's URL.
+    # @param url_or_obj [String, Wgit::Url, Object#fetch] Either a String
+    #   representing a URL or a Hash-like object responding to :fetch. e.g. a
+    #   MongoDB collection object. The Object's :fetch method should support
+    #   Strings as keys.
+    # @param html [String, NilClass] The crawled web page's HTML. This param is
+    #   only used if url_or_obj is a String representing the web page's URL.
+    #   Otherwise, the HTML comes from the database object. A html of nil will
+    #   be defaulted to an empty String.
     def initialize(url_or_obj, html = '')
-      # Init from URL String and HTML String.
       if url_or_obj.is_a?(String)
-        url = url_or_obj
-        assert_type(url, Wgit::Url)
-
-        @url = url
-        @html = html || ''
-        @doc = init_nokogiri
-        @score = 0.0
-
-        process_url_and_html
-
-        # Dynamically run the init_*_from_html methods.
-        Document.private_instance_methods(false).each do |method|
-          if method.to_s.start_with?('init_') &&
-             method.to_s.end_with?('_from_html')
-            send(method)
-          end
-        end
-      # Init from a Hash like object containing Strings as keys e.g. Mongo
-      # collection obj.
+        init_from_strings(url_or_obj, html)
       else
-        obj = url_or_obj
-        assert_respond_to(obj, :fetch)
-
-        @url = Wgit::Url.new(obj.fetch('url')) # Should always be present.
-        @html = obj.fetch('html', '')
-        @doc = init_nokogiri
-        @score = obj.fetch('score', 0.0)
-
-        process_url_and_html
-
-        # Dynamically run the init_*_from_object methods.
-        Document.private_instance_methods(false).each do |method|
-          if method.to_s.start_with?('init_') &&
-             method.to_s.end_with?('_from_object')
-            send(method, obj)
-          end
-        end
+        init_from_object(url_or_obj)
       end
     end
 
-    # Determines if both the url and html match. Use
-    # doc.object_id == other_doc.object_id for exact object comparison.
-    #
-    # @param other_doc [Wgit::Document] To compare self against.
-    # @return [Boolean] True if @url and @html are equal, false if not.
-    def ==(other_doc)
-      return false unless other_doc.is_a? Wgit::Document
+    ### Document Class Methods ###
 
-      (@url == other_doc.url) && (@html == other_doc.html)
+    # Uses Document.text_elements to build an xpath String, used to obtain
+    # all of the combined text on a webpage.
+    #
+    # @return [String] An xpath String to obtain a webpage's text elements.
+    def self.text_elements_xpath
+      xpath = ''
+      return xpath if Wgit::Document.text_elements.empty?
+
+      el_xpath = '//%s/text()'
+      Wgit::Document.text_elements.each_with_index do |el, i|
+        xpath += ' | ' unless i.zero?
+        xpath += format(el_xpath, el)
+      end
+
+      xpath
+    end
+
+    # Defines an extension, which is a way to extract HTML elements into
+    # instance variables upon Document initialization. See the default
+    # extensions defined in 'document_extensions.rb' as examples.
+    #
+    # Initialises a private instance variable with the xpath or database object
+    # result(s). When initialising from HTML, a true singleton value will only
+    # ever return one result otherwise all xpath results are returned in an
+    # Array. When initialising from a database object, the value is taken as
+    # is and singleton is only used to define the default empty value.
+    # If a value cannot be found (in either the HTML or database object), then
+    # a default will be used. The default value is: singleton ? nil : [].
+    #
+    # Note that defined extensions work for both documents initialized from
+    # the WWW (via Wgit::Crawler methods) and from database objects. This
+    # effectively implements ORM like behavior using this class.
+    #
+    # @param var [Symbol] The name of the variable to be initialised.
+    # @param xpath [String, Object#call] The xpath used to find the element(s)
+    #   of the webpage. Pass a callable object (proc etc.) if you want the
+    #   xpath value to be derived on Document initialisation (instead of when
+    #   the extension is defined). The call method must return a valid xpath
+    #   String.
+    # @param options [Hash] The options to define an extension with.
+    # @option options [Boolean] :singleton The singleton option determines
+    #   whether or not the result(s) should be in an Array. If multiple
+    #   results are found and singleton is true then the first result will be
+    #   used. Defaults to true.
+    # @option options [Boolean] :text_content_only The text_content_only option
+    #   if true will use the text content of the Nokogiri result object,
+    #   otherwise the Nokogiri object itself is returned. Defaults to true.
+    # @yield [value, source] Yields the value (Object) about to be assigned to
+    #   the new var and the source (Symbol) of the value (either :html or
+    #   :object). The return value of the block becomes the new var value,
+    #   unless nil. Return nil if you want to inspect but not change the var
+    #   value. The block gets executed when a Document is initialized from html
+    #   or an object e.g. database.
+    # @raise [StandardError] If the var param isn't valid.
+    # @return [Symbol] The first half of the newly defined method names e.g.
+    #   if var == "title" then :init_title is returned.
+    def self.define_extension(var, xpath, options = {}, &block)
+      default_options = { singleton: true, text_content_only: true }
+      options = default_options.merge(options)
+
+      raise "var must match #{REGEX_EXTENSION_NAME}" unless \
+      var =~ REGEX_EXTENSION_NAME
+
+      # Define the private init_*_from_html method for HTML.
+      # Gets the HTML's xpath value and creates a var for it.
+      func_name = Document.send(:define_method, "init_#{var}_from_html") do
+        result = find_in_html(xpath, options, &block)
+        init_var(var, result)
+      end
+      Document.send :private, func_name
+
+      # Define the private init_*_from_object method for a Database object.
+      # Gets the Object's 'key' value and creates a var for it.
+      func_name = Document.send(:define_method, "init_#{var}_from_object") do |obj|
+        result = find_in_object(obj, var.to_s, singleton: options[:singleton], &block)
+        init_var(var, result)
+      end
+      Document.send :private, func_name
+
+      "init_#{var}".to_sym
+    end
+
+    # Removes the init_* methods created when an extension is defined.
+    # Therefore, this is the opposing method to Document.define_extension.
+    # Returns true if successful or false if the method(s) cannot be found.
+    #
+    # @param var [Symbol] The extension variable already defined.
+    # @return [Boolean] True if the extension var was found and removed;
+    #   otherwise false.
+    def self.remove_extension(var)
+      Document.send(:remove_method, "init_#{var}_from_html")
+      Document.send(:remove_method, "init_#{var}_from_object")
+
+      true
+    rescue NameError
+      false
+    end
+
+    ### Document Instance Methods ###
+
+    # Determines if both the url and html match. Use
+    # doc.object_id == other.object_id for exact object comparison.
+    #
+    # @param other [Wgit::Document] To compare self against.
+    # @return [Boolean] True if @url and @html are equal, false if not.
+    def ==(other)
+      return false unless other.is_a?(Wgit::Document)
+
+      (@url == other.url) && (@html == other.html)
     end
 
     # Is a shortcut for calling Document#html[range].
@@ -129,33 +199,38 @@ module Wgit
     # Returns the base URL of this Wgit::Document. The base URL is either the
     # <base> element's href value or @url (if @base is nil). If @base is
     # present and relative, then @url.to_base + @base is returned. This method
-    # should be used instead of `doc.url.to_base` etc. if manually building
-    # absolute links.
+    # should be used instead of `doc.url.to_base` etc. when manually building
+    # absolute links from relative links.
     #
     # Provide the `link:` parameter to get the correct base URL for that type
     # of link. For example, a link of `#top` would always return @url because
     # it applies to that page, not a different one. Query strings work in the
-    # same way. Use this parameter if manually concatting links e.g.
-    # `absolute_link = doc.base_url(link: link).concat(link)` etc.
+    # same way. Use this parameter if manually concatting Url's e.g.
     #
-    # @param link [Wgit::Url] The link to obtain the correct base URL for.
+    #   relative_link = Wgit::Url.new '?q=hello'
+    #   absolute_link = doc.base_url(link: relative_link).concat(relative_link)
+    #
+    # This is similar to how Wgit::Document#internal_absolute_links works.
+    #
+    # @param link [Wgit::Url, String] The link to obtain the correct base URL
+    #   for.
     # @return [Wgit::Url] The base URL of this Document e.g.
     #   'http://example.com/public'.
     def base_url(link: nil)
       get_base = -> { @base.is_relative? ? @url.to_base.concat(@base) : @base }
 
       if link
-        assert_type(link, Wgit::Url)
+        link = Wgit::Url.new(link)
         raise "link must be relative: #{link}" unless link.is_relative?
 
-        if link.is_anchor? || link.is_query_string?
+        if link.is_anchor? || link.is_query?
           base_url = @base ? get_base.call : @url
-          return base_url.without_anchor.without_query_string
+          return base_url.without_anchor.without_query
         end
       end
 
       base_url = @base ? get_base.call : @url.base
-      base_url.without_anchor.without_query_string
+      base_url.without_anchor.without_query
     end
 
     # Returns a Hash containing this Document's instance vars.
@@ -165,52 +240,51 @@ module Wgit
     # @param include_html [Boolean] Whether or not to include @html in the
     #   returned Hash.
     # @return [Hash] Containing self's instance vars.
-    def to_h(include_html = false)
+    def to_h(include_html: false)
       ignore = include_html ? [] : ['@html']
-      ignore << '@doc' # Always ignore "@doc"
-      Wgit::Utils.to_h(self, ignore)
+      ignore << '@doc' # Always ignore Nokogiri @doc.
+
+      Wgit::Utils.to_h(self, ignore: ignore)
     end
 
-    # Converts this Document's to_h return value to a JSON String.
+    # Converts this Document's #to_h return value to a JSON String.
     #
     # @param include_html [Boolean] Whether or not to include @html in the
     #   returned JSON String.
     # @return [String] This Document represented as a JSON String.
-    def to_json(include_html = false)
-      h = to_h(include_html)
+    def to_json(include_html: false)
+      h = to_h(include_html: include_html)
       JSON.generate(h)
     end
 
     # Returns a Hash containing this Document's instance variables and
-    # their :length (if they respond to it). Works dynamically so that any
+    # their #length (if they respond to it). Works dynamically so that any
     # user defined extensions (and their created instance vars) will appear in
     # the returned Hash as well. The number of text snippets as well as total
     # number of textual bytes are always included in the returned Hash.
     #
-    # @return [Hash] Containing self's HTML statistics.
+    # @return [Hash] Containing self's HTML page statistics.
     def stats
       hash = {}
       instance_variables.each do |var|
         # Add up the total bytes of text as well as the length.
         if var == :@text
-          count = 0
-          @text.each { |t| count += t.length }
           hash[:text_snippets] = @text.length
-          hash[:text_bytes] = count
+          hash[:text_bytes]    = @text.sum(&:length)
         # Else take the var's #length method return value.
         else
           next unless instance_variable_get(var).respond_to?(:length)
 
-          hash[var[1..-1].to_sym] =
-            instance_variable_get(var).send(:length)
+          hash[var[1..-1].to_sym] = instance_variable_get(var).send(:length)
         end
       end
+
       hash
     end
 
     # Determine the size of this Document's HTML.
     #
-    # @return [Integer] The total number of bytes in @html.
+    # @return [Integer] The total number of @html bytes.
     def size
       stats[:html]
     end
@@ -242,56 +316,55 @@ module Wgit
       @doc.css(selector)
     end
 
-    # Get all the internal links of this Document in relative form. Internal
-    # meaning a link to another document on the same host. This Document's host
-    # is used to determine if an absolute URL is actually a relative link e.g.
-    # For a Document representing http://www.server.com/about, an absolute link
-    # of <a href='http://www.server.com/search'> will be recognized and
-    # returned as an internal link because both Documents live on the same
-    # host. Also see Wgit::Document#internal_full_links.
+    # Returns all internal links from this Document in relative form. Internal
+    # meaning a link to another document on the same host.
     #
-    # @return [Array<Wgit::Url>] self's internal/relative URL's.
+    # This Document's host is used to determine if an absolute URL is actually
+    # a relative link e.g. For a Document representing
+    # http://www.server.com/about, an absolute link of
+    # <a href='http://www.server.com/search'> will be recognized and returned
+    # as an internal link because both Documents live on the same host. Also
+    # see Wgit::Document#internal_absolute_links.
+    #
+    # @return [Array<Wgit::Url>] Self's internal Url's in relative form.
     def internal_links
       return [] if @links.empty?
 
       links = @links
               .select { |link| link.is_relative?(host: @url.to_base) }
               .map(&:without_base)
-              .map do |link| # We map @url.to_host into / because it's a duplicate.
+              .map do |link| # Map @url.to_host into / as it's a duplicate.
         link.to_host == @url.to_host ? Wgit::Url.new('/') : link
       end
 
       Wgit::Utils.process_arr(links)
     end
 
-    # Get all the internal links of this Document and append them to this
-    # Document's base URL making them absolute. Also see
+    # Returns all internal links from this Document in absolute form by
+    # appending them to self's #base_url. Also see
     # Wgit::Document#internal_links.
     #
-    # @return [Array<Wgit::Url>] self's internal/relative URL's in absolute
-    #   form.
-    def internal_full_links
-      links = internal_links
-      return [] if links.empty?
-
-      links.map { |link| base_url(link: link).concat(link) }
+    # @return [Array<Wgit::Url>] Self's internal Url's in absolute form.
+    def internal_absolute_links
+      internal_links.map { |link| base_url(link: link).concat(link) }
     end
 
-    # Get all the external links of this Document. External meaning a link to
-    # a different host.
+    # Returns all external links from this Document in absolute form. External
+    # meaning a link to a different host.
     #
-    # @return [Array<Wgit::Url>] self's external/absolute URL's.
+    # @return [Array<Wgit::Url>] Self's external Url's in absolute form.
     def external_links
       return [] if @links.empty?
 
       links = @links
-              .reject { |link| link.relative_link?(host: @url.to_base) }
+              .reject { |link| link.is_relative?(host: @url.to_base) }
               .map(&:without_trailing_slash)
 
       Wgit::Utils.process_arr(links)
     end
 
-    # Searches against the @text for the given search query.
+    # Searches the @text for the given query and returns the results.
+    #
     # The number of search hits for each sentenence are recorded internally
     # and used to rank/sort the search results before being returned. Where
     # the Wgit::Database#search method search all documents for the most hits,
@@ -302,11 +375,11 @@ module Wgit
     # original sentence, which ever is less. The algorithm obviously ensures
     # that the search query is visible somewhere in the sentence.
     #
-    # @param query [String] The value to search the document's text against.
+    # @param query [String] The value to search the document's @text for.
     # @param sentence_limit [Integer] The max length of each search result
     #   sentence.
     # @return [Array<String>] Representing the search results.
-    def search(query, sentence_limit = 80)
+    def search(query, sentence_limit: 80)
       raise 'A search query must be provided' if query.empty?
       raise 'The sentence_limit value must be even' if sentence_limit.odd?
 
@@ -315,11 +388,12 @@ module Wgit
 
       @text.each do |sentence|
         hits = sentence.scan(regex).count
-        next unless hits > 0
+        next unless hits.positive?
 
         sentence.strip!
         index = sentence.index(regex)
         Wgit::Utils.format_sentence_length(sentence, index, sentence_limit)
+
         results[sentence] = hits
       end
 
@@ -334,112 +408,23 @@ module Wgit
     # functionality. The original text is returned; no other reference to it
     # is kept thereafter.
     #
-    # @param query [String] The value to search the document's text against.
+    # @param query [String] The value to search the document's text for.
     # @param sentence_limit [Integer] The max length of each search result
     #   sentence.
     # @return [String] This Document's original @text value.
-    def search!(query, sentence_limit = 80)
+    def search!(query, sentence_limit: 80)
       orig_text = @text
-      @text = search(query, sentence_limit)
+      @text = search(query, sentence_limit: sentence_limit)
       orig_text
-    end
-
-    ### Document (Class) methods ###
-
-    # Uses Document.text_elements to build an xpath String, used to obtain
-    # all of the combined text on a webpage.
-    #
-    # @return [String] An xpath String to obtain a webpage's text elements.
-    def self.text_elements_xpath
-      xpath = ''
-      return xpath if Wgit::Document.text_elements.empty?
-
-      el_xpath = '//%s/text()'
-      Wgit::Document.text_elements.each_with_index do |el, i|
-        xpath += ' | ' unless i == 0
-        xpath += format(el_xpath, el)
-      end
-      xpath
-    end
-
-    # Initialises a private instance variable with the xpath or database object
-    # result(s). When initialising from HTML, a true singleton value will only
-    # ever return one result otherwise all xpath results are returned in an
-    # Array. When initialising from a database object, the value is taken as
-    # is and singleton is only used to define the default empty value.
-    # If a value cannot be found (in either the HTML or database object), then
-    # a default will be used. The default is: singleton ? nil : [].
-    #
-    # Note that defined extensions work for both documents being crawled from
-    # the WWW and for documents being retrieved from the database. This
-    # effectively implements ORM like behavior using this class.
-    #
-    # @param var [Symbol] The name of the variable to be initialised.
-    # @param xpath [String, Object#call] The xpath used to find the element(s)
-    #   of the webpage. Pass a callable object (proc etc.) if you want the
-    #   xpath value to be derived on Document initialisation (instead of when
-    #   the extension is defined). The call method must return a valid xpath
-    #   String.
-    # @param options [Hash] The options to define an extension with.
-    # @option options [Boolean] :singleton The singleton option determines
-    #   whether or not the result(s) should be in an Array. If multiple
-    #   results are found and singleton is true then the first result will be
-    #   used. Defaults to true.
-    # @option options [Boolean] :text_content_only The text_content_only option
-    #   if true will use the text content of the Nokogiri result object,
-    #   otherwise the Nokogiri object itself is returned. Defaults to true.
-    # @yield [Object, Symbol] Yields the value about to be assigned to the new
-    #   var and the source of the value (either :html or :object aka database).
-    #   The return value of the block becomes the new var value, unless nil.
-    #   Return nil if you want to inspect but not change the var value. The
-    #   block gets executed when a Document is initialized from html or an
-    #   object.
-    # @return [Symbol] The first half of the newly defined method names e.g.
-    #   if var == "title" then :init_title is returned.
-    def self.define_extension(var, xpath, options = {}, &block)
-      default_options = { singleton: true, text_content_only: true }
-      options = default_options.merge(options)
-
-      # Define the private init_*_from_html method for HTML.
-      # Gets the HTML's xpath value and creates a var for it.
-      func_name = Document.send(:define_method, "init_#{var}_from_html") do
-        result = find_in_html(xpath, options, &block)
-        init_var(var, result)
-      end
-      Document.send :private, func_name
-
-      # Define the private init_*_from_object method for a Database object.
-      # Gets the Object's "key" value and creates a var for it.
-      func_name = Document.send(:define_method, "init_#{var}_from_object") do |obj|
-        result = find_in_object(obj, var.to_s, singleton: options[:singleton], &block)
-        init_var(var, result)
-      end
-      Document.send :private, func_name
-
-      "init_#{var}".to_sym
-    end
-
-    # Removes the init_* methods created when an extension is defined.
-    # Therefore, this is the opposing method to Document.define_extension.
-    # Returns true if successful or false if the method(s) cannot be found.
-    #
-    # @param var [Symbol] The extension variable already defined.
-    # @return [Boolean] True if the extension var was found and removed;
-    #   otherwise false.
-    def self.remove_extension(var)
-      Document.send(:remove_method, "init_#{var}_from_html")
-      Document.send(:remove_method, "init_#{var}_from_object")
-      true
-    rescue NameError
-      false
     end
 
     protected
 
     # Initializes the nokogiri object using @html, which cannot be nil.
     # Override this method to custom configure the Nokogiri object returned.
-    # Gets called from Wgit::Document.new.
+    # Gets called from Wgit::Document.new upon initialization.
     #
+    # @raise [StandardError] If @html isn't set.
     # @return [Nokogiri::HTML] The initialised Nokogiri HTML object.
     def init_nokogiri
       raise '@html must be set' unless @html
@@ -459,31 +444,30 @@ module Wgit
     #   Object) : results (Array).
     # @param text_content_only [Boolean] text_content_only ? result.content
     #   (String) : result (Nokogiri Object).
-    # @yield [String/Object, Symbol] Given the value before it's set as an
-    #   instance variable so that you can inspect/alter the value if desired.
-    #   Return nil from the block if you don't want to override the value. Also
-    #   given the source which is always :html.
+    # @yield [value, source] Given the value (String/Object) before it's set as
+    #   an instance variable so that you can inspect/alter the value if
+    #   desired. Return nil from the block if you don't want to override the
+    #   value. Also given the source (Symbol) which is always :html.
     # @return [String, Object] The value found in the html or the default value
     #   (singleton ? nil : []).
     def find_in_html(xpath, singleton: true, text_content_only: true)
-      xpath = xpath.call if xpath.respond_to?(:call)
+      default = singleton ? nil : []
+      xpath   = xpath.call if xpath.respond_to?(:call)
       results = @doc.xpath(xpath)
 
-      if results && !results.empty?
-        result =  if singleton
-                    text_content_only ? results.first.content : results.first
-                  else
-                    text_content_only ? results.map(&:content) : results
-                  end
-      else
-        result = singleton ? nil : []
-      end
+      return default if results.nil? || results.empty?
+
+      result = if singleton
+                 text_content_only ? results.first.content : results.first
+               else
+                 text_content_only ? results.map(&:content) : results
+               end
 
       singleton ? Wgit::Utils.process_str(result) : Wgit::Utils.process_arr(result)
 
       if block_given?
         new_result = yield(result, :html)
-        result = new_result if new_result
+        result = new_result unless new_result.nil?
       end
 
       result
@@ -494,28 +478,77 @@ module Wgit
     # @param obj [Object#fetch] The object containing the key/value.
     # @param key [String] Used to find the value in the obj.
     # @param singleton [Boolean] True if a single value, false otherwise.
-    # @yield [String/Object, Symbol] Given the value before it's set as an
-    #   instance variable so that you can inspect/alter the value if desired.
-    #   Return nil from the block if you don't want to override the value. Also
-    #   given the source which is always :object.
+    # @yield [value, source] Given the value (String/Object) before it's set as
+    #   an instance variable so that you can inspect/alter the value if
+    #   desired. Return nil from the block if you don't want to override the
+    #   value. Also given the source (Symbol) which is always :object.
     # @return [String, Object] The value found in the obj or the default value
     #   (singleton ? nil : []).
     def find_in_object(obj, key, singleton: true)
       assert_respond_to(obj, :fetch)
 
       default = singleton ? nil : []
-      result = obj.fetch(key.to_s, default)
+      result  = obj.fetch(key.to_s, default)
+
       singleton ? Wgit::Utils.process_str(result) : Wgit::Utils.process_arr(result)
 
       if block_given?
         new_result = yield(result, :object)
-        result = new_result if new_result
+        result = new_result unless new_result.nil?
       end
 
       result
     end
 
     private
+
+    # Initialise the Document from URL and HTML Strings.
+    def init_from_strings(url, html)
+      assert_types(html, [String, NilClass])
+
+      # We already know url.is_a?(String) so parse into Url unless already so.
+      @url   = Wgit::Url.parse(url)
+      @html  = html || ''
+      @doc   = init_nokogiri
+      @score = 0.0
+
+      process_url_and_html
+
+      # Dynamically run the init_*_from_html methods.
+      Document.private_instance_methods(false).each do |method|
+        if method.to_s.start_with?('init_') &&
+           method.to_s.end_with?('_from_html')
+          send(method) unless method == __method__
+        end
+      end
+    end
+
+    # Initialise the Document from a Hash like Object containing Strings as
+    # keys e.g. database collection object or Hash.
+    def init_from_object(obj)
+      assert_respond_to(obj, :fetch)
+
+      @url   = Wgit::Url.new(obj.fetch('url')) # Should always be present.
+      @html  = obj.fetch('html', '')
+      @doc   = init_nokogiri
+      @score = obj.fetch('score', 0.0)
+
+      process_url_and_html
+
+      # Dynamically run the init_*_from_object methods.
+      Document.private_instance_methods(false).each do |method|
+        if method.to_s.start_with?('init_') &&
+           method.to_s.end_with?('_from_object')
+          send(method, obj) unless method == __method__
+        end
+      end
+    end
+
+    # Ensure the @url and @html Strings are correctly encoded etc.
+    def process_url_and_html
+      @url  = Wgit::Utils.process_str(@url)
+      @html = Wgit::Utils.process_str(@html)
+    end
 
     # Initialises an instance variable and defines a getter method for it.
     #
@@ -535,19 +568,8 @@ module Wgit
       end
     end
 
-    # Ensure the @url and @html Strings are correctly encoded etc.
-    def process_url_and_html
-      @url = Wgit::Utils.process_str(@url)
-      @html = Wgit::Utils.process_str(@html)
-    end
-
-    alias relative_links internal_links
-    alias relative_urls internal_links
-    alias relative_full_links internal_full_links
-    alias relative_full_urls internal_full_links
-    alias internal_absolute_links internal_full_links
-    alias relative_absolute_links internal_full_links
-    alias relative_absolute_urls internal_full_links
-    alias external_urls external_links
+    alias internal_urls          internal_links
+    alias internal_absolute_urls internal_absolute_links
+    alias external_urls          external_links
   end
 end

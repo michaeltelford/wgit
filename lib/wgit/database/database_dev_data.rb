@@ -1,9 +1,9 @@
 require 'securerandom'
 
 module Wgit
-  # Module containing the default url and doc objects for database testing.
-  # We use an uuid on the url fields in the DB because they are unique.
-  module DatabaseDefaultData
+  # Module containing the default url and doc DB objects used for testing and development.
+  # We use an UUID on the url fields in the DB because they are unique.
+  module DatabaseDevData
     # Returns a Hash representing a Url record in the DB.
     def self.url
       {

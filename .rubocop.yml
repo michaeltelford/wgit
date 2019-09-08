@@ -1,0 +1,13 @@
+AllCops:
+  Exclude:
+    # Readme code examples shouldn't be modified by `rubocop -a`.
+    - 'test/test_readme_code_examples.rb'
+Style/FrozenStringLiteralComment:
+  Enabled: false
+Metrics/LineLength:
+  Exclude:
+    - 'test/test_*.rb'
+    - 'lib/wgit/database/database_dev_data.rb'
+Style/ClassVars:
+  Exclude:
+    - 'lib/wgit/database/database_helper.rb'

@@ -12,7 +12,7 @@ def fixtures_dir
   'test/mock/fixtures'
 end
 
-# Return the contents of a fixture HTML file.
+# Return the contents of a HTML fixture file.
 def fixture(path)
   path = "#{path}.html" unless path.end_with?('.html')
   file_path = path.start_with?(fixtures_dir) ? path : "#{fixtures_dir}/#{path}"
@@ -32,7 +32,7 @@ def stub_page(url, status: 200, body: default_html, fixture: nil)
 
   # Webmock only mocks a trailing slash if there's no path so we do it.
   path = URI(url).path
-  unless path.empty? or path == '/'
+  unless path.empty? || path == '/'
     alt_url = url.end_with?('/') ? url.chop : "#{url}/"
     stub_request(:get, alt_url).to_return(status: status, body: body)
   end
@@ -65,11 +65,12 @@ def stub_dir(url, path, dir)
 
   objects = Dir["#{path}/{*,.*}"]
             .reject { |f| f.end_with?('.') || f.end_with?('..') }
-  files = objects
-          .select { |obj| File.file?(obj) }
-          .reject { |f| f.end_with?('index.html') }
-          .map { |f| f.end_with?('.html') ? f[0..-6] : f }
-  dirs = objects.select { |obj| File.directory?(obj) }
+  files   = objects
+            .select { |obj| File.file?(obj) }
+            .reject { |f| f.end_with?('index.html') }
+            .map { |f| f.end_with?('.html') ? f[0..-6] : f } # Remove extension.
+  dirs    = objects
+            .select { |obj| File.directory?(obj) }
 
   files.each { |f| stub_page("#{url}/#{f.split('/').last}", fixture: f) }
   dirs.each  { |d| stub_dir(url, path, d.split('/').last) }
