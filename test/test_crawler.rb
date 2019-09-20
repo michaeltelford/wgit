@@ -20,6 +20,14 @@ class TestCrawler < TestHelper
     c = Wgit::Crawler.new
 
     assert_nil c.last_response
+    assert_equal 5, c.redirect_limit
+  end
+
+  def test_initialise__redirect_limit
+    c = Wgit::Crawler.new redirect_limit: 3
+
+    assert_nil c.last_response
+    assert_equal 3, c.redirect_limit
   end
 
   def test_crawl_url
@@ -329,26 +337,25 @@ class TestCrawler < TestHelper
     assert_equal 'Too many redirects: 5', e.message
     assert_equal 'http://redirect.com/6', url
 
-    # Disable redirects - should fail.
+    c = Wgit::Crawler.new redirect_limit: 0
+
+    # Disable redirects - should fail for too many redirects.
     url = Wgit::Url.new 'http://twitter.com/'
-    e = assert_raises(StandardError) { c.send :resolve, url, redirect_limit: 0 }
+    e = assert_raises(StandardError) { c.send :resolve, url }
     assert_equal 'Too many redirects: 0', e.message
     assert_equal 'http://twitter.com/', url
 
     # Disable redirects - should pass as there's no redirect.
     url = Wgit::Url.new 'https://twitter.com/'
-    c.send :resolve, url, redirect_limit: 0
+    c.send :resolve, url
     assert_equal 'https://twitter.com/', url
 
-    # Test changing the default limit - should fail, too many redirects.
-    Wgit::Crawler.default_redirect_limit = 3
+    c = Wgit::Crawler.new redirect_limit: 3
 
     url = Wgit::Url.new 'http://redirect.com/2' # Would pass normally.
     e = assert_raises(StandardError) { c.send :resolve, url }
     assert_equal 'Too many redirects: 3', e.message
     assert_equal 'http://redirect.com/5', url
-
-    Wgit::Crawler.default_redirect_limit = 5 # Back to the original default.
   end
 
   def test_resolve__uri_error

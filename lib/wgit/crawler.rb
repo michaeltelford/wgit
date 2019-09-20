@@ -12,20 +12,20 @@ module Wgit
   class Crawler
     include Assertable
 
-    # The default maximum amount of allowed URL redirects.
-    @default_redirect_limit = 5
-
-    class << self
-      # Class level instance accessor methods for @default_redirect_limit.
-      # Call using Wgit::Crawler.default_redirect_limit etc.
-      attr_accessor :default_redirect_limit
-    end
+    # The amount of allowed redirects before raising an error. Set to 0 to
+    # disable redirects completely.
+    attr_accessor :redirect_limit
 
     # The Net::HTTPResponse of the most recently crawled URL or nil.
     attr_reader :last_response
 
     # Initializes and returns a Wgit::Crawler instance.
-    def initialize; end
+    #
+    # @param redirect_limit [Integer] The amount of allowed redirects before
+    #   raising an error. Set to 0 to disable redirects completely.
+    def initialize(redirect_limit: 5)
+      @redirect_limit = redirect_limit
+    end
 
     # Crawls an entire website's HTML pages by recursively going through
     # its internal links. Each crawled Document is yielded to a block.
@@ -175,12 +175,9 @@ module Wgit
     end
 
     # The resolve method performs a HTTP GET to obtain the HTML response. The
-    # Net::HTTPResponse will be returned or an error raised. Redirects can be
-    # disabled by setting `redirect_limit: 0`.
+    # Net::HTTPResponse will be returned or an error raised.
     #
     # @param url [Wgit::Url] The URL to fetch the HTML from.
-    # @param redirect_limit [Integer] The number of redirect hops to allow
-    #   before raising an error.
     # @param follow_external_redirects [Boolean] Whether or not to follow
     #   an external redirect. If false, you must also provide a `host:`
     #   parameter.
@@ -192,12 +189,7 @@ module Wgit
     # @raise [StandardError] If !url.respond_to? :to_uri or a redirect isn't
     #   allowed.
     # @return [Net::HTTPResponse] The HTTP response of the GET request.
-    def resolve(
-      url,
-      redirect_limit: Wgit::Crawler.default_redirect_limit,
-      follow_external_redirects: true,
-      host: nil
-    )
+    def resolve(url, follow_external_redirects: true, host: nil)
       raise 'url must respond to :to_uri' unless url.respond_to?(:to_uri)
 
       redirect_count = 0
@@ -218,7 +210,7 @@ module Wgit
         end
 
         raise "Too many redirects: #{redirect_count}" \
-        if redirect_count >= redirect_limit
+        if redirect_count >= @redirect_limit
 
         redirect_count += 1
 
