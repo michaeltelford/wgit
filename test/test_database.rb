@@ -104,42 +104,88 @@ class TestDatabase < TestHelper
 
     # Test urls.
     assert urls.all? { |url| url.instance_of? Wgit::Url }
-    assert_equal 3, urls.count
+    assert_equal 3, urls.length
 
     # Test crawled_urls
     assert crawled_urls.all? { |url| url.instance_of? Wgit::Url }
-    assert_equal 1, crawled_urls.count
+    assert_equal 1, crawled_urls.length
 
     # Test uncrawled_urls.
     assert uncrawled_urls.all? { |url| url.instance_of? Wgit::Url }
-    assert_equal 2, uncrawled_urls.count
+    assert_equal 2, uncrawled_urls.length
   end
 
-  def test_search
-    query = 'Everest Depart Kathmandu'
-
-    @docs.last.text << query
+  def test_search__case_sensitive__whole_sentence
+    @docs.last.text << 'Foo Bar'
     doc_hashes = @docs.map(&:to_h)
+
     seed { docs doc_hashes }
 
     db = Wgit::Database.new
 
     # Test no results.
-    assert_empty db.search "doesn't_exist_123"
+    assert_empty db.search('doesnt_exist_123')
+
+    # Test case_sensitive: false and block.
+    count = 0
+    results = db.search('foo bar', case_sensitive: false) do |doc|
+      assert_instance_of Wgit::Document, doc
+      count += 1
+    end
+    assert_equal 1, count
+    assert_equal 1, results.length
+    assert results.all? { |doc| doc.instance_of? Wgit::Document }
+
+    # Test case_sensitive: true.
+    assert_empty db.search('foo bar', case_sensitive: true)
 
     # Test whole_sentence: false.
-    results = db.search query
+    results = db.search('bar foo', whole_sentence: false)
+    assert_equal 1, results.length
     assert results.all? { |doc| doc.instance_of? Wgit::Document }
-    assert_equal @docs.count, results.count
 
-    # Test whole_sentence: true and block.
-    count = 0
-    results = db.search(query, whole_sentence: true) { count += 1 }
+    # Test whole_sentence: true.
+    assert_empty db.search('bar foo', whole_sentence: true)
 
+    # Test case_sensitive: true and whole_sentence: true.
+    results = db.search('Foo Bar', case_sensitive: true, whole_sentence: true)
+    assert_equal 1, results.length
     assert results.all? { |doc| doc.instance_of? Wgit::Document }
-    assert_equal 1, count
-    assert_equal 1, results.count
-    assert_equal @docs.last.url, results.last.url
+  end
+
+  def test_search__limit__skip
+    # All dev data docs contain the word 'Everest'.
+    doc_hashes = @docs.map(&:to_h)
+
+    seed { docs doc_hashes }
+
+    db = Wgit::Database.new
+
+    assert_equal 3, db.search('everest').length
+
+    # Test limit.
+    results = db.search('everest', limit: 2)
+    assert_equal 2, results.length
+    results.each_with_index do |doc, i|
+      doc.instance_of? Wgit::Document
+      assert_equal @docs[i], doc
+    end
+
+    # Test skip.
+    results = db.search('everest', skip: 1)
+    assert_equal 2, results.length
+    results.each_with_index do |doc, i|
+      doc.instance_of? Wgit::Document
+      assert_equal @docs[i + 1], doc
+    end
+
+    # Test limit and skip.
+    results = db.search('everest', limit: 1, skip: 1)
+    assert_equal 1, results.length
+    results.each do |doc|
+      doc.instance_of? Wgit::Document
+      assert_equal @docs[1], doc
+    end
   end
 
   def test_stats

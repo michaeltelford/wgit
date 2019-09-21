@@ -375,23 +375,31 @@ module Wgit
     # original sentence, which ever is less. The algorithm obviously ensures
     # that the search query is visible somewhere in the sentence.
     #
-    # @param query [String] The value to search the document's @text for.
+    # @param query [String, Object#to_s] The value to search the document's
+    #   @text for.
+    # @param case_sensitive [Boolean] Whether character case must match.
+    # @param whole_sentence [Boolean] Whether multiple words should be searched
+    #   for separately.
     # @param sentence_limit [Integer] The max length of each search result
     #   sentence.
-    # @return [Array<String>] Representing the search results.
-    def search(query, sentence_limit: 80)
+    # @return [Array<String>] A subset of @text, matching the query.
+    def search(
+      query, case_sensitive: false, whole_sentence: false, sentence_limit: 80
+    )
+      query = query.to_s
       raise 'A search query must be provided' if query.empty?
       raise 'The sentence_limit value must be even' if sentence_limit.odd?
 
+      query   = query.gsub(' ', '|') unless whole_sentence
+      regex   = Regexp.new(query, !case_sensitive)
       results = {}
-      regex = Regexp.new(query, Regexp::IGNORECASE)
 
       @text.each do |sentence|
         hits = sentence.scan(regex).count
         next unless hits.positive?
 
         sentence.strip!
-        index = sentence.index(regex)
+        index = sentence.index(regex) # Index of first match.
         Wgit::Utils.format_sentence_length(sentence, index, sentence_limit)
 
         results[sentence] = hits
@@ -408,13 +416,23 @@ module Wgit
     # functionality. The original text is returned; no other reference to it
     # is kept thereafter.
     #
-    # @param query [String] The value to search the document's text for.
+    # @param query [String, Object#to_s] The value to search the document's
+    #   @text for.
+    # @param case_sensitive [Boolean] Whether character case must match.
+    # @param whole_sentence [Boolean] Whether multiple words should be searched
+    #   for separately.
     # @param sentence_limit [Integer] The max length of each search result
     #   sentence.
     # @return [String] This Document's original @text value.
-    def search!(query, sentence_limit: 80)
+    def search!(
+      query, case_sensitive: false, whole_sentence: false, sentence_limit: 80
+    )
       orig_text = @text
-      @text = search(query, sentence_limit: sentence_limit)
+      @text = search(
+        query, case_sensitive: case_sensitive,
+        whole_sentence: whole_sentence, sentence_limit: sentence_limit
+      )
+
       orig_text
     end
 

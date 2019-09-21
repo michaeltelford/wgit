@@ -125,8 +125,6 @@ module Wgit
 
     # Searches the database's Documents for the given query.
     #
-    # Currently all searches are case insensitive.
-    #
     # The searched fields are decided by the text index setup on the
     # documents collection. Currently we search against the following fields:
     # "author", "keywords", "title" and "text" by default.
@@ -137,15 +135,17 @@ module Wgit
     # object for use elsewhere if needed; accessed via Wgit::Document#score.
     #
     # @param query [String] The text query to search with.
-    # @param _case_sensitive [Boolean] Whether character case must match.
+    # @param case_sensitive [Boolean] Whether character case must match.
     # @param whole_sentence [Boolean] Whether multiple words should be searched
     #   for separately.
     # @param limit [Integer] The max number of results to return.
-    # @param skip [Integer] The number of DB records to skip.
+    # @param skip [Integer] The number of results to skip.
     # @yield [doc] Given each search result (Wgit::Document) returned from the
     #   DB.
     # @return [Array<Wgit::Document>] The search results obtained from the DB.
-    def search(query, _case_sensitive: false, whole_sentence: false, limit: 10, skip: 0)
+    def search(
+      query, case_sensitive: false, whole_sentence: false, limit: 10, skip: 0
+    )
       query.strip!
       query.replace('"' + query + '"') if whole_sentence
 
@@ -154,7 +154,7 @@ module Wgit
       sort_proj = { score: { :$meta => 'textScore' } }
       query = { :$text => {
         :$search => query,
-        :$caseSensitive => false
+        :$caseSensitive => case_sensitive
       } }
 
       results = retrieve(:documents, query,

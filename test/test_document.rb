@@ -56,12 +56,6 @@ and power matches the Ruby language in which it's developed."
       text_snippets: 4,
       text_bytes: 280
     }
-    @search_results = [
-      "Minitest rocks!! It's simplicity and power matches the Ruby \
-language in which it",
-      "is primarily for testing the Ruby code used in Wgit with the \
-Minitest framework."
-    ]
   end
 
   def test_initialize__without_html
@@ -394,16 +388,47 @@ Minitest framework."
   end
 
   def test_search
-    doc = Wgit::Document.new 'http://www.mytestsite.com/home'.to_url, @html
-    results = doc.search('minitest', sentence_limit: 80)
-    assert_equal @search_results, results
+    doc = Wgit::Document.new 'http://www.mytestsite.com/home', @html
+
+    # Test case_sensitive: false.
+    results = doc.search('minitest', case_sensitive: false)
+    assert_equal([
+      "Minitest rocks!! It's simplicity and power matches the Ruby \
+language in which it",
+      "is primarily for testing the Ruby code used in Wgit with the \
+Minitest framework."
+    ], results)
+
+    # Test case_sensitive: true.
+    assert_empty doc.search('minitest', case_sensitive: true)
+
+    # Test whole_sentence: false.
+    results = doc.search('used code', whole_sentence: false)
+    assert_equal([
+      "is primarily for testing the Ruby code used in Wgit with the \
+Minitest framework."
+    ], results)
+
+    # Test whole_sentence: true.
+    assert_empty doc.search('used code', whole_sentence: true)
+
+    # Test case_sensitive: false, whole_sentence: true with exact words.
+    results = doc.search('coDe usEd', whole_sentence: true)
+    assert_equal([
+      "is primarily for testing the Ruby code used in Wgit with the \
+Minitest framework."
+    ], results)
+
+    # Test case_sensitive: true, whole_sentence: true with exact words.
+    assert_empty doc.search('coDe usEd', case_sensitive: true, whole_sentence: true)
   end
 
   def test_search!
-    doc = Wgit::Document.new 'http://www.mytestsite.com/home'.to_url, @html
+    doc = Wgit::Document.new 'http://www.mytestsite.com/home', @html
     orig_text = doc.text
-    assert_equal orig_text, doc.search!('minitest', sentence_limit: 80)
-    assert_equal @search_results, doc.text
+
+    assert_equal orig_text, doc.search!('minitest', sentence_limit: 16)
+    assert_equal(['Minitest rocks!!', 'ith the Minitest'], doc.text)
   end
 
   def test_xpath

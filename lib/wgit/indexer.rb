@@ -63,27 +63,35 @@ module Wgit
   end
 
   # Performs a search of the database's indexed documents and pretty prints
-  # the results. See Wgit::Database#search for details of the search.
+  # the results. See Wgit::Database#search and Wgit::Document#search for
+  # details of how the search works.
   #
   # @param query [String] The text query to search with.
+  # @param case_sensitive [Boolean] Whether character case must match.
   # @param whole_sentence [Boolean] Whether multiple words should be searched
   #   for separately.
-  # @param limit [Integer] The max number of results to return.
+  # @param limit [Integer] The max number of results to print.
   # @param skip [Integer] The number of DB records to skip.
   # @param sentence_limit [Integer] The max length of each result's text
   #   snippet.
-  # @yield [doc] Given each search result (Wgit::Document).
-  def self.indexed_search(query, _case_sensitive: false, whole_sentence: false,
+  # @yield [doc] Given each search result (Wgit::Document) returned from the
+  #   database.
+  def self.indexed_search(query, case_sensitive: false, whole_sentence: false,
                           limit: 10, skip: 0, sentence_limit: 80, &block)
-    db = Wgit::Database.new
-    results = db.search(
-      query, _case_sensitive: _case_sensitive, whole_sentence: whole_sentence,
+    results = Wgit::Database.new.search(
+      query, case_sensitive: case_sensitive, whole_sentence: whole_sentence,
       limit: limit, skip: skip, &block
     )
-    Wgit::Utils.printf_search_results(
-      results, query: query,
-      _case_sensitive: false, sentence_limit: sentence_limit
-    )
+
+    results.each do |doc|
+      doc.search!(
+        query,
+        case_sensitive: case_sensitive,
+        whole_sentence: whole_sentence,
+        sentence_limit: sentence_limit)
+    end
+
+    Wgit::Utils.printf_search_results(results)
   end
 
   # Class which sets up a crawler and saves the indexed docs to a database.

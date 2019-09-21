@@ -101,7 +101,6 @@ module Wgit
     end
 
     # Prints out the search results in a search engine like format.
-    # Most of the params are passed to Wgit::Document#search; see the docs.
     # The format for each result looks like:
     #
     # Title
@@ -114,42 +113,26 @@ module Wgit
     #
     # <empty_line_seperator>
     #
-    # @param results [Array<Wgit::Document>] An Array whose
-    #   Wgit::Documents#text matches the query at least once.
-    # @param query [String] The text query to search for.
-    # @param _case_sensitive [Boolean] Whether or not the search should be
-    #   case sensitive or not.
-    # @param sentence_limit [Integer] The length of the matching text of the
-    #   search results to be outputted to the stream.
+    # @param results [Array<Wgit::Document>] Array of Wgit::Document's which
+    #   each have had #search!(query) called (to update it's @text with the
+    #   the search results). The first @text sentence gets printed.
     # @param keyword_limit [Integer] The max amount of keywords to be
     #   outputted to the stream.
-    # @param stream [#puts] Any object that respond_to? :puts. It is used
-    #   to output text somewhere e.g. STDOUT (the default).
-    # @return [nil]
-    def self.printf_search_results(results,
-                                   query: nil, _case_sensitive: false,
-                                   sentence_limit: 80, keyword_limit: 5,
-                                   stream: STDOUT)
-      raise 'stream must respond_to? :puts' unless stream.respond_to? :puts
-
-      keyword_limit -= 1 # Because Array's are zero indexed.
+    # @param stream [#puts] Any object that respond_to?(:puts). It is used
+    #   to output text somewhere e.g. a file or STDOUT.
+    # @return [NilClass] Returns nil.
+    def self.printf_search_results(results, keyword_limit: 5, stream: STDOUT)
+      raise 'stream must respond_to? :puts' unless stream.respond_to?(:puts)
 
       results.each do |doc|
-        sentence = if query.nil?
-                     nil
-                   else
-                     sentence = doc.search(query, sentence_limit: sentence_limit).first
-                     if sentence.nil?
-                       nil
-                     else
-                       sentence.strip.empty? ? nil : sentence
-                     end
-                   end
+        title = (doc.title || '<no title>')
         missing_keywords = (doc.keywords.nil? || doc.keywords.empty?)
+        keywords = missing_keywords ? nil : doc.keywords.take(keyword_limit)
+        sentence = doc.text.first
 
-        stream.puts doc.title
-        stream.puts doc.keywords[0..keyword_limit].join(', ') unless missing_keywords
-        stream.puts sentence unless sentence.nil?
+        stream.puts title
+        stream.puts keywords.join(', ') if keywords
+        stream.puts sentence if sentence
         stream.puts doc.url
         stream.puts
       end

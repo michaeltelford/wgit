@@ -77,27 +77,24 @@ class TestUtils < TestHelper
 
   def test_printf_search_results
     # Setup the test results data.
-    search_text = 'Everest'
+    query   = 'Everest'
     results = []
+
     5.times do
-      doc_hash = Wgit::DatabaseDevData.doc
+      doc_hash        = Wgit::DatabaseDevData.doc
       doc_hash['url'] = 'http://altitudejunkies.com/everest.html'
-      results << Wgit::Document.new(doc_hash)
+
+      doc = Wgit::Document.new(doc_hash)
+      doc.search!(query)
+
+      results << doc
     end
 
-    # Setup the temp file to write the printf output to.
-    file_name = SecureRandom.uuid.split('-').last
-    file_path = "#{Dir.tmpdir}/#{file_name}.txt"
-    file = File.new(file_path, 'w+')
-    Wgit::Utils.printf_search_results(
-      results, query: search_text, _case_sensitive: false,
-               sentence_limit: 80, keyword_limit: 5, stream: file
-    )
-    file.close
+    # Setup a buffer to record the output.
+    buffer = StringIO.new
+    Wgit::Utils.printf_search_results(results, stream: buffer)
 
-    # Assert the file contents against the expected output.
-    text = IO.readlines(file_path).join
-    assert_equal printf_expected_output, text
+    assert_equal printf_expected_output, buffer.string
   end
 
   def test_process_str
