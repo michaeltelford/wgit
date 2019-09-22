@@ -176,7 +176,7 @@ class TestReadmeCodeExamples < TestHelper
     # Our Document has a table which we're interested in.
     doc = Wgit::Document.new(
       'http://some_url.com',
-      <<-HTML
+      <<~HTML
       <html>
         <p>Hello world! Welcome to my site.</p>
         <table>
@@ -198,7 +198,7 @@ class TestReadmeCodeExamples < TestHelper
 
     # Notice how the Document's stats will include our 'tables' extension.
     doc.stats # => {
-    #   :url=>19, :html=>290, :links=>0, :text_snippets=>2, :text_bytes=>65, :tables=>1
+    #   :url=>19, :html=>242, :links=>0, :text_snippets=>2, :text_bytes=>65, :tables=>1
     # }
 
     ### PUT README CODE ABOVE ###
@@ -207,7 +207,7 @@ class TestReadmeCodeExamples < TestHelper
     assert_instance_of Nokogiri::XML::NodeSet, tables
     assert_instance_of Nokogiri::XML::Element, tables.first
     assert_equal({
-      :url=>19, :html=>290, :links=>0, :text_snippets=>2, :text_bytes=>65, :tables=>1
+      :url=>19, :html=>242, :links=>0, :text_snippets=>2, :text_bytes=>65, :tables=>1
     }, doc.stats)
 
     # Remove the extension.

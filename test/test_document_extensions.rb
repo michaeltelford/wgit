@@ -103,7 +103,7 @@ class TestDocumentExtension < TestHelper
 
     doc = Wgit::Document.new(
       'http://some_url.com'.to_url,
-      <<-HTML
+      <<~HTML
       <html>
         <p>Hello world!</p>
         <table><th>Header Text</th><th>Another Header</th></table>

@@ -117,31 +117,31 @@ class TestUtils < TestHelper
   private
 
   def printf_expected_output
-    <<-TEXT
-Altitude Junkies | Everest
-Everest, Highest Peak, High Altitude, Altitude Junkies
-e Summit for the hugely successful IMAX Everest film from the 1996 spring season
-http://altitudejunkies.com/everest.html
+    <<~TEXT
+    Altitude Junkies | Everest
+    Everest, Highest Peak, High Altitude, Altitude Junkies
+    e Summit for the hugely successful IMAX Everest film from the 1996 spring season
+    http://altitudejunkies.com/everest.html
 
-Altitude Junkies | Everest
-Everest, Highest Peak, High Altitude, Altitude Junkies
-e Summit for the hugely successful IMAX Everest film from the 1996 spring season
-http://altitudejunkies.com/everest.html
+    Altitude Junkies | Everest
+    Everest, Highest Peak, High Altitude, Altitude Junkies
+    e Summit for the hugely successful IMAX Everest film from the 1996 spring season
+    http://altitudejunkies.com/everest.html
 
-Altitude Junkies | Everest
-Everest, Highest Peak, High Altitude, Altitude Junkies
-e Summit for the hugely successful IMAX Everest film from the 1996 spring season
-http://altitudejunkies.com/everest.html
+    Altitude Junkies | Everest
+    Everest, Highest Peak, High Altitude, Altitude Junkies
+    e Summit for the hugely successful IMAX Everest film from the 1996 spring season
+    http://altitudejunkies.com/everest.html
 
-Altitude Junkies | Everest
-Everest, Highest Peak, High Altitude, Altitude Junkies
-e Summit for the hugely successful IMAX Everest film from the 1996 spring season
-http://altitudejunkies.com/everest.html
+    Altitude Junkies | Everest
+    Everest, Highest Peak, High Altitude, Altitude Junkies
+    e Summit for the hugely successful IMAX Everest film from the 1996 spring season
+    http://altitudejunkies.com/everest.html
 
-Altitude Junkies | Everest
-Everest, Highest Peak, High Altitude, Altitude Junkies
-e Summit for the hugely successful IMAX Everest film from the 1996 spring season
-http://altitudejunkies.com/everest.html
+    Altitude Junkies | Everest
+    Everest, Highest Peak, High Altitude, Altitude Junkies
+    e Summit for the hugely successful IMAX Everest film from the 1996 spring season
+    http://altitudejunkies.com/everest.html
 
     TEXT
   end
