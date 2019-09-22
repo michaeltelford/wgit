@@ -12,10 +12,10 @@
 ## v0.2.0
 This version of Wgit see's a major refactor of the code base involving multiple changes to method names and their signatures (optional parameters turned into named parameters in most cases). A list of the breaking changes are below including how to fix any breakages; but if you're having issues with the upgrade see the documentation at: https://www.rubydoc.info/gems/wgit
 ### Added
-- `Wgit::Database.connect` method (alias for `Wgit::Database.new`).
 - `Wgit::Url#absolute?` method.
 - `Wgit::Url#relative? base: url` support.
-- `case_sensitive:` and `whole_sentence:` support to `Database#search` and `Document#search` methods.
+- `Wgit::Database.connect` method (alias for `Wgit::Database.new`).
+- `Wgit::Database#search` and `Wgit::Document#search` methods now support `case_sensitive:` and `whole_sentence:` named parameters.
 ### Changed/Removed
 - Breaking changes: Renamed the following `Wgit` and `Wgit::Indexer` methods: `Wgit.index_the_web` to `Wgit.index_www`, `Wgit::Indexer.index_the_web` to `Wgit::Indexer.index_www`, `Wgit.index_this_site` to `Wgit.index_site`, `Wgit::Indexer.index_this_site` to `Wgit::Indexer.index_site`, `Wgit.index_this_page` to `Wgit.index_page`, `Wgit::Indexer.index_this_page` to `Wgit::Indexer.index_page`.
 - Breaking changes: All `Wgit::Indexer` methods now take named parameters.
@@ -32,8 +32,8 @@ This version of Wgit see's a major refactor of the code base involving multiple 
 - Breaking changes: The following `Wgit::Crawler` instance methods signatures have changed: `#crawl_site` and `#crawl_url` now require a `url` param (which no longer defaults), `#crawl_urls` now requires one or more `*urls` (which no longer defaults).
 - Breaking changes: The following `Wgit::Assertable` method aliases have been removed: `.type`, `.types` (use `.assert_types` instead) and `.arr_type`, `.arr_types` (use `.assert_arr_types` instead).
 - Breaking changes: The following `Wgit::Utils` methods now take named parameters: `.to_h` and `.printf_search_results`.
+- Breaking changes: `Wgit::Utils.printf_search_results`'s method signature has changed; the search parameters have been removed. Before calling this method you must call `doc.search!` on each of the `results`. See the docs for the full details.
 - `Wgit::Document` instances can now be instantiated with `String` Url's (previously only `Wgit::Url`'s).
-- `Wgit::Utils.printf_search_results`'s method signature has changed; the search parameters have been removed. Before calling this method you must call `doc.search!` on each of the `results`. See the docs for the full details.
 ### Fixed
 - ...
 ---
