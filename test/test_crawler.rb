@@ -158,7 +158,7 @@ class TestCrawler < TestHelper
       'http://www.bing.com'
     ].to_urls
     i = 0
-    doc = c.crawl_urls(*urls) do |d|
+    c.crawl_urls(*urls) do |d|
       if i == 1
         assert_nil c.last_response
         assert_empty d
