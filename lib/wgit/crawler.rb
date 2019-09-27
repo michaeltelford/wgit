@@ -123,9 +123,8 @@ module Wgit
       # A String url isn't allowed because it's passed by value not reference,
       # meaning a redirect isn't reflected; A Wgit::Url is passed by reference.
       assert_type(url, Wgit::Url)
+      raise 'host cannot be nil if follow_external_redirects is false' \
       if !follow_external_redirects && host.nil?
-        raise 'host cannot be nil if follow_external_redirects is false'
-      end
 
       html = fetch(
         url,
@@ -204,10 +203,9 @@ module Wgit
 
         yield(url, response, location) if block_given?
 
+        raise "External redirect not allowed - Redirected to: \
+'#{location}', which is outside of host: '#{host}'" \
         if !follow_external_redirects && !location.is_relative?(host: host)
-          raise "External redirect not allowed - Redirected to: \
-'#{location}', which is outside of host: '#{host}'"
-        end
 
         raise "Too many redirects: #{redirect_count}" \
         if redirect_count >= @redirect_limit
@@ -235,7 +233,7 @@ module Wgit
          .uniq
          .reject do |link|
         ext = link.to_extension
-        ext ? !%w[htm html].include?(ext) : false
+        ext ? !%w[htm html].include?(ext.downcase) : false
       end
     end
 

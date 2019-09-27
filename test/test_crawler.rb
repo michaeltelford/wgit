@@ -1,6 +1,6 @@
 require_relative 'helpers/test_helper'
 
-# Crawl the site by it's <a> tags that link to jpg's (in the below test).
+# Crawl the site by it's <a> tags that link to jpg's.
 class ImageCrawler < Wgit::Crawler
   def get_internal_links(doc)
     doc.internal_absolute_links
@@ -477,9 +477,10 @@ class TestCrawler < TestHelper
       assert doc.url.crawled?
       refute_nil doc.date_crawled
 
-      # The following docs shouldn't be crawled.
-      if  (doc.url == 'http://test-site.com/sneaky') ||
-          (doc.url == 'http://test-site.com/ftp')
+      case doc.url
+      when 'http://test-site.com/sneaky' # Redirects to different host.
+        assert_empty(doc)
+      when 'http://test-site.com/ftp'    # Redirects to different host.
         assert_empty(doc)
       else
         refute_empty(doc)

@@ -597,6 +597,10 @@ class TestUrl < TestHelper
     assert_equal 'html', url.to_extension
     assert_equal Wgit::Url, url.to_extension.class
 
+    url = Wgit::Url.new 'https://www.über.com/not_found.JPEG'
+    assert_equal 'JPEG', url.to_extension
+    assert_equal Wgit::Url, url.to_extension.class
+
     url = Wgit::Url.new 'http://www.google.co.uk'
     assert_nil url.to_extension
   end
