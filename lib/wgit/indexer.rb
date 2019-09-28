@@ -12,6 +12,8 @@ module Wgit
   # external url's to be crawled later on. Logs info on the crawl
   # using Wgit.logger as it goes along.
   #
+  # @param connection_string [String] The database connection string. Set as
+  #   nil to use ENV['WGIT_CONNECTION_STRING'].
   # @param max_sites [Integer] The number of separate and whole
   #   websites to be crawled before the method exits. Defaults to -1 which
   #   means the crawl will occur until manually stopped (Ctrl+C etc).
@@ -19,8 +21,10 @@ module Wgit
   #   scraped from the web (default is 1GB). Note, that this value is used to
   #   determine when to stop crawling; it's not a guarantee of the max data
   #   that will be obtained.
-  def self.index_www(max_sites: -1, max_data: 1_048_576_000)
-    db = Wgit::Database.new
+  def self.index_www(
+    connection_string: nil, max_sites: -1, max_data: 1_048_576_000
+  )
+    db = Wgit::Database.new(connection_string)
     indexer = Wgit::Indexer.new(db)
     indexer.index_www(max_sites: max_sites, max_data: max_data)
   end
@@ -32,14 +36,18 @@ module Wgit
   # There is no max download limit so be careful which sites you index.
   #
   # @param url [Wgit::Url, String] The base Url of the website to crawl.
+  # @param connection_string [String] The database connection string. Set as
+  #   nil to use ENV['WGIT_CONNECTION_STRING'].
   # @param insert_externals [Boolean] Whether or not to insert the website's
   #   external Url's into the database.
   # @yield [doc] Given the Wgit::Document of each crawled webpage, before it's
   #   inserted into the database allowing for prior manipulation.
   # @return [Integer] The total number of pages crawled within the website.
-  def self.index_site(url, insert_externals: true, &block)
+  def self.index_site(
+    url, connection_string: nil, insert_externals: true, &block
+  )
     url = Wgit::Url.parse(url)
-    db = Wgit::Database.new
+    db = Wgit::Database.new(connection_string)
     indexer = Wgit::Indexer.new(db)
     indexer.index_site(url, insert_externals: insert_externals, &block)
   end
@@ -51,13 +59,17 @@ module Wgit
   # There is no max download limit so be careful of large pages.
   #
   # @param url [Wgit::Url, String] The Url of the webpage to crawl.
+  # @param connection_string [String] The database connection string. Set as
+  #   nil to use ENV['WGIT_CONNECTION_STRING'].
   # @param insert_externals [Boolean] Whether or not to insert the website's
   #   external Url's into the database.
   # @yield [doc] Given the Wgit::Document of the crawled webpage, before it's
   #   inserted into the database allowing for prior manipulation.
-  def self.index_page(url, insert_externals: true, &block)
+  def self.index_page(
+    url, connection_string: nil, insert_externals: true, &block
+  )
     url = Wgit::Url.parse(url)
-    db = Wgit::Database.new
+    db = Wgit::Database.new(connection_string)
     indexer = Wgit::Indexer.new(db)
     indexer.index_page(url, insert_externals: insert_externals, &block)
   end
@@ -67,6 +79,8 @@ module Wgit
   # details of how the search works.
   #
   # @param query [String] The text query to search with.
+  # @param connection_string [String] The database connection string. Set as
+  #   nil to use ENV['WGIT_CONNECTION_STRING'].
   # @param case_sensitive [Boolean] Whether character case must match.
   # @param whole_sentence [Boolean] Whether multiple words should be searched
   #   for separately.
@@ -76,11 +90,19 @@ module Wgit
   #   snippet.
   # @yield [doc] Given each search result (Wgit::Document) returned from the
   #   database.
-  def self.indexed_search(query, case_sensitive: false, whole_sentence: false,
-                          limit: 10, skip: 0, sentence_limit: 80, &block)
-    results = Wgit::Database.new.search(
-      query, case_sensitive: case_sensitive, whole_sentence: whole_sentence,
-      limit: limit, skip: skip, &block
+  def self.indexed_search(
+    query, connection_string: nil,
+    case_sensitive: false, whole_sentence: false,
+    limit: 10, skip: 0, sentence_limit: 80, &block
+  )
+    db = Wgit::Database.new(connection_string)
+    results = db.search(
+      query,
+      case_sensitive: case_sensitive,
+      whole_sentence: whole_sentence,
+      limit: limit,
+      skip: skip,
+      &block
     )
 
     results.each do |doc|
@@ -88,9 +110,9 @@ module Wgit
         query,
         case_sensitive: case_sensitive,
         whole_sentence: whole_sentence,
-        sentence_limit: sentence_limit)
+        sentence_limit: sentence_limit
+      )
     end
-
     Wgit::Utils.printf_search_results(results)
   end
 
@@ -137,6 +159,7 @@ runs out of urls to crawl (which might be never).")
 
         if uncrawled_urls.empty?
           Wgit.logger.info('No urls to crawl, exiting.')
+
           return
         end
         Wgit.logger.info("Starting crawl loop for: #{uncrawled_urls}")
@@ -148,6 +171,7 @@ runs out of urls to crawl (which might be never).")
           unless keep_crawling?(site_count, max_sites, max_data)
             Wgit.logger.info("Reached max number of sites to crawl or \
 database capacity, exiting.")
+
             return
           end
           site_count += 1

@@ -120,20 +120,19 @@ module Wgit
     #   outputted to the stream.
     # @param stream [#puts] Any object that respond_to?(:puts). It is used
     #   to output text somewhere e.g. a file or STDOUT.
-    # @return [NilClass] Returns nil.
     def self.printf_search_results(results, keyword_limit: 5, stream: STDOUT)
       raise 'stream must respond_to? :puts' unless stream.respond_to?(:puts)
 
       results.each do |doc|
-        title = (doc.title || '<no title>')
-        missing_keywords = (doc.keywords.nil? || doc.keywords.empty?)
-        keywords = missing_keywords ? nil : doc.keywords.take(keyword_limit)
+        title    = (doc.title || '<no title>')
+        keywords = doc.keywords&.take(keyword_limit)&.join(', ')
         sentence = doc.text.first
+        url      = doc.url
 
         stream.puts title
-        stream.puts keywords.join(', ') if keywords
-        stream.puts sentence if sentence
-        stream.puts doc.url
+        stream.puts keywords if keywords
+        stream.puts sentence
+        stream.puts url
         stream.puts
       end
 

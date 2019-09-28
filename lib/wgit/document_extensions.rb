@@ -49,7 +49,7 @@ Wgit::Document.define_extension(
   singleton: false,
   text_content_only: true
 ) do |links|
-  links&.map! { |link| Wgit::Url.new(link) }
+  links.map! { |link| Wgit::Url.new(link) }
 end
 
 # Text.

@@ -15,8 +15,8 @@ class TestIndexer < TestHelper
   def test_initialize
     indexer = Wgit::Indexer.new @db
 
-    assert_instance_of Wgit::Indexer, indexer
-    assert_instance_of Wgit::Crawler, indexer.crawler
+    assert_instance_of Wgit::Indexer,  indexer
+    assert_instance_of Wgit::Crawler,  indexer.crawler
     assert_instance_of Wgit::Database, indexer.db
   end
 
@@ -25,7 +25,7 @@ class TestIndexer < TestHelper
     seed { url url: url_str, crawled: false }
 
     # Index only one site.
-    Wgit.index_www max_sites: 1
+    Wgit.index_www connection_string: ENV['WGIT_CONNECTION_STRING'], max_sites: 1
 
     # Assert that url.crawled gets updated.
     refute url? url: url_str, crawled: false
@@ -72,7 +72,7 @@ class TestIndexer < TestHelper
     refute url? url: url
 
     # Index the site and don't insert the external urls.
-    Wgit.index_site url, insert_externals: false
+    Wgit.index_site url, connection_string: ENV['WGIT_CONNECTION_STRING'], insert_externals: false
 
     # Assert that url.crawled gets updated.
     assert url? url: url, crawled: true
@@ -152,7 +152,7 @@ class TestIndexer < TestHelper
     refute url? url: url
 
     # Index the page and don't insert the external urls.
-    Wgit.index_page url, insert_externals: false
+    Wgit.index_page url, connection_string: ENV['WGIT_CONNECTION_STRING'], insert_externals: false
 
     # Assert that url.crawled gets updated.
     assert url? url: url, crawled: true
@@ -222,7 +222,7 @@ class TestIndexer < TestHelper
 
   def test_indexed_search
     # Because this is a convienence method, the search and format have been
-    # tested in Database and Utils; so we just check it runs without error.
+    # tested in Database, Document & Utils; so we just refute an error.
     assert_nil Wgit.indexed_search 'abcdefghijklmnopqrstuvwxyz'
   end
 end
