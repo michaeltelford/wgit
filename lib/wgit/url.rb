@@ -15,11 +15,14 @@ module Wgit
     include Assertable
 
     # Whether or not the Url has been crawled or not. A custom crawled= method
-    # is also provided by this class.
-    attr_reader :crawled
+    # is provided by this class, overridding the default one.
+    attr_accessor :crawled
 
-    # The Time which the Url was crawled.
+    # The Time stamp of when this Url was crawled.
     attr_accessor :date_crawled
+
+    # The duration of the crawl for this Url (in seconds).
+    attr_accessor :crawl_duration
 
     # Initializes a new instance of Wgit::Url which represents a web based
     # HTTP URL.
@@ -32,8 +35,12 @@ module Wgit
     # @param date_crawled [Time] Should only be provided if crawled is true. A
     #   suitable object can be returned from Wgit::Utils.time_stamp. Only used
     #   if url_or_obj is a String.
+    # @param crawl_duration [Float] Should only be provided if crawled is true.
+    #   The duration of the crawl for this Url (in seconds).
     # @raise [StandardError] If url_or_obj is an Object with missing methods.
-    def initialize(url_or_obj, crawled: false, date_crawled: nil)
+    def initialize(
+      url_or_obj, crawled: false, date_crawled: nil, crawl_duration: nil
+    )
       # Init from a URL String.
       if url_or_obj.is_a?(String)
         url = url_or_obj.to_s
@@ -42,14 +49,16 @@ module Wgit
         obj = url_or_obj
         assert_respond_to(obj, :fetch)
 
-        url          = obj.fetch('url') # Should always be present.
-        crawled      = obj.fetch('crawled', false)
-        date_crawled = obj.fetch('date_crawled', nil)
+        url            = obj.fetch('url') # Should always be present.
+        crawled        = obj.fetch('crawled', false)
+        date_crawled   = obj.fetch('date_crawled', nil)
+        crawl_duration = obj.fetch('crawl_duration', nil)
       end
 
-      @uri          = Addressable::URI.parse(url)
-      @crawled      = crawled
-      @date_crawled = date_crawled
+      @uri            = Addressable::URI.parse(url)
+      @crawled        = crawled
+      @date_crawled   = date_crawled
+      @crawl_duration = crawl_duration
 
       super(url)
     end
@@ -77,14 +86,16 @@ module Wgit
       obj.is_a?(Wgit::Url) ? obj : new(obj)
     end
 
-    # Sets the @crawled instance var, also setting @date_crawled to the
-    # current time or nil (depending on the bool value).
+    # Sets the @crawled instance var, also setting @date_crawled for
+    # convenience.
     #
-    # @param bool [Boolean] True if self has been crawled, false otherwise.
-    # @return [Time, NilClass] Returns the date crawled, if set.
+    # @param bool [Boolean] True if this Url has been crawled, false otherwise.
+    # @return [Boolean] The value of bool having been set.
     def crawled=(bool)
-      @crawled = bool
+      @crawled      = bool
       @date_crawled = bool ? Wgit::Utils.time_stamp : nil
+
+      bool
     end
 
     # Overrides String#replace setting the new_url @uri and String value.

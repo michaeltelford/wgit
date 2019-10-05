@@ -93,8 +93,8 @@ class TestDatabase < TestHelper
     assert_empty db.uncrawled_urls
 
     # Seed url data to the DB.
-    # Url 1 crawled == true, Url 2 & 3 crawled == false.
-    @urls.first.crawled = true
+    # Url 1 crawled == false, Url 2 & 3 crawled == true.
+    @urls.first.crawled = false
     @urls.map!(&:to_h)
     seed { urls @urls }
 
@@ -108,11 +108,11 @@ class TestDatabase < TestHelper
 
     # Test crawled_urls
     assert crawled_urls.all? { |url| url.instance_of? Wgit::Url }
-    assert_equal 1, crawled_urls.length
+    assert_equal 2, crawled_urls.length
 
     # Test uncrawled_urls.
     assert uncrawled_urls.all? { |url| url.instance_of? Wgit::Url }
-    assert_equal 2, uncrawled_urls.length
+    assert_equal 1, uncrawled_urls.length
   end
 
   def test_search__case_sensitive__whole_sentence
@@ -248,13 +248,13 @@ class TestDatabase < TestHelper
 
   def test_update__url
     seed { url @url.to_h }
-    @url.crawled = true
+    @url.crawled = false
     db = Wgit::Database.new
     result = db.update @url
 
     assert_equal 1, result
     assert url? @url.to_h
-    refute url? url: @url, crawled: false
+    refute url? url: @url, crawled: true
   end
 
   def test_update__doc

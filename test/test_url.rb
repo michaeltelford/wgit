@@ -11,17 +11,27 @@ class TestUrl < TestHelper
   def setup; end
 
   def test_initialize__from_string
+    time = Time.now
     url = Wgit::Url.new 'http://www.google.co.uk'
 
     assert_equal 'http://www.google.co.uk', url
     refute url.crawled
     assert_nil url.date_crawled
+    assert_nil url.crawl_duration
+    refute_nil url.instance_variable_get :@uri
 
-    url = Wgit::Url.new 'http://www.google.co.uk', crawled: true, date_crawled: @time_stamp
+    url = Wgit::Url.new(
+      'http://www.google.co.uk',
+      crawled: true,
+      date_crawled: time,
+      crawl_duration: 1.5
+    )
 
     assert_equal 'http://www.google.co.uk', url
     assert url.crawled
-    assert_equal @time_stamp, url.date_crawled
+    assert_equal time, url.date_crawled
+    assert_equal 1.5, url.crawl_duration
+    refute_nil url.instance_variable_get :@uri
   end
 
   def test_initialize__from_url
@@ -31,6 +41,8 @@ class TestUrl < TestHelper
     assert_equal 'http://www.google.co.uk', url
     refute url.crawled
     assert_nil url.date_crawled
+    assert_nil url.crawl_duration
+    refute_nil url.instance_variable_get :@uri
   end
 
   def test_initialize__from_iri
@@ -39,6 +51,8 @@ class TestUrl < TestHelper
     assert_equal 'https://www.über.com/about#top', url
     refute url.crawled
     assert_nil url.date_crawled
+    assert_nil url.crawl_duration
+    refute_nil url.instance_variable_get :@uri
   end
 
   def test_initialize__from_mongo_doc
@@ -46,12 +60,15 @@ class TestUrl < TestHelper
     url = Wgit::Url.new(
       'url' => 'http://www.google.co.uk',
       'crawled' => true,
-      'date_crawled' => time
+      'date_crawled' => time,
+      'crawl_duration' => 1.5
     )
 
     assert_equal 'http://www.google.co.uk', url
     assert url.crawled
     assert_equal time, url.date_crawled
+    assert_equal 1.5, url.crawl_duration
+    refute_nil url.instance_variable_get :@uri
   end
 
   def test_parse__from_string
@@ -60,16 +77,24 @@ class TestUrl < TestHelper
     assert_equal 'http://www.google.co.uk', url
     refute url.crawled
     assert_nil url.date_crawled
+    assert_nil url.crawl_duration
     refute_nil url.instance_variable_get :@uri
   end
 
   def test_parse__from_url
-    url = Wgit::Url.new 'http://example.com', crawled: true, date_crawled: Time.now
+    time = Time.now
+    url = Wgit::Url.new(
+      'http://example.com',
+      crawled: true,
+      date_crawled: time,
+      crawl_duration: 1.5
+    )
     parsed = Wgit::Url.parse url
 
     assert_equal 'http://example.com', parsed
     assert url.crawled
-    refute_nil url.date_crawled
+    assert_equal time, url.date_crawled
+    assert_equal 1.5, url.crawl_duration
     refute_nil url.instance_variable_get :@uri
   end
 
@@ -372,8 +397,15 @@ class TestUrl < TestHelper
   def test_crawled=
     url = Wgit::Url.new 'http://www.google.co.uk'
     url.crawled = true
+
     assert url.crawled
-    assert url.crawled?
+    refute_nil url.date_crawled
+
+    url = Wgit::Url.new 'http://www.google.co.uk', crawled: true, date_crawled: Time.now
+    url.crawled = false
+
+    refute url.crawled
+    assert_nil url.date_crawled
   end
 
   def test_normalise
@@ -806,9 +838,10 @@ class TestUrl < TestHelper
 
   def test_to_h
     mongo_doc = {
-      'url' => 'http://www.google.co.uk',
-      'crawled' => true,
-      'date_crawled' => Time.now
+      'url'            => 'http://www.google.co.uk',
+      'crawled'        => true,
+      'date_crawled'   => Time.now,
+      'crawl_duration' => 1.5
     }
     assert_equal mongo_doc, Wgit::Url.new(mongo_doc).to_h
   end

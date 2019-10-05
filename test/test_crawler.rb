@@ -52,6 +52,7 @@ class TestCrawler < TestHelper
     assert_equal 'doesnt_exist', url
     assert url.crawled
     refute_nil url.date_crawled
+    assert_nil url.crawl_duration
 
     # IRI (non ASCII) Url.
     c = Wgit::Crawler.new
@@ -149,6 +150,7 @@ class TestCrawler < TestHelper
     assert_nil doc
     assert url.crawled
     refute_nil url.date_crawled
+    assert_nil url.crawl_duration
 
     # Test a mixture of valid and invalid Urls.
     c = Wgit::Crawler.new
@@ -270,7 +272,7 @@ class TestCrawler < TestHelper
   end
 
   def test_crawl_site__not_mocked
-    # We turn off webmock to sanity check the HTTP crawl logic.
+    # We turn off webmock to sanity check the Net::HTTP crawl logic.
     WebMock.allow_net_connect!
 
     url = 'https://vlang.io/'.to_url
@@ -307,6 +309,28 @@ class TestCrawler < TestHelper
       'http://www.belfastpilates.co.uk/wp-content/uploads/2016/09/185-1024x569.jpg',
       'http://www.belfastpilates.co.uk/wp-content/uploads/2016/09/studio-1024x661.jpg'
     ], crawled
+  end
+
+  def test_fetch
+    c = Wgit::Crawler.new
+    url = Wgit::Url.new 'http://txti.es/'
+    response = c.send :fetch, url
+
+    refute_nil response
+    assert url.crawled
+    refute_nil url.date_crawled
+    refute_nil url.crawl_duration
+  end
+
+  def test_fetch__invalid_url
+    c = Wgit::Crawler.new
+    url = Wgit::Url.new 'doesnt_exist'
+    response = c.send :fetch, url
+
+    assert_nil response
+    assert url.crawled
+    refute_nil url.date_crawled
+    assert_nil url.crawl_duration
   end
 
   def test_resolve__absolute_location
@@ -463,6 +487,7 @@ class TestCrawler < TestHelper
     refute doc.empty?
     assert doc.url.crawled
     refute_nil doc.date_crawled
+    refute_nil doc.crawl_duration
   end
 
   def assert_crawl_site(
@@ -479,11 +504,15 @@ class TestCrawler < TestHelper
 
       case doc.url
       when 'http://test-site.com/sneaky' # Redirects to different host.
-        assert_empty(doc)
+        assert_empty doc
+        assert_nil doc.crawl_duration
       when 'http://test-site.com/ftp'    # Redirects to different host.
-        assert_empty(doc)
+        assert_empty doc
+        assert_nil doc.crawl_duration
       else
-        refute_empty(doc)
+        refute_empty doc
+        refute_nil doc.crawl_duration
+
         crawled << doc.url
       end
     end
@@ -495,6 +524,7 @@ class TestCrawler < TestHelper
     assert_nil ext_links.uniq!
     assert url.crawled?
     refute_nil url.date_crawled
+    refute_nil url.crawl_duration
   end
 
   def assert_resolve(crawler, start_url, end_url)

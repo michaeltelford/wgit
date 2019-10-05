@@ -272,9 +272,25 @@ and power matches the Ruby language in which it's developed."
 
   def test_date_crawled
     timestamp = Time.now
-    url = Wgit::Url.new 'http://www.mytestsite.com', crawled: true, date_crawled: timestamp
+    url = Wgit::Url.new(
+      'http://www.mytestsite.com',
+      crawled: true,
+      date_crawled: timestamp
+    )
     doc = Wgit::Document.new url
+
     assert_equal timestamp, doc.date_crawled
+  end
+
+  def test_crawl_duration
+    url = Wgit::Url.new(
+      'http://www.mytestsite.com',
+      crawled: true,
+      crawl_duration: 0.9
+    )
+    doc = Wgit::Document.new url
+
+    assert_equal 0.9, doc.crawl_duration
   end
 
   def test_base_url__no_base

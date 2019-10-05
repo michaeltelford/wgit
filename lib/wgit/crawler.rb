@@ -5,6 +5,7 @@ require_relative 'document'
 require_relative 'utils'
 require_relative 'assertable'
 require 'net/http' # Requires 'uri'.
+require 'benchmark'
 
 module Wgit
   # The Crawler class provides a means of crawling web based HTTP Wgit::Url's,
@@ -105,7 +106,7 @@ module Wgit
     # Crawl the url returning the response Wgit::Document or nil if an error
     # occurs.
     #
-    # @param url [Wgit::Url] The Url to crawl.
+    # @param url [Wgit::Url] The Url to crawl; which will likely be modified.
     # @param follow_external_redirects [Boolean] Whether or not to follow
     #   an external redirect. External meaning to a different host. False will
     #   return nil for such a crawl. If false, you must also provide a `host:`
@@ -131,7 +132,6 @@ module Wgit
         follow_external_redirects: follow_external_redirects,
         host: host
       )
-      url.crawled = true
 
       doc = Wgit::Document.new(url, html)
       yield(doc) if block_given?
@@ -146,7 +146,8 @@ module Wgit
     # HTTP response that doesn't return a HTML body will be ignored and nil
     # will be returned; otherwise, the HTML String is returned.
     #
-    # @param url [Wgit::Url] The URL to fetch the HTML for.
+    # @param url [Wgit::Url] The URL to fetch the HTML for. This Url object
+    #   will likely be modified as a result of the fetch/crawl.
     # @param follow_external_redirects [Boolean] Whether or not to follow
     #   an external redirect. False will return nil for such a crawl. If false,
     #   you must also provide a `host:` parameter.
@@ -158,19 +159,26 @@ module Wgit
     # @return [String, nil] The crawled HTML or nil if the crawl was
     #   unsuccessful.
     def fetch(url, follow_external_redirects: true, host: nil)
-      response = resolve(
-        url,
-        follow_external_redirects: follow_external_redirects,
-        host: host
-      )
-      @last_response = response
+      crawl_duration = nil
+      response       = nil
+
+      crawl_duration = Benchmark.measure do
+        response = resolve(
+          url,
+          follow_external_redirects: follow_external_redirects,
+          host: host
+        )
+      end.real
 
       response.body.empty? ? nil : response.body
     rescue StandardError => e
       Wgit.logger.debug("Wgit::Crawler#fetch('#{url}') exception: #{e.message}")
-      @last_response = nil
 
       nil
+    ensure
+      url.crawled        = true # Also sets date_crawled underneath.
+      url.crawl_duration = crawl_duration
+      @last_response     = response
     end
 
     # The resolve method performs a HTTP GET to obtain the HTML response. The

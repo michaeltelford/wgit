@@ -189,11 +189,18 @@ module Wgit
       @html[range]
     end
 
-    # Returns the timestamp of when this Wgit::Document was crawled.
+    # Returns the timestamp of when this Document was crawled.
     #
-    # @return [Time] Time of when this Wgit::Document was crawled.
+    # @return [Time] Time of when this Document was crawled.
     def date_crawled
       @url.date_crawled
+    end
+
+    # Returns the duration of the crawl for this Document (in seconds).
+    #
+    # @return [Float] The duration of the crawl for this Document.
+    def crawl_duration
+      @url.crawl_duration
     end
 
     # Returns the base URL of this Wgit::Document. The base URL is either the

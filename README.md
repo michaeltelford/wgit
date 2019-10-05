@@ -63,10 +63,10 @@ doc.stats # => {
 
 # doc responds to the following methods:
 Wgit::Document.public_instance_methods(false).sort # => [
-# :==, :[], :author, :base, :base_url, :css, :date_crawled, :doc, :empty?, :external_links,
-# :external_urls, :html, :internal_absolute_links, :internal_absolute_urls, :internal_links,
-# :internal_urls, :keywords, :links, :score, :search, :search!, :size, :stats, :text, :title,
-# :to_h, :to_json, :url, :xpath
+# :==, :[], :author, :base, :base_url, :crawl_duration, :css, :date_crawled, :doc, :empty?,
+# :external_links, :external_urls, :html, :internal_absolute_links, :internal_absolute_urls,
+# :internal_links, :internal_urls, :keywords, :links, :score, :search, :search!, :size, :stats,
+# :text, :title, :to_h, :to_json, :url, :xpath
 # ]
 
 results = doc.search 'corruption'
