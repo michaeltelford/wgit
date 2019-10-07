@@ -64,7 +64,9 @@ module Wgit
     #   Wgit::Model.document.
     # @raise [StandardError] If data isn't valid.
     def insert(data)
+      data = data.dup # Avoid modifying by reference.
       type = data.is_a?(Enumerable) ? data.first : data
+
       case type
       when Wgit::Url
         insert_urls(data)
@@ -146,7 +148,7 @@ module Wgit
     def search(
       query, case_sensitive: false, whole_sentence: false, limit: 10, skip: 0
     )
-      query.strip!
+      query = query.to_s.strip
       query.replace('"' + query + '"') if whole_sentence
 
       # Sort based on the most search hits (aka "textScore").
@@ -232,6 +234,8 @@ module Wgit
     # @param data [Wgit::Url, Wgit::Document] The data to update.
     # @raise [StandardError] If the data is not valid.
     def update(data)
+      data = data.dup # Avoid modifying by reference.
+
       case data
       when Wgit::Url
         update_url(data)

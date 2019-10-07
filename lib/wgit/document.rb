@@ -532,7 +532,10 @@ module Wgit
       assert_types(html, [String, NilClass])
 
       # We already know url.is_a?(String) so parse into Url unless already so.
-      @url   = Wgit::Url.parse(url)
+      url = Wgit::Url.parse(url)
+      url.crawled = true
+
+      @url   = url
       @html  = html || ''
       @doc   = init_nokogiri
       @score = 0.0

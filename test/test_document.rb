@@ -9,7 +9,12 @@ class TestDocument < TestHelper
   def setup
     @html = File.read('test/mock/fixtures/test_doc.html')
     @mongo_doc_dup = {
-      'url' => 'http://www.mytestsite.com/home',
+      'url' => {
+        'url' => 'http://www.mytestsite.com/home',
+        'crawled' => true,
+        'date_crawled' => '2016-04-20 14:33:16 +0100',
+        'crawl_duration' => 0.42446
+      },
       'html' => @html,
       'score' => 12.05,
       'base' => nil, # Gets set if using html_with_base.
@@ -59,19 +64,18 @@ and power matches the Ruby language in which it's developed."
   end
 
   def test_initialize__without_html
+    time = Time.now
     url = Wgit::Url.new(
       'http://www.mytestsite.com/home',
       crawled: true,
-      date_crawled: Time.now
+      date_crawled: time,
+      crawl_duration: 0.3445
     )
     doc = Wgit::Document.new url
 
-    assert_equal 'http://www.mytestsite.com/home', doc.url
-    assert_instance_of Wgit::Url, doc.url
-    assert doc.url.crawled
-    refute_nil doc.url.date_crawled
-    refute_nil url.date_crawled
-    assert_empty doc.html
+    assert_doc doc, html: nil
+    assert_equal time.to_s, doc.date_crawled.to_s
+    assert_equal 0.3445, doc.crawl_duration
     assert_equal 0.0, doc.score
     assert_nil doc.base
   end
@@ -79,11 +83,8 @@ and power matches the Ruby language in which it's developed."
   def test_initialize__with_string_url_and_nil_html
     doc = Wgit::Document.new 'http://www.mytestsite.com/home', nil
 
-    assert_equal 'http://www.mytestsite.com/home', doc.url
-    assert_instance_of Wgit::Url, doc.url
-    refute doc.url.crawled
-    assert_nil doc.url.date_crawled
-    assert_empty doc.html
+    assert_doc doc, html: nil
+    assert_nil doc.crawl_duration
     assert_equal 0.0, doc.score
     assert_nil doc.base
   end
@@ -92,6 +93,7 @@ and power matches the Ruby language in which it's developed."
     doc = Wgit::Document.new 'http://www.mytestsite.com/home'.to_url, @html
 
     assert_doc doc
+    assert_nil doc.crawl_duration
     assert_equal 0.0, doc.score
     assert_nil doc.base
   end
@@ -101,6 +103,7 @@ and power matches the Ruby language in which it's developed."
     doc = Wgit::Document.new 'http://www.mytestsite.com/home'.to_url, html
 
     assert_doc doc, html: html
+    assert_nil doc.crawl_duration
     assert_equal 0.0, doc.score
     assert_equal 'http://server.com/public', doc.base
   end
@@ -109,6 +112,8 @@ and power matches the Ruby language in which it's developed."
     doc = Wgit::Document.new @mongo_doc_dup
 
     assert_doc doc
+    assert_equal '2016-04-20 14:33:16 +0100', doc.date_crawled
+    assert_equal 0.42446, doc.crawl_duration
     assert_equal @mongo_doc_dup['score'], doc.score
     assert_nil doc.base
   end
@@ -227,26 +232,29 @@ and power matches the Ruby language in which it's developed."
   end
 
   def test_to_h
+    expected = @mongo_doc_dup.dup
+    expected['score'] = 0.0 # A new Document score is always 0.0.
+    expected['url'] = 'http://www.mytestsite.com/home' # The to_h url is just a string.
+
+    # Test new Document from Strings with included html.
     doc = Wgit::Document.new 'http://www.mytestsite.com/home'.to_url, @html
-    hash = @mongo_doc_dup.dup
-    hash['score'] = 0.0
-    assert_equal hash, doc.to_h(include_html: true)
+    assert_equal expected, doc.to_h(include_html: true)
 
-    hash.delete('html')
-    assert_equal hash, doc.to_h
+    # Test new Document from Strings with excluded html.
+    expected.delete('html')
+    assert_equal expected, doc.to_h
 
-    doc = Wgit::Document.new @mongo_doc_dup
-    hash = @mongo_doc_dup.dup
-    hash.delete('html')
-    assert_equal hash, doc.to_h
+    # Test new Document from Object with excluded html.
+    doc = Wgit::Document.new @mongo_doc_dup.dup
+    expected['score'] = 12.05
+    assert_equal expected, doc.to_h
 
+    # Test new Document from Strings including base with excluded html.
     html = html_with_base 'http://server.com/public'
     doc = Wgit::Document.new 'http://www.mytestsite.com/home'.to_url, html
-    hash = @mongo_doc_dup.dup
-    hash.delete('html')
-    hash['score'] = 0.0
-    hash['base'] = 'http://server.com/public'
-    assert_equal hash, doc.to_h
+    expected['score'] = 0.0
+    expected['base'] = 'http://server.com/public'
+    assert_equal expected, doc.to_h
   end
 
   def test_to_json
@@ -279,7 +287,7 @@ and power matches the Ruby language in which it's developed."
     )
     doc = Wgit::Document.new url
 
-    assert_equal timestamp, doc.date_crawled
+    assert_equal timestamp.to_s, doc.date_crawled.to_s
   end
 
   def test_crawl_duration
@@ -473,13 +481,25 @@ Minitest framework."
   def assert_doc(doc, html: @html)
     assert_equal 'http://www.mytestsite.com/home'.to_url, doc.url
     assert_instance_of Wgit::Url, doc.url
-    assert_equal html, doc.html
-    assert_equal @mongo_doc_dup['title'], doc.title
-    assert_equal @mongo_doc_dup['author'], doc.author
-    assert_equal @mongo_doc_dup['keywords'], doc.keywords
-    assert_equal @mongo_doc_dup['links'], doc.links
-    assert doc.links.all? { |link| link.instance_of? Wgit::Url }
-    assert_equal @mongo_doc_dup['text'], doc.text
+    assert doc.url.crawled
+    refute_nil doc.date_crawled
+
+    if html && !html.empty?
+      assert_equal html, doc.html
+      assert_equal @mongo_doc_dup['title'], doc.title
+      assert_equal @mongo_doc_dup['author'], doc.author
+      assert_equal @mongo_doc_dup['keywords'], doc.keywords
+      assert_equal @mongo_doc_dup['links'], doc.links
+      assert doc.links.all? { |link| link.instance_of? Wgit::Url }
+      assert_equal @mongo_doc_dup['text'], doc.text
+    else
+      assert_empty doc.html
+      assert_nil doc.title
+      assert_nil doc.author
+      assert_nil doc.keywords
+      assert_empty doc.links
+      assert_empty doc.text
+    end
   end
 
   def assert_internal_links(doc)

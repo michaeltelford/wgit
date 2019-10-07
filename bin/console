@@ -48,7 +48,12 @@ end
 # Seed some fixture data for the session.
 db      = Database.new
 crawler = Crawler.new
-url     = Url.new('https://motherfuckingwebsite.com/')
+url     = Url.new(
+  'https://motherfuckingwebsite.com/',
+  crawled: true,
+  date_crawled: Time.now,
+  crawl_duration: 0.567890
+)
 doc     = Document.new(
   'http://www.mytestsite.com/home',
   File.read('test/mock/fixtures/test_doc.html')

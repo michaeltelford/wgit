@@ -73,13 +73,13 @@ class TestDatabase < TestHelper
     # Insert 1 doc.
     num_inserted = db.insert @doc
     assert_equal 1, num_inserted
-    assert doc?(@doc.to_h)
+    assert doc?(Wgit::Model.document(@doc))
     assert_equal 1, db.num_docs
 
     # Insert several docs.
     num_inserted = db.insert @docs
     assert_equal @docs.length, num_inserted
-    @docs.each { |doc| assert doc?(doc.to_h) }
+    @docs.each { |doc| assert doc?(Wgit::Model.document(doc)) }
     assert_equal @docs.length + 1, db.num_docs
     assert_equal db.num_docs, db.num_records
   end
@@ -265,7 +265,7 @@ class TestDatabase < TestHelper
     result = db.update @doc
 
     assert_equal 1, result
-    assert doc? @doc.to_h
+    assert doc?(Wgit::Model.document(@doc))
     refute doc? url: @doc.url, title: 'Altitude Junkies | Everest'
   end
 

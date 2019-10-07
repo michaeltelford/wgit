@@ -1,25 +1,35 @@
 require 'securerandom'
 
 module Wgit
-  # Module containing the default url and doc DB objects used for testing and development.
-  # We use an UUID on the url fields in the DB because they are unique.
+  # Module containing example DB collection objects used in testing and
+  # development. The 'url' uses a UUID in order to be unique.
   module DatabaseDevData
     # Returns a Hash representing a Url record in the DB.
-    def self.url
-      {
-        'url' => "http://www.google.co.uk/#{SecureRandom.uuid}",
+    def self.url(url: 'http://www.example.co.uk', timestamps: true)
+      url.chop! if url.end_with?('/')
+
+      hash = {
+        'url' => "#{url}/#{SecureRandom.uuid.split('-').last}",
         'crawled' => true,
-        'date_crawled' => '2016-04-17 14:33:16 +0100',
-        'crawl_duration' => 0.6,
-        'date_added' => '2016-04-17 14:33:16 +0100',
-        'date_modified' => '2016-04-17 14:35:00 +0100'
+        'date_crawled' => '2016-04-20 14:33:16 +0100',
+        'crawl_duration' => 0.6
       }
+
+      if timestamps
+        hash['date_added']    = '2016-04-20 14:33:16 +0100'
+        hash['date_modified'] = '2016-04-20 14:35:00 +0100'
+      end
+
+      hash
     end
 
     # Returns a Hash representing a Document record in the DB.
     def self.doc
       {
-        'url' => "http://altitudejunkies.com/everest.html/#{SecureRandom.uuid}",
+        'url' => self.url(
+          url: 'http://altitudejunkies.com/everest.html',
+          timestamps: false
+        ),
         'title' => 'Altitude Junkies | Everest',
         'base' => nil,
         'author' => 'LTE Designs',
@@ -193,9 +203,9 @@ module Wgit
           '|',
           'Copyright © 2006-2016 Altitude Junkies. All Rights Reserved'
         ],
-        'score' => 0,
-        'date_added' => '2016-04-17 14:33:16 +0100',
-        'date_modified' => '2016-04-17 14:35:00 +0100'
+        'score' => 0.0,
+        'date_added' => '2016-04-20 14:33:16 +0100',
+        'date_modified' => '2016-04-20 14:35:00 +0100'
       }
     end
   end
