@@ -14,6 +14,7 @@ module Wgit
       raise 'url must respond_to? :to_h' unless url.respond_to?(:to_h)
 
       model = url.to_h
+
       Wgit::Utils.remove_non_bson_types(model)
     end
 
@@ -24,7 +25,7 @@ module Wgit
     def self.document(doc)
       raise 'doc must respond_to? :to_h' unless doc.respond_to?(:to_h)
 
-      model = doc.to_h(include_html: false)
+      model = doc.to_h(include_html: false, include_score: false)
       model['url'] = self.url(doc.url) # Expand Url String into full object.
 
       Wgit::Utils.remove_non_bson_types(model)

@@ -275,8 +275,15 @@ class TestDocumentExtension < TestHelper
       singleton: true, text_content_only: true
     )
 
+    time = '2019-10-08T07:12:15.601+00:00'
+    url = Wgit::Url.new(
+      'http://some_url.com',
+      crawled: true,
+      date_crawled: time,
+      crawl_duration: 0.8
+    )
     doc = Wgit::Document.new(
-      'http://some_url.com'.to_url,
+      url,
       "<html><p>Hello world!</p>\
 <a href='https://made-up-link.com'>Click this link.</a>\
 <table><th>Header Text</th><th>Another Header</th></table></html>"
@@ -292,8 +299,13 @@ class TestDocumentExtension < TestHelper
     db.insert doc # Uses Document#to_h and Model.document.
 
     assert doc?(
-      url: 'http://some_url.com',
-      score: 0.0,
+      url: {
+        url: 'http://some_url.com',
+        crawled: true,
+        date_crawled: time,
+        crawl_duration: 0.8
+      },
+      base: nil,
       title: nil,
       author: nil,
       keywords: nil,

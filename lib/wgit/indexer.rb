@@ -96,6 +96,7 @@ module Wgit
     limit: 10, skip: 0, sentence_limit: 80, &block
   )
     db = Wgit::Database.new(connection_string)
+
     results = db.search(
       query,
       case_sensitive: case_sensitive,
@@ -113,6 +114,7 @@ module Wgit
         sentence_limit: sentence_limit
       )
     end
+
     Wgit::Utils.printf_search_results(results)
   end
 

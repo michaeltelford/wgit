@@ -87,7 +87,7 @@ module Wgit
       xpath
     end
 
-    # Defines an extension, which is a way to extract HTML elements into
+    # Defines an extension, which is a way to serialise HTML elements into
     # instance variables upon Document initialization. See the default
     # extensions defined in 'document_extensions.rb' as examples.
     #
@@ -247,8 +247,9 @@ module Wgit
     # @param include_html [Boolean] Whether or not to include @html in the
     #   returned Hash.
     # @return [Hash] Containing self's instance vars.
-    def to_h(include_html: false)
+    def to_h(include_html: false, include_score: true)
       ignore = include_html ? [] : ['@html']
+      ignore << '@score' unless include_score
       ignore << '@doc' # Always ignore Nokogiri @doc.
 
       Wgit::Utils.to_h(self, ignore: ignore)
@@ -533,7 +534,7 @@ module Wgit
 
       # We already know url.is_a?(String) so parse into Url unless already so.
       url = Wgit::Url.parse(url)
-      url.crawled = true
+      url.crawled = true unless url.crawled # Avoid overriding date_crawled.
 
       @url   = url
       @html  = html || ''

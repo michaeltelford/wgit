@@ -49,7 +49,7 @@ end
 db      = Database.new
 crawler = Crawler.new
 url     = Url.new(
-  'https://motherfuckingwebsite.com/',
+  'http://txti.es',
   crawled: true,
   date_crawled: Time.now,
   crawl_duration: 0.567890

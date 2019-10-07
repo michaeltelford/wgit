@@ -20,7 +20,7 @@ Check out this [example application](https://search-engine-rb.herokuapp.com) - a
 2. [Basic Usage](#Basic-Usage)
 3. [Documentation](#Documentation)
 4. [Practical Examples](#Practical-Examples)
-5. [Practical Database Example](#Practical-Database-Example)
+5. [Database Example](#Database-Example)
 6. [Extending The API](#Extending-The-API)
 7. [Caveats](#Caveats)
 8. [Executable](#Executable)
@@ -86,7 +86,7 @@ Below are some practical examples of Wgit in use. You can copy and run the code 
 
 See the `Wgit::Indexer#index_www` documentation and source code for an already built example of a WWW HTML indexer. It will crawl any external url's (in the database) and index their HTML for later use, be it searching or otherwise. It will literally crawl the WWW forever if you let it!
 
-See the [Practical Database Example](#Practical-Database-Example) for information on how to setup a database for use with Wgit.
+See the [Database Example](#Database-Example) for information on how to configure a database for use with Wgit.
 
 ### Website Downloader
 
@@ -154,11 +154,11 @@ else
 end
 ```
 
-## Practical Database Example
+## Database Example
 
-This next example requires a configured database instance. Currently the only supported DBMS is MongoDB. See [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) for a free (small) account or provide your own MongoDB instance.
+The next example requires a configured database instance. Currently the only supported DBMS is MongoDB. See [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) for a free (small) account or provide your own MongoDB instance.
 
-`Wgit::Database` provides a light wrapper of logic around the `mongo` gem allowing for simple database interactivity and object serialisation. Using Wgit you can index webpages, store them in a database and then search through all that's been indexed. The use of a database is entirely optional however and isn't required for crawling/indexing.
+`Wgit::Database` provides a light wrapper of logic around the `mongo` gem allowing for simple database interactivity and object serialisation. Using Wgit you can index webpages, store them in a database and then search through all that's been indexed. The use of a database is entirely optional however and isn't required for crawling or URL parsing etc.
 
 The following versions of MongoDB are supported:
 
@@ -166,11 +166,22 @@ The following versions of MongoDB are supported:
 | ------ | -------- |
 | ~> 2.9 | ~> 4.0   |
 
-### Setting Up MongoDB
+### Data Model
+
+The data model for Wgit is deliberately simplistic for maximum flexibility. The MongoDB collections consist of:
+
+| Collection  | Purpose                                                |
+| ----------- | ------------------------------------------------------ |
+| `urls`      | Used to store URL's to be crawled at a later date      |
+| `documents` | Used to store web documents after they've been crawled |
+
+Wgit provides respective Ruby classes for each collection object, allowing for serialisation.
+
+### Configuring MongoDB
 
 Follow the steps below to configure MongoDB for use with Wgit. This is only needed if you want to read/write database records.
 
-1) Create collections for: `documents` and `urls`.
+1) Create collections for: `urls` and `documents`.
 2) Add a [*unique index*](https://docs.mongodb.com/manual/core/index-unique/) for the `url` field in **both** collections.
 3) Enable `textSearchEnabled` in MongoDB's configuration (if not already so).
 4) Create a [*text search index*](https://docs.mongodb.com/manual/core/index-text/#index-feature-text) for the `documents` collection using:
@@ -185,7 +196,7 @@ Follow the steps below to configure MongoDB for use with Wgit. This is only need
 
 **Note**: The *text search index* (in step 4) lists all document fields to be searched by MongoDB when calling `Wgit::Database#search`. Therefore, you should append this list with any other fields that you want searched. For example, if you [extend the API](#Extending-The-API) then you might want to search your new fields in the database by adding them to the index above.
 
-### Database Example
+### Code Example
 
 The below script shows how to use Wgit's database functionality to index and then search HTML documents stored in the database. If you're running the code for yourself, remember to replace the database [connection string](https://docs.mongodb.com/manual/reference/connection-string/) with your own.
 
@@ -213,39 +224,44 @@ db.insert doc
 query = 'cow'
 results = db.search query
 
-search_result = results.first
-search_result.class           # => Wgit::Document
-doc.url == search_result.url  # => true
+# By default, the MongoDB ranking applies i.e. results.first has the most hits.
+# Because results is an Array of Wgit::Document's, we can custom sort/rank e.g.
+# `results.sort_by!(&:crawl_duration)` ranks via page load times with results.first being the fastest.
+# Any Wgit::Document attribute can be used, including those you define yourself by extending the API.
+
+top_result = results.first
+top_result.class           # => Wgit::Document
+doc.url == top_result.url  # => true
 
 ### PULL OUT THE BITS THAT MATCHED OUR QUERY ###
 
-# Searching the returned documents gives the matching text from that document.
-search_result.search(query).first # => "How now brown cow."
+# Searching each result gives the matching text snippets from that Wgit::Document.
+top_result.search(query).first # => "How now brown cow."
 
 ### SEED URLS TO BE CRAWLED LATER ###
 
-db.insert search_result.external_links
-urls_to_crawl = db.uncrawled_urls # => Results will include search_result.external_links.
+db.insert top_result.external_links
+urls_to_crawl = db.uncrawled_urls # => Results will include top_result.external_links.
 ```
 
 ## Extending The API
 
-Indexing in Wgit is the means of downloading a web page and serialising parts of the content into accessible document attributes/methods. For example, `Wgit::Document#author` will return you the webpage's HTML tag value of `meta[@name='author']`.
+Document serialising in Wgit is the means of downloading a web page and serialising parts of its content into accessible document attributes/methods. For example, `Wgit::Document#author` will return you the webpage's HTML element value of `meta[@name='author']`.
 
-By default, Wgit indexes what it thinks are the most important pieces of information from each webpage. This of course is often not enough given the nature of webpages and their differences from each other. Therefore, there exists a set of ways to extend the default indexing logic.
+By default, Wgit serialises what it thinks are the most important pieces of information from each webpage. This of course is often not enough given the nature of webpages and their differences from each other. Therefore, there exists a set of ways to extend the default serialising logic.
 
-There are two ways to extend the indexing behaviour of Wgit:
+There are two ways to extend the Document serialising behaviour of Wgit:
 
-1. Add the elements containing **text** that you're interested in to be indexed.
-2. Define custom indexers matched to specific **elements** that you're interested in.
+1. Add the elements containing **text** that you're interested in to be serialised.
+2. Define custom serialisers matched to specific **elements** that you're interested in.
 
 Below describes these two methods in more detail.
 
 ### 1. Extending The Default Text Elements
 
-Wgit contains an array of `Wgit::Document.text_elements` which are the default set of webpage elements containing text; which in turn are indexed and accessible via `Wgit::Document#text`.
+Wgit contains an array of `Wgit::Document.text_elements` which are the default set of HTML elements containing text; which in turn are serialised to have their text accessible via `Wgit::Document#text`.
 
-If you'd like the text of additional webpage elements to be returned from `Wgit::Document#text`, then you can do the following:
+The below code example shows how to extend the text serialised from a webpage; in doing so making the text accessible to methods such as `Wgit::Document#text` and `Wgit::Document#search` etc.
 
 ```ruby
 require 'wgit'
@@ -256,23 +272,23 @@ Wgit::Document.text_elements << :a
 # Our Document has a link whose's text we're interested in.
 doc = Wgit::Document.new(
   'http://some_url.com',
-  "<html><p>Hello world!</p>\
-<a href='https://made-up-link.com'>Click this link.</a></html>"
+  "<html><p>Hello world!</p><a href='https://made-up-link.com'>Click this link.</a></html>"
 )
 
-# Now all crawled Documents will contain all visible link text in Wgit::Document#text.
-doc.text # => ["Hello world!", "Click this link."]
+# Now crawled Documents will contain all visible link text.
+doc.text           # => ["Hello world!", "Click this link."]
+doc.search('link') # => ["Click this link."]
 ```
 
-**Note**: This only works for textual page content. For more control over the indexed elements themselves, see below.
+**Note**: This only works for textual page content. For more control over the serialised elements themselves, see below.
 
-### 2. Defining Custom Indexers Via Document Extensions
+### 2. Defining Custom Serialisers Via Document Extensions
 
-If you want full control over the elements being indexed for your own purposes, then you can define a custom indexer for each type of element that you're interested in.
+If you want full control over the elements being serialised for your own purposes, then you can define a custom serialiser for each type of element that you're interested in.
 
-Once you have the indexed page element, accessed via a `Wgit::Document` instance method, you can do with it as you wish e.g. obtain it's text value or manipulate the element etc. Since the returned types are plain [Nokogiri](https://www.rubydoc.info/github/sparklemotion/nokogiri) objects, you have the full control that the Nokogiri gem gives you.
+Once the page element has been serialised, accessed via a `Wgit::Document` instance method, you can do with it as you wish e.g. obtain it's text value or manipulate the element etc. Since you can choose to return text or plain [Nokogiri](https://www.rubydoc.info/github/sparklemotion/nokogiri) objects, you have the full control that the Nokogiri gem gives you.
 
-Here's how to add a Document extension to index a specific page element:
+Here's how to add a Document extension to serialise a specific page element:
 
 ```ruby
 require 'wgit'
@@ -311,18 +327,19 @@ tables = doc.tables
 tables.class        # => Nokogiri::XML::NodeSet
 tables.first.class  # => Nokogiri::XML::Element
 
-# Notice how the Document's stats will include our 'tables' extension.
+# Notice the Document's stats now include our 'tables' extension.
 doc.stats # => {
 #   :url=>19, :html=>242, :links=>0, :text_snippets=>2, :text_bytes=>65, :tables=>1
 # }
 ```
 
-**Note**: Wgit uses Document extensions to provide much of it's core indexing functionality, providing access to a webpage's text or links for example. These [default Document extensions](https://github.com/michaeltelford/wgit/blob/master/lib/wgit/document_extensions.rb) provide examples for your own.
+**Note**: Wgit uses Document extensions to provide much of it's core serialising functionality, providing access to a webpage's text or links for example. These [default Document extensions](https://github.com/michaeltelford/wgit/blob/master/lib/wgit/document_extensions.rb) provide examples for your own.
 
 **Extension Notes**:
 
-- Any page links should be mapped into `Wgit::Url` objects; Url's are treated as Strings when being inserted into the database.
-- Any object (like a Nokogiri object) will not be inserted into the database, it's up to you to map each object into a primitive type e.g. `Boolean, Array` etc.
+- It's recommended that URL's be mapped into `Wgit::Url` objects. Url's are treated as Strings when being inserted into the database.
+- A `Wgit::Document` extension once initialised will become a Document instance variable, meaning that it will be inserted into the Database if it's a primitive type e.g. `String`, `Array` etc. Plain ole Ruby objects won't be inserted.
+- Once inserted into the Database, you can search a `Wgit::Document`'s extension attributes by updating the Database's *text search index*. See the [Database Example](#Database-Example) for more information.
 
 ## Caveats
 
@@ -353,6 +370,8 @@ The gem is available as open source under the terms of the MIT License. See [LIC
 Bug reports and feature requests are welcome on [GitHub](https://github.com/michaeltelford/wgit/issues). Just raise an issue, checking it doesn't already exist.
 
 The current road map is rudimentally listed in the [TODO.txt](https://github.com/michaeltelford/wgit/blob/master/TODO.txt) file. Maybe your feature request is already there?
+
+Before you consider making a contribution, check out [CONTRIBUTING.md](https://github.com/michaeltelford/wgit/blob/master/CONTRIBUTING.md).
 
 ## Development
 

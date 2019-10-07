@@ -64,7 +64,7 @@ and power matches the Ruby language in which it's developed."
   end
 
   def test_initialize__without_html
-    time = Time.now
+    time = Time.now - 1000
     url = Wgit::Url.new(
       'http://www.mytestsite.com/home',
       crawled: true,
@@ -255,6 +255,12 @@ and power matches the Ruby language in which it's developed."
     expected['score'] = 0.0
     expected['base'] = 'http://server.com/public'
     assert_equal expected, doc.to_h
+
+    # Test new Document from Strings with included html.
+    doc = Wgit::Document.new 'http://www.mytestsite.com/home'.to_url, @html
+    expected.delete('score')
+    expected['base'] = nil
+    assert_equal expected, doc.to_h(include_score: false)
   end
 
   def test_to_json

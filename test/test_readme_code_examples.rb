@@ -133,31 +133,63 @@ class TestReadmeCodeExamples < TestHelper
     query = 'cow'
     results = db.search query
 
-    search_result = results.first
-    search_result.class           # => Wgit::Document
-    doc.url == search_result.url  # => true
+    # By default, the MongoDB ranking applies i.e. results.first has the most hits.
+    # Because results is an Array of Wgit::Document's, we can custom sort/rank e.g.
+    # `results.sort_by!(&:crawl_duration)` ranks via page load times with results.first being the fastest.
+    # Any Wgit::Document attribute can be used, including those you define yourself by extending the API.
+
+    top_result = results.first
+    top_result.class           # => Wgit::Document
+    doc.url == top_result.url  # => true
 
     ### PULL OUT THE BITS THAT MATCHED OUR QUERY ###
 
-    # Searching the returned documents gives the matching text from that document.
-    search_result.search(query).first # => "How now brown cow."
+    # Searching each result gives the matching text snippets from that Wgit::Document.
+    top_result.search(query).first # => "How now brown cow."
 
     ### SEED URLS TO BE CRAWLED LATER ###
 
-    db.insert search_result.external_links
-    urls_to_crawl = db.uncrawled_urls # => Results will include search_result.external_links.
+    db.insert top_result.external_links
+    urls_to_crawl = db.uncrawled_urls # => Results will include top_result.external_links.
 
     #############################
     ### PUT README CODE ABOVE ###
     #############################
 
-    assert_instance_of Wgit::Document, search_result
-    assert_equal doc.url, search_result.url
-    assert_equal 'How now brown cow.', search_result.search(query).first
-    assert_equal urls_to_crawl.length, search_result.external_links.length
+    refute_empty results.sort_by(&:crawl_duration)
+    assert_instance_of Wgit::Document, top_result
+    assert_equal doc.url, top_result.url
+    assert_equal 'How now brown cow.', top_result.search(query).first
+    assert_equal urls_to_crawl.length, top_result.external_links.length
   end
 
-  def test_extending_the_api_define_extension
+  def test_extending_the_api__extend_text_elements
+    ### PUT README CODE BELOW ###
+
+    require 'wgit'
+
+    # Let's add the text of links e.g. <a> tags.
+    Wgit::Document.text_elements << :a
+
+    # Our Document has a link whose's text we're interested in.
+    doc = Wgit::Document.new(
+      'http://some_url.com',
+      "<html><p>Hello world!</p><a href='https://made-up-link.com'>Click this link.</a></html>"
+    )
+
+    # Now crawled Documents will contain all visible link text.
+    doc.text           # => ["Hello world!", "Click this link."]
+    doc.search('link') # => ["Click this link."]
+
+    ### PUT README CODE ABOVE ###
+
+    assert_equal ['Hello world!', 'Click this link.'], doc.text
+    assert_equal ['Click this link.'], doc.search('link')
+
+    assert_equal :a, Wgit::Document.text_elements.delete(:a)
+  end
+
+  def test_extending_the_api__define_extension
     ### PUT README CODE BELOW ###
 
     require 'wgit'

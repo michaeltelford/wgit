@@ -117,7 +117,7 @@ class TestDatabase < TestHelper
 
   def test_search__case_sensitive__whole_sentence
     @docs.last.text << 'Foo Bar'
-    doc_hashes = @docs.map(&:to_h)
+    doc_hashes = @docs.map { |doc| Wgit::Model.document(doc) }
 
     seed { docs doc_hashes }
 
@@ -155,7 +155,7 @@ class TestDatabase < TestHelper
 
   def test_search__limit__skip
     # All dev data docs contain the word 'Everest'.
-    doc_hashes = @docs.map(&:to_h)
+    doc_hashes = @docs.map { |doc| Wgit::Model.document(doc) }
 
     seed { docs doc_hashes }
 
@@ -169,6 +169,7 @@ class TestDatabase < TestHelper
     results.each_with_index do |doc, i|
       doc.instance_of? Wgit::Document
       assert_equal @docs[i], doc
+      assert_equal @docs[i].url.to_h, doc.url.to_h
     end
 
     # Test skip.
@@ -177,6 +178,7 @@ class TestDatabase < TestHelper
     results.each_with_index do |doc, i|
       doc.instance_of? Wgit::Document
       assert_equal @docs[i + 1], doc
+      assert_equal @docs[i + 1].url.to_h, doc.url.to_h
     end
 
     # Test limit and skip.
@@ -185,6 +187,7 @@ class TestDatabase < TestHelper
     results.each do |doc|
       doc.instance_of? Wgit::Document
       assert_equal @docs[1], doc
+      assert_equal @docs[1].url.to_h, doc.url.to_h
     end
   end
 

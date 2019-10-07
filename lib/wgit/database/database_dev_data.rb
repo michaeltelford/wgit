@@ -203,7 +203,6 @@ module Wgit
           '|',
           'Copyright © 2006-2016 Altitude Junkies. All Rights Reserved'
         ],
-        'score' => 0.0,
         'date_added' => '2016-04-20 14:33:16 +0100',
         'date_modified' => '2016-04-20 14:35:00 +0100'
       }
