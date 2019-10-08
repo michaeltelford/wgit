@@ -23,6 +23,8 @@ module Wgit
     # Initializes a connected database client using the provided
     # connection_string or ENV['WGIT_CONNECTION_STRING'].
     #
+    # @param connection_string [String] The connection string needed to connect
+    #   to the database.
     # @raise [StandardError] If a connection string isn't provided, either as a
     #   parameter or via the environment.
     def initialize(connection_string = nil)
@@ -36,6 +38,10 @@ module Wgit
 
     # A class alias for Database.new.
     #
+    # @param connection_string [String] The connection string needed to connect
+    #   to the database.
+    # @raise [StandardError] If a connection string isn't provided, either as a
+    #   parameter or via the environment.
     # @return [Wgit::Database] The connected database client.
     def self.connect(connection_string = nil)
       new(connection_string)
@@ -43,6 +49,8 @@ module Wgit
 
     # Initializes a connected database client using the connection string.
     #
+    # @param connection_string [String] The connection string needed to connect
+    #   to the database.
     # @raise [StandardError] If a connection cannot be established.
     # @return [Mong::Client] The connected MongoDB client.
     def self.establish_connection(connection_string)
