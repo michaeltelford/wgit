@@ -9,6 +9,18 @@
 - ...
 ---
 
+## v0.3.0
+### Added
+- `Url#crawl_duration` method.
+- `Document#crawl_duration` method.
+- `Benchmark.measure` to Crawler logic to set `Url#crawl_duration`.
+### Changed/Removed
+- Breaking changes: Updated data model to embed the full 'url' object inside the documents object.
+- Breaking changes: Updated data model by removing documents 'score' attribute.
+### Fixed
+- ...
+---
+
 ## v0.2.0
 This version of Wgit see's a major refactor of the code base involving multiple changes to method names and their signatures (optional parameters turned into named parameters in most cases). A list of the breaking changes are below including how to fix any breakages; but if you're having issues with the upgrade see the documentation at: https://www.rubydoc.info/gems/wgit
 ### Added

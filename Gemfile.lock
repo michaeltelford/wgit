@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    wgit (0.2.0)
+    wgit (0.3.0)
       addressable (~> 2.6.0)
       mongo (~> 2.9.0)
       nokogiri (~> 1.10.3)
@@ -33,7 +33,7 @@ GEM
     method_source (0.9.2)
     mini_portile2 (2.4.0)
     minitest (5.11.3)
-    mongo (2.9.1)
+    mongo (2.9.2)
       bson (>= 4.4.2, < 5.0.0)
     nokogiri (1.10.4)
       mini_portile2 (~> 2.4.0)
