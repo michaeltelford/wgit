@@ -4,8 +4,7 @@ require_relative 'url'
 require_relative 'document'
 require_relative 'utils'
 require_relative 'assertable'
-require 'net/http' # Requires 'uri'.
-require 'benchmark'
+require 'typhoeus'
 
 module Wgit
   # The Crawler class provides a means of crawling web based HTTP Wgit::Url's,
@@ -17,7 +16,7 @@ module Wgit
     # disable redirects completely.
     attr_accessor :redirect_limit
 
-    # The Net::HTTPResponse of the most recently crawled URL or nil.
+    # The Typhoeus::Response of the most recently crawled URL or nil.
     attr_reader :last_response
 
     # Initializes and returns a Wgit::Crawler instance.
@@ -159,16 +158,15 @@ module Wgit
     # @return [String, nil] The crawled HTML or nil if the crawl was
     #   unsuccessful.
     def fetch(url, follow_external_redirects: true, host: nil)
-      crawl_duration = nil
       response       = nil
+      crawl_duration = nil
 
-      crawl_duration = Benchmark.measure do
-        response = resolve(
-          url,
-          follow_external_redirects: follow_external_redirects,
-          host: host
-        )
-      end.real
+      response = resolve(
+        url,
+        follow_external_redirects: follow_external_redirects,
+        host: host
+      )
+      crawl_duration = response.total_time
 
       response.body.empty? ? nil : response.body
     rescue StandardError => e
@@ -182,7 +180,7 @@ module Wgit
     end
 
     # The resolve method performs a HTTP GET to obtain the HTML response. The
-    # Net::HTTPResponse will be returned or an error raised.
+    # response object will be returned or an error raised.
     #
     # @param url [Wgit::Url] The URL to fetch the HTML from.
     # @param follow_external_redirects [Boolean] Whether or not to follow
@@ -195,32 +193,37 @@ module Wgit
     #   `to_host` value of 'www.example.com'.
     # @raise [StandardError] If !url.respond_to? :to_uri or a redirect isn't
     #   allowed.
-    # @return [Net::HTTPResponse] The HTTP response of the GET request.
+    # @return [Typhoeus::Response] The HTTP response of the GET request.
     def resolve(url, follow_external_redirects: true, host: nil)
-      raise 'url must respond to :to_uri' unless url.respond_to?(:to_uri)
+      raise 'url must respond to :normalize' unless url.respond_to?(:normalize)
 
       redirect_count = 0
       response = nil
 
       loop do
-        response = Net::HTTP.get_response(url.to_uri)
-        break unless response.is_a?(Net::HTTPRedirection)
+        response = Typhoeus.get(url.normalize, followlocation: false)
 
-        location = Wgit::Url.new(response.fetch('location', ''))
+        # Handle response status code.
+        raise "Invalid URL: #{url}" if response.code == 0
+        break unless (response.code >= 300) && (response.code < 400)
+
+        # Handle response 'Location' header.
+        location = Wgit::Url.new(response.headers.fetch('Location', ''))
         raise 'Encountered redirect without Location header' if location.empty?
 
         yield(url, response, location) if block_given?
 
+        # Handle redirect logic.
         raise "External redirect not allowed - Redirected to: \
 '#{location}', which is outside of host: '#{host}'" \
-        if !follow_external_redirects && !location.is_relative?(host: host)
+        if !follow_external_redirects && !location.relative?(host: host)
 
         raise "Too many redirects: #{redirect_count}" \
         if redirect_count >= @redirect_limit
 
         redirect_count += 1
 
-        location = url.to_base.concat(location) if location.is_relative?
+        location = url.to_base.concat(location) if location.relative?
         url.replace(location) # Update the url on redirect.
       end
 

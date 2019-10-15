@@ -6,16 +6,25 @@ require 'uri'
 include WebMock::API
 
 WebMock.enable!
-WebMock.disable_net_connect!
+WebMock.disable_net_connect!(allow: 'vlang.io')
+
+# Any custom Typhoeus mocking (missing from Webmock) goes below.
+module Typhoeus
+  class Response
+    def total_time
+      options[:total_time] || rand(0.2...0.7)
+    end
+  end
+end
 
 def fixtures_dir
   'test/mock/fixtures'
 end
 
 # Return the contents of a HTML fixture file.
-def fixture(path)
-  path = "#{path}.html" unless path.end_with?('.html')
-  file_path = path.start_with?(fixtures_dir) ? path : "#{fixtures_dir}/#{path}"
+def fixture(file)
+  file = "#{file}.html" unless file.end_with?('.html')
+  file_path = file.start_with?(fixtures_dir) ? file : "#{fixtures_dir}/#{file}"
   File.read(file_path)
 end
 

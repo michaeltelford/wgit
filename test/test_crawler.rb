@@ -35,7 +35,7 @@ class TestCrawler < TestHelper
     c = Wgit::Crawler.new
     url = 'https://duckduckgo.com'.to_url
     doc = c.crawl_url(url) { |d| assert_crawl(d) }
-    assert c.last_response.instance_of? Net::HTTPOK
+    assert_equal 200, c.last_response.code
     assert_equal 'https://duckduckgo.com', url
     assert_equal url, doc.url
     assert_crawl doc
@@ -58,7 +58,7 @@ class TestCrawler < TestHelper
     c = Wgit::Crawler.new
     url = Wgit::Url.new 'https://www.über.com/about'
     doc = c.crawl_url(url) { |d| assert_crawl(d) }
-    assert c.last_response.instance_of? Net::HTTPOK
+    assert_equal 200, c.last_response.code
     assert_equal 'https://www.über.com/about', url
     assert_equal url, doc.url
     assert_crawl doc
@@ -67,6 +67,21 @@ class TestCrawler < TestHelper
     url = 'http://www.bing.com'
     e = assert_raises(StandardError) { c.crawl_url url }
     assert_equal 'Expected: Wgit::Url, Actual: String', e.message
+  end
+
+  def test_crawl_url__not_mocked
+    # The vlang.io host is not mocked to test the HTTP crawl logic.
+    url = 'https://vlang.io/'.to_url
+    crawler = Wgit::Crawler.new
+    doc = crawler.crawl_url(url)
+
+    assert_equal 200, crawler.last_response.code
+    assert_equal 'https://vlang.io/', url
+    assert_equal url, doc.url
+    assert_crawl doc
+    assert url.crawled
+    refute_nil url.date_crawled
+    refute_nil url.crawl_duration
   end
 
   def test_crawl_url__redirects
@@ -118,7 +133,7 @@ class TestCrawler < TestHelper
     ].to_urls
     i = 0
     doc = c.crawl_urls(*urls) do |d|
-      assert c.last_response.instance_of? Net::HTTPOK
+      assert_equal 200, c.last_response.code
       assert_crawl d
       i += 1
     end
@@ -131,7 +146,7 @@ class TestCrawler < TestHelper
     url = 'https://duckduckgo.com'.to_url
     i = 0
     doc = c.crawl_urls(url) do |d|
-      assert c.last_response.instance_of? Net::HTTPOK
+      assert_equal 200, c.last_response.code
       assert_crawl d
       i += 1
     end
@@ -165,7 +180,7 @@ class TestCrawler < TestHelper
         assert_nil c.last_response
         assert_empty d
       else
-        assert c.last_response.instance_of? Net::HTTPOK
+        assert_equal 200, c.last_response.code
         assert_crawl d
       end
       i += 1
@@ -266,27 +281,36 @@ class TestCrawler < TestHelper
     ]
 
     # Test that an invalid url returns nil.
-    url = Wgit::Url.new 'http://doesntexist_123'
+    url = Wgit::Url.new 'http://doesnt_exist/'
     c = Wgit::Crawler.new
     assert_nil c.crawl_site(url)
   end
 
   def test_crawl_site__not_mocked
-    # We turn off webmock to sanity check the Net::HTTP crawl logic.
-    WebMock.allow_net_connect!
-
+    # The vlang.io host is not mocked to test the HTTP crawl logic.
     url = 'https://vlang.io/'.to_url
     crawler = Wgit::Crawler.new
 
     crawled = []
-    externals = crawler.crawl_site(url) { |doc| crawled << doc.url }
+    externals = crawler.crawl_site(url) do |doc|
+      assert_crawl(doc)
+      crawled << doc.url
+    end
 
-    # Because real websites change over time we deliberately don't assert much.
-    refute_empty crawled
-    assert crawled.include?(url)
+    # Because real websites change over time we limit our assertions.
+    assert_equal 200, crawler.last_response.code
+
     refute_empty externals
+    assert externals.all? { |url| url.instance_of? Wgit::Url }
+    assert_nil externals.uniq!
 
-    WebMock.disable_net_connect!
+    refute_empty crawled
+    assert_nil crawled.uniq!
+    assert_equal url, crawled.first
+
+    assert url.crawled
+    refute_nil url.date_crawled
+    refute_nil url.crawl_duration
   end
 
   def test_crawl_site__get_internal_links_override
@@ -387,7 +411,7 @@ class TestCrawler < TestHelper
     url = 'http://redirect.com/1'
 
     e = assert_raises(StandardError) { c.send :resolve, url }
-    assert_equal 'url must respond to :to_uri', e.message
+    assert_equal 'url must respond to :normalize', e.message
     assert_equal 'http://redirect.com/1', url
   end
 
@@ -439,24 +463,26 @@ class TestCrawler < TestHelper
 
       assert_instance_of Wgit::Url, url
       assert_instance_of Wgit::Url, location
-      assert response.is_a?(Net::HTTPRedirection) unless location.empty?
+      assert_equal 301, response.code unless location.empty?
 
       assert_equal orig_url, url if i == 1
       assert_equal path, location.to_path.to_i unless location.empty?
     end
-    assert_instance_of Net::HTTPOK, resp
+    assert_instance_of Typhoeus::Response, resp
+    assert_equal 200, resp.code
 
     # Doesn't redirect.
     orig_url = Wgit::Url.new 'https://twitter.com'
     resp = c.send(:resolve, orig_url) do |url, response, location|
       assert_instance_of Wgit::Url, url
       assert_instance_of Wgit::Url, location
-      assert response.instance_of? Net::HTTPOK
+      assert_equal 200, response.code
 
       assert_equal orig_url, url
       assert_empty location
     end
-    assert_instance_of Net::HTTPOK, resp
+    assert_instance_of Typhoeus::Response, resp
+    assert_equal 200, resp.code
   end
 
   def test_get_internal_links
@@ -530,8 +556,7 @@ class TestCrawler < TestHelper
   def assert_resolve(crawler, start_url, end_url)
     response = crawler.send :resolve, start_url
 
-    assert response.instance_of? Net::HTTPOK
-    assert_equal '200', response.code
+    assert_equal 200, response.code
     refute response.body.empty?
     assert_equal end_url, start_url
   end

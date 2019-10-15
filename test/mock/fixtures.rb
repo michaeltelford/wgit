@@ -12,7 +12,7 @@ stub_redirect 'http://twitter.com', 'https://twitter.com'
 stub_page 'https://twitter.com'
 stub_redirect 'https://cms.org', 'https://example.com/de/page1'
 stub_redirect 'https://example.com/de/page1', '/de/folder/page2#anchor-on-page2'
-stub_page 'https://example.com/de/folder/page2'
+stub_page 'https://example.com/de/folder/page2#anchor-on-page2'
 stub_redirect 'http://redirect.com/1', 'http://redirect.com/2' # First redirect.
 stub_redirect 'http://redirect.com/2', 'http://redirect.com/3' # Second redirect.
 stub_redirect 'http://redirect.com/3', 'http://redirect.com/4' # Third redirect.
@@ -28,7 +28,7 @@ stub_redirect 'http://test-site.com/ftp', 'http://ftp.test-site.com'
 stub_not_found 'http://ftp.test-site.com'
 stub_redirect 'http://myserver.com', 'http://www.myserver.com'
 stub_redirect 'http://www.myserver.com', 'http://test-site.com'
-stub_timeout 'http://doesntexist_123'
+stub_timeout 'http://doesnt_exist/'
 
 # Match all *.jpg URL's for belfastpilates.co.uk.
 stub_request(:get, Regexp.new('http://www.belfastpilates.co.uk/(.*).(?:jpg|jpeg)'))

@@ -189,7 +189,7 @@ protocol: #{url}" unless url.to_base
     # @return [Wgit::Url] self + separator + path, separator depends on path.
     def concat(path)
       path = Wgit::Url.new(path)
-      raise 'path must be relative' unless path.is_relative?
+      raise 'path must be relative' unless path.relative?
 
       path = path.without_leading_slash
       separator = path.start_with?('#') || path.start_with?('?') ? '' : '/'

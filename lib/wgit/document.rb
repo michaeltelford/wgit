@@ -224,11 +224,11 @@ module Wgit
     # @return [Wgit::Url] The base URL of this Document e.g.
     #   'http://example.com/public'.
     def base_url(link: nil)
-      get_base = -> { @base.is_relative? ? @url.to_base.concat(@base) : @base }
+      get_base = -> { @base.relative? ? @url.to_base.concat(@base) : @base }
 
       if link
         link = Wgit::Url.new(link)
-        raise "link must be relative: #{link}" unless link.is_relative?
+        raise "link must be relative: #{link}" unless link.relative?
 
         if link.is_anchor? || link.is_query?
           base_url = @base ? get_base.call : @url
@@ -339,7 +339,7 @@ module Wgit
       return [] if @links.empty?
 
       links = @links
-              .select { |link| link.is_relative?(host: @url.to_base) }
+              .select { |link| link.relative?(host: @url.to_base) }
               .map(&:without_base)
               .map do |link| # Map @url.to_host into / as it's a duplicate.
         link.to_host == @url.to_host ? Wgit::Url.new('/') : link
@@ -365,7 +365,7 @@ module Wgit
       return [] if @links.empty?
 
       links = @links
-              .reject { |link| link.is_relative?(host: @url.to_base) }
+              .reject { |link| link.relative?(host: @url.to_base) }
               .map(&:without_trailing_slash)
 
       Wgit::Utils.process_arr(links)

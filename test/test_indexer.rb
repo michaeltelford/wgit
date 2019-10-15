@@ -127,7 +127,7 @@ class TestIndexer < TestHelper
 
   def test_index_this_site__invalid_url
     # Test that an invalid URL isn't indexed.
-    url = Wgit::Url.new 'http://doesntexist_123'
+    url = Wgit::Url.new 'http://doesnt_exist/'
 
     refute url? url: url
 
@@ -201,7 +201,7 @@ class TestIndexer < TestHelper
 
   def test_index_this_page__invalid_url
     # Test that an invalid URL isn't indexed.
-    url = Wgit::Url.new 'http://doesntexist_123'
+    url = Wgit::Url.new 'http://doesnt_exist/'
 
     refute url? url: url
 
