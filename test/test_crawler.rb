@@ -340,6 +340,8 @@ class TestCrawler < TestHelper
     url = Wgit::Url.new 'http://txti.es/'
     response = c.send :fetch, url
 
+    assert_equal 0, c.last_response.redirect_count
+    assert c.last_response.total_time > 0.0
     refute_nil response
     assert url.crawled
     refute_nil url.date_crawled
@@ -470,6 +472,8 @@ class TestCrawler < TestHelper
     end
     assert_instance_of Typhoeus::Response, resp
     assert_equal 200, resp.code
+    assert_equal 2, resp.redirect_count
+    assert resp.total_time > 0.0
 
     # Doesn't redirect.
     orig_url = Wgit::Url.new 'https://twitter.com'
@@ -483,6 +487,8 @@ class TestCrawler < TestHelper
     end
     assert_instance_of Typhoeus::Response, resp
     assert_equal 200, resp.code
+    assert_equal 0, resp.redirect_count
+    assert resp.total_time > 0.0
   end
 
   def test_get_internal_links
@@ -557,6 +563,7 @@ class TestCrawler < TestHelper
     response = crawler.send :resolve, start_url
 
     assert_equal 200, response.code
+    assert response.total_time > 0.0
     refute response.body.empty?
     assert_equal end_url, start_url
   end

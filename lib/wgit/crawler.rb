@@ -140,13 +140,13 @@ module Wgit
 
     protected
 
-    # This method calls Wgit::Crawler#resolve to obtain the page HTML, handling
-    # any errors that arise and setting the @last_response. Errors or any
-    # HTTP response that doesn't return a HTML body will be ignored and nil
+    # This method calls Wgit::Crawler#resolve to obtain the HTTP response,
+    # handling any errors that arise and setting the @last_response. Errors or
+    # any HTTP response that doesn't return a HTML body will be ignored and nil
     # will be returned; otherwise, the HTML String is returned.
     #
-    # @param url [Wgit::Url] The URL to fetch the HTML for. This Url object
-    #   will likely be modified as a result of the fetch/crawl.
+    # @param url [Wgit::Url] The URL to fetch. This Url object is passed by
+    #   reference and gets modified as a result of the fetch/crawl.
     # @param follow_external_redirects [Boolean] Whether or not to follow
     #   an external redirect. False will return nil for such a crawl. If false,
     #   you must also provide a `host:` parameter.
@@ -179,10 +179,10 @@ module Wgit
       @last_response     = response
     end
 
-    # The resolve method performs a HTTP GET to obtain the HTML response. The
+    # The resolve method performs a HTTP GET to obtain the HTTP response. The
     # response object will be returned or an error raised.
     #
-    # @param url [Wgit::Url] The URL to fetch the HTML from.
+    # @param url [Wgit::Url] The URL to fetch.
     # @param follow_external_redirects [Boolean] Whether or not to follow
     #   an external redirect. If false, you must also provide a `host:`
     #   parameter.
@@ -191,24 +191,27 @@ module Wgit
     #   absolute and contain a protocol prefix. For example, a `host:` of
     #   'http://www.example.com' will only allow redirects for Urls with a
     #   `to_host` value of 'www.example.com'.
-    # @raise [StandardError] If !url.respond_to? :to_uri or a redirect isn't
+    # @raise [StandardError] If !url.respond_to? :normalize or a redirect isn't
     #   allowed.
     # @return [Typhoeus::Response] The HTTP response of the GET request.
     def resolve(url, follow_external_redirects: true, host: nil)
       raise 'url must respond to :normalize' unless url.respond_to?(:normalize)
 
+      response       = nil
       redirect_count = 0
-      response = nil
+      total_net_time = 0.0
 
       loop do
         response = Typhoeus.get(url.normalize, followlocation: false)
+        total_net_time += response.total_time
 
         # Handle response status code.
         raise "Invalid URL: #{url}" if response.code == 0
         break unless (response.code >= 300) && (response.code < 400)
 
         # Handle response 'Location' header.
-        location = Wgit::Url.new(response.headers.fetch('Location', ''))
+        location = Wgit::Utils.fetch(response.headers, 'Location', '')
+        location = Wgit::Url.new(location)
         raise 'Encountered redirect without Location header' if location.empty?
 
         yield(url, response, location) if block_given?
@@ -226,6 +229,9 @@ module Wgit
         location = url.to_base.concat(location) if location.relative?
         url.replace(location) # Update the url on redirect.
       end
+
+      response.options[:redirect_count] = redirect_count
+      response.options[:total_time]     = total_net_time
 
       response
     end

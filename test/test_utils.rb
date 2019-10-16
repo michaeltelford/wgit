@@ -46,6 +46,16 @@ class TestUtils < TestHelper
     assert_equal 'hello1', str
   end
 
+  def test_fetch
+    assert_equal 'bar', Wgit::Utils.fetch({ foo: 'bar' }, :foo)
+    assert_equal 'bar', Wgit::Utils.fetch({ foo: 'bar' }, 'foo')
+    assert_equal 'bar', Wgit::Utils.fetch({ foo: 'bar' }, 'Foo')
+    assert_equal 'bar', Wgit::Utils.fetch({ foo: 'bar' }, 'FOO')
+    assert_equal 'bar', Wgit::Utils.fetch({ foo: 'bar' }, 'fOo')
+    assert_equal 'taz', Wgit::Utils.fetch({ foo: 'bar' }, :blah, 'taz')
+    assert_nil Wgit::Utils.fetch({ foo: 'bar' }, :blah)
+  end
+
   def test_format_sentence_length
     sentence_limit = 10
 

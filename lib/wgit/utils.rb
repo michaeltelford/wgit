@@ -47,6 +47,32 @@ module Wgit
       obj_or_objs
     end
 
+    # An improved Hash :fetch method which checks for multiple formats of the
+    # given key and returns the value, or the default value (nil unless
+    # provided).
+    #
+    # For example, if key == :foo, hash is searched for:
+    # :foo, 'foo', 'Foo', 'FOO' in that order. The first value found is
+    # returned. If no value is found, the default value is returned.
+    #
+    # @param hash [Hash] The Hash to search within.
+    # @param key [Symbol, String] The key with which to search hash.
+    # @param default [Object] The default value to be returned if hash[key]
+    #   doesn't exist.
+    # @return [Object] The value found at hash[key] or the default value.
+    def self.fetch(hash, key, default = nil)
+      key = key.to_s.downcase
+
+      # Try (in order): :foo, 'foo', 'Foo', 'FOO'.
+      [key.to_sym, key, key.capitalize, key.upcase].each do |k|
+        value = hash[k]
+
+        return value if value
+      end
+
+      default
+    end
+
     # Formats the sentence (modifies the receiver) and returns its value.
     # The formatting is essentially to shorten the sentence and ensure that
     # the index is present somewhere in the sentence. Used for search query
