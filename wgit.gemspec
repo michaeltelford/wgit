@@ -51,8 +51,6 @@ Gem::Specification.new do |s|
 
   s.add_development_dependency 'byebug', '~> 10.0'
   s.add_development_dependency 'dotenv', '~> 2.5'
-  s.add_development_dependency 'httplog', '~> 1.3'
-  s.add_development_dependency 'inch', '~> 0.8'
   s.add_development_dependency 'maxitest', '~> 3.3'
   s.add_development_dependency 'pry', '~> 0.12'
   s.add_development_dependency 'rake', '~> 12.3'
