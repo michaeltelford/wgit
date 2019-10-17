@@ -4,11 +4,10 @@
 # NOTE: This console is designed to be run from the repo root directory. This
 # is reflected in the filepaths used below.
 
-require 'pry'
 require 'bundler/setup'
-require 'dotenv'
-require 'httplog'
 require 'byebug'
+require 'dotenv'
+require 'pry'
 
 # Define a method to facilitate the hot reloading of code changes.
 def reload
@@ -28,21 +27,18 @@ reload
 Dotenv.load
 include DatabaseHelper # Connects to the database here.
 
-# Monkey patch all Net:HTTP network calls and log them.
-HttpLog.configure do |config|
-  config.enabled       = true
-  config.logger        = Wgit.logger
+# Monkey patch and log all HTTP requests made during the console.
+module Typhoeus
+  singleton_class.class_eval do
+    alias_method :orig_get, :get
+  end
 
-  config.log_connect   = false
-  config.log_request   = true
-  config.log_headers   = false
-  config.log_data      = false
-  config.log_status    = true
-  config.log_response  = false
-  config.log_benchmark = false
-
-  config.compact_log   = false
-  config.json_log      = false
+  def self.get(base_url, options = {})
+    Wgit.logger.debug("[typhoeus] Sending GET: #{base_url}")
+    resp = orig_get(base_url, options)
+    Wgit.logger.debug("[typhoeus] Status: #{resp.code} (#{resp.body.length} bytes in #{resp.total_time} seconds)")
+    resp
+  end
 end
 
 # Seed some fixture data for the session.
