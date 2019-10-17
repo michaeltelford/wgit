@@ -21,6 +21,7 @@ class TestCrawler < TestHelper
 
     assert_nil c.last_response
     assert_equal 5, c.redirect_limit
+    assert_equal 5, c.time_out
   end
 
   def test_initialise__redirect_limit
@@ -28,6 +29,15 @@ class TestCrawler < TestHelper
 
     assert_nil c.last_response
     assert_equal 3, c.redirect_limit
+    assert_equal 5, c.time_out
+  end
+
+  def test_initialise__time_out
+    c = Wgit::Crawler.new time_out: 3
+
+    assert_nil c.last_response
+    assert_equal 5, c.redirect_limit
+    assert_equal 3, c.time_out
   end
 
   def test_crawl_url
@@ -384,7 +394,7 @@ class TestCrawler < TestHelper
     # Redirects 6 times - should fail.
     url = Wgit::Url.new 'http://redirect.com/1'
     e = assert_raises(StandardError) { c.send :resolve, url }
-    assert_equal 'Too many redirects: 5', e.message
+    assert_equal 'Too many redirects, exceeded: 5', e.message
     assert_equal 'http://redirect.com/6', url
 
     c = Wgit::Crawler.new redirect_limit: 0
@@ -392,7 +402,7 @@ class TestCrawler < TestHelper
     # Disable redirects - should fail for too many redirects.
     url = Wgit::Url.new 'http://twitter.com/'
     e = assert_raises(StandardError) { c.send :resolve, url }
-    assert_equal 'Too many redirects: 0', e.message
+    assert_equal 'Too many redirects, exceeded: 0', e.message
     assert_equal 'http://twitter.com/', url
 
     # Disable redirects - should pass as there's no redirect.
@@ -404,8 +414,24 @@ class TestCrawler < TestHelper
 
     url = Wgit::Url.new 'http://redirect.com/2' # Would pass normally.
     e = assert_raises(StandardError) { c.send :resolve, url }
-    assert_equal 'Too many redirects: 3', e.message
+    assert_equal 'Too many redirects, exceeded: 3', e.message
     assert_equal 'http://redirect.com/5', url
+  end
+
+  def test_resolve__time_out
+    # Unrealistically short time out causes an error.
+    c = Wgit::Crawler.new time_out: 0.001
+
+    url = Wgit::Url.new 'http://doesnt_exist/' # Mocks a time out.
+    e = assert_raises(StandardError) { c.send :resolve, url }
+    assert_equal 'No response (within timeout: 0.001 second(s))', e.message
+
+    # Disable time outs.
+    c = Wgit::Crawler.new time_out: 0
+
+    url = Wgit::Url.new 'http://test-site.com'
+    resp = c.send :resolve, url
+    assert_equal 200, resp.code
   end
 
   def test_resolve__uri_error
@@ -415,6 +441,14 @@ class TestCrawler < TestHelper
     e = assert_raises(StandardError) { c.send :resolve, url }
     assert_equal 'url must respond to :normalize', e.message
     assert_equal 'http://redirect.com/1', url
+  end
+
+  def test_resolve__invalid_url
+    c = Wgit::Crawler.new
+    url = 'http://doesnt_exist/'.to_url
+
+    e = assert_raises(StandardError) { c.send(:resolve, url) }
+    assert_equal 'No response (within timeout: 5 second(s))', e.message
   end
 
   def test_resolve__redirect_to_any_external_url_works

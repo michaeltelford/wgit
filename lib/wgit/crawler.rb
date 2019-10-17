@@ -16,6 +16,10 @@ module Wgit
     # disable redirects completely.
     attr_accessor :redirect_limit
 
+    # The maximum amount of time (in seconds) a crawl request has to complete
+    # before raising an error. Set to 0 to disable time outs completely.
+    attr_accessor :time_out
+
     # The Typhoeus::Response of the most recently crawled URL or nil.
     attr_reader :last_response
 
@@ -23,8 +27,12 @@ module Wgit
     #
     # @param redirect_limit [Integer] The amount of allowed redirects before
     #   raising an error. Set to 0 to disable redirects completely.
-    def initialize(redirect_limit: 5)
+    # @param time_out [Integer, Float] The maximum amount of time (in seconds)
+    #   a crawl request has to complete before raising an error. Set to 0 to
+    #   disable time outs completely.
+    def initialize(redirect_limit: 5, time_out: 5)
       @redirect_limit = redirect_limit
+      @time_out       = time_out
     end
 
     # Crawls an entire website's HTML pages by recursively going through
@@ -197,16 +205,21 @@ module Wgit
     def resolve(url, follow_external_redirects: true, host: nil)
       raise 'url must respond to :normalize' unless url.respond_to?(:normalize)
 
+      opts = {
+        followlocation: false, timeout: @time_out, accept_encoding: 'gzip'
+      }
+
       response       = nil
       redirect_count = 0
       total_net_time = 0.0
 
       loop do
-        response = Typhoeus.get(url.normalize, followlocation: false)
+        response = Typhoeus.get(url.normalize, opts)
         total_net_time += response.total_time
 
         # Handle response status code.
-        raise "Invalid URL: #{url}" if response.code == 0
+        raise "No response (within timeout: #{@time_out} second(s))" \
+        if response.code == 0
         break unless (response.code >= 300) && (response.code < 400)
 
         # Handle response 'Location' header.
@@ -221,7 +234,7 @@ module Wgit
 '#{location}', which is outside of host: '#{host}'" \
         if !follow_external_redirects && !location.relative?(host: host)
 
-        raise "Too many redirects: #{redirect_count}" \
+        raise "Too many redirects, exceeded: #{redirect_count}" \
         if redirect_count >= @redirect_limit
 
         redirect_count += 1
