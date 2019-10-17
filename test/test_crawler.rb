@@ -434,13 +434,22 @@ class TestCrawler < TestHelper
     assert_equal 200, resp.code
   end
 
-  def test_resolve__uri_error
+  def test_resolve__string_url
+    # All ASCII chars.
     c = Wgit::Crawler.new
-    url = 'http://redirect.com/1'
+    url = 'http://test-site.com'
+    resp = c.send :resolve, url
 
-    e = assert_raises(StandardError) { c.send :resolve, url }
-    assert_equal 'url must respond to :normalize', e.message
-    assert_equal 'http://redirect.com/1', url
+    assert_equal 'http://test-site.com', url
+    assert_equal 200, resp.code
+
+    # Non ASCII chars (IRI String).
+    c = Wgit::Crawler.new
+    url = 'https://www.über.com/about'
+    resp = c.send :resolve, url
+
+    assert_equal 'https://www.über.com/about', url
+    assert_equal 200, resp.code
   end
 
   def test_resolve__invalid_url

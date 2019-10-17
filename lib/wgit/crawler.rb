@@ -110,7 +110,7 @@ module Wgit
       doc
     end
 
-    # Crawl the url returning the response Wgit::Document or nil if an error
+    # Crawl the url returning the response Wgit::Document or nil, if an error
     # occurs.
     #
     # @param url [Wgit::Url] The Url to crawl; which will likely be modified.
@@ -148,10 +148,9 @@ module Wgit
 
     protected
 
-    # This method calls Wgit::Crawler#resolve to obtain the HTTP response,
-    # handling any errors that arise and setting the @last_response. Errors or
-    # any HTTP response that doesn't return a HTML body will be ignored and nil
-    # will be returned; otherwise, the HTML String is returned.
+    # Fetches the url HTML String or nil. Handles any errors that arise
+    # and sets the @last_response. Errors or any HTTP response that doesn't
+    # return a HTML body will be ignored, returning nil.
     #
     # @param url [Wgit::Url] The URL to fetch. This Url object is passed by
     #   reference and gets modified as a result of the fetch/crawl.
@@ -187,10 +186,10 @@ module Wgit
       @last_response     = response
     end
 
-    # The resolve method performs a HTTP GET to obtain the HTTP response. The
-    # response object will be returned or an error raised.
+    # Resolves the url by handling any redirects. The response object will be
+    # returned or an error raised.
     #
-    # @param url [Wgit::Url] The URL to fetch.
+    # @param url [Wgit::Url] The URL to resolve.
     # @param follow_external_redirects [Boolean] Whether or not to follow
     #   an external redirect. If false, you must also provide a `host:`
     #   parameter.
@@ -199,31 +198,22 @@ module Wgit
     #   absolute and contain a protocol prefix. For example, a `host:` of
     #   'http://www.example.com' will only allow redirects for Urls with a
     #   `to_host` value of 'www.example.com'.
-    # @raise [StandardError] If !url.respond_to? :normalize or a redirect isn't
-    #   allowed.
+    # @raise [StandardError] If a redirect isn't allowed etc.
     # @return [Typhoeus::Response] The HTTP response of the GET request.
     def resolve(url, follow_external_redirects: true, host: nil)
-      raise 'url must respond to :normalize' unless url.respond_to?(:normalize)
-
-      opts = {
-        followlocation: false, timeout: @time_out, accept_encoding: 'gzip'
-      }
-
       response       = nil
       redirect_count = 0
       total_net_time = 0.0
 
       loop do
-        response = Typhoeus.get(url.normalize, opts)
-        total_net_time += response.total_time
+        response = get_response(url)
+        total_net_time += response.total_time if response.total_time
 
-        # Handle response status code.
-        raise "No response (within timeout: #{@time_out} second(s))" \
-        if response.code == 0
+        # Break unless it's a redirect.
         break unless (response.code >= 300) && (response.code < 400)
 
         # Handle response 'Location' header.
-        location = Wgit::Utils.fetch(response.headers, 'Location', '')
+        location = Wgit::Utils.fetch(response.headers, :location, '')
         location = Wgit::Url.new(location)
         raise 'Encountered redirect without Location header' if location.empty?
 
@@ -239,12 +229,34 @@ module Wgit
 
         redirect_count += 1
 
+        # Process the location to be crawled next.
         location = url.to_base.concat(location) if location.relative?
         url.replace(location) # Update the url on redirect.
       end
 
       response.options[:redirect_count] = redirect_count
       response.options[:total_time]     = total_net_time
+
+      response
+    end
+
+    # Performs a HTTP GET request and returns the response.
+    #
+    # @param url [String] The url to GET. Will call url#normalize if possible.
+    # @raise [StandardError] If a response can't be obtained.
+    # @return [Typhoeus::Response] The HTTP response of the GET request.
+    def get_response(url)
+      url = url.normalize if url.respond_to?(:normalize)
+
+      opts = {
+        followlocation: false, timeout: @time_out, accept_encoding: 'gzip'
+      }
+
+      response = Typhoeus.get(url, opts)
+
+      # Handle response status code.
+      raise "No response (within timeout: #{@time_out} second(s))" \
+      if response.code == 0
 
       response
     end
