@@ -597,6 +597,7 @@ module Wgit
       end
     end
 
+    alias statistics             stats
     alias internal_urls          internal_links
     alias internal_absolute_urls internal_absolute_links
     alias external_urls          external_links
