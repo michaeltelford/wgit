@@ -9,6 +9,19 @@
 - ...
 ---
 
+## v0.4.0
+### Added
+- `Wgit::Document#stats` alias `#statistics`.
+- `Wgit::Crawler#time_out` logic for long crawls. Can also be set via `initialize`.
+- `Wgit::Crawler#last_response#redirect_count` method logic.
+- `Wgit::Crawler#last_response#total_time` method logic.
+- `Wgit::Utils.fetch(hash, key, default = nil)` method which tries multiple key formats before giving up e.g. `:foo, 'foo', 'FOO'` etc.
+### Changed/Removed
+- Breaking changes: Updated `Wgit::Crawler` crawl logic to use `typhoeus` instead of `Net:HTTP`. Users should see a significant improvement in crawl speed as a result. This means that `Wgit::Crawler#last_response` is now of type `Typhoeus::Response`. See https://rubydoc.info/gems/typhoeus/Typhoeus/Response for more info.
+### Fixed
+- ...
+---
+
 ## v0.3.0
 ### Added
 - `Url#crawl_duration` method.

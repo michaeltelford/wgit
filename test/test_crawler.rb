@@ -311,7 +311,7 @@ class TestCrawler < TestHelper
     assert_equal 200, crawler.last_response.code
 
     refute_empty externals
-    assert externals.all? { |url| url.instance_of? Wgit::Url }
+    assert externals.all? { |external| external.instance_of? Wgit::Url }
     assert_nil externals.uniq!
 
     refute_empty crawled

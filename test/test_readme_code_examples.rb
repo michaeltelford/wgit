@@ -24,14 +24,15 @@ class TestReadmeCodeExamples < TestHelper
     # :==, :[], :author, :base, :base_url, :crawl_duration, :css, :date_crawled, :doc, :empty?,
     # :external_links, :external_urls, :html, :internal_absolute_links, :internal_absolute_urls,
     # :internal_links, :internal_urls, :keywords, :links, :score, :search, :search!, :size,
-    # :stats, :text, :title, :to_h, :to_json, :url, :xpath
+    # :statistics, :stats, :text, :title, :to_h, :to_json, :url, :xpath
     # ]
 
     doc.url   # => "https://wikileaks.org/What-is-Wikileaks.html"
+    doc.title # => "WikiLeaks - What is WikiLeaks"
     doc.stats # => {
-    # :url=>44, :html=>28133, :title=>17, :keywords=>0,
-    # :links=>35, :text_snippets=>67, :text_bytes=>13735
-    #}
+              #   :url=>44, :html=>28133, :title=>17, :keywords=>0,
+              #   :links=>35, :text_snippets=>67, :text_bytes=>13735
+              # }
     doc.links # => ["#submit_help_contact", "#submit_help_tor", "#submit_help_tips", ...]
     doc.text  # => ["The Courage Foundation is an international organisation that <snip>", ...]
 
@@ -41,9 +42,10 @@ class TestReadmeCodeExamples < TestHelper
 
     ### PUT README CODE ABOVE ###
 
-    assert_equal([:==, :[], :author, :base, :base_url, :crawl_duration, :css, :date_crawled, :doc, :empty?, :external_links, :external_urls, :html, :internal_absolute_links, :internal_absolute_urls, :internal_links, :internal_urls, :keywords, :links, :score, :search, :search!, :size, :stats, :text, :title, :to_h, :to_json, :url, :xpath], Wgit::Document.public_instance_methods(false).sort)
+    assert_equal([:==, :[], :author, :base, :base_url, :crawl_duration, :css, :date_crawled, :doc, :empty?, :external_links, :external_urls, :html, :internal_absolute_links, :internal_absolute_urls, :internal_links, :internal_urls, :keywords, :links, :score, :search, :search!, :size, :statistics, :stats, :text, :title, :to_h, :to_json, :url, :xpath], Wgit::Document.public_instance_methods(false).sort)
 
     assert_equal 'https://wikileaks.org/What-is-Wikileaks.html', doc.url
+    assert_equal 'WikiLeaks - What is WikiLeaks', doc.title
     refute_empty doc.stats # The stats change a lot so just assert presence.
     refute_empty doc.links #  "
     refute_empty doc.text  #  "

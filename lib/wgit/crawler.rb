@@ -21,6 +21,7 @@ module Wgit
     attr_accessor :time_out
 
     # The Typhoeus::Response of the most recently crawled URL or nil.
+    # See https://rubydoc.info/gems/typhoeus/Typhoeus/Response for more info.
     attr_reader :last_response
 
     # Initializes and returns a Wgit::Crawler instance.
