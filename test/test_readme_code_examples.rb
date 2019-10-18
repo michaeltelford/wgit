@@ -14,29 +14,41 @@ class TestReadmeCodeExamples < TestHelper
 
     require 'wgit'
 
-    crawler = Wgit::Crawler.new
+    crawler = Wgit::Crawler.new # Uses typhoeus -> libcurl underneath. It's fast!
     url = Wgit::Url.new 'https://wikileaks.org/What-is-Wikileaks.html'
 
-    doc = crawler.crawl url
+    doc = crawler.crawl_page url # Or use #crawl_site(url) { |doc| ... } etc.
 
     doc.class # => Wgit::Document
+    doc.class.public_instance_methods(false).sort # => [
+    # :==, :[], :author, :base, :base_url, :crawl_duration, :css, :date_crawled, :doc, :empty?,
+    # :external_links, :external_urls, :html, :internal_absolute_links, :internal_absolute_urls,
+    # :internal_links, :internal_urls, :keywords, :links, :score, :search, :search!, :size,
+    # :stats, :text, :title, :to_h, :to_json, :url, :xpath
+    # ]
+
+    doc.url   # => "https://wikileaks.org/What-is-Wikileaks.html"
     doc.stats # => {
     # :url=>44, :html=>28133, :title=>17, :keywords=>0,
     # :links=>35, :text_snippets=>67, :text_bytes=>13735
-    # }
+    #}
+    doc.links # => ["#submit_help_contact", "#submit_help_tor", "#submit_help_tips", ...]
+    doc.text  # => ["The Courage Foundation is an international organisation that <snip>", ...]
 
-    # doc responds to the following methods:
-    Wgit::Document.public_instance_methods(false).sort
-
-    results = doc.search 'corruption'
+    results = doc.search 'corruption' # Searches doc.text for the given query.
     results.first # => "ial materials involving war, spying and corruption.
-    #     It has so far published more"
+                  #     It has so far published more"
 
     ### PUT README CODE ABOVE ###
 
-    refute(doc.stats.empty?) # The stats change a lot so just assert presence.
     assert_equal([:==, :[], :author, :base, :base_url, :crawl_duration, :css, :date_crawled, :doc, :empty?, :external_links, :external_urls, :html, :internal_absolute_links, :internal_absolute_urls, :internal_links, :internal_urls, :keywords, :links, :score, :search, :search!, :size, :stats, :text, :title, :to_h, :to_json, :url, :xpath], Wgit::Document.public_instance_methods(false).sort)
-    assert_equal('ial materials involving war, spying and corruption. It has so far published more', results.first)
+
+    assert_equal 'https://wikileaks.org/What-is-Wikileaks.html', doc.url
+    refute_empty doc.stats # The stats change a lot so just assert presence.
+    refute_empty doc.links #  "
+    refute_empty doc.text  #  "
+
+    assert_equal 'ial materials involving war, spying and corruption. It has so far published more', results.first
   end
 
   def test_css_indexer
