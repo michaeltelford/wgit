@@ -165,13 +165,13 @@ The next example requires a configured database instance. Currently the only sup
 
 The following versions of MongoDB are supported:
 
-| Gem    | Database |
-| ------ | -------- |
-| ~> 2.9 | ~> 4.0   |
+| Gem      | Database   |
+| -------- | ---------- |
+| ~> 2.9.0 | ~> 4.0.0   |
 
 ### Data Model
 
-The data model for Wgit is deliberately simplistic for maximum flexibility. The MongoDB collections consist of:
+The data model for Wgit is deliberately simplistic. The MongoDB collections consist of:
 
 | Collection  | Purpose                                                |
 | ----------- | ------------------------------------------------------ |

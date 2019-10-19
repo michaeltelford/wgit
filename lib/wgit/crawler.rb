@@ -221,9 +221,10 @@ module Wgit
         yield(url, response, location) if block_given?
 
         # Handle redirect logic.
-        raise "External redirect not allowed - Redirected to: \
-'#{location}', which is outside of host: '#{host}'" \
         if !follow_external_redirects && !location.relative?(host: host)
+          raise "External redirect not allowed - Redirected to: \
+'#{location}', which is outside of host: '#{host}'"
+        end
 
         raise "Too many redirects, exceeded: #{redirect_count}" \
         if redirect_count >= @redirect_limit
@@ -257,7 +258,7 @@ module Wgit
 
       # Handle response status code.
       raise "No response (within timeout: #{@time_out} second(s))" \
-      if response.code == 0
+      if response.code.zero?
 
       response
     end
