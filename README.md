@@ -25,9 +25,9 @@ Check out this [example application](https://search-engine-rb.herokuapp.com) - a
 7. [Caveats](#Caveats)
 8. [Executable](#Executable)
 9. [Change Log](#Change-Log)
-10. [Development](#Development)
+10. [License](#License)
 11. [Contributing](#Contributing)
-12. [License](#License)
+12. [Development](#Development)
 
 ## Installation
 
@@ -53,7 +53,7 @@ require 'wgit'
 crawler = Wgit::Crawler.new # Uses typhoeus -> libcurl underneath. It's fast!
 url = Wgit::Url.new 'https://wikileaks.org/What-is-Wikileaks.html'
 
-doc = crawler.crawl_page url # Or use #crawl_site(url) { |doc| ... } etc.
+doc = crawler.crawl url # Or use #crawl_site(url) { |doc| ... } etc.
 
 doc.class # => Wgit::Document
 doc.class.public_instance_methods(false).sort # => [
@@ -124,7 +124,7 @@ css[0..50] # => "._3_s0._3_s0{border:0;display:flex;height:44px;min-"
 
 ### Keyword Indexer (SEO Helper)
 
-The below script downloads the contents of several webpages and pulls out their keywords for comparison. Such a script might be used by marketeers for search engine optimisation for example.
+The below script downloads the contents of several webpages and pulls out their keywords for comparison. Such a script might be used by marketeers for search engine optimisation (SEO) for example.
 
 ```ruby
 require 'wgit'
@@ -141,7 +141,7 @@ competitor_urls = [
 
 crawler = Wgit::Crawler.new
 
-crawler.crawl_urls(*competitor_urls) do |doc|
+crawler.crawl(*competitor_urls) do |doc|
   # If there are keywords present in the web document.
   if doc.keywords.respond_to? :-
     puts "The keywords for #{doc.url} are: \n#{doc.keywords}\n\n"

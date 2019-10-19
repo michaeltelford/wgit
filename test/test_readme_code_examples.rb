@@ -17,7 +17,7 @@ class TestReadmeCodeExamples < TestHelper
     crawler = Wgit::Crawler.new # Uses typhoeus -> libcurl underneath. It's fast!
     url = Wgit::Url.new 'https://wikileaks.org/What-is-Wikileaks.html'
 
-    doc = crawler.crawl_page url # Or use #crawl_site(url) { |doc| ... } etc.
+    doc = crawler.crawl url # Or use #crawl_site(url) { |doc| ... } etc.
 
     doc.class # => Wgit::Document
     doc.class.public_instance_methods(false).sort # => [
@@ -42,7 +42,7 @@ class TestReadmeCodeExamples < TestHelper
 
     ### PUT README CODE ABOVE ###
 
-    assert_equal([:==, :[], :author, :base, :base_url, :crawl_duration, :css, :date_crawled, :doc, :empty?, :external_links, :external_urls, :html, :internal_absolute_links, :internal_absolute_urls, :internal_links, :internal_urls, :keywords, :links, :score, :search, :search!, :size, :statistics, :stats, :text, :title, :to_h, :to_json, :url, :xpath], Wgit::Document.public_instance_methods(false).sort)
+    assert_equal([:==, :[], :author, :base, :base_url, :crawl_duration, :css, :date_crawled, :doc, :empty?, :external_links, :external_urls, :html, :internal_absolute_links, :internal_absolute_urls, :internal_links, :internal_urls, :keywords, :links, :score, :search, :search!, :size, :statistics, :stats, :text, :title, :to_h, :to_json, :url, :xpath], doc.class.public_instance_methods(false).sort)
 
     assert_equal 'https://wikileaks.org/What-is-Wikileaks.html', doc.url
     assert_equal 'WikiLeaks - What is WikiLeaks', doc.title
@@ -97,7 +97,7 @@ class TestReadmeCodeExamples < TestHelper
 
     crawler = Wgit::Crawler.new
 
-    crawler.crawl_urls(*competitor_urls) do |doc|
+    crawler.crawl(*competitor_urls) do |doc|
       # If there are keywords present in the web document.
       if doc.keywords.respond_to? :-
         # puts "The keywords for #{doc.url} are: \n#{doc.keywords}\n\n"
