@@ -251,7 +251,13 @@ module Wgit
       url = url.normalize if url.respond_to?(:normalize)
 
       opts = {
-        followlocation: false, timeout: @time_out, accept_encoding: 'gzip'
+        followlocation: false,
+        timeout: @time_out,
+        accept_encoding: 'gzip',
+        headers: {
+          'User-Agent' => "wgit/#{Wgit::VERSION}",
+          'Accept' => 'text/html'
+        }
       }
 
       response = Typhoeus.get(url, opts)
