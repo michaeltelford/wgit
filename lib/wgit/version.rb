@@ -5,5 +5,5 @@
 # @author Michael Telford
 module Wgit
   # The current gem version of Wgit.
-  VERSION = '0.4.0'
+  VERSION = '0.4.1'
 end

@@ -9,6 +9,15 @@
 - ...
 ---
 
+## v0.4.1
+### Added
+- ...
+### Changed/Removed
+- ...
+### Fixed
+- A crawl bug that resulted in some servers dropping requests due to the use of Typhoeus's default `User-Agent` header. This has now been changed.
+---
+
 ## v0.4.0
 ### Added
 - `Wgit::Document#stats` alias `#statistics`.
