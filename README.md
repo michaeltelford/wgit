@@ -54,6 +54,7 @@ crawler = Wgit::Crawler.new # Uses typhoeus -> libcurl underneath. It's fast!
 url = Wgit::Url.new 'https://wikileaks.org/What-is-Wikileaks.html'
 
 doc = crawler.crawl url # Or use #crawl_site(url) { |doc| ... } etc.
+crawler.last_response.class # => Typhoeus::Response
 
 doc.class # => Wgit::Document
 doc.class.public_instance_methods(false).sort # => [
