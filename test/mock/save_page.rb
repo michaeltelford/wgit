@@ -10,7 +10,7 @@ require_relative '../../lib/wgit'
 
 raise 'ARGV[0] must be a URL' unless ARGV[0]
 
-url = Wgit::Url.new(ARGV[0])
+url     = Wgit::Url.new(ARGV[0])
 crawler = Wgit::Crawler.new
 
 Dir.chdir("#{File.expand_path(__dir__)}/fixtures")

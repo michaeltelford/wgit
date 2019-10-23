@@ -14,6 +14,8 @@ Fundamentally, Wgit is a HTTP indexer/scraper which crawls URL's to retrieve and
 
 Check out this [example application](https://search-engine-rb.herokuapp.com) - a search engine (see its [repository](https://github.com/michaeltelford/search_engine)) built using Wgit and Sinatra, deployed to Heroku. Heroku's free tier is used so the initial page load may be slow. Try searching for "Ruby" or something else that's Ruby related.
 
+Continue reading the rest of this `README` for more information on Wgit. When you've finished, check out the [wiki](https://github.com/michaeltelford/wgit/wiki).
+
 ## Table Of Contents
 
 1. [Installation](#Installation)
@@ -80,11 +82,13 @@ results.first # => "ial materials involving war, spying and corruption.
 
 ## Documentation
 
-100% of Wgit's code is documented using [YARD](https://yardoc.org/), deployed to [Rubydocs](https://www.rubydoc.info/gems/wgit). This greatly benefits developers in using Wgit in their own programs. Another good source of information (as to how the library behaves) are the tests. Also, see the [Practical Examples](#Practical-Examples) section below for real working examples of Wgit in action.
+100% of Wgit's code is documented using [YARD](https://yardoc.org/), deployed to [rubydoc.info](https://www.rubydoc.info/gems/wgit). This greatly benefits developers in using Wgit in their own programs. Another good source of information (as to how the library behaves) are the [tests](https://github.com/michaeltelford/wgit/tree/master/test). Also, see the [Practical Examples](#Practical-Examples) section below for real working examples of Wgit in action.
 
 ## Practical Examples
 
-Below are some practical examples of Wgit in use. You can copy and run the code for yourself.
+Below are some practical examples of Wgit in use. You can copy and run the code for yourself (it's all been tested).
+
+In addition to the practical examples below, the [wiki](https://github.com/michaeltelford/wgit/wiki) contains a useful 'How To' section with more specific usage of Wgit. You should finish reading this `README` first however.
 
 ### WWW HTML Indexer
 
@@ -373,7 +377,7 @@ The gem is available as open source under the terms of the MIT License. See [LIC
 
 Bug reports and feature requests are welcome on [GitHub](https://github.com/michaeltelford/wgit/issues). Just raise an issue, checking it doesn't already exist.
 
-The current road map is rudimentally listed in the [TODO.txt](https://github.com/michaeltelford/wgit/blob/master/TODO.txt) file. Maybe your feature request is already there?
+The current road map is rudimentally listed in the [Road Map](https://github.com/michaeltelford/wgit/wiki/Road-Map) wiki page. Maybe your feature request is already there?
 
 Before you consider making a contribution, check out [CONTRIBUTING.md](https://github.com/michaeltelford/wgit/blob/master/CONTRIBUTING.md).
 

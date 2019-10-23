@@ -9,11 +9,9 @@ WebMock.enable!
 WebMock.disable_net_connect!(allow: 'vlang.io')
 
 # Any custom Typhoeus mocking (missing from Webmock) goes below.
-module Typhoeus
-  class Response
-    def total_time
-      options[:total_time] || rand(0.2...0.7)
-    end
+class Typhoeus::Response
+  def total_time
+    options[:total_time] || rand(0.2...0.7)
   end
 end
 

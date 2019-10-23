@@ -12,8 +12,8 @@ require 'fileutils'
 raise 'ARGV[0] must be a URL' unless ARGV[0]
 
 base_url = Wgit::Url.new(ARGV[0])
-path = "#{File.expand_path(__dir__)}/fixtures/#{base_url.host}"
-crawler = Wgit::Crawler.new
+path     = "#{File.expand_path(__dir__)}/fixtures/#{base_url.host}"
+crawler  = Wgit::Crawler.new
 
 Dir.mkdir(path) unless Dir.exist?(path)
 Dir.chdir(path)
