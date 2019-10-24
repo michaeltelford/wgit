@@ -34,8 +34,8 @@ Wgit::Document.define_extension(
   '//meta[@name="keywords"]/@content',
   singleton: true,
   text_content_only: true
-) do |keywords, source|
-  if keywords && (source == :html)
+) do |keywords, _source, type|
+  if keywords && (type == :document)
     keywords = keywords.split(',')
     Wgit::Utils.process_arr(keywords)
   end

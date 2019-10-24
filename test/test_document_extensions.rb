@@ -87,7 +87,7 @@ class TestDocumentExtension < TestHelper
 <th>Another Header</th></table></html>"
     )
 
-    assert_equal :init_table_text, name
+    assert_equal :table_text, name
     assert doc.respond_to? :table_text
     table_text = doc.table_text
 
@@ -112,7 +112,7 @@ class TestDocumentExtension < TestHelper
       HTML
     )
 
-    assert_equal :init_tables, name
+    assert_equal :tables, name
     assert doc.respond_to? :tables
     tables = doc.tables
 
@@ -137,7 +137,7 @@ class TestDocumentExtension < TestHelper
       '<html><code>curl</code><code>wget</code><code>wgit</code></html>'
     )
 
-    assert_equal :init_code_snippets, name
+    assert_equal :code_snippets, name
     assert doc.respond_to? :code_snippets
     snippets = doc.code_snippets
 
@@ -161,7 +161,7 @@ class TestDocumentExtension < TestHelper
       '<html><code>curl</code><code>wget</code><code>wgit</code></html>'
     )
 
-    assert_equal :init_code_snippet, name
+    assert_equal :code_snippet, name
     assert doc.respond_to? :code_snippet
     snippet = doc.code_snippet
 
@@ -182,7 +182,7 @@ class TestDocumentExtension < TestHelper
 <img src="smiley.gif" alt="Smiley face" height="10" width="12"></html>'
     )
 
-    assert_equal :init_img_alt, name
+    assert_equal :img_alt, name
     assert doc.respond_to? :img_alt
     alt_text = doc.img_alt
 
@@ -211,7 +211,7 @@ class TestDocumentExtension < TestHelper
 <img src="smiley.gif" alt="Smiley face" height="10" width="12"></html>'
     )
 
-    assert_equal :init_img, name
+    assert_equal :img, name
     assert doc.respond_to? :img
     img = doc.img
 
@@ -255,7 +255,7 @@ class TestDocumentExtension < TestHelper
     url = 'https://motherfuckingwebsite.com/'.to_url
     doc = Wgit::Crawler.new.crawl_url(url)
 
-    assert_equal :init_blockquote, name
+    assert_equal :blockquote, name
     assert doc.respond_to? :blockquote
     blockquote = doc.blockquote
 
@@ -290,7 +290,7 @@ class TestDocumentExtension < TestHelper
     )
 
     # Some basic Document assertions before the database interactions.
-    assert_equal :init_table_text, name
+    assert_equal :table_text, name
     assert ['https://made-up-link.com'], doc.links
     assert doc.respond_to? :table_text
     assert_equal 'Header TextAnother Header', doc.table_text
@@ -346,7 +346,7 @@ class TestDocumentExtension < TestHelper
 
     doc = Wgit::Document.new extended_mongo_doc
 
-    assert_equal :init_code, name
+    assert_equal :code, name
     assert doc.respond_to? :code
     assert_equal extended_mongo_doc['url'], doc.url
     assert_equal extended_mongo_doc['score'], doc.score
@@ -372,7 +372,7 @@ class TestDocumentExtension < TestHelper
 <th>Another Header</th></table></html>"
     )
 
-    assert_equal :init_single, name
+    assert_equal :single, name
     assert doc.respond_to? :single
     assert_nil doc.single
   end
@@ -387,7 +387,7 @@ class TestDocumentExtension < TestHelper
 <th>Another Header</th></table></html>"
     )
 
-    assert_equal :init_array, name
+    assert_equal :array, name
     assert doc.respond_to? :array
     assert_equal [], doc.array
   end
@@ -400,7 +400,7 @@ class TestDocumentExtension < TestHelper
       'url' => 'https://google.co.uk'
     )
 
-    assert_equal :init_single, name
+    assert_equal :single, name
     assert doc.respond_to? :single
     assert_nil doc.single
   end
@@ -413,15 +413,16 @@ class TestDocumentExtension < TestHelper
       'url' => 'https://google.co.uk'
     )
 
-    assert_equal :init_array, name
+    assert_equal :array, name
     assert doc.respond_to? :array
     assert_equal [], doc.array
   end
 
-  def test_second_block_value__from_html
-    Wgit::Document.define_extension(:code, '//code') do |value, source|
+  def test_block_values__from_html
+    Wgit::Document.define_extension(:code, '//code') do |value, source, type|
       refute_nil value
-      assert_equal :html, source
+      assert_instance_of Wgit::Document, source
+      assert_equal :document, type
     end
 
     Wgit::Document.new(
@@ -430,7 +431,7 @@ class TestDocumentExtension < TestHelper
     )
   end
 
-  def test_second_block_value__from_object
+  def test_block_values__from_object
     extended_mongo_doc = {
       'url' => 'https://google.co.uk',
       'score' => 2.1,
@@ -438,9 +439,10 @@ class TestDocumentExtension < TestHelper
       'code' => "puts 'hello world'"
     }
 
-    Wgit::Document.define_extension(:code, '//code') do |value, source|
+    Wgit::Document.define_extension(:code, '//code') do |value, source, type|
       refute_nil value
-      assert_equal :object, source
+      assert_instance_of Hash, source
+      assert_equal :object, type
     end
 
     Wgit::Document.new extended_mongo_doc

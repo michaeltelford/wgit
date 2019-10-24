@@ -91,25 +91,28 @@ module Wgit
     # instance variables upon Document initialization. See the default
     # extensions defined in 'document_extensions.rb' as examples.
     #
-    # Initialises a private instance variable with the xpath or database object
-    # result(s). When initialising from HTML, a true singleton value will only
-    # ever return one result otherwise all xpath results are returned in an
+    # Note that defined extensions work for both Documents initialized from
+    # HTML (via Wgit::Crawler methods) and from database objects.
+    # An extension once defined, initializes a private instance variable with
+    # the xpath or database object result(s).
+    #
+    # When initialising from HTML, a singleton value of true will only
+    # ever return one result; otherwise all xpath results are returned in an
     # Array. When initialising from a database object, the value is taken as
     # is and singleton is only used to define the default empty value.
     # If a value cannot be found (in either the HTML or database object), then
-    # a default will be used. The default value is: singleton ? nil : [].
-    #
-    # Note that defined extensions work for both documents initialized from
-    # the WWW (via Wgit::Crawler methods) and from database objects. This
-    # effectively implements ORM like behavior using this class.
+    # a default will be used. The default value is: `singleton ? nil : []`.
     #
     # @param var [Symbol] The name of the variable to be initialised.
     # @param xpath [String, Object#call] The xpath used to find the element(s)
-    #   of the webpage. Pass a callable object (proc etc.) if you want the
+    #   of the webpage. Only used when initializing from HTML.
+    #
+    #   Pass a callable object (proc etc.) if you want the
     #   xpath value to be derived on Document initialisation (instead of when
     #   the extension is defined). The call method must return a valid xpath
     #   String.
-    # @param options [Hash] The options to define an extension with.
+    # @param options [Hash] The options to define an extension with. The
+    #   options are only used when intializing from HTML, not the database.
     # @option options [Boolean] :singleton The singleton option determines
     #   whether or not the result(s) should be in an Array. If multiple
     #   results are found and singleton is true then the first result will be
@@ -117,16 +120,17 @@ module Wgit
     # @option options [Boolean] :text_content_only The text_content_only option
     #   if true will use the text content of the Nokogiri result object,
     #   otherwise the Nokogiri object itself is returned. Defaults to true.
-    # @yield [value, source] Yields the value (Object) about to be assigned to
-    #   the new var and the source (Symbol) of the value (either :html or
-    #   :object). The return value of the block becomes the new var value,
-    #   unless nil. Return nil if you want to inspect but not change the var
-    #   value. The block gets executed when a Document is initialized from html
-    #   or an object e.g. database.
+    # @yield [value, source, type] Yields the value (Object) about to be
+    #   assigned to the new var, the source of the value (Wgit::Document or DB
+    #   Object) and the source type (Symbol of either :document or :object).
+    #
+    #   The return value of the block becomes the new var value, unless nil.
+    #   Return nil if you want to inspect but not change the var value. The
+    #   block is executed when a Wgit::Document is initialized.
     # @raise [StandardError] If the var param isn't valid.
-    # @return [Symbol] The first half of the newly defined method names e.g.
-    #   if var == "title" then :init_title is returned.
+    # @return [Symbol] The given var Symbol.
     def self.define_extension(var, xpath, options = {}, &block)
+      var = var.to_sym
       default_options = { singleton: true, text_content_only: true }
       options = default_options.merge(options)
 
@@ -149,7 +153,7 @@ module Wgit
       end
       Document.send :private, func_name
 
-      "init_#{var}".to_sym
+      var
     end
 
     # Removes the init_* methods created when an extension is defined.
@@ -459,7 +463,7 @@ module Wgit
     # @yield [value, source] Given the value (String/Object) before it's set as
     #   an instance variable so that you can inspect/alter the value if
     #   desired. Return nil from the block if you don't want to override the
-    #   value. Also given the source (Symbol) which is always :html.
+    #   value. Also given the source (Symbol) which is always :document.
     # @return [String, Object] The value found in the html or the default value
     #   (singleton ? nil : []).
     def find_in_html(xpath, singleton: true, text_content_only: true)
@@ -478,7 +482,7 @@ module Wgit
       singleton ? Wgit::Utils.process_str(result) : Wgit::Utils.process_arr(result)
 
       if block_given?
-        new_result = yield(result, :html)
+        new_result = yield(result, self, :document)
         result = new_result unless new_result.nil?
       end
 
@@ -505,7 +509,7 @@ module Wgit
       singleton ? Wgit::Utils.process_str(result) : Wgit::Utils.process_arr(result)
 
       if block_given?
-        new_result = yield(result, :object)
+        new_result = yield(result, obj, :object)
         result = new_result unless new_result.nil?
       end
 

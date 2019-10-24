@@ -60,7 +60,7 @@ crawler.last_response.class # => Typhoeus::Response
 
 doc.class # => Wgit::Document
 doc.class.public_instance_methods(false).sort # => [
-# :==, :[], :author, :base, :base_url, :css, :doc, :empty?, :external_links,
+# :==, :[], :author, :base, :base_url, :content, :css, :doc, :empty?, :external_links,
 # :external_urls, :html, :internal_absolute_links, :internal_absolute_urls,
 # :internal_links, :internal_urls, :keywords, :links, :score, :search, :search!,
 # :size, :statistics, :stats, :text, :title, :to_h, :to_json, :url, :xpath
