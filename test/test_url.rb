@@ -114,9 +114,51 @@ class TestUrl < TestHelper
     refute Wgit::Url.new('/über').valid?
   end
 
+  def test_prefix_base
+    doc = Wgit::Document.new 'http://example.com'
+
+    url = Wgit::Url.new 'http://www.google.co.uk/about.html'
+    assert_equal 'http://www.google.co.uk/about.html', url.prefix_base(doc)
+    assert_equal Wgit::Url, url.prefix_base(doc).class
+
+    url = Wgit::Url.new '/about.html'
+    assert_equal 'http://example.com/about.html', url.prefix_base(doc)
+    assert_equal Wgit::Url, url.prefix_base(doc).class
+
+    url = Wgit::Url.new '/about.html/'
+    assert_equal 'http://example.com/about.html/', url.prefix_base(doc)
+    assert_equal Wgit::Url, url.prefix_base(doc).class
+
+    url = Wgit::Url.new '/'
+    assert_equal 'http://example.com/', url.prefix_base(doc)
+    assert_equal Wgit::Url, url.prefix_base(doc).class
+
+    url = Wgit::Url.new 'about.html'
+    assert_equal 'http://example.com/about.html', url.prefix_base(doc)
+    assert_equal Wgit::Url, url.prefix_base(doc).class
+
+    url = Wgit::Url.new '#about-us'
+    assert_equal 'http://example.com#about-us', url.prefix_base(doc)
+    assert_equal Wgit::Url, url.prefix_base(doc).class
+
+    url = Wgit::Url.new '?foo=bar'
+    assert_equal 'http://example.com?foo=bar', url.prefix_base(doc)
+    assert_equal Wgit::Url, url.prefix_base(doc).class
+
+    url = Wgit::Url.new 'https://www.über.com/about#top'
+    assert_equal 'https://www.über.com/about#top', url.prefix_base(doc)
+    assert_equal Wgit::Url, url.prefix_base(doc).class
+
+    ex = assert_raises(StandardError) { 'blah'.to_url.prefix_base(true) }
+    assert_equal 'Expected: Wgit::Document, Actual: TrueClass', ex.message
+  end
+
   def test_prefix_protocol
     assert_equal 'http://my_server', Wgit::Url.new('my_server').prefix_protocol
     assert_equal 'https://my_server', Wgit::Url.new('my_server').prefix_protocol(protocol: :https)
+    assert_equal 'http://my_server', Wgit::Url.new('http://my_server').prefix_protocol
+    ex = assert_raises(StandardError) { Wgit::Url.new('my_server').prefix_protocol(protocol: :ftp) }
+    assert_equal 'protocol must be :http or :https, not :ftp', ex.message
   end
 
   def test_replace__from_string

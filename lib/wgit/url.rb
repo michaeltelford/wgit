@@ -204,21 +204,46 @@ protocol: #{url}" unless url.to_base
       Wgit::Url.new(@uri.normalize.to_s)
     end
 
-    # Modifies self by prefixing it with a protocol. Returns the url whether
-    # its been modified or not. The default protocol prefix is http://.
+    # Returns an absolute form of self within the context of doc. Doesn't
+    # modify the receiver.
+    #
+    # If self is absolute then it's returned as is, making this method
+    # idempotent. The doc's <base> element is used if present, otherwise
+    # doc.url is used as the base; which is concatted with self.
+    #
+    # Typically used to build an absolute link obtained from a document e.g.
+    #
+    #   link = Wgit::Url.new('/favicon.png')
+    #   doc  = Wgit::Document.new('http://example.com')
+    #
+    #   link.prefix_base(doc) # => "http://example.com/favicon.png"
+    #
+    # @param doc [Wgit::Document] The doc whose base Url is concatted with
+    #   self.
+    # @raise [StandardError] If doc isn't a Wgit::Document.
+    # @return [Wgit::Url] Self in absolute form.
+    def prefix_base(doc)
+      assert_type(doc, Wgit::Document)
+
+      absolute? ? self : doc.base_url(link: self).concat(self)
+    end
+
+    # Returns self having prefixed a protocol. Doesn't modify the receiver.
+    # Returns self even if absolute (with protocol); therefore is idempotent.
     #
     # @param protocol [Symbol] Either :http or :https.
-    # @return [Wgit::Url] The url with protocol prefix (having been modified).
+    # @return [Wgit::Url] Self with a protocol prefix.
     def prefix_protocol(protocol: :http)
-      unless %i[http https].include?(protocol)
-        raise 'protocol must be :http or :https'
-      end
+      return self if start_with?('http://') || start_with?('https://')
 
-      unless start_with?('http://') || start_with?('https://')
-        protocol == :http ? replace("http://#{url}") : replace("https://#{url}")
+      case protocol
+      when :http
+        Wgit::Url.new("http://#{url}")
+      when :https
+        Wgit::Url.new("https://#{url}")
+      else
+        raise "protocol must be :http or :https, not :#{protocol}"
       end
-
-      self
     end
 
     # Returns a Hash containing this Url's instance vars excluding @uri.

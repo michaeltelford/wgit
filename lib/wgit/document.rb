@@ -197,14 +197,14 @@ module Wgit
     # <base> element's href value or @url (if @base is nil). If @base is
     # present and relative, then @url.to_base + @base is returned. This method
     # should be used instead of `doc.url.to_base` etc. when manually building
-    # absolute links from relative links.
+    # absolute links from relative links; or use `link.prefix_base`.
     #
     # Provide the `link:` parameter to get the correct base URL for that type
     # of link. For example, a link of `#top` would always return @url because
     # it applies to that page, not a different one. Query strings work in the
     # same way. Use this parameter if manually concatting Url's e.g.
     #
-    #   relative_link = Wgit::Url.new '?q=hello'
+    #   relative_link = Wgit::Url.new('?q=hello')
     #   absolute_link = doc.base_url(link: relative_link).concat(relative_link)
     #
     # This is similar to how Wgit::Document#internal_absolute_links works.
