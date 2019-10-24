@@ -270,9 +270,12 @@ module Wgit
     end
 
     # Returns a doc's internal HTML page links in absolute form; used when
-    # crawling a site. Override this method in a subclass to change how a site
+    # crawling a site.
+    #
+    # Override this method in a subclass to change how a site
     # is crawled; not what is extracted from each page (Document extensions
-    # should be used for this purpose instead).
+    # should be used for this purpose instead). Just remember that only HTML
+    # files contain <a> links to keep the crawl going beyond the base URL.
     #
     # @param doc [Wgit::Document] The document from which to extract it's
     #   internal page links.

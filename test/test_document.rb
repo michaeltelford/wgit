@@ -74,8 +74,8 @@ and power matches the Ruby language in which it's developed."
     doc = Wgit::Document.new url
 
     assert_doc doc, html: nil
-    assert_equal time.to_s, doc.date_crawled.to_s
-    assert_equal 0.3445, doc.crawl_duration
+    assert_equal time.to_s, doc.url.date_crawled.to_s
+    assert_equal 0.3445, doc.url.crawl_duration
     assert_equal 0.0, doc.score
     assert_nil doc.base
   end
@@ -84,7 +84,7 @@ and power matches the Ruby language in which it's developed."
     doc = Wgit::Document.new 'http://www.mytestsite.com/home', nil
 
     assert_doc doc, html: nil
-    assert_nil doc.crawl_duration
+    assert_nil doc.url.crawl_duration
     assert_equal 0.0, doc.score
     assert_nil doc.base
   end
@@ -93,7 +93,7 @@ and power matches the Ruby language in which it's developed."
     doc = Wgit::Document.new 'http://www.mytestsite.com/home'.to_url, @html
 
     assert_doc doc
-    assert_nil doc.crawl_duration
+    assert_nil doc.url.crawl_duration
     assert_equal 0.0, doc.score
     assert_nil doc.base
   end
@@ -103,7 +103,7 @@ and power matches the Ruby language in which it's developed."
     doc = Wgit::Document.new 'http://www.mytestsite.com/home'.to_url, html
 
     assert_doc doc, html: html
-    assert_nil doc.crawl_duration
+    assert_nil doc.url.crawl_duration
     assert_equal 0.0, doc.score
     assert_equal 'http://server.com/public', doc.base
   end
@@ -112,8 +112,8 @@ and power matches the Ruby language in which it's developed."
     doc = Wgit::Document.new @mongo_doc_dup
 
     assert_doc doc
-    assert_equal '2016-04-20 14:33:16 +0100', doc.date_crawled
-    assert_equal 0.42446, doc.crawl_duration
+    assert_equal '2016-04-20 14:33:16 +0100', doc.url.date_crawled
+    assert_equal 0.42446, doc.url.crawl_duration
     assert_equal @mongo_doc_dup['score'], doc.score
     assert_nil doc.base
   end
@@ -293,7 +293,7 @@ and power matches the Ruby language in which it's developed."
     )
     doc = Wgit::Document.new url
 
-    assert_equal timestamp.to_s, doc.date_crawled.to_s
+    assert_equal timestamp.to_s, doc.url.date_crawled.to_s
   end
 
   def test_crawl_duration
@@ -304,7 +304,7 @@ and power matches the Ruby language in which it's developed."
     )
     doc = Wgit::Document.new url
 
-    assert_equal 0.9, doc.crawl_duration
+    assert_equal 0.9, doc.url.crawl_duration
   end
 
   def test_base_url__no_base
@@ -488,7 +488,7 @@ Minitest framework."
     assert_equal 'http://www.mytestsite.com/home'.to_url, doc.url
     assert_instance_of Wgit::Url, doc.url
     assert doc.url.crawled
-    refute_nil doc.date_crawled
+    refute_nil doc.url.date_crawled
 
     if html && !html.empty?
       assert_equal html, doc.html

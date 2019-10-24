@@ -1,6 +1,6 @@
 require_relative 'helpers/test_helper'
 
-# Crawl the site by it's <a> tags that link to jpg's.
+# Crawl the site's index page for <a> tags that link to jpg's.
 class ImageCrawler < Wgit::Crawler
   def get_internal_links(doc)
     doc.internal_absolute_links
@@ -561,8 +561,8 @@ class TestCrawler < TestHelper
     assert_instance_of Wgit::Url, doc.url
     refute doc.empty?
     assert doc.url.crawled
-    refute_nil doc.date_crawled
-    refute_nil doc.crawl_duration
+    refute_nil doc.url.date_crawled
+    refute_nil doc.url.crawl_duration
   end
 
   def assert_crawl_site(
@@ -575,18 +575,18 @@ class TestCrawler < TestHelper
     ext_links = crawler.crawl_site(url) do |doc|
       assert_equal url.to_host, doc.url.to_host
       assert doc.url.crawled?
-      refute_nil doc.date_crawled
+      refute_nil doc.url.date_crawled
 
       case doc.url
       when 'http://test-site.com/sneaky' # Redirects to different host.
         assert_empty doc
-        assert_nil doc.crawl_duration
+        assert_nil doc.url.crawl_duration
       when 'http://test-site.com/ftp'    # Redirects to different host.
         assert_empty doc
-        assert_nil doc.crawl_duration
+        assert_nil doc.url.crawl_duration
       else
         refute_empty doc
-        refute_nil doc.crawl_duration
+        refute_nil doc.url.crawl_duration
 
         crawled << doc.url
       end

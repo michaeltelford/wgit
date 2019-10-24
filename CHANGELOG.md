@@ -9,6 +9,15 @@
 - ...
 ---
 
+## v0.5.0
+### Added
+- A Wgit Wiki! [https://github.com/michaeltelford/wgit/wiki](https://github.com/michaeltelford/wgit/wiki)
+### Changed/Removed
+- Breaking changes: Removed `Wgit::Document#date_crawled` and `#crawl_duration` because both of these methods exist on the `Wgit::Document#url`. Instead, use `doc.url.date_crawled` etc.
+### Fixed
+- ...
+---
+
 ## v0.4.1
 ### Added
 - ...

@@ -60,10 +60,10 @@ crawler.last_response.class # => Typhoeus::Response
 
 doc.class # => Wgit::Document
 doc.class.public_instance_methods(false).sort # => [
-# :==, :[], :author, :base, :base_url, :crawl_duration, :css, :date_crawled, :doc, :empty?,
-# :external_links, :external_urls, :html, :internal_absolute_links, :internal_absolute_urls,
-# :internal_links, :internal_urls, :keywords, :links, :score, :search, :search!, :size,
-# :statistics, :stats, :text, :title, :to_h, :to_json, :url, :xpath
+# :==, :[], :author, :base, :base_url, :css, :doc, :empty?, :external_links,
+# :external_urls, :html, :internal_absolute_links, :internal_absolute_urls,
+# :internal_links, :internal_urls, :keywords, :links, :score, :search, :search!,
+# :size, :statistics, :stats, :text, :title, :to_h, :to_json, :url, :xpath
 # ]
 
 doc.url   # => "https://wikileaks.org/What-is-Wikileaks.html"
@@ -234,8 +234,9 @@ results = db.search query
 
 # By default, the MongoDB ranking applies i.e. results.first has the most hits.
 # Because results is an Array of Wgit::Document's, we can custom sort/rank e.g.
-# `results.sort_by!(&:crawl_duration)` ranks via page load times with results.first being the fastest.
-# Any Wgit::Document attribute can be used, including those you define yourself by extending the API.
+# `results.sort_by! { |doc| doc.url.crawl_duration }` ranks via page load times with
+# results.first being the fastest. Any Wgit::Document attribute can be used, including
+# those you define yourself by extending the API.
 
 top_result = results.first
 top_result.class           # => Wgit::Document
