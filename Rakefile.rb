@@ -72,7 +72,7 @@ task :RELEASE, [:remote] do |_t, args|
   raise 'Error requiring wgit' unless require_relative 'lib/wgit'
 
   puts "Releasing wgit v#{Wgit::VERSION}, using the '#{args[:remote]}' Git remote..."
-  confirm "Have you went through the TODO.txt 'Gem Publishing Checklist'?"
+  confirm "Have you went through the wiki's 'Gem Publishing Checklist'?"
 
   # Tag the repo, build and push the gem to rubygems.org.
   Rake::Task[:release].invoke args[:remote]
