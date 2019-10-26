@@ -20,6 +20,10 @@ module Wgit
     # before raising an error. Set to 0 to disable time outs completely.
     attr_accessor :time_out
 
+    # Whether or not to UTF-8 encode the HTML once crawled. Set to false if
+    # crawling more than just HTML e.g. images etc.
+    attr_accessor :encode_html
+
     # The Typhoeus::Response of the most recently crawled URL or nil.
     # See https://rubydoc.info/gems/typhoeus/Typhoeus/Response for more info.
     attr_reader :last_response
@@ -31,9 +35,12 @@ module Wgit
     # @param time_out [Integer, Float] The maximum amount of time (in seconds)
     #   a crawl request has to complete before raising an error. Set to 0 to
     #   disable time outs completely.
-    def initialize(redirect_limit: 5, time_out: 5)
+    # @param encode_html [Boolean] Whether or not to UTF-8 encode the HTML once
+    #   crawled. Set to false if crawling more than just HTML e.g. images etc.
+    def initialize(redirect_limit: 5, time_out: 5, encode_html: true)
       @redirect_limit = redirect_limit
       @time_out       = time_out
+      @encode_html    = encode_html
     end
 
     # Crawls an entire website's HTML pages by recursively going through
@@ -141,7 +148,7 @@ module Wgit
         host: host
       )
 
-      doc = Wgit::Document.new(url, html)
+      doc = Wgit::Document.new(url, html, encode_html: @encode_html)
       yield(doc) if block_given?
 
       doc.empty? ? nil : doc
@@ -256,7 +263,7 @@ module Wgit
         accept_encoding: 'gzip',
         headers: {
           'User-Agent' => "wgit/#{Wgit::VERSION}",
-          'Accept' => 'text/html'
+          'Accept'     => 'text/html'
         }
       }
 

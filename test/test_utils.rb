@@ -108,11 +108,24 @@ class TestUtils < TestHelper
   end
 
   def test_process_str
-    s = ' hello world '
+    s  = " hello world \xFE "
     s2 = Wgit::Utils.process_str s
+    expected = "hello world �"
 
-    assert_equal s.strip, s
-    assert_equal s2, s
+    assert_equal expected, s
+    assert_equal expected, s2
+  end
+
+  def test_process_str__encode_false
+    s  = " hello world "
+    s2 = Wgit::Utils.process_str s, encode: false
+    expected = "hello world"
+
+    assert_equal expected, s
+    assert_equal expected, s2
+
+    s  = " hello world \xFE "
+    assert_raises(ArgumentError) { Wgit::Utils.process_str(s, encode: false) }
   end
 
   def test_process_arr

@@ -166,13 +166,16 @@ module Wgit
     end
 
     # Processes a String to make it uniform. Strips any leading/trailing white
-    # space and converts to UTF-8.
+    # space. Also applies UTF-8 encoding (replacing invalid characters) if
+    # `encode: true`.
     #
     # @param str [String] The String to process. str is modified.
+    # @param encode [Boolean] Whether or not to encode to UTF-8 replacing
+    #   invalid characters.
     # @return [String] The processed str is both modified and then returned.
-    def self.process_str(str)
+    def self.process_str(str, encode: true)
       if str.is_a?(String)
-        str.encode!('UTF-8', 'UTF-8', invalid: :replace)
+        str.encode!('UTF-8', undef: :replace, invalid: :replace) if encode
         str.strip!
       end
 

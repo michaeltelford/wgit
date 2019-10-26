@@ -5,7 +5,8 @@ require 'nokogiri'
 require 'json'
 
 module Wgit
-  # Class modeling a HTML web document. Also doubles as a search result when
+  # Class primarily modeling a HTML web document, although other MIME types
+  # will work e.g. images etc. Also doubles as a search result when
   # loading Documents from the database via Wgit::Database#search.
   #
   # The initialize method dynamically initializes instance variables from the
@@ -60,11 +61,11 @@ module Wgit
     #   only used if url_or_obj is a String representing the web page's URL.
     #   Otherwise, the HTML comes from the database object. A html of nil will
     #   be defaulted to an empty String.
-    def initialize(url_or_obj, html = '')
+    def initialize(url_or_obj, html = '', encode_html: true)
       if url_or_obj.is_a?(String)
-        init_from_strings(url_or_obj, html)
+        init_from_strings(url_or_obj, html, encode_html: encode_html)
       else
-        init_from_object(url_or_obj)
+        init_from_object(url_or_obj, encode_html: encode_html)
       end
     end
 
@@ -519,7 +520,7 @@ module Wgit
     private
 
     # Initialise the Document from URL and HTML Strings.
-    def init_from_strings(url, html)
+    def init_from_strings(url, html, encode_html: true)
       assert_types(html, [String, NilClass])
 
       # We already know url.is_a?(String) so parse into Url unless already so.
@@ -531,7 +532,7 @@ module Wgit
       @doc   = init_nokogiri
       @score = 0.0
 
-      process_url_and_html
+      Wgit::Utils.process_str(@html, encode: encode_html)
 
       # Dynamically run the init_*_from_html methods.
       Document.private_instance_methods(false).each do |method|
@@ -544,7 +545,7 @@ module Wgit
 
     # Initialise the Document from a Hash like Object containing Strings as
     # keys e.g. database collection object or Hash.
-    def init_from_object(obj)
+    def init_from_object(obj, encode_html: true)
       assert_respond_to(obj, :fetch)
 
       @url   = Wgit::Url.new(obj.fetch('url')) # Should always be present.
@@ -552,7 +553,7 @@ module Wgit
       @doc   = init_nokogiri
       @score = obj.fetch('score', 0.0)
 
-      process_url_and_html
+      Wgit::Utils.process_str(@html, encode: encode_html)
 
       # Dynamically run the init_*_from_object methods.
       Document.private_instance_methods(false).each do |method|
@@ -561,12 +562,6 @@ module Wgit
           send(method, obj) unless method == __method__
         end
       end
-    end
-
-    # Ensure the @url and @html Strings are correctly encoded etc.
-    def process_url_and_html
-      @url  = Wgit::Utils.process_str(@url)
-      @html = Wgit::Utils.process_str(@html)
     end
 
     # Initialises an instance variable and defines a getter method for it.
