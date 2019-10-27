@@ -14,6 +14,7 @@
 - A Wgit Wiki! [https://github.com/michaeltelford/wgit/wiki](https://github.com/michaeltelford/wgit/wiki)
 - `Wgit::Document#content` alias for `#html`.
 - `Wgit::Url#prefix_base` method.
+- `Wgit::Url#to_addessable_uri` method.
 ### Changed/Removed
 - Breaking changes: Removed `Wgit::Document#date_crawled` and `#crawl_duration` because both of these methods exist on the `Wgit::Document#url`. Instead, use `doc.url.date_crawled` etc.
 - Breaking changes: Added to and moved `Document.define_extension` block params, it's now `|value, source, type|`. The `source` is not what it used to be; it's now `type` - of either `:document` or `:object`. Confused? See the [docs](https://www.rubydoc.info/gems/wgit).

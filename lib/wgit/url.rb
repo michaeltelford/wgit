@@ -234,7 +234,7 @@ protocol: #{url}" unless url.to_base
     # @param protocol [Symbol] Either :http or :https.
     # @return [Wgit::Url] Self with a protocol prefix.
     def prefix_protocol(protocol: :http)
-      return self if start_with?('http://') || start_with?('https://')
+      return self if absolute?
 
       case protocol
       when :http
@@ -261,6 +261,13 @@ protocol: #{url}" unless url.to_base
     # @return [URI::HTTP, URI::HTTPS] The URI object of self.
     def to_uri
       URI(normalize)
+    end
+
+    # Returns the Addressable::URI object for this URL.
+    #
+    # @return [Addressable::URI] The Addressable::URI object of self.
+    def to_addressable_uri
+      @uri
     end
 
     # Returns self.

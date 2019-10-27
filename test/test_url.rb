@@ -475,6 +475,14 @@ class TestUrl < TestHelper
     assert_equal 'https://www.xn--ber-goa.com/about#top', uri.to_s
   end
 
+  def test_to_addressable_uri
+    assert_equal Addressable::URI, Wgit::Url.new('http://www.google.co.uk').to_addressable_uri.class
+
+    uri = Wgit::Url.new('https://www.über.com/about#top').to_addressable_uri
+    assert_equal Addressable::URI, uri.class
+    assert_equal 'https://www.über.com/about#top', uri.to_s
+  end
+
   def test_to_url
     url = Wgit::Url.new 'http://www.google.co.uk'
     assert_equal url.object_id, url.to_url.object_id
