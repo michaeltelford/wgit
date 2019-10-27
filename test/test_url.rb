@@ -649,21 +649,21 @@ class TestUrl < TestHelper
     assert_nil url.to_query
   end
 
-  def test_to_anchor
+  def test_to_fragment
     url = Wgit::Url.new 'http://www.google.co.uk/about.html#about-us'
-    assert_equal 'about-us', url.to_anchor
-    assert_equal Wgit::Url, url.to_anchor.class
+    assert_equal 'about-us', url.to_fragment
+    assert_equal Wgit::Url, url.to_fragment.class
 
     url = Wgit::Url.new '#about-us'
-    assert_equal 'about-us', url.to_anchor
-    assert_equal Wgit::Url, url.to_anchor.class
+    assert_equal 'about-us', url.to_fragment
+    assert_equal Wgit::Url, url.to_fragment.class
 
     url = Wgit::Url.new 'https://www.über.com/about#top'
-    assert_equal 'top', url.to_anchor
-    assert_equal Wgit::Url, url.to_anchor.class
+    assert_equal 'top', url.to_fragment
+    assert_equal Wgit::Url, url.to_fragment.class
 
     url = Wgit::Url.new 'http://www.google.co.uk'
-    assert_nil url.to_anchor
+    assert_nil url.to_fragment
   end
 
   def test_to_extension
@@ -780,7 +780,7 @@ class TestUrl < TestHelper
     assert_equal '/about.html/hello#about', url.without_query
     assert_equal Wgit::Url, url.without_query.class
 
-    url = Wgit::Url.new '/about.html/hello#about?a=b&b=c' # Invalid anchor.
+    url = Wgit::Url.new '/about.html/hello#about?a=b&b=c' # Invalid fragment.
     assert_equal '/about.html/hello#about?a=b&b=c', url.without_query
     assert_equal Wgit::Url, url.without_query.class
 
@@ -800,56 +800,56 @@ class TestUrl < TestHelper
     assert_equal url, url.without_query
     assert_equal Wgit::Url, url.without_query.class
 
-    iri_without_anchor = 'https://www.über.com/about'
-    url = Wgit::Url.new iri_without_anchor + '?q=hello'
-    assert_equal iri_without_anchor, url.without_query
+    iri_without_fragment = 'https://www.über.com/about'
+    url = Wgit::Url.new iri_without_fragment + '?q=hello'
+    assert_equal iri_without_fragment, url.without_query
     assert_equal Wgit::Url, url.without_query.class
   end
 
-  def test_without_anchor
+  def test_without_fragment
     url = Wgit::Url.new 'http://google.com/search?q=foo#bar'
-    assert_equal 'http://google.com/search?q=foo', url.without_anchor
-    assert_equal Wgit::Url, url.without_anchor.class
+    assert_equal 'http://google.com/search?q=foo', url.without_fragment
+    assert_equal Wgit::Url, url.without_fragment.class
 
     url = Wgit::Url.new '/about.html'
-    assert_equal '/about.html', url.without_anchor
-    assert_equal Wgit::Url, url.without_anchor.class
+    assert_equal '/about.html', url.without_fragment
+    assert_equal Wgit::Url, url.without_fragment.class
 
     url = Wgit::Url.new '/about.html#hello/'
-    assert_equal '/about.html', url.without_anchor
-    assert_equal Wgit::Url, url.without_anchor.class
+    assert_equal '/about.html', url.without_fragment
+    assert_equal Wgit::Url, url.without_fragment.class
 
     url = Wgit::Url.new '/about.html/hello?a=b&b=c#about'
-    assert_equal '/about.html/hello?a=b&b=c', url.without_anchor
-    assert_equal Wgit::Url, url.without_anchor.class
+    assert_equal '/about.html/hello?a=b&b=c', url.without_fragment
+    assert_equal Wgit::Url, url.without_fragment.class
 
-    url = Wgit::Url.new '/about.html/hello#about?a=b&b=c' # Invalid anchor.
-    assert_equal '/about.html/hello', url.without_anchor
-    assert_equal Wgit::Url, url.without_anchor.class
+    url = Wgit::Url.new '/about.html/hello#about?a=b&b=c' # Invalid fragment.
+    assert_equal '/about.html/hello', url.without_fragment
+    assert_equal Wgit::Url, url.without_fragment.class
 
     url = Wgit::Url.new '/'
-    assert_equal url, url.without_anchor
-    assert_equal Wgit::Url, url.without_anchor.class
+    assert_equal url, url.without_fragment
+    assert_equal Wgit::Url, url.without_fragment.class
 
     url = Wgit::Url.new '#about'
-    assert_empty url.without_anchor
-    assert_equal Wgit::Url, url.without_anchor.class
+    assert_empty url.without_fragment
+    assert_equal Wgit::Url, url.without_fragment.class
 
     url = Wgit::Url.new '/about#'
-    assert_equal '/about', url.without_anchor
-    assert_equal Wgit::Url, url.without_anchor.class
+    assert_equal '/about', url.without_fragment
+    assert_equal Wgit::Url, url.without_fragment.class
 
     url = Wgit::Url.new 'https://google.com/'
-    assert_equal url, url.without_anchor
-    assert_equal Wgit::Url, url.without_anchor.class
+    assert_equal url, url.without_fragment
+    assert_equal Wgit::Url, url.without_fragment.class
 
     url = Wgit::Url.new 'https://google.com'
-    assert_equal url, url.without_anchor
-    assert_equal Wgit::Url, url.without_anchor.class
+    assert_equal url, url.without_fragment
+    assert_equal Wgit::Url, url.without_fragment.class
 
     url = Wgit::Url.new 'https://www.über.com/about#top'
-    assert_equal 'https://www.über.com/about', url.without_anchor
-    assert_equal Wgit::Url, url.without_anchor.class
+    assert_equal 'https://www.über.com/about', url.without_fragment
+    assert_equal Wgit::Url, url.without_fragment.class
   end
 
   def test_query?
@@ -869,21 +869,21 @@ class TestUrl < TestHelper
     refute url.query?
   end
 
-  def test_anchor?
+  def test_fragment?
     url = Wgit::Url.new '#'
-    assert url.anchor?
+    assert url.fragment?
 
     url = Wgit::Url.new '?q=hello'
-    refute url.anchor?
+    refute url.fragment?
 
     url = Wgit::Url.new '/public#top'
-    refute url.anchor?
+    refute url.fragment?
 
     url = Wgit::Url.new 'http://example.com#top'
-    refute url.anchor?
+    refute url.fragment?
 
     url = Wgit::Url.new 'http://example.com/home#top'
-    refute url.anchor?
+    refute url.fragment?
   end
 
   def test_to_h

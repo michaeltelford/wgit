@@ -359,13 +359,13 @@ protocol: #{url}" unless url.to_base
       query ? Wgit::Url.new(query) : nil
     end
 
-    # Returns a new Wgit::Url containing just the anchor string of this URL
+    # Returns a new Wgit::Url containing just the fragment string of this URL
     # e.g. Given http://google.com#about, #about is returned.
     #
-    # @return [Wgit::Url, nil] Containing just the anchor string or nil.
-    def to_anchor
-      anchor = @uri.fragment
-      anchor ? Wgit::Url.new(anchor) : nil
+    # @return [Wgit::Url, nil] Containing just the fragment string or nil.
+    def to_fragment
+      fragment = @uri.fragment
+      fragment ? Wgit::Url.new(fragment) : nil
     end
 
     # Returns a new Wgit::Url containing just the file extension of this URL
@@ -437,19 +437,19 @@ protocol: #{url}" unless url.to_base
       Wgit::Url.new(without_query_string)
     end
 
-    # Returns a new Wgit::Url with the anchor portion removed e.g. Given
+    # Returns a new Wgit::Url with the fragment portion removed e.g. Given
     # http://google.com/search#about, http://google.com/search is
-    # returned. Self is returned as is if no anchor is present. A URL
-    # consisting of only an anchor e.g. '#about' will return an empty URL.
-    # This method assumes that the anchor is correctly placed at the very end
+    # returned. Self is returned as is if no fragment is present. A URL
+    # consisting of only a fragment e.g. '#about' will return an empty URL.
+    # This method assumes that the fragment is correctly placed at the very end
     # of the URL.
     #
-    # @return [Wgit::Url] Self with the anchor portion removed.
-    def without_anchor
-      anchor = to_anchor
-      without_anchor = anchor ? gsub("##{anchor}", '') : self
+    # @return [Wgit::Url] Self with the fragment portion removed.
+    def without_fragment
+      fragment = to_fragment
+      without_fragment = fragment ? gsub("##{fragment}", '') : self
 
-      Wgit::Url.new(without_anchor)
+      Wgit::Url.new(without_fragment)
     end
 
     # Returns true if self is a URL query string e.g. ?q=hello etc. Note this
@@ -460,35 +460,32 @@ protocol: #{url}" unless url.to_base
       start_with?('?')
     end
 
-    # Returns true if self is a URL anchor/fragment e.g. #top etc. Note this
-    # shouldn't be used to determine if self contains an anchor/fragment.
+    # Returns true if self is a URL fragment e.g. #top etc. Note this
+    # shouldn't be used to determine if self contains a fragment.
     #
-    # @return [Boolean] True if self is a anchor/fragment, false otherwise.
-    def anchor?
+    # @return [Boolean] True if self is a fragment, false otherwise.
+    def fragment?
       start_with?('#')
     end
 
-    alias crawled?         crawled
-    alias is_relative?     relative?
-    alias is_absolute?     absolute?
-    alias is_valid?        valid?
-    alias normalise        normalize
-    alias uri              to_uri
-    alias url              to_url
-    alias scheme           to_scheme
-    alias host             to_host
-    alias domain           to_domain
-    alias brand            to_brand
-    alias base             to_base
-    alias path             to_path
-    alias endpoint         to_endpoint
-    alias query            to_query
-    alias anchor           to_anchor
-    alias fragment         to_anchor
-    alias extension        to_extension
-    alias without_fragment without_anchor
-    alias is_query?        query?
-    alias is_anchor?       anchor?
-    alias fragment?        anchor?
+    alias crawled?     crawled
+    alias is_relative? relative?
+    alias is_absolute? absolute?
+    alias is_valid?    valid?
+    alias is_query?    query?
+    alias is_fragment? fragment?
+    alias normalise    normalize
+    alias uri          to_uri
+    alias url          to_url
+    alias scheme       to_scheme
+    alias host         to_host
+    alias domain       to_domain
+    alias brand        to_brand
+    alias base         to_base
+    alias path         to_path
+    alias endpoint     to_endpoint
+    alias query        to_query
+    alias fragment     to_fragment
+    alias extension    to_extension
   end
 end

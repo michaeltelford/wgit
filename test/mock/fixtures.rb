@@ -11,8 +11,8 @@ stub_page 'http://www.bing.com'
 stub_redirect 'http://twitter.com', 'https://twitter.com'
 stub_page 'https://twitter.com'
 stub_redirect 'https://cms.org', 'https://example.com/de/page1'
-stub_redirect 'https://example.com/de/page1', '/de/folder/page2#anchor-on-page2'
-stub_page 'https://example.com/de/folder/page2#anchor-on-page2'
+stub_redirect 'https://example.com/de/page1', '/de/folder/page2#blah-on-page2'
+stub_page 'https://example.com/de/folder/page2#blah-on-page2'
 stub_redirect 'http://redirect.com/1', 'http://redirect.com/2' # First redirect.
 stub_redirect 'http://redirect.com/2', 'http://redirect.com/3' # Second redirect.
 stub_redirect 'http://redirect.com/3', 'http://redirect.com/4' # Third redirect.

@@ -394,7 +394,7 @@ and power matches the Ruby language in which it's developed."
     assert_instance_of Wgit::Url, base
   end
 
-  def test_base_url__no_base__anchor
+  def test_base_url__no_base__fragment
     url  = 'http://test-site.com/public/records#top'.to_url
     link = '#bottom'.to_url
 

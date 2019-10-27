@@ -289,7 +289,7 @@ module Wgit
     # @return [Array<Wgit::Url>] The internal page links from doc.
     def get_internal_links(doc)
       doc.internal_absolute_links
-         .map(&:without_anchor) # Because anchors don't change page content.
+         .map(&:without_fragment) # Because fragments don't change page content.
          .uniq
          .reject do |link|
         ext = link.to_extension

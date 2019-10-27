@@ -390,10 +390,10 @@ class TestCrawler < TestHelper
 
   def test_resolve__relative_location
     c = Wgit::Crawler.new
-    # Redirects twice to https://example.com/de/folder/page2#anchor-on-page2
+    # Redirects twice to https://example.com/de/folder/page2#blah-on-page2
     url = Wgit::Url.new 'https://cms.org'
 
-    assert_resolve c, url, 'https://example.com/de/folder/page2#anchor-on-page2'
+    assert_resolve c, url, 'https://example.com/de/folder/page2#blah-on-page2'
   end
 
   def test_resolve__redirect_limit

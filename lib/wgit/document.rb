@@ -221,14 +221,14 @@ module Wgit
         link = Wgit::Url.new(link)
         raise "link must be relative: #{link}" unless link.relative?
 
-        if link.is_anchor? || link.is_query?
+        if link.is_fragment? || link.is_query?
           base_url = @base ? get_base.call : @url
-          return base_url.without_anchor.without_query
+          return base_url.without_fragment.without_query
         end
       end
 
       base_url = @base ? get_base.call : @url.base
-      base_url.without_anchor.without_query
+      base_url.without_fragment.without_query
     end
 
     # Returns a Hash containing this Document's instance vars.
