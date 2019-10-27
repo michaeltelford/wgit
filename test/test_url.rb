@@ -636,13 +636,13 @@ class TestUrl < TestHelper
     assert_equal Wgit::Url, url.to_endpoint.class
   end
 
-  def test_to_query_string
+  def test_to_query
     url = Wgit::Url.new 'http://www.google.co.uk/about.html?q=ruby&page=2'
-    assert_equal '?q=ruby&page=2', url.to_query
+    assert_equal 'q=ruby&page=2', url.to_query
     assert_equal Wgit::Url, url.to_query.class
 
     url = Wgit::Url.new 'https://www.über.com/about?q=ruby&page=2'
-    assert_equal '?q=ruby&page=2', url.to_query
+    assert_equal 'q=ruby&page=2', url.to_query
     assert_equal Wgit::Url, url.to_query.class
 
     url = Wgit::Url.new 'http://www.google.co.uk'
@@ -651,15 +651,15 @@ class TestUrl < TestHelper
 
   def test_to_anchor
     url = Wgit::Url.new 'http://www.google.co.uk/about.html#about-us'
-    assert_equal '#about-us', url.to_anchor
+    assert_equal 'about-us', url.to_anchor
     assert_equal Wgit::Url, url.to_anchor.class
 
     url = Wgit::Url.new '#about-us'
-    assert_equal '#about-us', url.to_anchor
+    assert_equal 'about-us', url.to_anchor
     assert_equal Wgit::Url, url.to_anchor.class
 
     url = Wgit::Url.new 'https://www.über.com/about#top'
-    assert_equal '#top', url.to_anchor
+    assert_equal 'top', url.to_anchor
     assert_equal Wgit::Url, url.to_anchor.class
 
     url = Wgit::Url.new 'http://www.google.co.uk'
@@ -763,7 +763,7 @@ class TestUrl < TestHelper
     assert_equal Wgit::Url, url.without_base.class
   end
 
-  def test_without_query_string
+  def test_without_query
     url = Wgit::Url.new 'http://google.com/search?q=hello&foo=bar'
     assert_equal 'http://google.com/search', url.without_query
     assert_equal Wgit::Url, url.without_query.class

@@ -356,7 +356,7 @@ protocol: #{url}" unless url.to_base
     # @return [Wgit::Url, nil] Containing just the query string or nil.
     def to_query
       query = @uri.query
-      query ? Wgit::Url.new("?#{query}") : nil
+      query ? Wgit::Url.new(query) : nil
     end
 
     # Returns a new Wgit::Url containing just the anchor string of this URL
@@ -365,7 +365,7 @@ protocol: #{url}" unless url.to_base
     # @return [Wgit::Url, nil] Containing just the anchor string or nil.
     def to_anchor
       anchor = @uri.fragment
-      anchor ? Wgit::Url.new("##{anchor}") : nil
+      anchor ? Wgit::Url.new(anchor) : nil
     end
 
     # Returns a new Wgit::Url containing just the file extension of this URL
@@ -432,7 +432,7 @@ protocol: #{url}" unless url.to_base
     # @return [Wgit::Url] Self with the query string portion removed.
     def without_query
       query = to_query
-      without_query_string = query ? gsub(query, '') : self
+      without_query_string = query ? gsub("?#{query}", '') : self
 
       Wgit::Url.new(without_query_string)
     end
@@ -447,7 +447,7 @@ protocol: #{url}" unless url.to_base
     # @return [Wgit::Url] Self with the anchor portion removed.
     def without_anchor
       anchor = to_anchor
-      without_anchor = anchor ? gsub(anchor, '') : self
+      without_anchor = anchor ? gsub("##{anchor}", '') : self
 
       Wgit::Url.new(without_anchor)
     end
