@@ -311,24 +311,33 @@ and power matches the Ruby language in which it's developed."
     doc = Wgit::Document.new 'http://www.mytestsite.com/home'.to_url, @html
 
     base = doc.base_url
-    assert_equal 'http://www.mytestsite.com'.to_url, base
+    assert_equal 'http://www.mytestsite.com', base
     assert_instance_of Wgit::Url, base
 
     base = doc.base_url link: '?q=hello'
-    assert_equal 'http://www.mytestsite.com/home'.to_url, base
+    assert_equal 'http://www.mytestsite.com/home', base
     assert_instance_of Wgit::Url, base
 
     base = doc.base_url link: Wgit::Url.new('#top')
-    assert_equal 'http://www.mytestsite.com/home'.to_url, base
+    assert_equal 'http://www.mytestsite.com/home', base
     assert_instance_of Wgit::Url, base
 
     base = doc.base_url link: '/about'
-    assert_equal 'http://www.mytestsite.com'.to_url, base
+    assert_equal 'http://www.mytestsite.com', base
     assert_instance_of Wgit::Url, base
 
-    assert_raises(StandardError) do
+    # Absolute link raises an exception.
+    ex = assert_raises(StandardError) do
       base = doc.base_url link: Wgit::Url.new('http://example.com/about')
     end
+    assert_equal 'link must be relative: http://example.com/about', ex.message
+
+    # Relative doc @url raises an exception.
+    doc = Wgit::Document.new '/home'
+    ex = assert_raises(StandardError) do
+      base = doc.base_url link: '/about'
+    end
+    assert_equal "Document @url ('/home') cannot be relative if <base> is nil", ex.message
   end
 
   def test_base_url__absolute_base
@@ -351,9 +360,16 @@ and power matches the Ruby language in which it's developed."
     assert_equal 'http://server.com/public', base
     assert_instance_of Wgit::Url, base
 
-    assert_raises(StandardError) do
+    ex = assert_raises(StandardError) do
       base = doc.base_url link: Wgit::Url.new('http://example.com/about')
     end
+    assert_equal 'link must be relative: http://example.com/about', ex.message
+
+    # Document with relative @url and absolute <base>.
+    doc = Wgit::Document.new '/home', html
+    base = doc.base_url link: '/about'
+    assert_equal 'http://server.com/public', base
+    assert_instance_of Wgit::Url, base
   end
 
   def test_base_url__relative_base
@@ -378,9 +394,17 @@ and power matches the Ruby language in which it's developed."
     assert_equal expected_base, base
     assert_instance_of Wgit::Url, base
 
-    assert_raises(StandardError) do
+    ex = assert_raises(StandardError) do
       base = doc.base_url link: Wgit::Url.new('http://example.com/about')
     end
+    assert_equal 'link must be relative: http://example.com/about', ex.message
+
+    # Document with relative @url and relative <base>.
+    doc = Wgit::Document.new '/home', html
+    ex = assert_raises(StandardError) do
+      base = doc.base_url link: '/about'
+    end
+    assert_equal "Document @url ('/home') and <base> ('/public') both can't be relative", ex.message
   end
 
   def test_base_url__no_base__query_string

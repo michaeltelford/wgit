@@ -198,7 +198,7 @@ module Wgit
     # <base> element's href value or @url (if @base is nil). If @base is
     # present and relative, then @url.to_base + @base is returned. This method
     # should be used instead of `doc.url.to_base` etc. when manually building
-    # absolute links from relative links; or use `link.prefix_base`.
+    # absolute links from relative links; or use `link.prefix_base(doc)`.
     #
     # Provide the `link:` parameter to get the correct base URL for that type
     # of link. For example, a link of `#top` would always return @url because
@@ -211,10 +211,17 @@ module Wgit
     # This is similar to how Wgit::Document#internal_absolute_links works.
     #
     # @param link [Wgit::Url, String] The link to obtain the correct base URL
-    #   for.
+    #   for; must be relative, not absolute.
+    # @raises [StandardError] If link is relative or if a base URL can't be
+    #   established e.g. the doc @url is relative and <base> is nil.
     # @return [Wgit::Url] The base URL of this Document e.g.
     #   'http://example.com/public'.
     def base_url(link: nil)
+      raise "Document @url ('#{@url}') cannot be relative if <base> is nil" \
+      if @url.relative? && @base.nil?
+      raise "Document @url ('#{@url}') and <base> ('#{@base}') both can't be relative" \
+      if @url.relative? && @base&.relative?
+
       get_base = -> { @base.relative? ? @url.to_base.concat(@base) : @base }
 
       if link
@@ -227,7 +234,7 @@ module Wgit
         end
       end
 
-      base_url = @base ? get_base.call : @url.base
+      base_url = @base ? get_base.call : @url.to_base
       base_url.without_fragment.without_query
     end
 
@@ -345,7 +352,7 @@ module Wgit
     #
     # @return [Array<Wgit::Url>] Self's internal Url's in absolute form.
     def internal_absolute_links
-      internal_links.map { |link| base_url(link: link).concat(link) }
+      internal_links.map { |link| link.prefix_base(self) }
     end
 
     # Returns all external links from this Document in absolute form. External
@@ -525,7 +532,7 @@ module Wgit
 
       # We already know url.is_a?(String) so parse into Url unless already so.
       url = Wgit::Url.parse(url)
-      url.crawled = true unless url.crawled # Avoid overriding date_crawled.
+      url.crawled = true unless url.crawled? # Avoid overriding date_crawled.
 
       @url   = url
       @html  = html || ''

@@ -220,7 +220,8 @@ protocol: #{url}" unless url.to_base
     #
     # @param doc [Wgit::Document] The doc whose base Url is concatted with
     #   self.
-    # @raise [StandardError] If doc isn't a Wgit::Document.
+    # @raise [StandardError] If doc isn't a Wgit::Document or if `doc.base_url`
+    #   raises an Exception.
     # @return [Wgit::Url] Self in absolute form.
     def prefix_base(doc)
       assert_type(doc, Wgit::Document)
