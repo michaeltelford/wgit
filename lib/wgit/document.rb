@@ -230,12 +230,12 @@ module Wgit
 
         if link.is_fragment? || link.is_query?
           base_url = @base ? get_base.call : @url
-          return base_url.without_fragment.without_query
+          return base_url.omit_fragment.omit_query
         end
       end
 
       base_url = @base ? get_base.call : @url.to_base
-      base_url.without_fragment.without_query
+      base_url.omit_fragment.omit_query
     end
 
     # Returns a Hash containing this Document's instance vars.
@@ -338,7 +338,7 @@ module Wgit
 
       links = @links
               .select { |link| link.relative?(host: @url.to_base) }
-              .map(&:without_base)
+              .map(&:omit_base)
               .map do |link| # Map @url.to_host into / as it's a duplicate.
         link.to_host == @url.to_host ? Wgit::Url.new('/') : link
       end
@@ -364,7 +364,7 @@ module Wgit
 
       links = @links
               .reject { |link| link.relative?(host: @url.to_base) }
-              .map(&:without_trailing_slash)
+              .map(&:omit_trailing_slash)
 
       Wgit::Utils.process_arr(links)
     end

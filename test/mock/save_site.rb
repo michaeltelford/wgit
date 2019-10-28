@@ -28,14 +28,14 @@ crawler.crawl_site(base_url) do |doc|
   end
 
   # Save the index.html file to disk.
-  if url.without_slashes == base_url.without_slashes
+  if url.omit_slashes == base_url.omit_slashes
     puts "Saving document #{base_url.host}/index.html"
     File.open('index.html', 'w') { |f| f.write(doc.html) }
     next
   end
 
   # Work out the file structure on disk.
-  segs = url.without_base.split('/').reject(&:empty?)
+  segs = url.omit_base.split('/').reject(&:empty?)
   dir = ''
   if segs.length == 1
     file_name = segs[0]

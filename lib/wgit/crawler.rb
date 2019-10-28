@@ -8,7 +8,8 @@ require 'typhoeus'
 
 module Wgit
   # The Crawler class provides a means of crawling web based HTTP Wgit::Url's,
-  # serialising their HTML into Wgit::Document instances.
+  # serialising their HTML into Wgit::Document instances. This is the only Wgit
+  # class which contains network logic e.g. request/response handling.
   class Crawler
     include Assertable
 
@@ -289,7 +290,7 @@ module Wgit
     # @return [Array<Wgit::Url>] The internal page links from doc.
     def get_internal_links(doc)
       doc.internal_absolute_links
-         .map(&:without_fragment) # Because fragments don't change page content.
+         .map(&:omit_fragment) # Because fragments don't alter page content.
          .uniq
          .reject do |link|
         ext = link.to_extension

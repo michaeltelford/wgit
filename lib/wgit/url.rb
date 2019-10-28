@@ -8,9 +8,13 @@ require 'addressable/uri'
 module Wgit
   # Class modeling a web based HTTP URL.
   #
-  # Can be an internal/relative link e.g. "about.html" or a full URL
+  # Can be an internal/relative link e.g. "about.html" or an absolute URL
   # e.g. "http://www.google.co.uk". Is a subclass of String and uses 'uri' and
   # 'addressable/uri' internally.
+  #
+  # Most of the methods in this class return new Wgit::Url instances making the
+  # method calls chainable e.g. url.omit_base.omit_fragment etc. The methods
+  # also try to be idempotent where possible.
   class Url < String
     include Assertable
 
@@ -191,10 +195,10 @@ protocol scheme: #{url}" unless url.to_base
       path = Wgit::Url.new(path)
       raise 'path must be relative' unless path.relative?
 
-      path = path.without_leading_slash
+      path = path.omit_leading_slash
       separator = path.start_with?('#') || path.start_with?('?') ? '' : '/'
 
-      Wgit::Url.new(without_trailing_slash + separator + path)
+      Wgit::Url.new(omit_trailing_slash + separator + path)
     end
 
     # Normalises/escapes self and returns a new Wgit::Url. Self isn't modified.
@@ -337,7 +341,7 @@ protocol scheme: #{url}" unless url.to_base
       return nil if path.nil? || path.empty?
       return Wgit::Url.new('/') if path == '/'
 
-      Wgit::Url.new(path).without_slashes
+      Wgit::Url.new(path).omit_slashes
     end
 
     # Returns the endpoint of this URL e.g. the bit after the host with any
@@ -383,12 +387,27 @@ protocol scheme: #{url}" unless url.to_base
       segs.length > 1 ? Wgit::Url.new(segs.last) : nil
     end
 
+    # Omits the given URL components from self and returns a new Wgit::Url.
+    #
+    # Calls Addressable::URI#omit underneath and creates a new Wgit::Url from
+    # the output. See the Addressable::URI docs for more information.
+    #
+    # @param components [*Symbol] One or more Symbols representing the URL
+    #   components to omit. The following components are supported: :scheme,
+    #   :user, :password, :userinfo, :host, :port, :authority, :path, :query,
+    #   :fragment.
+    # @return [Wgit::Url] Self's URL value with the given components omitted.
+    def omit(*components)
+      omitted = @uri.omit(*components)
+      Wgit::Url.new(omitted.to_s)
+    end
+
     # Returns a new Wgit::Url containing self without a trailing slash. Is
     # idempotent meaning self will always be returned regardless of whether
     # there's a trailing slash or not.
     #
     # @return [Wgit::Url] Self without a trailing slash.
-    def without_leading_slash
+    def omit_leading_slash
       start_with?('/') ? Wgit::Url.new(self[1..-1]) : self
     end
 
@@ -397,7 +416,7 @@ protocol scheme: #{url}" unless url.to_base
     # there's a trailing slash or not.
     #
     # @return [Wgit::Url] Self without a trailing slash.
-    def without_trailing_slash
+    def omit_trailing_slash
       end_with?('/') ? Wgit::Url.new(chop) : self
     end
 
@@ -406,9 +425,9 @@ protocol scheme: #{url}" unless url.to_base
     # present or not.
     #
     # @return [Wgit::Url] Self without leading or trailing slashes.
-    def without_slashes
-      without_leading_slash
-      .without_trailing_slash
+    def omit_slashes
+      omit_leading_slash
+      .omit_trailing_slash
     end
 
     # Returns a new Wgit::Url with the base (proto and host) removed e.g. Given
@@ -417,13 +436,13 @@ protocol scheme: #{url}" unless url.to_base
     # Leading and trailing slashes are always stripped from the return value.
     #
     # @return [Wgit::Url] Self containing everything after the base.
-    def without_base
+    def omit_base
       base_url = to_base
-      without_base = base_url ? gsub(base_url, '') : self
+      omit_base = base_url ? gsub(base_url, '') : self
 
-      return self if ['', '/'].include?(without_base)
+      return self if ['', '/'].include?(omit_base)
 
-      Wgit::Url.new(without_base).without_slashes
+      Wgit::Url.new(omit_base).omit_slashes
     end
 
     # Returns a new Wgit::Url with the query string portion removed e.g. Given
@@ -433,11 +452,11 @@ protocol scheme: #{url}" unless url.to_base
     # URL.
     #
     # @return [Wgit::Url] Self with the query string portion removed.
-    def without_query
+    def omit_query
       query = to_query
-      without_query_string = query ? gsub("?#{query}", '') : self
+      omit_query_string = query ? gsub("?#{query}", '') : self
 
-      Wgit::Url.new(without_query_string)
+      Wgit::Url.new(omit_query_string)
     end
 
     # Returns a new Wgit::Url with the fragment portion removed e.g. Given
@@ -448,11 +467,11 @@ protocol scheme: #{url}" unless url.to_base
     # of the URL.
     #
     # @return [Wgit::Url] Self with the fragment portion removed.
-    def without_fragment
+    def omit_fragment
       fragment = to_fragment
-      without_fragment = fragment ? gsub("##{fragment}", '') : self
+      omit_fragment = fragment ? gsub("##{fragment}", '') : self
 
-      Wgit::Url.new(without_fragment)
+      Wgit::Url.new(omit_fragment)
     end
 
     # Returns true if self is a URL query string e.g. ?q=hello etc. Note this

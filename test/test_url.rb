@@ -687,169 +687,169 @@ class TestUrl < TestHelper
     assert_nil url.to_extension
   end
 
-  def test_without_leading_slash
+  def test_omit_leading_slash
     url = Wgit::Url.new 'http://www.google.co.uk'
-    assert_equal 'http://www.google.co.uk', url.without_leading_slash
-    assert_equal Wgit::Url, url.without_leading_slash.class
+    assert_equal 'http://www.google.co.uk', url.omit_leading_slash
+    assert_equal Wgit::Url, url.omit_leading_slash.class
 
     url = Wgit::Url.new '/about.html'
-    assert_equal 'about.html', url.without_leading_slash
-    assert_equal Wgit::Url, url.without_leading_slash.class
+    assert_equal 'about.html', url.omit_leading_slash
+    assert_equal Wgit::Url, url.omit_leading_slash.class
 
     url = Wgit::Url.new '/über'
-    assert_equal 'über', url.without_leading_slash
-    assert_equal Wgit::Url, url.without_leading_slash.class
+    assert_equal 'über', url.omit_leading_slash
+    assert_equal Wgit::Url, url.omit_leading_slash.class
   end
 
-  def test_without_trailing_slash
+  def test_omit_trailing_slash
     url = Wgit::Url.new 'http://www.google.co.uk'
-    assert_equal 'http://www.google.co.uk', url.without_trailing_slash
-    assert_equal Wgit::Url, url.without_trailing_slash.class
+    assert_equal 'http://www.google.co.uk', url.omit_trailing_slash
+    assert_equal Wgit::Url, url.omit_trailing_slash.class
 
     url = Wgit::Url.new 'http://www.google.co.uk/'
-    assert_equal 'http://www.google.co.uk', url.without_trailing_slash
-    assert_equal Wgit::Url, url.without_trailing_slash.class
+    assert_equal 'http://www.google.co.uk', url.omit_trailing_slash
+    assert_equal Wgit::Url, url.omit_trailing_slash.class
 
     url = Wgit::Url.new 'über/'
-    assert_equal 'über', url.without_trailing_slash
-    assert_equal Wgit::Url, url.without_trailing_slash.class
+    assert_equal 'über', url.omit_trailing_slash
+    assert_equal Wgit::Url, url.omit_trailing_slash.class
   end
 
-  def test_without_slashes
+  def test_omit_slashes
     url = Wgit::Url.new 'link.html'
-    assert_equal 'link.html', url.without_slashes
-    assert_equal Wgit::Url, url.without_slashes.class
+    assert_equal 'link.html', url.omit_slashes
+    assert_equal Wgit::Url, url.omit_slashes.class
 
     url = Wgit::Url.new '/link.html/'
-    assert_equal 'link.html', url.without_slashes
-    assert_equal Wgit::Url, url.without_slashes.class
+    assert_equal 'link.html', url.omit_slashes
+    assert_equal Wgit::Url, url.omit_slashes.class
 
     url = Wgit::Url.new '/über/'
-    assert_equal 'über', url.without_slashes
-    assert_equal Wgit::Url, url.without_slashes.class
+    assert_equal 'über', url.omit_slashes
+    assert_equal Wgit::Url, url.omit_slashes.class
   end
 
-  def test_without_base
+  def test_omit_base
     url = Wgit::Url.new 'http://google.com/search?q=foo#bar'
-    assert_equal 'search?q=foo#bar', url.without_base
-    assert_equal Wgit::Url, url.without_base.class
+    assert_equal 'search?q=foo#bar', url.omit_base
+    assert_equal Wgit::Url, url.omit_base.class
 
     url = Wgit::Url.new '/about.html'
-    assert_equal 'about.html', url.without_base
-    assert_equal Wgit::Url, url.without_base.class
+    assert_equal 'about.html', url.omit_base
+    assert_equal Wgit::Url, url.omit_base.class
 
     url = Wgit::Url.new '/about.html#hello/'
-    assert_equal 'about.html#hello', url.without_base
-    assert_equal Wgit::Url, url.without_base.class
+    assert_equal 'about.html#hello', url.omit_base
+    assert_equal Wgit::Url, url.omit_base.class
 
     url = Wgit::Url.new '/about.html/hello?a=b&b=c#about'
-    assert_equal 'about.html/hello?a=b&b=c#about', url.without_base
-    assert_equal Wgit::Url, url.without_base.class
+    assert_equal 'about.html/hello?a=b&b=c#about', url.omit_base
+    assert_equal Wgit::Url, url.omit_base.class
 
     url = Wgit::Url.new '/'
-    assert_equal url, url.without_base
-    assert_equal Wgit::Url, url.without_base.class
+    assert_equal url, url.omit_base
+    assert_equal Wgit::Url, url.omit_base.class
 
     url = Wgit::Url.new 'https://google.com/'
-    assert_equal url, url.without_base
-    assert_equal Wgit::Url, url.without_base.class
+    assert_equal url, url.omit_base
+    assert_equal Wgit::Url, url.omit_base.class
 
     url = Wgit::Url.new 'https://google.com'
-    assert_equal url, url.without_base
-    assert_equal Wgit::Url, url.without_base.class
+    assert_equal url, url.omit_base
+    assert_equal Wgit::Url, url.omit_base.class
 
     url = Wgit::Url.new 'https://www.über.com/about#top'
-    assert_equal 'about#top', url.without_base
-    assert_equal Wgit::Url, url.without_base.class
+    assert_equal 'about#top', url.omit_base
+    assert_equal Wgit::Url, url.omit_base.class
   end
 
-  def test_without_query
+  def test_omit_query
     url = Wgit::Url.new 'http://google.com/search?q=hello&foo=bar'
-    assert_equal 'http://google.com/search', url.without_query
-    assert_equal Wgit::Url, url.without_query.class
+    assert_equal 'http://google.com/search', url.omit_query
+    assert_equal Wgit::Url, url.omit_query.class
 
     url = Wgit::Url.new '/about.html'
-    assert_equal '/about.html', url.without_query
-    assert_equal Wgit::Url, url.without_query.class
+    assert_equal '/about.html', url.omit_query
+    assert_equal Wgit::Url, url.omit_query.class
 
     url = Wgit::Url.new '/about.html?q=hello&foo=bar'
-    assert_equal '/about.html', url.without_query
-    assert_equal Wgit::Url, url.without_query.class
+    assert_equal '/about.html', url.omit_query
+    assert_equal Wgit::Url, url.omit_query.class
 
     url = Wgit::Url.new '/about.html/hello?a=b&b=c#about'
-    assert_equal '/about.html/hello#about', url.without_query
-    assert_equal Wgit::Url, url.without_query.class
+    assert_equal '/about.html/hello#about', url.omit_query
+    assert_equal Wgit::Url, url.omit_query.class
 
     url = Wgit::Url.new '/about.html/hello#about?a=b&b=c' # Invalid fragment.
-    assert_equal '/about.html/hello#about?a=b&b=c', url.without_query
-    assert_equal Wgit::Url, url.without_query.class
+    assert_equal '/about.html/hello#about?a=b&b=c', url.omit_query
+    assert_equal Wgit::Url, url.omit_query.class
 
     url = Wgit::Url.new '/'
-    assert_equal url, url.without_query
-    assert_equal Wgit::Url, url.without_query.class
+    assert_equal url, url.omit_query
+    assert_equal Wgit::Url, url.omit_query.class
 
     url = Wgit::Url.new '?q=hello&foo=bar'
-    assert_empty url.without_query
-    assert_equal Wgit::Url, url.without_query.class
+    assert_empty url.omit_query
+    assert_equal Wgit::Url, url.omit_query.class
 
     url = Wgit::Url.new 'https://google.com/'
-    assert_equal url, url.without_query
-    assert_equal Wgit::Url, url.without_query.class
+    assert_equal url, url.omit_query
+    assert_equal Wgit::Url, url.omit_query.class
 
     url = Wgit::Url.new 'https://google.com'
-    assert_equal url, url.without_query
-    assert_equal Wgit::Url, url.without_query.class
+    assert_equal url, url.omit_query
+    assert_equal Wgit::Url, url.omit_query.class
 
-    iri_without_fragment = 'https://www.über.com/about'
-    url = Wgit::Url.new iri_without_fragment + '?q=hello'
-    assert_equal iri_without_fragment, url.without_query
-    assert_equal Wgit::Url, url.without_query.class
+    iri_omit_fragment = 'https://www.über.com/about'
+    url = Wgit::Url.new iri_omit_fragment + '?q=hello'
+    assert_equal iri_omit_fragment, url.omit_query
+    assert_equal Wgit::Url, url.omit_query.class
   end
 
-  def test_without_fragment
+  def test_omit_fragment
     url = Wgit::Url.new 'http://google.com/search?q=foo#bar'
-    assert_equal 'http://google.com/search?q=foo', url.without_fragment
-    assert_equal Wgit::Url, url.without_fragment.class
+    assert_equal 'http://google.com/search?q=foo', url.omit_fragment
+    assert_equal Wgit::Url, url.omit_fragment.class
 
     url = Wgit::Url.new '/about.html'
-    assert_equal '/about.html', url.without_fragment
-    assert_equal Wgit::Url, url.without_fragment.class
+    assert_equal '/about.html', url.omit_fragment
+    assert_equal Wgit::Url, url.omit_fragment.class
 
     url = Wgit::Url.new '/about.html#hello/'
-    assert_equal '/about.html', url.without_fragment
-    assert_equal Wgit::Url, url.without_fragment.class
+    assert_equal '/about.html', url.omit_fragment
+    assert_equal Wgit::Url, url.omit_fragment.class
 
     url = Wgit::Url.new '/about.html/hello?a=b&b=c#about'
-    assert_equal '/about.html/hello?a=b&b=c', url.without_fragment
-    assert_equal Wgit::Url, url.without_fragment.class
+    assert_equal '/about.html/hello?a=b&b=c', url.omit_fragment
+    assert_equal Wgit::Url, url.omit_fragment.class
 
     url = Wgit::Url.new '/about.html/hello#about?a=b&b=c' # Invalid fragment.
-    assert_equal '/about.html/hello', url.without_fragment
-    assert_equal Wgit::Url, url.without_fragment.class
+    assert_equal '/about.html/hello', url.omit_fragment
+    assert_equal Wgit::Url, url.omit_fragment.class
 
     url = Wgit::Url.new '/'
-    assert_equal url, url.without_fragment
-    assert_equal Wgit::Url, url.without_fragment.class
+    assert_equal url, url.omit_fragment
+    assert_equal Wgit::Url, url.omit_fragment.class
 
     url = Wgit::Url.new '#about'
-    assert_empty url.without_fragment
-    assert_equal Wgit::Url, url.without_fragment.class
+    assert_empty url.omit_fragment
+    assert_equal Wgit::Url, url.omit_fragment.class
 
     url = Wgit::Url.new '/about#'
-    assert_equal '/about', url.without_fragment
-    assert_equal Wgit::Url, url.without_fragment.class
+    assert_equal '/about', url.omit_fragment
+    assert_equal Wgit::Url, url.omit_fragment.class
 
     url = Wgit::Url.new 'https://google.com/'
-    assert_equal url, url.without_fragment
-    assert_equal Wgit::Url, url.without_fragment.class
+    assert_equal url, url.omit_fragment
+    assert_equal Wgit::Url, url.omit_fragment.class
 
     url = Wgit::Url.new 'https://google.com'
-    assert_equal url, url.without_fragment
-    assert_equal Wgit::Url, url.without_fragment.class
+    assert_equal url, url.omit_fragment
+    assert_equal Wgit::Url, url.omit_fragment.class
 
     url = Wgit::Url.new 'https://www.über.com/about#top'
-    assert_equal 'https://www.über.com/about', url.without_fragment
-    assert_equal Wgit::Url, url.without_fragment.class
+    assert_equal 'https://www.über.com/about', url.omit_fragment
+    assert_equal Wgit::Url, url.omit_fragment.class
   end
 
   def test_query?
