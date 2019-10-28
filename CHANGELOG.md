@@ -21,6 +21,7 @@
 - Breaking changes: Changed `Wgit::Url#prefix_protocol` so that it no longer modifies the receiver.
 - Breaking changes: Updated `Wgit::Url#to_anchor` and `#to_query` logic to align with that of `Addressable::URI` e.g. the anchor value no longer contains `#` prefix; and the query value no longer contains `?` prefix.
 - Breaking changes: Renamed `Wgit::Url` methods containing `anchor` to now be named `fragment` e.g. `to_anchor` is now called `to_fragment` and `without_anchor` is `without_fragment` etc.
+- Breaking changes: Renamed `Wgit::Url#prefix_protocol` to `#prefix_scheme`. The `protocol:` param name remains unchanged.
 ### Fixed
 - Bug in `Wgit::Document#base_url` around the handling of invalid base URL scenarios.
 ---

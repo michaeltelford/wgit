@@ -153,11 +153,11 @@ class TestUrl < TestHelper
     assert_equal 'Expected: Wgit::Document, Actual: TrueClass', ex.message
   end
 
-  def test_prefix_protocol
-    assert_equal 'http://my_server', Wgit::Url.new('my_server').prefix_protocol
-    assert_equal 'https://my_server', Wgit::Url.new('my_server').prefix_protocol(protocol: :https)
-    assert_equal 'http://my_server', Wgit::Url.new('http://my_server').prefix_protocol
-    ex = assert_raises(StandardError) { Wgit::Url.new('my_server').prefix_protocol(protocol: :ftp) }
+  def test_prefix_scheme
+    assert_equal 'http://my_server', Wgit::Url.new('my_server').prefix_scheme
+    assert_equal 'https://my_server', Wgit::Url.new('my_server').prefix_scheme(protocol: :https)
+    assert_equal 'http://my_server', Wgit::Url.new('http://my_server').prefix_scheme
+    ex = assert_raises(StandardError) { Wgit::Url.new('my_server').prefix_scheme(protocol: :ftp) }
     assert_equal 'protocol must be :http or :https, not :ftp', ex.message
   end
 
@@ -216,7 +216,7 @@ class TestUrl < TestHelper
     e = assert_raises(StandardError) do
       Wgit::Url.new('http://example.com').relative?(foo: '/')
     end
-    assert_equal 'Invalid opts param value, Url must be absolute and contain protocol: /', e.message
+    assert_equal 'Invalid opts param value, Url must be absolute and contain protocol scheme: /', e.message
   end
 
   def test_relative__with_base
@@ -262,7 +262,7 @@ class TestUrl < TestHelper
       Wgit::Url.new('http://www.google.co.uk/about.html').relative? base: 'bing.com'
     end
     assert_equal(
-      'Invalid opts param value, Url must be absolute and contain protocol: bing.com',
+      'Invalid opts param value, Url must be absolute and contain protocol scheme: bing.com',
       e.message
     )
   end
@@ -310,7 +310,7 @@ class TestUrl < TestHelper
       Wgit::Url.new('http://www.google.co.uk/about.html').relative? host: 'bing.com'
     end
     assert_equal(
-      'Invalid opts param value, Url must be absolute and contain protocol: bing.com',
+      'Invalid opts param value, Url must be absolute and contain protocol scheme: bing.com',
       e.message
     )
   end
@@ -358,7 +358,7 @@ class TestUrl < TestHelper
       Wgit::Url.new('http://www.google.co.uk/about.html').relative? domain: 'bing.com'
     end
     assert_equal(
-      'Invalid opts param value, Url must be absolute and contain protocol: bing.com',
+      'Invalid opts param value, Url must be absolute and contain protocol scheme: bing.com',
       e.message
     )
   end
@@ -410,7 +410,7 @@ class TestUrl < TestHelper
       Wgit::Url.new('http://www.google.co.uk/about.html').relative? brand: 'bing.com'
     end
     assert_equal(
-      'Invalid opts param value, Url must be absolute and contain protocol: bing.com',
+      'Invalid opts param value, Url must be absolute and contain protocol scheme: bing.com',
       e.message
     )
   end

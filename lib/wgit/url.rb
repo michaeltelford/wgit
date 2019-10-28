@@ -110,7 +110,7 @@ module Wgit
 
     # Returns true if self is a relative Url; false if absolute.
     #
-    # All external links in a page are expected to have a protocol prefix e.g.
+    # All external links in a page are expected to have a scheme prefix e.g.
     # 'http://', otherwise the link is treated as an internal link (regardless
     # of whether it's valid or not). The only exception is if an opts arg is
     # provided and self is a page belonging to that arg type e.g. host; then
@@ -118,7 +118,7 @@ module Wgit
     #
     # @param opts [Hash] The options with which to check relativity. Only one
     #   opts param should be provided. The provided opts param Url must be
-    #   absolute and be prefixed with a protocol. Consider using the output of
+    #   absolute and be prefixed with a scheme. Consider using the output of
     #   Wgit::Url#to_base which should work unless it's nil.
     # @option opts [Wgit::Url, String] :base The Url base e.g.
     #   http://www.google.com/how which gives a base of
@@ -148,7 +148,7 @@ module Wgit
       type, url = opts.first
       url = Wgit::Url.new(url)
       raise "Invalid opts param value, Url must be absolute and contain \
-protocol: #{url}" unless url.to_base
+protocol scheme: #{url}" unless url.to_base
 
       case type
       when :base   # http://www.google.com
@@ -229,12 +229,12 @@ protocol: #{url}" unless url.to_base
       absolute? ? self : doc.base_url(link: self).concat(self)
     end
 
-    # Returns self having prefixed a protocol. Doesn't modify the receiver.
-    # Returns self even if absolute (with protocol); therefore is idempotent.
+    # Returns self having prefixed a protocol scheme. Doesn't modify receiver.
+    # Returns self even if absolute (with scheme); therefore is idempotent.
     #
     # @param protocol [Symbol] Either :http or :https.
-    # @return [Wgit::Url] Self with a protocol prefix.
-    def prefix_protocol(protocol: :http)
+    # @return [Wgit::Url] Self with a protocol scheme prefix.
+    def prefix_scheme(protocol: :http)
       return self if absolute?
 
       case protocol
@@ -278,10 +278,10 @@ protocol: #{url}" unless url.to_base
       self
     end
 
-    # Returns a new Wgit::Url containing just the scheme/protocol of this URL
+    # Returns a new Wgit::Url containing just the scheme of this URL
     # e.g. Given http://www.google.co.uk, http is returned.
     #
-    # @return [Wgit::Url, nil] Containing just the scheme/protocol or nil.
+    # @return [Wgit::Url, nil] Containing just the scheme or nil.
     def to_scheme
       scheme = @uri.scheme
       scheme ? Wgit::Url.new(scheme) : nil
@@ -314,9 +314,11 @@ protocol: #{url}" unless url.to_base
       domain ? Wgit::Url.new(domain.split('.').first) : nil
     end
 
-    # Returns only the base of this URL e.g. the protocol and host combined.
+    # Returns only the base of this URL e.g. the protocol scheme and host
+    # combined.
     #
-    # @return [Wgit::Url, nil] Base of self e.g. http://www.google.co.uk or nil.
+    # @return [Wgit::Url, nil] The base of self e.g. http://www.google.co.uk or
+    #   nil.
     def to_base
       return nil if @uri.scheme.nil? || @uri.host.nil?
 
