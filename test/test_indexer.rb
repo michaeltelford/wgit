@@ -49,7 +49,7 @@ class TestIndexer < TestHelper
     assert url? url: url_str, crawled: true
 
     # Assert that some indexed docs were inserted into the DB.
-    assert_equal 10, @db.num_urls
+    assert_equal 9, @db.num_urls
     assert_equal 8, @db.num_docs
   end
 

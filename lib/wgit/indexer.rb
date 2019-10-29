@@ -238,8 +238,8 @@ the next iteration.")
       @db.url?(url) ? @db.update(url) : @db.insert(url)
 
       if insert_externals && ext_urls
-        write_urls_to_db(ext_urls)
-        Wgit.logger.info("Found and saved #{ext_urls.length} external url(s)")
+        num_inserted_urls = write_urls_to_db(ext_urls)
+        Wgit.logger.info("Found and saved #{num_inserted_urls} external url(s)")
       end
 
       Wgit.logger.info("Crawled and saved #{total_pages_indexed} docs for the \
@@ -273,8 +273,8 @@ site: #{url}")
 
       ext_urls = document&.external_links
       if insert_externals && ext_urls
-        write_urls_to_db(ext_urls)
-        Wgit.logger.info("Found and saved #{ext_urls.length} external url(s)")
+        num_inserted_urls = write_urls_to_db(ext_urls)
+        Wgit.logger.info("Found and saved #{num_inserted_urls} external url(s)")
       end
 
       nil
@@ -325,6 +325,11 @@ site: #{url}")
       return count unless urls.respond_to?(:each)
 
       urls.each do |url|
+        if url.invalid?
+          Wgit.logger.info("Ignoring invalid external url: #{url}")
+          next
+        end
+
         @db.insert(url)
         count += 1
         Wgit.logger.info("Inserted external url: #{url}")
