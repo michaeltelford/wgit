@@ -45,7 +45,9 @@ module Wgit
     end
 
     # Crawls an entire website's HTML pages by recursively going through
-    # its internal links. Each crawled Document is yielded to a block.
+    # its internal <a> links. Each crawled Document is yielded to a block. Use
+    # the allow and disallow paths params to partially and selectively crawl a
+    # site.
     #
     # Only redirects to the same host are followed. For example, the Url
     # 'http://www.example.co.uk/how' has a host of 'www.example.co.uk' meaning
@@ -58,20 +60,26 @@ module Wgit
     # @param url [Wgit::Url] The base URL of the website to be crawled.
     #   It is recommended that this URL be the index page of the site to give a
     #   greater chance of finding all pages within that site/host.
+    # @param allow_paths [String, Array<String>] Filters links by selecting
+    #   them only if their path includes one of allow_paths.
+    # @param disallow_paths [String, Array<String>] Filters links by rejecting
+    #   them if their path includes one of disallow_paths.
     # @yield [doc] Given each crawled page (Wgit::Document) of the site.
     #   A block is the only way to interact with each crawled Document.
     # @return [Array<Wgit::Url>, nil] Unique Array of external urls collected
     #   from all of the site's pages or nil if the url could not be
     #   crawled successfully.
-    def crawl_site(url, &block)
+    def crawl_site(url, allow_paths: nil, disallow_paths: nil, &block)
       doc = crawl_url(url, &block)
       return nil if doc.nil?
 
-      opts      = { follow_external_redirects: false, host: url.to_base }
+      crawl_opts = { follow_external_redirects: false, host: url.to_base }
+      link_opts  = { allow_paths: allow_paths, disallow_paths: disallow_paths }
+
       alt_url   = url.end_with?('/') ? url.chop : url + '/'
       crawled   = [url, alt_url]
       externals = doc.external_links
-      internals = get_internal_links(doc)
+      internals = get_internal_links(doc, link_opts)
 
       return doc.external_links.uniq if internals.empty?
 
@@ -84,12 +92,12 @@ module Wgit
 
         links.each do |link|
           orig_link = link.dup
-          doc = crawl_url(link, opts, &block)
+          doc = crawl_url(link, crawl_opts, &block)
 
           crawled.push(orig_link, link) # Push both in case of redirects.
           next if doc.nil?
 
-          internals.concat(get_internal_links(doc))
+          internals.concat(get_internal_links(doc, link_opts))
           externals.concat(doc.external_links)
         end
       end
@@ -278,23 +286,76 @@ module Wgit
     end
 
     # Returns a doc's internal HTML page links in absolute form; used when
-    # crawling a site.
+    # crawling a site. Use the allow and disallow paths params to partially
+    # and selectively crawl a site.
     #
     # Override this method in a subclass to change how a site
     # is crawled; not what is extracted from each page (Document extensions
     # should be used for this purpose instead). Just remember that only HTML
-    # files contain <a> links to keep the crawl going beyond the base URL.
+    # files containing <a> links can keep the crawl going beyond the base URL.
     #
     # @param doc [Wgit::Document] The document from which to extract it's
     #   internal page links.
+    # @param allow_paths [String, Array<String>] Filters links by selecting
+    #   them only if their path includes one of allow_paths.
+    # @param disallow_paths [String, Array<String>] Filters links by rejecting
+    #   them if their path includes one of disallow_paths.
     # @return [Array<Wgit::Url>] The internal page links from doc.
-    def get_internal_links(doc)
-      doc.internal_absolute_links
+    def get_internal_links(doc, allow_paths: nil, disallow_paths: nil)
+      links = doc
+         .internal_absolute_links
          .map(&:omit_fragment) # Because fragments don't alter page content.
          .uniq
          .reject do |link|
         ext = link.to_extension
         ext ? !%w[htm html].include?(ext.downcase) : false
+      end
+
+      return links if allow_paths.nil? && disallow_paths.nil?
+
+      process_paths(links, allow_paths, disallow_paths)
+    end
+
+    private
+
+    # Validate and filter by the given URL paths.
+    def process_paths(links, allow_paths, disallow_paths)
+      raise "You can't provide both allow_paths: and disallow_paths: params" \
+      if allow_paths && disallow_paths
+
+      if allow_paths  # White list.
+        filter_method = :select.freeze
+        paths         = allow_paths
+      else            # Black list.
+        filter_method = :reject.freeze
+        paths         = disallow_paths
+      end
+
+      paths = [paths] unless paths.is_a?(Array)
+      paths = paths
+        .compact
+        .reject(&:empty?)
+        .uniq
+        .map { |path| Wgit::Url.new(path).to_path }
+
+      raise 'The provided paths cannot be empty' if paths.empty?
+
+      filter_links_by_path(links, filter_method, paths)
+    end
+
+    # Filters links by selecting or rejecting them based on their path.
+    def filter_links_by_path(links, filter_method, paths)
+      links.send(filter_method) do |link|
+        link_path = link.to_path
+        next(false) unless link_path
+
+        match = false
+        paths.each do |path|
+          match = link_path.include?(path)
+          break if match
+        end
+
+        match
       end
     end
 

@@ -44,12 +44,16 @@ module Wgit
   #   inserted into the database allowing for prior manipulation.
   # @return [Integer] The total number of pages crawled within the website.
   def self.index_site(
-    url, connection_string: nil, insert_externals: true, &block
+    url, connection_string: nil, insert_externals: true,
+    allow_paths: nil, disallow_paths: nil, &block
   )
     url = Wgit::Url.parse(url)
     db = Wgit::Database.new(connection_string)
     indexer = Wgit::Indexer.new(db)
-    indexer.index_site(url, insert_externals: insert_externals, &block)
+    indexer.index_site(
+      url, insert_externals: insert_externals,
+      allow_paths: allow_paths, disallow_paths: disallow_paths, &block
+    )
   end
 
   # Convience method to index a single webpage using
@@ -215,10 +219,13 @@ the next iteration.")
     #   nil or false from the block to prevent the document from being saved
     #   into the database.
     # @return [Integer] The total number of webpages/documents indexed.
-    def index_site(url, insert_externals: true)
+    def index_site(
+      url, insert_externals: true, allow_paths: nil, disallow_paths: nil
+    )
+      crawl_opts = { allow_paths: allow_paths, disallow_paths: disallow_paths }
       total_pages_indexed = 0
 
-      ext_urls = @crawler.crawl_site(url) do |doc|
+      ext_urls = @crawler.crawl_site(url, crawl_opts) do |doc|
         result = true
         result = yield(doc) if block_given?
 
@@ -315,14 +322,14 @@ site: #{url}")
     def write_urls_to_db(urls)
       count = 0
 
-      if urls.respond_to?(:each)
-        urls.each do |url|
-          @db.insert(url)
-          count += 1
-          Wgit.logger.info("Inserted url: #{url}")
-        rescue Mongo::Error::OperationFailure
-          Wgit.logger.info("Url already exists: #{url}")
-        end
+      return count unless urls.respond_to?(:each)
+
+      urls.each do |url|
+        @db.insert(url)
+        count += 1
+        Wgit.logger.info("Inserted external url: #{url}")
+      rescue Mongo::Error::OperationFailure
+        Wgit.logger.info("External url already exists: #{url}")
       end
 
       count

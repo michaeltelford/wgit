@@ -88,8 +88,13 @@ accept duplicate urls. Exception details: #{err_msg}"
 
     # Helper method which takes a url and recursively indexes the site storing
     # the markup in the database. Use sensible url's, not www.amazon.com etc.
-    def index_site(url, insert_externals: true)
-      Wgit.index_site(url, insert_externals: insert_externals)
+    def index_site(
+      url, insert_externals: true, allow_paths: nil, disallow_paths: nil
+    )
+      Wgit.index_site(
+        url, insert_externals: insert_externals,
+        allow_paths: allow_paths, disallow_paths: disallow_paths
+      )
     end
 
     # Searches the database's Document collection for the given query, formats
