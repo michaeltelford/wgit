@@ -186,19 +186,29 @@ protocol scheme: #{url}" unless url.to_base
       true
     end
 
-    # Concats self and path together before returning a new Url. Self is not
+    # Returns if self is an invalid (relative) HTTP Url or not.
+    #
+    # @return [Boolean] True if invalid, otherwise false.
+    def invalid?
+      !valid?
+    end
+
+    # Concats self and other together before returning a new Url. Self is not
     # modified.
     #
-    # @param path [Wgit::Url, String] The path to concat onto the end of self.
-    # @return [Wgit::Url] self + separator + path, separator depends on path.
-    def concat(path)
-      path = Wgit::Url.new(path)
-      raise 'path must be relative' unless path.relative?
+    # @param other [Wgit::Url, String] The other to concat to the end of self.
+    # @return [Wgit::Url] self + separator + other, separator depends on other.
+    def concat(other)
+      other = Wgit::Url.new(other)
+      raise 'other must be relative' unless other.relative?
 
-      path = path.omit_leading_slash
-      separator = path.start_with?('#') || path.start_with?('?') ? '' : '/'
+      other = other.omit_leading_slash
+      separator = other.start_with?('#') || other.start_with?('?') ? '' : '/'
 
-      Wgit::Url.new(omit_trailing_slash + separator + path)
+      # We use to_s below to call String#+, not Wgit::Url#+ (alias for concat).
+      concatted = omit_trailing_slash.to_s + separator.to_s + other.to_s
+
+      Wgit::Url.new(concatted)
     end
 
     # Normalises/escapes self and returns a new Wgit::Url. Self isn't modified.
@@ -490,13 +500,14 @@ protocol scheme: #{url}" unless url.to_base
       start_with?('#')
     end
 
+    alias +            concat
     alias crawled?     crawled
+    alias normalise    normalize
     alias is_relative? relative?
     alias is_absolute? absolute?
     alias is_valid?    valid?
     alias is_query?    query?
     alias is_fragment? fragment?
-    alias normalise    normalize
     alias uri          to_uri
     alias url          to_url
     alias scheme       to_scheme

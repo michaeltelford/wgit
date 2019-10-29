@@ -114,6 +114,14 @@ class TestUrl < TestHelper
     refute Wgit::Url.new('/über').valid?
   end
 
+  def test_invalid?
+    refute Wgit::Url.new('http://www.google.co.uk').invalid?
+    assert Wgit::Url.new('my_server').invalid?
+    refute Wgit::Url.new('http://www.google.co.uk/about.html#about-us').invalid?
+    refute Wgit::Url.new('https://www.über.com/about#top').invalid?
+    assert Wgit::Url.new('/über').invalid?
+  end
+
   def test_prefix_base
     doc = Wgit::Document.new 'http://example.com'
 
@@ -429,11 +437,21 @@ class TestUrl < TestHelper
     assert_equal 'http://example.com/', Wgit::Url.new('http://example.com/').concat('/')
     assert_equal 'http://google.com/about/help', Wgit::Url.new('http://google.com/about').concat('help')
     assert_equal 'https://www.über?foo=bar', Wgit::Url.new('https://www.über').concat('?foo=bar')
+    assert_instance_of Wgit::Url, Wgit::Url.new('https://www.über').concat('?foo=bar')
 
     e = assert_raises(StandardError) do
       Wgit::Url.new('https://www.über').concat('https://example.com')
     end
-    assert_equal 'path must be relative', e.message
+    assert_equal 'other must be relative', e.message
+  end
+
+  # Wgit::Url#+ is an alias for #concat but can result in an infinite loop so we test it.
+  def test_plus
+    url = 'http://twitter.com'.to_url
+    concatted = url + 'about' + '#top'
+
+    assert_equal 'http://twitter.com/about#top', concatted
+    assert_instance_of Wgit::Url, concatted
   end
 
   def test_crawled=
