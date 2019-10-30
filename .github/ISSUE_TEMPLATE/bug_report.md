@@ -15,10 +15,14 @@ A clear and concise description of what the bug is.
 
 Steps to reproduce the behavior:
 
-1. Do X
-2. Do Y
+1. Do X.
+2. Do Y.
 3. ...
 
 ## Expected Behavior
 
 A clear and concise description of what you expected to happen.
+
+## Possible Solutions
+
+1. ...

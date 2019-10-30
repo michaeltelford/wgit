@@ -15,6 +15,9 @@
 - `Wgit::Document#content` alias for `#html`.
 - `Wgit::Url#prefix_base` method.
 - `Wgit::Url#to_addressable_uri` method.
+- Support for partially crawling a site using `Wgit::Crawler#crawl_site(allow_paths: [])` or `disallow_paths:`.
+- `Wgit::Url#+` as alias for `#concat`.
+- `Wgit::Url#invalid?` method.
 ### Changed/Removed
 - Breaking changes: Removed `Wgit::Document#date_crawled` and `#crawl_duration` because both of these methods exist on the `Wgit::Document#url`. Instead, use `doc.url.date_crawled` etc.
 - Breaking changes: Added to and moved `Document.define_extension` block params, it's now `|value, source, type|`. The `source` is not what it used to be; it's now `type` - of either `:document` or `:object`. Confused? See the [docs](https://www.rubydoc.info/gems/wgit).
@@ -23,6 +26,7 @@
 - Breaking changes: Renamed `Wgit::Url` methods containing `anchor` to now be named `fragment` e.g. `to_anchor` is now called `to_fragment` and `without_anchor` is `without_fragment` etc.
 - Breaking changes: Renamed `Wgit::Url#prefix_protocol` to `#prefix_scheme`. The `protocol:` param name remains unchanged.
 - Breaking changes: Renamed all `Wgit::Url` methods starting with `without_*` to `omit_*`.
+- Breaking changes: `Wgit::Indexer` no longer inserts invalid external URL's (to be crawled at a later date).
 ### Fixed
 - Bug in `Wgit::Document#base_url` around the handling of invalid base URL scenarios.
 ---

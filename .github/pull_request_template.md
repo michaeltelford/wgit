@@ -1,10 +1,10 @@
 ## Description
 
-What is it that your changes implement/fix?
+What do your changes implement/fix?
 
 ## Checklist
 
 - Are there tests?
-- Have you reviewed your changes yourself?
+- Have you reviewed and approved the changes yourself?
 
-Ensure you have answered 'yes' to all of the checklist items above.
+Ensure you can answer yes to the above before opening a PR.
