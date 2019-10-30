@@ -311,29 +311,30 @@ class TestCrawler < TestHelper
   def test_crawl_site__allow_paths
     url = Wgit::Url.new 'http://www.belfastpilates.co.uk/'
     c = Wgit::Crawler.new
-    assert_crawl_site(c, url, 10, 5, expected_pages: [
+    assert_crawl_site(c, url, 7, 5, expected_pages: [
       'http://www.belfastpilates.co.uk/',
       'http://www.belfastpilates.co.uk/about-us',
       'http://www.belfastpilates.co.uk/about-us/the-team',
       'http://www.belfastpilates.co.uk/about-us/our-facilities',
       'http://www.belfastpilates.co.uk/about-us/testimonials',
-      'http://www.belfastpilates.co.uk/pilates/what-is-pilates',
       'http://www.belfastpilates.co.uk/pilates/pilates-classes',
-      'http://www.belfastpilates.co.uk/pilates/pilates-classes/pilates-classes-timetable',
-      'http://www.belfastpilates.co.uk/pilates/pilates-faqs',
-      'http://www.belfastpilates.co.uk/pilates'
+      'http://www.belfastpilates.co.uk/pilates/pilates-classes/pilates-classes-timetable'
     ], allow_paths: [
       '/about-us',
-      'pilates'
+      'pilates/pilates-classes'
     ])
   end
 
   def test_crawl_site__disallow_paths
     url = Wgit::Url.new 'http://www.belfastpilates.co.uk/privacy-policy'
     c = Wgit::Crawler.new
-    assert_crawl_site(c, url, 9, 9, expected_pages: [
+    assert_crawl_site(c, url, 14, 9, expected_pages: [
       'http://www.belfastpilates.co.uk/privacy-policy',
       'http://www.belfastpilates.co.uk/',
+      'http://www.belfastpilates.co.uk/pilates/what-is-pilates',
+      'http://www.belfastpilates.co.uk/pilates/pilates-classes',
+      'http://www.belfastpilates.co.uk/pilates/pilates-classes/pilates-classes-timetable',
+      'http://www.belfastpilates.co.uk/pilates/pilates-faqs',
       'http://www.belfastpilates.co.uk/physiotheraphy',
       'http://www.belfastpilates.co.uk/latest-news',
       'http://www.belfastpilates.co.uk/contact-us',
@@ -341,9 +342,10 @@ class TestCrawler < TestHelper
       'http://www.belfastpilates.co.uk/youre-invited',
       'http://www.belfastpilates.co.uk/gift-vouchers-now-available-to-purchase',
       'http://www.belfastpilates.co.uk/category/uncategorized',
+      'http://www.belfastpilates.co.uk/pilates'
     ], disallow_paths: [
       'about-us',
-      'pilates/',
+      'pilates-classes/',
       '/author/'
     ])
   end

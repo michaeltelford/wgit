@@ -351,7 +351,7 @@ module Wgit
 
         match = false
         paths.each do |path|
-          match = link_path.include?(path)
+          match = link_path.start_with?(path)
           break if match
         end
 
