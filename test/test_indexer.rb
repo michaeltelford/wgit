@@ -52,6 +52,7 @@ class TestIndexer < TestHelper
     assert doc?(aside: "And it's fucking perfect.")
 
     # Remove the defined extension to avoid interfering with other tests.
+    Wgit::Document.remove_extension(:aside)
     Wgit::Document.send(:remove_method, :aside)
   end
 
