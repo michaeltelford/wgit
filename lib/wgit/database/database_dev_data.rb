@@ -2,7 +2,7 @@ require 'securerandom'
 
 module Wgit
   # Module containing example DB collection objects used in testing and
-  # development. The 'url' uses a UUID in order to be unique.
+  # development. The 'url' field uses a UUID in order to be unique.
   module DatabaseDevData
     # Returns a Hash representing a Url record in the DB.
     def self.url(url: 'http://www.example.co.uk', timestamps: true)

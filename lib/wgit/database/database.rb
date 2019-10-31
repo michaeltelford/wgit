@@ -220,19 +220,20 @@ module Wgit
     # @param url [Wgit::Url] The Url to search the DB for.
     # @return [Boolean] True if url exists, otherwise false.
     def url?(url)
-      h = { 'url' => url }
-      @client[:urls].find(h).any?
+      assert_type(url, String) # This includes Wgit::Url's.
+      hash = { 'url' => url }
+      @client[:urls].find(hash).any?
     end
 
-    # Returns whether or not a record with the given doc 'url' field (which is
-    # unique) exists in the database's 'documents' collection.
+    # Returns whether or not a record with the given doc 'url.url' field
+    # (which is unique) exists in the database's 'documents' collection.
     #
     # @param doc [Wgit::Document] The Document to search the DB for.
     # @return [Boolean] True if doc exists, otherwise false.
     def doc?(doc)
-      url = doc.respond_to?(:url) ? doc.url : doc
-      h = { 'url' => url }
-      @client[:documents].find(h).any?
+      assert_type(doc, Wgit::Document)
+      hash = { 'url.url' => doc.url }
+      @client[:documents].find(hash).any?
     end
 
     ### Update Data ###
@@ -309,7 +310,7 @@ module Wgit
     # @return [Integer] The number of updated records.
     def update_doc(doc)
       assert_type(doc, Wgit::Document)
-      selection = { url: doc.url }
+      selection = { 'url.url' => doc.url }
       doc_hash = Wgit::Model.document(doc).merge(Wgit::Model.common_update_data)
       update = { '$set' => doc_hash }
       mutate(true, :documents, selection, update)

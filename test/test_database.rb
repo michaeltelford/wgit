@@ -95,7 +95,6 @@ class TestDatabase < TestHelper
     # Seed url data to the DB.
     # Url 1 crawled == false, Url 2 & 3 crawled == true.
     @urls.first.crawled = false
-    @urls.map!(&:to_h)
     seed { urls @urls }
 
     urls = db.urls
@@ -117,9 +116,8 @@ class TestDatabase < TestHelper
 
   def test_search__case_sensitive__whole_sentence
     @docs.last.text << 'Foo Bar'
-    doc_hashes = @docs.map { |doc| Wgit::Model.document(doc) }
 
-    seed { docs doc_hashes }
+    seed { docs @docs }
 
     db = Wgit::Database.new
 
@@ -155,9 +153,7 @@ class TestDatabase < TestHelper
 
   def test_search__limit__skip
     # All dev data docs contain the word 'Everest'.
-    doc_hashes = @docs.map { |doc| Wgit::Model.document(doc) }
-
-    seed { docs doc_hashes }
+    seed { docs @docs }
 
     db = Wgit::Database.new
 
@@ -235,22 +231,20 @@ class TestDatabase < TestHelper
     db = Wgit::Database.new
     refute db.url? @url
 
-    seed { url @url.to_h }
+    seed { url @url }
     assert db.url? @url
   end
 
   def test_doc?
     db = Wgit::Database.new
     refute db.doc? @doc
-    refute db.doc? @doc.url.to_s
 
-    seed { doc @doc.to_h }
+    seed { doc @doc }
     assert db.doc? @doc
-    assert db.doc? @doc.url.to_s
   end
 
   def test_update__url
-    seed { url @url.to_h }
+    seed { url @url }
     @url.crawled = false
     db = Wgit::Database.new
     result = db.update @url
@@ -262,7 +256,7 @@ class TestDatabase < TestHelper
 
   def test_update__doc
     title = 'Climb Everest!'
-    seed { doc @doc.to_h }
+    seed { doc @doc }
     @doc.instance_variable_set :@title, title
     db = Wgit::Database.new
     result = db.update @doc

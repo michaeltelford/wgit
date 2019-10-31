@@ -29,6 +29,7 @@
 - Breaking changes: `Wgit::Indexer` no longer inserts invalid external URL's (to be crawled at a later date).
 ### Fixed
 - Bug in `Wgit::Document#base_url` around the handling of invalid base URL scenarios.
+- Several bugs in `Wgit::Database` class caused by the recent changes to the data model (in version 0.3.0).
 ---
 
 ## v0.4.1
@@ -59,8 +60,8 @@
 - `Document#crawl_duration` method.
 - `Benchmark.measure` to Crawler logic to set `Url#crawl_duration`.
 ### Changed/Removed
-- Breaking changes: Updated data model to embed the full 'url' object inside the documents object.
-- Breaking changes: Updated data model by removing documents 'score' attribute.
+- Breaking changes: Updated data model to embed the full `url` object inside the documents object.
+- Breaking changes: Updated data model by removing documents `score` attribute.
 ### Fixed
 - ...
 ---
