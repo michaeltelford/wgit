@@ -178,10 +178,10 @@ The following versions of MongoDB are supported:
 
 The data model for Wgit is deliberately simplistic. The MongoDB collections consist of:
 
-| Collection  | Purpose                                                |
-| ----------- | ------------------------------------------------------ |
-| `urls`      | Used to store URL's to be crawled at a later date      |
-| `documents` | Used to store web documents after they've been crawled |
+| Collection  | Purpose                                         |
+| ----------- | ----------------------------------------------- |
+| `urls`      | Stores URL's to be crawled at a later date      |
+| `documents` | Stores web documents after they've been crawled |
 
 Wgit provides respective Ruby classes for each collection object, allowing for serialisation.
 
@@ -190,7 +190,13 @@ Wgit provides respective Ruby classes for each collection object, allowing for s
 Follow the steps below to configure MongoDB for use with Wgit. This is only needed if you want to read/write database records.
 
 1) Create collections for: `urls` and `documents`.
-2) Add a [*unique index*](https://docs.mongodb.com/manual/core/index-unique/) for the `url` field in **both** collections.
+2) Add a [*unique index*](https://docs.mongodb.com/manual/core/index-unique/) for the `url` field in **both** collections using:
+
+| Collection  | Fields              | Options             |
+| ----------- | ------------------- | ------------------- |
+| `urls`      | `{ "url" : 1 }`     | `{ unique : true }` |
+| `documents` | `{ "url.url" : 1 }` | `{ unique : true }` |
+
 3) Enable `textSearchEnabled` in MongoDB's configuration (if not already so).
 4) Create a [*text search index*](https://docs.mongodb.com/manual/core/index-text/#index-feature-text) for the `documents` collection using:
 ```json
