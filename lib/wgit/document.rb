@@ -212,7 +212,7 @@ module Wgit
     #
     # @param link [Wgit::Url, String] The link to obtain the correct base URL
     #   for; must be relative, not absolute.
-    # @raises [StandardError] If link is relative or if a base URL can't be
+    # @raise [StandardError] If link is relative or if a base URL can't be
     #   established e.g. the doc @url is relative and <base> is nil.
     # @return [Wgit::Url] The base URL of this Document e.g.
     #   'http://example.com/public'.

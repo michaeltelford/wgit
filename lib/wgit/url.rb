@@ -20,7 +20,7 @@ module Wgit
 
     # Whether or not the Url has been crawled or not. A custom crawled= method
     # is provided by this class, overridding the default one.
-    attr_accessor :crawled
+    attr_reader :crawled
 
     # The Time stamp of when this Url was crawled.
     attr_accessor :date_crawled

@@ -142,6 +142,7 @@ accept duplicate urls. Exception details: #{err_msg}"
       end
     end
 
+    # Appends a Url to @@urls.
     def append_url(url)
       model_hash = case url
                    when Wgit::Url
@@ -155,6 +156,7 @@ accept duplicate urls. Exception details: #{err_msg}"
       @@urls << model_hash.merge(Wgit::Model.common_insert_data)
     end
 
+    # Appends a Document to @@docs.
     def append_doc(doc)
       model_hash = case doc
                    when Wgit::Document

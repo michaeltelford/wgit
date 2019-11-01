@@ -23,6 +23,7 @@ Rake::TestTask.new(:smoke) do |t|
   t.test_files = FileList[
     'test/test_url.rb',
     'test/test_document.rb',
+    'test/test_response.rb',
     'test/test_crawler.rb',
     'test/test_readme_code_examples.rb'
   ]

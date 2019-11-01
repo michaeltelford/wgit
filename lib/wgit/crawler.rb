@@ -4,6 +4,7 @@ require_relative 'url'
 require_relative 'document'
 require_relative 'utils'
 require_relative 'assertable'
+require_relative 'response'
 require 'typhoeus'
 
 module Wgit
@@ -25,8 +26,7 @@ module Wgit
     # crawling more than just HTML e.g. images etc.
     attr_accessor :encode_html
 
-    # The Typhoeus::Response of the most recently crawled URL or nil.
-    # See https://rubydoc.info/gems/typhoeus/Typhoeus/Response for more info.
+    # The Wgit::Response of the most recently crawled URL.
     attr_reader :last_response
 
     # Initializes and returns a Wgit::Crawler instance.
@@ -165,7 +165,7 @@ module Wgit
 
     protected
 
-    # Fetches the url HTML String or nil. Handles any errors that arise
+    # Returns the url HTML String or nil. Handles any errors that arise
     # and sets the @last_response. Errors or any HTTP response that doesn't
     # return a HTML body will be ignored, returning nil.
     #
@@ -182,31 +182,33 @@ module Wgit
     # @return [String, nil] The crawled HTML or nil if the crawl was
     #   unsuccessful.
     def fetch(url, follow_external_redirects: true, host: nil)
-      response       = nil
-      crawl_duration = nil
+      response = Wgit::Response.new
 
-      response = resolve(
+      resolve(
         url,
+        response,
         follow_external_redirects: follow_external_redirects,
         host: host
       )
-      crawl_duration = response.total_time
 
-      response.body.empty? ? nil : response.body
+      response.body_or_nil
     rescue StandardError => e
-      Wgit.logger.debug("Wgit::Crawler#fetch('#{url}') exception: #{e.message}")
+      Wgit.logger.debug("Wgit::Crawler#fetch('#{url}') exception: #{e}")
 
       nil
     ensure
-      url.crawled        = true # Also sets date_crawled underneath.
-      url.crawl_duration = crawl_duration
+      url.crawled        = true # Sets date_crawled underneath.
+      url.crawl_duration = response.total_time
+
       @last_response     = response
     end
 
-    # Resolves the url by handling any redirects. The response object will be
-    # returned or an error raised.
+    # GETs the given url, resolving any redirects. The given response object
+    # will be enriched.
     #
-    # @param url [Wgit::Url] The URL to resolve.
+    # @param url [Wgit::Url] The URL to GET and resolve.
+    # @param response [Wgit::Response] The response to enrich. Modifies by
+    #   reference.
     # @param follow_external_redirects [Boolean] Whether or not to follow
     #   an external redirect. If false, you must also provide a `host:`
     #   parameter.
@@ -216,56 +218,66 @@ module Wgit
     #   'http://www.example.com' will only allow redirects for Urls with a
     #   `to_host` value of 'www.example.com'.
     # @raise [StandardError] If a redirect isn't allowed etc.
-    # @return [Typhoeus::Response] The HTTP response of the GET request.
-    def resolve(url, follow_external_redirects: true, host: nil)
-      response       = nil
-      redirect_count = 0
-      total_net_time = 0.0
-
+    def resolve(url, response, follow_external_redirects: true, host: nil)
       loop do
-        response = get_response(url)
-        total_net_time += response.total_time if response.total_time
-
-        # Break unless it's a redirect.
-        break unless (response.code >= 300) && (response.code < 400)
+        get_response(url, response)
+        break unless response.redirect?
 
         # Handle response 'Location' header.
-        location = Wgit::Utils.fetch(response.headers, :location, '')
-        location = Wgit::Url.new(location)
+        location = Wgit::Url.new(response.headers.fetch(:location, ''))
         raise 'Encountered redirect without Location header' if location.empty?
 
         yield(url, response, location) if block_given?
 
-        # Handle redirect logic.
+        # Validate redirect.
         if !follow_external_redirects && !location.relative?(host: host)
           raise "External redirect not allowed - Redirected to: \
 '#{location}', which is outside of host: '#{host}'"
         end
 
-        raise "Too many redirects, exceeded: #{redirect_count}" \
-        if redirect_count >= @redirect_limit
-
-        redirect_count += 1
+        raise "Too many redirects, exceeded: #{@redirect_limit}" \
+        if response.redirect_count >= @redirect_limit
 
         # Process the location to be crawled next.
         location = url.to_base.concat(location) if location.relative?
+        response.redirections[url.dup] = location
         url.replace(location) # Update the url on redirect.
       end
+    end
 
-      response.options[:redirect_count] = redirect_count
-      response.options[:total_time]     = total_net_time
+    # Makes a HTTP request and enriches the given Wgit::Response from it.
+    #
+    # @param url [String] The url to GET. Will call url#normalize if possible.
+    # @param response [Wgit::Response] The response to enrich. Modifies by
+    #   reference.
+    # @raise [StandardError] If a response can't be obtained.
+    # @return [Wgit::Response] The enriched HTTP Wgit::Response object.
+    def get_response(url, response)
+      # Perform a HTTP GET request.
+      orig_url = url.to_s
+      url      = url.normalize if url.respond_to?(:normalize)
 
-      response
+      http_response = http_get(url)
+
+      # Enrich the given Wgit::Response object.
+      response.adapter_response = http_response
+      response.url              = orig_url
+      response.status           = http_response.code
+      response.headers          = http_response.headers
+      response.body             = http_response.body
+      response.ip_address       = http_response.primary_ip
+      response.add_total_time(http_response.total_time)
+
+      # Handle a failed response.
+      raise "No response (within timeout: #{@time_out} second(s))" \
+      if response.failure?
     end
 
     # Performs a HTTP GET request and returns the response.
     #
-    # @param url [String] The url to GET. Will call url#normalize if possible.
-    # @raise [StandardError] If a response can't be obtained.
-    # @return [Typhoeus::Response] The HTTP response of the GET request.
-    def get_response(url)
-      url = url.normalize if url.respond_to?(:normalize)
-
+    # @param url [String] The url to GET.
+    # @return [Typhoeus::Response] The HTTP response object.
+    def http_get(url)
       opts = {
         followlocation: false,
         timeout: @time_out,
@@ -276,13 +288,8 @@ module Wgit
         }
       }
 
-      response = Typhoeus.get(url, opts)
-
-      # Handle response status code.
-      raise "No response (within timeout: #{@time_out} second(s))" \
-      if response.code.zero?
-
-      response
+      # See https://rubydoc.info/gems/typhoeus/Typhoeus/Response for more info.
+      Typhoeus.get(url, opts)
     end
 
     # Returns a doc's internal HTML page links in absolute form; used when

@@ -57,7 +57,7 @@ class TestCrawler < TestHelper
     c = Wgit::Crawler.new
     url = 'https://duckduckgo.com'.to_url
     doc = c.crawl_url(url) { |d| assert_crawl(d) }
-    assert_equal 200, c.last_response.code
+    assert c.last_response.ok?
     assert_equal 'https://duckduckgo.com', url
     assert_equal url, doc.url
     assert_crawl doc
@@ -70,17 +70,17 @@ class TestCrawler < TestHelper
       assert_empty d
     end
     assert_nil doc
-    assert_nil c.last_response
+    assert c.last_response.failure?
     assert_equal 'doesnt_exist', url
     assert url.crawled
     refute_nil url.date_crawled
-    assert_nil url.crawl_duration
+    refute_nil url.crawl_duration
 
     # IRI (non ASCII) Url.
     c = Wgit::Crawler.new
     url = Wgit::Url.new 'https://www.über.com/about'
     doc = c.crawl_url(url) { |d| assert_crawl(d) }
-    assert_equal 200, c.last_response.code
+    assert c.last_response.ok?
     assert_equal 'https://www.über.com/about', url
     assert_equal url, doc.url
     assert_crawl doc
@@ -97,7 +97,7 @@ class TestCrawler < TestHelper
     crawler = Wgit::Crawler.new
     doc = crawler.crawl_url(url)
 
-    assert_equal 200, crawler.last_response.code
+    assert crawler.last_response.ok?
     assert_equal 'https://vlang.io/', url
     assert_equal url, doc.url
     assert_crawl doc
@@ -155,7 +155,7 @@ class TestCrawler < TestHelper
     ].to_urls
     i = 0
     doc = c.crawl_urls(*urls) do |d|
-      assert_equal 200, c.last_response.code
+      assert c.last_response.ok?
       assert_crawl d
       i += 1
     end
@@ -168,7 +168,7 @@ class TestCrawler < TestHelper
     url = 'https://duckduckgo.com'.to_url
     i = 0
     doc = c.crawl_urls(url) do |d|
-      assert_equal 200, c.last_response.code
+      assert c.last_response.ok?
       assert_crawl d
       i += 1
     end
@@ -180,14 +180,14 @@ class TestCrawler < TestHelper
     c = Wgit::Crawler.new
     url = Wgit::Url.new('doesnt_exist')
     doc = c.crawl_urls(url) do |d|
-      assert_nil c.last_response
+      assert c.last_response.failure?
       assert d.empty?
       assert d.url.crawled
     end
     assert_nil doc
     assert url.crawled
     refute_nil url.date_crawled
-    assert_nil url.crawl_duration
+    refute_nil url.crawl_duration
 
     # Test a mixture of valid and invalid Urls.
     c = Wgit::Crawler.new
@@ -199,10 +199,10 @@ class TestCrawler < TestHelper
     i = 0
     c.crawl_urls(*urls) do |d|
       if i == 1
-        assert_nil c.last_response
+        assert c.last_response.failure?
         assert_empty d
       else
-        assert_equal 200, c.last_response.code
+        assert c.last_response.ok?
         assert_crawl d
       end
       i += 1
@@ -362,7 +362,7 @@ class TestCrawler < TestHelper
     end
 
     # Because real websites change over time we limit our assertions.
-    assert_equal 200, crawler.last_response.code
+    assert crawler.last_response.ok?
 
     refute_empty externals
     assert externals.all? { |external| external.instance_of? Wgit::Url }
@@ -402,11 +402,13 @@ class TestCrawler < TestHelper
   def test_fetch
     c = Wgit::Crawler.new
     url = Wgit::Url.new 'http://txti.es/'
-    response = c.send :fetch, url
+    html = c.send :fetch, url
 
-    assert_equal 0, c.last_response.redirect_count
+    refute_nil c.last_response
+    assert c.last_response.ok?
     assert c.last_response.total_time > 0.0
-    refute_nil response
+    assert_equal 0, c.last_response.redirect_count
+    refute_nil html
     assert url.crawled
     refute_nil url.date_crawled
     refute_nil url.crawl_duration
@@ -415,12 +417,16 @@ class TestCrawler < TestHelper
   def test_fetch__invalid_url
     c = Wgit::Crawler.new
     url = Wgit::Url.new 'doesnt_exist'
-    response = c.send :fetch, url
+    html = c.send :fetch, url
 
-    assert_nil response
+    refute_nil c.last_response
+    assert c.last_response.failure?
+    assert c.last_response.total_time > 0.0
+    assert_equal 0, c.last_response.redirect_count
+    assert_nil html
     assert url.crawled
     refute_nil url.date_crawled
-    assert_nil url.crawl_duration
+    refute_nil url.crawl_duration
   end
 
   def test_resolve__absolute_location
@@ -443,11 +449,13 @@ class TestCrawler < TestHelper
 
     # Redirects 5 times - should resolve.
     url = Wgit::Url.new 'http://redirect.com/2'
+    resp = Wgit::Response.new
     assert_resolve c, url, 'http://redirect.com/7'
 
     # Redirects 6 times - should fail.
     url = Wgit::Url.new 'http://redirect.com/1'
-    e = assert_raises(StandardError) { c.send :resolve, url }
+    resp = Wgit::Response.new
+    e = assert_raises(StandardError) { c.send :resolve, url, resp }
     assert_equal 'Too many redirects, exceeded: 5', e.message
     assert_equal 'http://redirect.com/6', url
 
@@ -455,19 +463,22 @@ class TestCrawler < TestHelper
 
     # Disable redirects - should fail for too many redirects.
     url = Wgit::Url.new 'http://twitter.com/'
-    e = assert_raises(StandardError) { c.send :resolve, url }
+    resp = Wgit::Response.new
+    e = assert_raises(StandardError) { c.send :resolve, url, resp }
     assert_equal 'Too many redirects, exceeded: 0', e.message
     assert_equal 'http://twitter.com/', url
 
     # Disable redirects - should pass as there's no redirect.
     url = Wgit::Url.new 'https://twitter.com/'
-    c.send :resolve, url
+    resp = Wgit::Response.new
+    c.send :resolve, url, resp
     assert_equal 'https://twitter.com/', url
 
     c = Wgit::Crawler.new redirect_limit: 3
 
     url = Wgit::Url.new 'http://redirect.com/2' # Would pass normally.
-    e = assert_raises(StandardError) { c.send :resolve, url }
+    resp = Wgit::Response.new
+    e = assert_raises(StandardError) { c.send :resolve, url, resp }
     assert_equal 'Too many redirects, exceeded: 3', e.message
     assert_equal 'http://redirect.com/5', url
   end
@@ -475,43 +486,50 @@ class TestCrawler < TestHelper
   def test_resolve__time_out
     # Unrealistically short time out causes an error.
     c = Wgit::Crawler.new time_out: 0.001
+    resp = Wgit::Response.new
 
     url = Wgit::Url.new 'http://doesnt_exist/' # Mocks a time out.
-    e = assert_raises(StandardError) { c.send :resolve, url }
+    e = assert_raises(StandardError) { c.send :resolve, url, resp }
     assert_equal 'No response (within timeout: 0.001 second(s))', e.message
+    assert resp.failure?
 
     # Disable time outs.
     c = Wgit::Crawler.new time_out: 0
+    resp = Wgit::Response.new
 
     url = Wgit::Url.new 'http://test-site.com'
-    resp = c.send :resolve, url
-    assert_equal 200, resp.code
+    c.send :resolve, url, resp
+    assert resp.ok?
   end
 
   def test_resolve__string_url
     # All ASCII chars.
     c = Wgit::Crawler.new
+    resp = Wgit::Response.new
     url = 'http://test-site.com'
-    resp = c.send :resolve, url
+    c.send :resolve, url, resp
 
     assert_equal 'http://test-site.com', url
-    assert_equal 200, resp.code
+    assert resp.ok?
 
     # Non ASCII chars (IRI String).
     c = Wgit::Crawler.new
+    resp = Wgit::Response.new
     url = 'https://www.über.com/about'
-    resp = c.send :resolve, url
+    c.send :resolve, url, resp
 
     assert_equal 'https://www.über.com/about', url
-    assert_equal 200, resp.code
+    assert resp.ok?
   end
 
   def test_resolve__invalid_url
     c = Wgit::Crawler.new
+    resp = Wgit::Response.new
     url = 'http://doesnt_exist/'.to_url
 
-    e = assert_raises(StandardError) { c.send(:resolve, url) }
+    e = assert_raises(StandardError) { c.send(:resolve, url, resp) }
     assert_equal 'No response (within timeout: 5 second(s))', e.message
+    assert resp.failure?
   end
 
   def test_resolve__redirect_to_any_external_url_works
@@ -525,29 +543,33 @@ class TestCrawler < TestHelper
   def test_resolve__redirect_not_allowed
     c = Wgit::Crawler.new
     url = 'http://twitter.com'.to_url
+    resp = Wgit::Response.new
 
     e = assert_raises(StandardError) do
       c.send(
-        :resolve, url,
+        :resolve, url, resp,
         follow_external_redirects: false, host: 'http://twitter.co.uk'
       )
     end
     assert_equal "External redirect not allowed - Redirected to: \
 'https://twitter.com', which is outside of host: 'http://twitter.co.uk'", e.message
     assert_equal 'http://twitter.com', url
+    assert resp.redirect?
   end
 
   def test_resolve__redirect_to_any_external_url_fails
     c = Wgit::Crawler.new
     url = 'http://twitter.com'.to_url
+    resp = Wgit::Response.new
 
     e = assert_raises(StandardError) do
       # Because host defaults to nil, any external redirect will fail.
-      c.send :resolve, url, follow_external_redirects: false
+      c.send :resolve, url, resp, follow_external_redirects: false
     end
     assert_equal "External redirect not allowed - Redirected to: \
 'https://twitter.com', which is outside of host: ''", e.message
     assert_equal 'http://twitter.com', url
+    assert resp.redirect?
   end
 
   def test_resolve__redirect_yielded
@@ -556,25 +578,31 @@ class TestCrawler < TestHelper
 
     # Redirects twice to 7.
     orig_url = Wgit::Url.new 'http://redirect.com/5'
-    resp = c.send(:resolve, orig_url) do |url, response, location|
+    resp = Wgit::Response.new
+    c.send(:resolve, orig_url, resp) do |url, response, location|
       i += 1
       path = url.to_path.to_i + 1
 
       assert_instance_of Wgit::Url, url
       assert_instance_of Wgit::Url, location
-      assert_equal 301, response.code unless location.empty?
+      assert response.redirect? unless location.empty?
 
       assert_equal orig_url, url if i == 1
       assert_equal path, location.to_path.to_i unless location.empty?
     end
-    assert_instance_of Typhoeus::Response, resp
-    assert_equal 200, resp.code
-    assert_equal 2, resp.redirect_count
+    assert_instance_of Wgit::Response, resp
+    assert resp.ok?
     assert resp.total_time > 0.0
+    assert_equal 2, resp.redirect_count
+    assert_equal({
+      'http://redirect.com/5' => 'http://redirect.com/6',
+      'http://redirect.com/6' => 'http://redirect.com/7'
+    }, resp.redirections)
 
     # Doesn't redirect.
     orig_url = Wgit::Url.new 'https://twitter.com'
-    resp = c.send(:resolve, orig_url) do |url, response, location|
+    resp = Wgit::Response.new
+    c.send(:resolve, orig_url, resp) do |url, response, location|
       assert_instance_of Wgit::Url, url
       assert_instance_of Wgit::Url, location
       assert_equal 200, response.code
@@ -582,10 +610,11 @@ class TestCrawler < TestHelper
       assert_equal orig_url, url
       assert_empty location
     end
-    assert_instance_of Typhoeus::Response, resp
-    assert_equal 200, resp.code
-    assert_equal 0, resp.redirect_count
+    assert_instance_of Wgit::Response, resp
+    assert resp.ok?
     assert resp.total_time > 0.0
+    assert_equal 0, resp.redirect_count
+    assert_empty resp.redirections
   end
 
   def test_get_internal_links
@@ -730,10 +759,10 @@ class TestCrawler < TestHelper
       case doc.url
       when 'http://test-site.com/sneaky' # Redirects to different host.
         assert_empty doc
-        assert_nil doc.url.crawl_duration
+        refute_nil doc.url.crawl_duration
       when 'http://test-site.com/ftp'    # Redirects to different host.
         assert_empty doc
-        assert_nil doc.url.crawl_duration
+        refute_nil doc.url.crawl_duration
       else
         refute_empty doc
         refute_nil doc.url.crawl_duration
@@ -753,11 +782,16 @@ class TestCrawler < TestHelper
   end
 
   def assert_resolve(crawler, start_url, end_url)
-    response = crawler.send :resolve, start_url
+    orig_url = start_url.dup
+    response = Wgit::Response.new
+    crawler.send :resolve, start_url, response
 
-    assert_equal 200, response.code
+    assert response.ok?
     assert response.total_time > 0.0
-    refute response.body.empty?
+    refute_nil response.body_or_nil
+    refute_nil response.ip_address
+    assert_equal end_url, response.url
     assert_equal end_url, start_url
+    assert_instance_of Typhoeus::Response, response.adapter_response
   end
 end

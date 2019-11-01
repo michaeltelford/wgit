@@ -13,6 +13,10 @@ class Typhoeus::Response
   def total_time
     options[:total_time] || rand(0.2...0.7)
   end
+
+  def primary_ip
+    "192.241.176.#{rand(10..99)}"
+  end
 end
 
 def fixtures_dir

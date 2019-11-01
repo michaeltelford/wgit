@@ -14,11 +14,11 @@ class TestReadmeCodeExamples < TestHelper
 
     require 'wgit'
 
-    crawler = Wgit::Crawler.new # Uses typhoeus -> libcurl underneath. It's fast!
+    crawler = Wgit::Crawler.new # Uses Typhoeus -> libcurl underneath. It's fast!
     url = Wgit::Url.new 'https://wikileaks.org/What-is-Wikileaks.html'
 
     doc = crawler.crawl url # Or use #crawl_site(url) { |doc| ... } etc.
-    crawler.last_response.class # => Typhoeus::Response
+    crawler.last_response.class # => Wgit::Response is a wrapper for Typhoeus::Response.
 
     doc.class # => Wgit::Document
     doc.class.public_instance_methods(false).sort # => [
@@ -43,7 +43,7 @@ class TestReadmeCodeExamples < TestHelper
 
     ### PUT README CODE ABOVE ###
 
-    assert_instance_of Typhoeus::Response, crawler.last_response
+    assert_instance_of Wgit::Response, crawler.last_response
     assert_equal([:==, :[], :author, :base, :base_url, :content, :css, :doc, :empty?, :external_links, :external_urls, :html, :internal_absolute_links, :internal_absolute_urls, :internal_links, :internal_urls, :keywords, :links, :score, :search, :search!, :size, :statistics, :stats, :text, :title, :to_h, :to_json, :url, :xpath], doc.class.public_instance_methods(false).sort)
 
     assert_equal 'https://wikileaks.org/What-is-Wikileaks.html', doc.url
