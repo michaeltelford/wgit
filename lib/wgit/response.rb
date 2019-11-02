@@ -16,9 +16,6 @@ module Wgit
     # The redirections of the response.
     attr_reader   :redirections
 
-    # The number of redirections for the response.
-    attr_reader   :redirect_count
-
     # The HTTP response status code.
     attr_reader   :status
 
