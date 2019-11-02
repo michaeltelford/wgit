@@ -103,6 +103,10 @@ module Wgit
       @redirections.size
     end
 
+    def size
+      @body.size
+    end
+
     # Sets the HTML response status.
     #
     # @param int [Integer] The new response status.
@@ -125,5 +129,6 @@ module Wgit
     alias crawl_time total_time
     alias to_s       body
     alias redirects  redirections
+    alias length     size
   end
 end

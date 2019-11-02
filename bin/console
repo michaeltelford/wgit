@@ -27,20 +27,6 @@ reload
 Dotenv.load
 include DatabaseHelper # Connects to the database here.
 
-# Monkey patch and log all HTTP requests made during the console.
-module Typhoeus
-  singleton_class.class_eval do
-    alias_method :orig_get, :get
-  end
-
-  def self.get(base_url, options = {})
-    Wgit.logger.debug("[typhoeus] Sending GET: #{base_url}")
-    resp = orig_get(base_url, options)
-    Wgit.logger.debug("[typhoeus] Status: #{resp.code} (#{resp.body.length} bytes in #{resp.total_time} seconds)")
-    resp
-  end
-end
-
 # Seed some fixture data for the session.
 db      = Database.new
 crawler = Crawler.new

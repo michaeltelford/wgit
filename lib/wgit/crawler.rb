@@ -240,7 +240,7 @@ module Wgit
 
         # Process the location to be crawled next.
         location = url.to_base.concat(location) if location.relative?
-        response.redirections[url.dup] = location
+        response.redirections[url.to_s] = location.to_s
         url.replace(location) # Update the url on redirect.
       end
     end
@@ -268,6 +268,16 @@ module Wgit
       response.ip_address       = http_response.primary_ip
       response.add_total_time(http_response.total_time)
 
+      # Log (debug) the request/response details.
+      resp_template  = "[http] Response: %s (%s bytes in %s seconds)"
+      log_status     = (response.status || 0)
+      log_total_time = response.total_time.truncate(3)
+
+      Wgit.logger.debug("[http] Request:  #{response.url}")
+      Wgit.logger.debug(format(
+        resp_template, log_status, response.size, log_total_time
+      ))
+
       # Handle a failed response.
       raise "No response (within timeout: #{@time_out} second(s))" \
       if response.failure?
@@ -288,7 +298,7 @@ module Wgit
         }
       }
 
-      # See https://rubydoc.info/gems/typhoeus/Typhoeus/Response for more info.
+      # See https://rubydoc.info/gems/typhoeus for more info.
       Typhoeus.get(url, opts)
     end
 

@@ -88,6 +88,14 @@ class TestResponse < TestHelper
     assert_equal 2, r.redirect_count
   end
 
+  def test_size
+    r = Wgit::Response.new
+    assert_equal 0, r.size
+
+    r.body = 'hello world'
+    assert_equal 11, r.size
+  end
+
   def test_status_equals
     r = Wgit::Response.new
 

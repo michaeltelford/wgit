@@ -19,6 +19,7 @@
 - `Wgit::Url#+` as alias for `#concat`.
 - `Wgit::Url#invalid?` method.
 - `Wgit.version` method.
+- `Wgit::Response` class containing adapter agnostic HTTP response logic.
 ### Changed/Removed
 - Breaking changes: Removed `Wgit::Document#date_crawled` and `#crawl_duration` because both of these methods exist on the `Wgit::Document#url`. Instead, use `doc.url.date_crawled` etc.
 - Breaking changes: Added to and moved `Document.define_extension` block params, it's now `|value, source, type|`. The `source` is not what it used to be; it's now `type` - of either `:document` or `:object`. Confused? See the [docs](https://www.rubydoc.info/gems/wgit).
@@ -28,6 +29,7 @@
 - Breaking changes: Renamed `Wgit::Url#prefix_protocol` to `#prefix_scheme`. The `protocol:` param name remains unchanged.
 - Breaking changes: Renamed all `Wgit::Url` methods starting with `without_*` to `omit_*`.
 - Breaking changes: `Wgit::Indexer` no longer inserts invalid external URL's (to be crawled at a later date).
+- Breaking changes: `Wgit::Crawler#last_response` is now of type `Wgit::Response`. You can access the underlying `Typhoeus::Response` object with `crawler.last_response.adapter_response`.
 ### Fixed
 - Bug in `Wgit::Document#base_url` around the handling of invalid base URL scenarios.
 - Several bugs in `Wgit::Database` class caused by the recent changes to the data model (in version 0.3.0).
