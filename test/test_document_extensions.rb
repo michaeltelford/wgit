@@ -104,11 +104,11 @@ class TestDocumentExtension < TestHelper
     doc = Wgit::Document.new(
       'http://some_url.com'.to_url,
       <<~HTML
-      <html>
-        <p>Hello world!</p>
-        <table><th>Header Text</th><th>Another Header</th></table>
-        <table><th>Header Text 2</th><th>Another Header 2</th></table>
-      </html>
+        <html>
+          <p>Hello world!</p>
+          <table><th>Header Text</th><th>Another Header</th></table>
+          <table><th>Header Text 2</th><th>Another Header 2</th></table>
+        </html>
       HTML
     )
 

@@ -151,8 +151,10 @@ module Wgit
 
       type, url = opts.first
       url = Wgit::Url.new(url)
-      raise "Invalid opts param value, Url must be absolute and contain \
-protocol scheme: #{url}" unless url.to_base
+      unless url.to_base
+        raise "Invalid opts param value, Url must be absolute and contain \
+protocol scheme: #{url}"
+      end
 
       case type
       when :base   # http://www.google.com
@@ -437,7 +439,7 @@ protocol scheme: #{url}" unless url.to_base
     # @return [Wgit::Url] Self without leading or trailing slashes.
     def omit_slashes
       omit_leading_slash
-      .omit_trailing_slash
+        .omit_trailing_slash
     end
 
     # Returns a new Wgit::Url with the base (proto and host) removed e.g. Given

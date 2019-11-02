@@ -36,7 +36,7 @@ url     = Url.new(
   date_crawled: Time.now,
   crawl_duration: 0.567890
 )
-doc     = Document.new(
+doc = Document.new(
   'http://www.mytestsite.com/home',
   File.read('test/mock/fixtures/test_doc.html')
 )

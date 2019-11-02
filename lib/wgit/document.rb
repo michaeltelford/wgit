@@ -436,7 +436,7 @@ module Wgit
       orig_text = @text
       @text = search(
         query, case_sensitive: case_sensitive,
-        whole_sentence: whole_sentence, sentence_limit: sentence_limit
+               whole_sentence: whole_sentence, sentence_limit: sentence_limit
       )
 
       orig_text

@@ -906,9 +906,9 @@ class TestUrl < TestHelper
 
   def test_to_h
     mongo_doc = {
-      'url'            => 'http://www.google.co.uk',
-      'crawled'        => true,
-      'date_crawled'   => Time.now,
+      'url' => 'http://www.google.co.uk',
+      'crawled' => true,
+      'date_crawled' => Time.now,
       'crawl_duration' => 1.5
     }
     assert_equal mongo_doc, Wgit::Url.new(mongo_doc).to_h

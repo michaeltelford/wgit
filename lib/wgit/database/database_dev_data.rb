@@ -26,7 +26,7 @@ module Wgit
     # Returns a Hash representing a Document record in the DB.
     def self.doc
       {
-        'url' => self.url(
+        'url' => url(
           url: 'http://altitudejunkies.com/everest.html',
           timestamps: false
         ),

@@ -98,7 +98,7 @@ accept duplicate urls. Exception details: #{err_msg}"
     )
       Wgit.index_site(
         url, insert_externals: insert_externals,
-        allow_paths: allow_paths, disallow_paths: disallow_paths
+             allow_paths: allow_paths, disallow_paths: disallow_paths
       )
     end
 

@@ -110,21 +110,21 @@ class TestUtils < TestHelper
   def test_process_str
     s  = " hello world \xFE "
     s2 = Wgit::Utils.process_str s
-    expected = "hello world �"
+    expected = 'hello world �'
 
     assert_equal expected, s
     assert_equal expected, s2
   end
 
   def test_process_str__encode_false
-    s  = " hello world "
+    s  = ' hello world '
     s2 = Wgit::Utils.process_str s, encode: false
-    expected = "hello world"
+    expected = 'hello world'
 
     assert_equal expected, s
     assert_equal expected, s2
 
-    s  = " hello world \xFE "
+    s = " hello world \xFE "
     assert_raises(ArgumentError) { Wgit::Utils.process_str(s, encode: false) }
   end
 
@@ -141,30 +141,30 @@ class TestUtils < TestHelper
 
   def printf_expected_output
     <<~TEXT
-    Altitude Junkies | Everest
-    Everest, Highest Peak, High Altitude, Altitude Junkies
-    e Summit for the hugely successful IMAX Everest film from the 1996 spring season
-    http://altitudejunkies.com/everest.html
+      Altitude Junkies | Everest
+      Everest, Highest Peak, High Altitude, Altitude Junkies
+      e Summit for the hugely successful IMAX Everest film from the 1996 spring season
+      http://altitudejunkies.com/everest.html
 
-    Altitude Junkies | Everest
-    Everest, Highest Peak, High Altitude, Altitude Junkies
-    e Summit for the hugely successful IMAX Everest film from the 1996 spring season
-    http://altitudejunkies.com/everest.html
+      Altitude Junkies | Everest
+      Everest, Highest Peak, High Altitude, Altitude Junkies
+      e Summit for the hugely successful IMAX Everest film from the 1996 spring season
+      http://altitudejunkies.com/everest.html
 
-    Altitude Junkies | Everest
-    Everest, Highest Peak, High Altitude, Altitude Junkies
-    e Summit for the hugely successful IMAX Everest film from the 1996 spring season
-    http://altitudejunkies.com/everest.html
+      Altitude Junkies | Everest
+      Everest, Highest Peak, High Altitude, Altitude Junkies
+      e Summit for the hugely successful IMAX Everest film from the 1996 spring season
+      http://altitudejunkies.com/everest.html
 
-    Altitude Junkies | Everest
-    Everest, Highest Peak, High Altitude, Altitude Junkies
-    e Summit for the hugely successful IMAX Everest film from the 1996 spring season
-    http://altitudejunkies.com/everest.html
+      Altitude Junkies | Everest
+      Everest, Highest Peak, High Altitude, Altitude Junkies
+      e Summit for the hugely successful IMAX Everest film from the 1996 spring season
+      http://altitudejunkies.com/everest.html
 
-    Altitude Junkies | Everest
-    Everest, Highest Peak, High Altitude, Altitude Junkies
-    e Summit for the hugely successful IMAX Everest film from the 1996 spring season
-    http://altitudejunkies.com/everest.html
+      Altitude Junkies | Everest
+      Everest, Highest Peak, High Altitude, Altitude Junkies
+      e Summit for the hugely successful IMAX Everest film from the 1996 spring season
+      http://altitudejunkies.com/everest.html
 
     TEXT
   end

@@ -200,7 +200,7 @@ module Wgit
       url.crawled        = true # Sets date_crawled underneath.
       url.crawl_duration = response.total_time
 
-      @last_response     = response
+      @last_response = response
     end
 
     # GETs the given url, resolving any redirects. The given response object
@@ -269,14 +269,14 @@ module Wgit
       response.add_total_time(http_response.total_time)
 
       # Log (debug) the request/response details.
-      resp_template  = "[http] Response: %s (%s bytes in %s seconds)"
+      resp_template  = '[http] Response: %s (%s bytes in %s seconds)'
       log_status     = (response.status || 0)
       log_total_time = response.total_time.truncate(3)
 
       Wgit.logger.debug("[http] Request:  #{response.url}")
-      Wgit.logger.debug(format(
-        resp_template, log_status, response.size, log_total_time
-      ))
+      Wgit.logger.debug(
+        format(resp_template, log_status, response.size, log_total_time)
+      )
 
       # Handle a failed response.
       raise "No response (within timeout: #{@time_out} second(s))" \
@@ -320,10 +320,10 @@ module Wgit
     # @return [Array<Wgit::Url>] The internal page links from doc.
     def get_internal_links(doc, allow_paths: nil, disallow_paths: nil)
       links = doc
-         .internal_absolute_links
-         .map(&:omit_fragment) # Because fragments don't alter page content.
-         .uniq
-         .reject do |link|
+              .internal_absolute_links
+              .map(&:omit_fragment) # Because fragments don't alter content.
+              .uniq
+              .reject do |link|
         ext = link.to_extension
         ext ? !%w[htm html].include?(ext.downcase) : false
       end
@@ -341,19 +341,19 @@ module Wgit
       if allow_paths && disallow_paths
 
       if allow_paths  # White list.
-        filter_method = :select.freeze
+        filter_method = :select
         paths         = allow_paths
       else            # Black list.
-        filter_method = :reject.freeze
+        filter_method = :reject
         paths         = disallow_paths
       end
 
       paths = [paths] unless paths.is_a?(Array)
       paths = paths
-        .compact
-        .reject(&:empty?)
-        .uniq
-        .map { |path| Wgit::Url.new(path).to_path }
+              .compact
+              .reject(&:empty?)
+              .uniq
+              .map { |path| Wgit::Url.new(path).to_path }
 
       raise 'The provided paths cannot be empty' if paths.empty?
 

@@ -52,7 +52,7 @@ module Wgit
     indexer = Wgit::Indexer.new(db)
     indexer.index_site(
       url, insert_externals: insert_externals,
-      allow_paths: allow_paths, disallow_paths: disallow_paths, &block
+           allow_paths: allow_paths, disallow_paths: disallow_paths, &block
     )
   end
 

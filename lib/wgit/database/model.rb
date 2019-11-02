@@ -26,7 +26,7 @@ module Wgit
       raise 'doc must respond_to? :to_h' unless doc.respond_to?(:to_h)
 
       model = doc.to_h(include_html: false, include_score: false)
-      model['url'] = self.url(doc.url) # Expand Url String into full object.
+      model['url'] = url(doc.url) # Expand Url String into full object.
 
       Wgit::Utils.remove_non_bson_types(model)
     end
@@ -36,7 +36,7 @@ module Wgit
     # @return [Hash] Insertion fields common to all models.
     def self.common_insert_data
       {
-        date_added:    Wgit::Utils.time_stamp,
+        date_added: Wgit::Utils.time_stamp,
         date_modified: Wgit::Utils.time_stamp
       }
     end
