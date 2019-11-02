@@ -52,7 +52,7 @@ def info
 end
 
 # Start the pry session.
-puts "\nwgit v#{Wgit::VERSION}\n\n"
+puts "\nwgit v#{Wgit.version}\n\n"
 info
 
 binding.pry

@@ -782,7 +782,6 @@ class TestCrawler < TestHelper
   end
 
   def assert_resolve(crawler, start_url, end_url)
-    orig_url = start_url.dup
     response = Wgit::Response.new
     crawler.send :resolve, start_url, response
 

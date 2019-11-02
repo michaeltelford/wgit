@@ -59,6 +59,16 @@ class TestResponse < TestHelper
     assert_equal({ content_type: 'text/html' }, r.headers)
   end
 
+  def test_not_found?
+    r = Wgit::Response.new
+
+    r.status = 400
+    refute r.not_found?
+
+    r.status = 404
+    assert r.not_found?
+  end
+
   def test_ok?
     r = Wgit::Response.new
 

@@ -80,6 +80,13 @@ module Wgit
       end.to_h
     end
 
+    # Returns whether or not the response is 404 Not Found.
+    #
+    # @return [Boolean] True if 404 Not Found, false otherwise.
+    def not_found?
+      @status == 404
+    end
+
     # Returns whether or not the response is 200 OK.
     #
     # @return [Boolean] True if 200 OK, false otherwise.
@@ -103,6 +110,9 @@ module Wgit
       @redirections.size
     end
 
+    # Returns the size of the response body.
+    #
+    # @return [Integer] The response body size in bytes.
     def size
       @body.size
     end

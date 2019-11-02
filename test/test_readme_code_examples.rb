@@ -151,8 +151,9 @@ class TestReadmeCodeExamples < TestHelper
 
     # By default, the MongoDB ranking applies i.e. results.first has the most hits.
     # Because results is an Array of Wgit::Document's, we can custom sort/rank e.g.
-    # `results.sort_by!(&:crawl_duration)` ranks via page load times with results.first being the fastest.
-    # Any Wgit::Document attribute can be used, including those you define yourself by extending the API.
+    # `results.sort_by! { |doc| doc.url.crawl_duration }` ranks via page load times with
+    # results.first being the fastest. Any Wgit::Document attribute can be used, including
+    # those you define yourself by extending the API.
 
     top_result = results.first
     top_result.class           # => Wgit::Document
@@ -172,7 +173,7 @@ class TestReadmeCodeExamples < TestHelper
     ### PUT README CODE ABOVE ###
     #############################
 
-    refute_empty results.sort_by! { |doc| doc.url.crawl_duration }
+    refute_empty results.sort_by! { |d| d.url.crawl_duration }
     assert_instance_of Wgit::Document, top_result
     assert_equal doc.url, top_result.url
     assert_equal 'How now brown cow.', top_result.search(query).first
