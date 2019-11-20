@@ -4,7 +4,7 @@
 # Script to save an entire website's HTML to disk. For example,
 # http://blah.com/admin/about will be saved as:
 # <path_to_script>/fixtures/blah.com/admin/about.html
-# Call this script like: `ruby save_site.rb http://blah.com` or use rake task.
+# Call this script like: `ruby save_site.rb http://blah.com` or use toys task.
 
 require_relative '../../lib/wgit'
 require 'fileutils'
@@ -12,7 +12,7 @@ require 'fileutils'
 raise 'ARGV[0] must be a URL' unless ARGV[0]
 
 base_url = Wgit::Url.new(ARGV[0])
-path     = "#{File.expand_path(__dir__)}/fixtures/#{base_url.host}"
+path     = "#{File.expand_path(__dir__)}/fixtures/#{base_url.to_host}"
 crawler  = Wgit::Crawler.new
 
 Dir.mkdir(path) unless Dir.exist?(path)
@@ -29,7 +29,7 @@ crawler.crawl_site(base_url) do |doc|
 
   # Save the index.html file to disk.
   if url.omit_slashes == base_url.omit_slashes
-    puts "Saving document #{base_url.host}/index.html"
+    puts "Saving document #{base_url.to_host}/index.html"
     File.open('index.html', 'w') { |f| f.write(doc.html) }
     next
   end
@@ -55,6 +55,6 @@ crawler.crawl_site(base_url) do |doc|
   file_path += '.html' unless file_path.end_with? '.html'
 
   # Save the HTML file for the page.
-  puts "Saving document #{base_url.host}/#{file_path}"
+  puts "Saving document #{base_url.to_host}/#{file_path}"
   File.open(file_path, 'w') { |f| f.write(doc.html) }
 end

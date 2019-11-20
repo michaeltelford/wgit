@@ -390,10 +390,20 @@ Before you consider making a contribution, check out [CONTRIBUTING.md](https://g
 
 ## Development
 
-For a full list of available Rake tasks, run `bundle exec rake help`. The most commonly used tasks are listed below...
+After checking out the repo, run the following commands:
 
-After checking out the repo, run `./bin/setup`. Then, `bundle exec rake test` to run the tests. You can also run `bundle exec rake console` for an interactive (`pry`) REPL that will allow you to experiment with the code.
+1) `gem install bundler`
+2) `bundle install --jobs=3`
+3) `toys setup`
 
-To generate code documentation run `bundle exec yardoc`. To browse the generated documentation in a browser run `bundle exec yard server -r`. You can also use the `yri` command line tool e.g. `yri Wgit::Crawler#crawl_site` etc.
+And you're good to go!
 
-To install this gem onto your local machine, run `bundle exec rake install`.
+### Tooling
+
+Wgit uses the [`toys`](https://github.com/dazuma/toys) gem (instead of Rake) for task invocation e.g. running the tests etc. For a full list of available tasks, run `toys --tools`. The most commonly used tasks/tools are listed below...
+
+Run `toys test` to execute the tests (or `toys smoke` for a faster running subset). You can also run `toys console` for an interactive (`pry`) REPL that will allow you to experiment with the code.
+
+To generate code documentation run `toys yardoc`. To browse the generated documentation in a browser run `toys yardoc --serve`. You can also use the `yri` command line tool e.g. `yri Wgit::Crawler#crawl_site` etc.
+
+To install this gem onto your local machine, run `toys install`.

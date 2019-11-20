@@ -1,4 +1,4 @@
-# See rake tasks: `save_page` and `save_site` for saving a web fixture to disk;
+# See toys tools: `save_page` and `save_site` for saving a web fixture to disk;
 # then mock it's HTTP response below so it's available to crawl in the tests
 # using Wgit. Note that you can mock a response without a saved fixture.
 

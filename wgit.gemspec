@@ -1,21 +1,6 @@
 # frozen_string_literal: true
 
-require 'rake'
 require_relative './lib/wgit/version'
-
-# Returns all ruby files to be packaged as part of the gem.
-def rb_files
-  # List any ruby files that should NOT be packaged in the built gem.
-  # The full file path should be provided e.g. './lib/wgit/file.rb'.
-  ignored_rb_files = [
-    './lib/wgit/database/database_dev_data.rb',
-    './lib/wgit/database/database_helper.rb'
-  ]
-
-  FileList.new('./lib/**/*.rb') do |fl|
-    fl.exclude(*ignored_rb_files)
-  end.resolve
-end
 
 Gem::Specification.new do |s|
   s.name     = 'wgit'
@@ -34,9 +19,12 @@ Gem::Specification.new do |s|
   TEXT
 
   s.require_paths = %w[lib]
-  s.files         = rb_files
-  s.executables   = %w[]
-  s.metadata      = {
+  s.files = (Dir['./lib/**/*.rb'] - [
+    './lib/wgit/database/database_dev_data.rb',
+    './lib/wgit/database/database_helper.rb'
+  ])
+  s.executables = %w[]
+  s.metadata = {
     'source_code_uri' => 'https://github.com/michaeltelford/wgit',
     'yard.run' => 'yri'
   }
@@ -53,14 +41,18 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'dotenv', '~> 2.5'
   s.add_development_dependency 'maxitest', '~> 3.3'
   s.add_development_dependency 'pry', '~> 0.12'
-  s.add_development_dependency 'rake', '~> 12.3'
   s.add_development_dependency 'rubocop', '~> 0.74'
+  s.add_development_dependency 'toys', '~> 0.8'
   s.add_development_dependency 'webmock', '~> 3.6'
   s.add_development_dependency 'yard', ['>= 0.9.20', '< 1.0']
 
   # Only allow gem pushes to rubygems.org.
   if s.respond_to?(:metadata)
     s.metadata['allowed_push_host'] = 'https://rubygems.org'
+    s.metadata['changelog_uri']     = 'https://github.com/michaeltelford/wgit/blob/master/CHANGELOG.md'
+    s.metadata['source_code_uri']   = 'https://github.com/michaeltelford/wgit'
+    s.metadata['bug_tracker_uri']   = 'https://github.com/michaeltelford/wgit/issues'
+    s.metadata['documentation_uri'] = 'https://www.rubydoc.info/gems/wgit'
   else
     raise 'Only RubyGems 2.0 or newer can protect against public gem pushes'
   end
