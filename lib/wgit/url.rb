@@ -205,7 +205,7 @@ protocol scheme: #{url}"
       raise 'other must be relative' unless other.relative?
 
       other = other.omit_leading_slash
-      separator = other.start_with?('#') || other.start_with?('?') ? '' : '/'
+      separator = %w[# ? .].include?(other[0]) ? '' : '/'
 
       # We use to_s below to call String#+, not Wgit::Url#+ (alias for concat).
       concatted = omit_trailing_slash.to_s + separator.to_s + other.to_s

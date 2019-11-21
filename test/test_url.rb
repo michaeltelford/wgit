@@ -433,6 +433,7 @@ class TestUrl < TestHelper
     assert_equal 'http://www.google.co.uk/about.html', Wgit::Url.new('http://www.google.co.uk').concat('about.html')
     assert_equal 'http://www.google.co.uk/about.html#about-us', Wgit::Url.new('http://www.google.co.uk/about.html').concat('#about-us')
     assert_equal 'http://www.google.co.uk/about.html?foo=bar', Wgit::Url.new('http://www.google.co.uk/about.html').concat('?foo=bar')
+    assert_equal 'http://www.google.co.uk/about.html', Wgit::Url.new('http://www.google.co.uk/about').concat('.html')
     assert_equal 'http://example.com/', Wgit::Url.new('http://example.com').concat('/')
     assert_equal 'http://example.com/', Wgit::Url.new('http://example.com/').concat('/')
     assert_equal 'http://google.com/about/help', Wgit::Url.new('http://google.com/about').concat('help')
