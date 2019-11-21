@@ -25,8 +25,11 @@ Gem::Specification.new do |s|
   ])
   s.executables = %w[]
   s.metadata = {
+    'yard.run' => 'yri',
     'source_code_uri' => 'https://github.com/michaeltelford/wgit',
-    'yard.run' => 'yri'
+    'changelog_uri' => 'https://github.com/michaeltelford/wgit/blob/master/CHANGELOG.md',
+    'bug_tracker_uri' => 'https://github.com/michaeltelford/wgit/issues',
+    'documentation_uri' => 'https://www.rubydoc.info/gems/wgit'
   }
 
   s.platform              = Gem::Platform::RUBY
@@ -49,10 +52,6 @@ Gem::Specification.new do |s|
   # Only allow gem pushes to rubygems.org.
   if s.respond_to?(:metadata)
     s.metadata['allowed_push_host'] = 'https://rubygems.org'
-    s.metadata['changelog_uri']     = 'https://github.com/michaeltelford/wgit/blob/master/CHANGELOG.md'
-    s.metadata['source_code_uri']   = 'https://github.com/michaeltelford/wgit'
-    s.metadata['bug_tracker_uri']   = 'https://github.com/michaeltelford/wgit/issues'
-    s.metadata['documentation_uri'] = 'https://www.rubydoc.info/gems/wgit'
   else
     raise 'Only RubyGems 2.0 or newer can protect against public gem pushes'
   end

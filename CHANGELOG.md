@@ -9,6 +9,15 @@
 - ...
 ---
 
+## v0.5.1
+### Added
+- `Wgit.version_str` method.
+### Changed/Removed
+- Switched to optimistic dependency versioning.
+### Fixed
+- Bug in `Wgit::Url#concat`.
+---
+
 ## v0.5.0
 ### Added
 - A Wgit Wiki! [https://github.com/michaeltelford/wgit/wiki](https://github.com/michaeltelford/wgit/wiki)
