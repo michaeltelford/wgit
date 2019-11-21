@@ -11,4 +11,9 @@ module Wgit
   def self.version
     VERSION
   end
+
+  # Returns the current gem version in a presentation String.
+  def self.version_str
+    "wgit v#{VERSION}"
+  end
 end
