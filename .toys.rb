@@ -124,7 +124,7 @@ end
 # tool :release_gem
 expand :gem_build do |t|
   t.name = :release_gem
-  t.install_gem = true
+  t.install_gem = false
   t.push_gem = true
   t.tag = true
   t.push_tag = true
