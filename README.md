@@ -392,9 +392,9 @@ Before you consider making a contribution, check out [CONTRIBUTING.md](https://g
 
 After checking out the repo, run the following commands:
 
-1) `gem install bundler`
-2) `bundle install --jobs=3`
-3) `toys setup`
+1. `gem install bundler`
+2. `bundle install --jobs=3`
+3. `toys setup`
 
 And you're good to go!
 
