@@ -208,7 +208,7 @@ tool :yardoc do
   desc 'Generates the YARD docs, use --serve to browse'
   flag :serve, '-s', '--serve'
 
-  include :exec, exit_on_nonzero_status: true
+  include :exec, exit_on_nonzero_status: false
   include :terminal
 
   def run
@@ -216,10 +216,16 @@ tool :yardoc do
   end
 
   def serve_docs
-    if exec 'which pbcopy', out: :null
-      url = 'http://localhost:8808'
+    url = 'http://localhost:8808'
+
+    if exec('which pbcopy', out: :null).success?
       exec "echo '#{url}' | pbcopy"
       puts "Copied '#{url}' to clipboard", :green
+    elsif exec('which xclip', out: :null).success?
+      exec "echo '#{url}' | xclip -sel clip"
+      puts "Copied '#{url}' to clipboard", :green
+    else
+      puts 'Install pbcopy or xclip to automatically copy url to clipboard'
     end
 
     exec 'bundle exec yard server -r'
