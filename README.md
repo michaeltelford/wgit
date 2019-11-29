@@ -33,6 +33,10 @@ Continue reading the rest of this `README` for more information on Wgit. When yo
 
 ## Installation
 
+Currently, the required Ruby version is:
+
+`~> 2.5` a.k.a. `>= 2.5 && < 3`
+
 Add this line to your application's `Gemfile`:
 
 ```ruby
@@ -170,9 +174,9 @@ The next example requires a configured database instance. Currently the only sup
 
 The following versions of MongoDB are supported:
 
-| Gem      | Database   |
-| -------- | ---------- |
-| ~> 2.9.0 | ~> 4.0.0   |
+| Gem    | Database |
+| ------ | -------- |
+| ~> 2.9 | ~> 4.0   |
 
 ### Data Model
 
