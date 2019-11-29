@@ -5,6 +5,7 @@ require_relative 'document'
 require_relative 'utils'
 require_relative 'assertable'
 require_relative 'response'
+require 'set'
 require 'typhoeus'
 
 module Wgit
