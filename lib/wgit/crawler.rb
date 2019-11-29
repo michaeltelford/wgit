@@ -74,19 +74,16 @@ module Wgit
       return nil if doc.nil?
 
       crawl_opts = { follow_external_redirects: false, host: url.to_base }
-      link_opts  = { allow_paths: allow_paths, disallow_paths: disallow_paths }
+      path_opts  = { allow_paths: allow_paths, disallow_paths: disallow_paths }
 
       alt_url   = url.end_with?('/') ? url.chop : url + '/'
-      crawled   = [url, alt_url]
-      externals = doc.external_links
-      internals = get_internal_links(doc, link_opts)
+      crawled   = Set.new([url, alt_url])
+      externals = Set.new(doc.external_links)
+      internals = Set.new(get_internal_links(doc, path_opts))
 
-      return doc.external_links.uniq if internals.empty?
+      return externals.to_a if internals.empty?
 
       loop do
-        crawled.uniq!
-        internals.uniq!
-
         links = internals - crawled
         break if links.empty?
 
@@ -94,15 +91,15 @@ module Wgit
           orig_link = link.dup
           doc = crawl_url(link, crawl_opts, &block)
 
-          crawled.push(orig_link, link) # Push both in case of redirects.
+          crawled += [orig_link, link] # Push both links in case of redirects.
           next if doc.nil?
 
-          internals.concat(get_internal_links(doc, link_opts))
-          externals.concat(doc.external_links)
+          internals += get_internal_links(doc, path_opts)
+          externals += doc.external_links
         end
       end
 
-      externals.uniq
+      externals.to_a
     end
 
     # Crawls one or more individual urls using Wgit::Crawler#crawl_url
@@ -268,7 +265,18 @@ module Wgit
       response.ip_address       = http_response.primary_ip
       response.add_total_time(http_response.total_time)
 
-      # Log (debug) the request/response details.
+      # Log the request/response details.
+      log_http(response)
+
+      # Handle a failed response.
+      raise "No response (within timeout: #{@time_out} second(s))" \
+      if response.failure?
+    end
+
+    # Log (at debug level) the HTTP request/response details.
+    #
+    # @param response [Wgit::Response] The request/response to log.
+    def log_http(response)
       resp_template  = '[http] Response: %s (%s bytes in %s seconds)'
       log_status     = (response.status || 0)
       log_total_time = response.total_time.truncate(3)
@@ -277,10 +285,6 @@ module Wgit
       Wgit.logger.debug(
         format(resp_template, log_status, response.size, log_total_time)
       )
-
-      # Handle a failed response.
-      raise "No response (within timeout: #{@time_out} second(s))" \
-      if response.failure?
     end
 
     # Performs a HTTP GET request and returns the response.
