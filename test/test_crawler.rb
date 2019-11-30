@@ -107,7 +107,9 @@ class TestCrawler < TestHelper
   end
 
   def test_crawl_url__redirects
-    # Url passed to method updates on redirect.
+    # http://test-site.com/sneaky redirects to https://motherfuckingwebsite.com/.
+
+    # Redirect allowed, url updates on redirect.
     c = Wgit::Crawler.new
     url = Wgit::Url.new 'http://test-site.com/sneaky'
     c.crawl_url(url) do |doc|
@@ -116,33 +118,13 @@ class TestCrawler < TestHelper
     end
     assert_equal 'https://motherfuckingwebsite.com/', url
 
-    # Url redirect not affected by host: X if follow_external_redirects: true.
+    # Redirect not allowed, url doesn't change.
     url = Wgit::Url.new 'http://test-site.com/sneaky'
-    c.crawl_url(url, host: url.to_base) do |doc|
-      assert_equal 'https://motherfuckingwebsite.com/', doc.url
-      refute_empty doc
-    end
-    assert_equal 'https://motherfuckingwebsite.com/', url
-
-    # Url redirect not allowed.
-    url = Wgit::Url.new 'http://test-site.com/sneaky'
-    c.crawl_url(
-      url,
-      follow_external_redirects: false,
-      host: url.to_base
-    ) do |doc|
+    c.crawl_url(url, follow_redirects: false) do |doc|
       assert_equal 'http://test-site.com/sneaky', doc.url
       assert_empty doc
     end
     assert_equal 'http://test-site.com/sneaky', url
-
-    # Url redirect parameter error.
-    url = Wgit::Url.new 'http://test-site.com/sneaky'
-    e = assert_raises(StandardError) do
-      c.crawl_url(url, follow_external_redirects: false)
-    end
-    assert_equal 'http://test-site.com/sneaky', url
-    assert_equal 'host cannot be nil if follow_external_redirects is false', e.message
   end
 
   def test_crawl_urls
@@ -421,12 +403,12 @@ class TestCrawler < TestHelper
 
     refute_nil c.last_response
     assert c.last_response.failure?
-    assert c.last_response.total_time > 0.0
+    assert_equal 0.0, c.last_response.total_time
     assert_equal 0, c.last_response.redirect_count
     assert_nil html
     assert url.crawled
     refute_nil url.date_crawled
-    refute_nil url.crawl_duration
+    assert_equal 0.0, url.crawl_duration
   end
 
   def test_resolve__absolute_location
@@ -438,7 +420,8 @@ class TestCrawler < TestHelper
 
   def test_resolve__relative_location
     c = Wgit::Crawler.new
-    # Redirects twice to https://example.com/de/folder/page2#blah-on-page2
+    # Redirects twice to https://example.com/de/folder/page2#blah-on-page2.
+    # The 2nd redirect is a relative location.
     url = Wgit::Url.new 'https://cms.org'
 
     assert_resolve c, url, 'https://example.com/de/folder/page2#blah-on-page2'
@@ -532,42 +515,81 @@ class TestCrawler < TestHelper
     assert resp.failure?
   end
 
-  def test_resolve__redirect_to_any_external_url_works
+  def test_resolve__redirect_allowed_anywhere
     c = Wgit::Crawler.new
-    # Redirects once to motherfuckingwebsite.com.
+    # Redirects once to https://motherfuckingwebsite.com/.
     url = Wgit::Url.new 'http://test-site.com/sneaky'
 
     assert_resolve c, url, 'https://motherfuckingwebsite.com/'
   end
 
-  def test_resolve__redirect_not_allowed
+  def test_resolve__redirect_not_allowed_anywhere
     c = Wgit::Crawler.new
     url = 'http://twitter.com'.to_url
     resp = Wgit::Response.new
 
     e = assert_raises(StandardError) do
-      c.send(
-        :resolve, url, resp,
-        follow_external_redirects: false, host: 'http://twitter.co.uk'
-      )
+      c.send(:resolve, url, resp, follow_redirects: false)
     end
-    assert_equal "External redirect not allowed - Redirected to: \
-'https://twitter.com', which is outside of host: 'http://twitter.co.uk'", e.message
+    assert_equal "Redirect not allowed: https://twitter.com", e.message
     assert_equal 'http://twitter.com', url
     assert resp.redirect?
   end
 
-  def test_resolve__redirect_to_any_external_url_fails
+  def test_resolve__redirect_allowed_within_host__success
+    c = Wgit::Crawler.new
+    # Redirects to https://twitter.com which is on same host.
+    url = Wgit::Url.new 'http://twitter.com'
+
+    assert_resolve c, url, 'https://twitter.com', follow_redirects: :host
+  end
+
+  def test_resolve__redirect_allowed_within_host__failure
+    c = Wgit::Crawler.new
+    resp = Wgit::Response.new
+    # Redirects to http://ftp.test-site.com which is outside of host.
+    url = Wgit::Url.new 'http://test-site.com/ftp'
+
+    e = assert_raises(StandardError) do
+      c.send(:resolve, url, resp, follow_redirects: :host)
+    end
+    assert_equal "Redirect (outside of host) is not allowed: 'http://ftp.test-site.com'", e.message
+    assert_equal 'http://test-site.com/ftp', url
+    assert resp.redirect?
+  end
+
+  def test_resolve__redirect_allowed_within_domain__success
+    c = Wgit::Crawler.new
+    # Redirects to http://smtp.test-site.com which is on same domain.
+    url = Wgit::Url.new 'http://test-site.com/smtp'
+
+    assert_resolve c, url, 'http://smtp.test-site.com', follow_redirects: :domain
+  end
+
+  def test_resolve__redirect_allowed_within_domain__failure
+    c = Wgit::Crawler.new
+    resp = Wgit::Response.new
+    # Redirects twice, first is within domain, 2nd isn't, which fails.
+    url = Wgit::Url.new 'http://myserver.com'
+
+    e = assert_raises(StandardError) do
+      c.send(:resolve, url, resp, follow_redirects: :domain)
+    end
+    assert_equal "Redirect (outside of domain) is not allowed: 'http://test-site.com'", e.message
+    assert_equal 'http://www.myserver.com', url
+    assert resp.redirect?
+  end
+
+  def test_resolve__follow_redirect_invalid_param
     c = Wgit::Crawler.new
     url = 'http://twitter.com'.to_url
     resp = Wgit::Response.new
 
     e = assert_raises(StandardError) do
-      # Because host defaults to nil, any external redirect will fail.
-      c.send :resolve, url, resp, follow_external_redirects: false
+      # Error for :foo opts param.
+      c.send :resolve, url, resp, follow_redirects: :foo
     end
-    assert_equal "External redirect not allowed - Redirected to: \
-'https://twitter.com', which is outside of host: ''", e.message
+    assert_equal "Unknown opts param: :foo, use one of: [:base, :host, :domain, :brand]", e.message
     assert_equal 'http://twitter.com', url
     assert resp.redirect?
   end
@@ -757,7 +779,7 @@ class TestCrawler < TestHelper
       refute_nil doc.url.date_crawled
 
       case doc.url
-      when 'http://test-site.com/sneaky' # Redirects to different host.
+      when 'http://test-site.com/sneaky' # Redirects to different domain.
         assert_empty doc
         refute_nil doc.url.crawl_duration
       when 'http://test-site.com/ftp'    # Redirects to different host.
@@ -781,9 +803,9 @@ class TestCrawler < TestHelper
     refute_nil url.crawl_duration
   end
 
-  def assert_resolve(crawler, start_url, end_url)
+  def assert_resolve(crawler, start_url, end_url, follow_redirects: true)
     response = Wgit::Response.new
-    crawler.send :resolve, start_url, response
+    crawler.send :resolve, start_url, response, follow_redirects: follow_redirects
 
     assert response.ok?
     assert response.total_time > 0.0

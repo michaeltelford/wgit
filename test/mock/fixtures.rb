@@ -26,6 +26,8 @@ stub_page 'http://test-site.com/public/records?q=username', fixture: 'test-site.
 stub_page 'http://test-site.com/public/records#top', fixture: 'test-site.com/public/records'
 stub_redirect 'http://test-site.com/ftp', 'http://ftp.test-site.com'
 stub_not_found 'http://ftp.test-site.com'
+stub_redirect 'http://test-site.com/smtp', 'http://smtp.test-site.com'
+stub_page 'http://smtp.test-site.com'
 stub_redirect 'http://myserver.com', 'http://www.myserver.com'
 stub_redirect 'http://www.myserver.com', 'http://test-site.com'
 stub_timeout 'http://doesnt_exist/'

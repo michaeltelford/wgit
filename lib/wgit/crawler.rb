@@ -74,10 +74,9 @@ module Wgit
       doc = crawl_url(url, &block)
       return nil if doc.nil?
 
-      crawl_opts = { follow_external_redirects: false, host: url.to_base }
-      path_opts  = { allow_paths: allow_paths, disallow_paths: disallow_paths }
-
+      path_opts = { allow_paths: allow_paths, disallow_paths: disallow_paths }
       alt_url   = url.end_with?('/') ? url.chop : url + '/'
+
       crawled   = Set.new([url, alt_url])
       externals = Set.new(doc.external_links)
       internals = Set.new(get_internal_links(doc, path_opts))
@@ -90,7 +89,7 @@ module Wgit
 
         links.each do |link|
           orig_link = link.dup
-          doc = crawl_url(link, crawl_opts, &block)
+          doc = crawl_url(link, follow_redirects: :host, &block)
 
           crawled += [orig_link, link] # Push both links in case of redirects.
           next if doc.nil?
@@ -111,13 +110,10 @@ module Wgit
     #   way to interact with them.
     # @raise [StandardError] If no urls are provided.
     # @return [Wgit::Document] The last Document crawled.
-    def crawl_urls(*urls, follow_external_redirects: true, host: nil, &block)
+    def crawl_urls(*urls, follow_redirects: true, &block)
       raise 'You must provide at least one Url' if urls.empty?
 
-      opts = {
-        follow_external_redirects: follow_external_redirects,
-        host: host
-      }
+      opts = { follow_redirects: follow_redirects }
       doc = nil
 
       Wgit::Utils.each(urls) { |url| doc = crawl_url(url, opts, &block) }
@@ -142,20 +138,14 @@ module Wgit
     #   crawl was successful or not. Therefore, Document#url etc. can be used.
     # @return [Wgit::Document, nil] The crawled HTML Document or nil if the
     #   crawl was unsuccessful.
-    def crawl_url(url, follow_external_redirects: true, host: nil)
+    def crawl_url(url, follow_redirects: true)
       # A String url isn't allowed because it's passed by value not reference,
       # meaning a redirect isn't reflected; A Wgit::Url is passed by reference.
       assert_type(url, Wgit::Url)
-      raise 'host cannot be nil if follow_external_redirects is false' \
-      if !follow_external_redirects && host.nil?
 
-      html = fetch(
-        url,
-        follow_external_redirects: follow_external_redirects,
-        host: host
-      )
+      html = fetch(url, follow_redirects: follow_redirects)
+      doc  = Wgit::Document.new(url, html, encode_html: @encode_html)
 
-      doc = Wgit::Document.new(url, html, encode_html: @encode_html)
       yield(doc) if block_given?
 
       doc.empty? ? nil : doc
@@ -177,18 +167,14 @@ module Wgit
     #   absolute and contain a protocol prefix. For example, a `host:` of
     #   'http://www.example.com' will only allow redirects for Urls with a
     #   `to_host` value of 'www.example.com'.
+    # @raise [StandardError] If url isn't valid and absolute.
     # @return [String, nil] The crawled HTML or nil if the crawl was
     #   unsuccessful.
-    def fetch(url, follow_external_redirects: true, host: nil)
+    def fetch(url, follow_redirects: true)
       response = Wgit::Response.new
+      raise "Invalid url: #{url}" unless url.valid?
 
-      resolve(
-        url,
-        response,
-        follow_external_redirects: follow_external_redirects,
-        host: host
-      )
-
+      resolve(url, response, follow_redirects: follow_redirects)
       response.body_or_nil
     rescue StandardError => e
       Wgit.logger.debug("Wgit::Crawler#fetch('#{url}') exception: #{e}")
@@ -216,7 +202,10 @@ module Wgit
     #   'http://www.example.com' will only allow redirects for Urls with a
     #   `to_host` value of 'www.example.com'.
     # @raise [StandardError] If a redirect isn't allowed etc.
-    def resolve(url, response, follow_external_redirects: true, host: nil)
+    def resolve(url, response, follow_redirects: true)
+      orig_url_base = url.to_url.to_base # Recorded before any redirects.
+      follow_redirects, within = redirect?(follow_redirects)
+
       loop do
         get_response(url, response)
         break unless response.redirect?
@@ -227,10 +216,11 @@ module Wgit
 
         yield(url, response, location) if block_given?
 
-        # Validate redirect.
-        if !follow_external_redirects && !location.relative?(host: host)
-          raise "External redirect not allowed - Redirected to: \
-'#{location}', which is outside of host: '#{host}'"
+        # Validate redirect is allowed.
+        raise "Redirect not allowed: #{location}" unless follow_redirects
+
+        if within && !location.relative?(within => orig_url_base)
+          raise "Redirect (outside of #{within}) is not allowed: '#{location}'"
         end
 
         raise "Too many redirects, exceeded: #{@redirect_limit}" \
@@ -272,20 +262,6 @@ module Wgit
       # Handle a failed response.
       raise "No response (within timeout: #{@time_out} second(s))" \
       if response.failure?
-    end
-
-    # Log (at debug level) the HTTP request/response details.
-    #
-    # @param response [Wgit::Response] The request/response to log.
-    def log_http(response)
-      resp_template  = '[http] Response: %s (%s bytes in %s seconds)'
-      log_status     = (response.status || 0)
-      log_total_time = response.total_time.truncate(3)
-
-      Wgit.logger.debug("[http] Request:  #{response.url}")
-      Wgit.logger.debug(
-        format(resp_template, log_status, response.size, log_total_time)
-      )
     end
 
     # Performs a HTTP GET request and returns the response.
@@ -339,6 +315,31 @@ module Wgit
     end
 
     private
+
+    # Returns whether or not to follow redirects, and within what context e.g.
+    # :host, :domain etc.
+    def redirect?(follow_redirects)
+      return [true, follow_redirects] if follow_redirects.is_a?(Symbol)
+
+      unless [true, false].include?(follow_redirects)
+        raise "follow_redirects: must be a Boolean or Symbol, not: \
+#{follow_redirects}"
+      end
+
+      [follow_redirects, nil]
+    end
+
+    # Log (at debug level) the HTTP request/response details.
+    def log_http(response)
+      resp_template  = '[http] Response: %s (%s bytes in %s seconds)'
+      log_status     = (response.status || 0)
+      log_total_time = response.total_time.truncate(3)
+
+      Wgit.logger.debug("[http] Request:  #{response.url}")
+      Wgit.logger.debug(
+        format(resp_template, log_status, response.size, log_total_time)
+      )
+    end
 
     # Validate and filter by the given URL paths.
     def process_paths(links, allow_paths, disallow_paths)
