@@ -152,7 +152,7 @@ module Wgit
       type, url = opts.first
       url = Wgit::Url.new(url)
       unless url.to_base
-        raise "Invalid opts param value, Url must be absolute and contain \
+        raise "Invalid opts param value, it must be absolute and contain \
 protocol scheme: #{url}"
       end
 

@@ -224,7 +224,7 @@ class TestUrl < TestHelper
     e = assert_raises(StandardError) do
       Wgit::Url.new('http://example.com').relative?(foo: '/')
     end
-    assert_equal 'Invalid opts param value, Url must be absolute and contain protocol scheme: /', e.message
+    assert_equal 'Invalid opts param value, it must be absolute and contain protocol scheme: /', e.message
   end
 
   def test_relative__with_base
@@ -270,7 +270,7 @@ class TestUrl < TestHelper
       Wgit::Url.new('http://www.google.co.uk/about.html').relative? base: 'bing.com'
     end
     assert_equal(
-      'Invalid opts param value, Url must be absolute and contain protocol scheme: bing.com',
+      'Invalid opts param value, it must be absolute and contain protocol scheme: bing.com',
       e.message
     )
   end
@@ -318,7 +318,7 @@ class TestUrl < TestHelper
       Wgit::Url.new('http://www.google.co.uk/about.html').relative? host: 'bing.com'
     end
     assert_equal(
-      'Invalid opts param value, Url must be absolute and contain protocol scheme: bing.com',
+      'Invalid opts param value, it must be absolute and contain protocol scheme: bing.com',
       e.message
     )
   end
@@ -366,7 +366,7 @@ class TestUrl < TestHelper
       Wgit::Url.new('http://www.google.co.uk/about.html').relative? domain: 'bing.com'
     end
     assert_equal(
-      'Invalid opts param value, Url must be absolute and contain protocol scheme: bing.com',
+      'Invalid opts param value, it must be absolute and contain protocol scheme: bing.com',
       e.message
     )
   end
@@ -418,7 +418,7 @@ class TestUrl < TestHelper
       Wgit::Url.new('http://www.google.co.uk/about.html').relative? brand: 'bing.com'
     end
     assert_equal(
-      'Invalid opts param value, Url must be absolute and contain protocol scheme: bing.com',
+      'Invalid opts param value, it must be absolute and contain protocol scheme: bing.com',
       e.message
     )
   end
