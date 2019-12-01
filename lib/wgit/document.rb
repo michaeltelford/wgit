@@ -50,10 +50,10 @@ module Wgit
     # pages retrieved from the database.
     #
     # During initialisation, the Document will call any private
-    # 'init_*_from_html' and 'init_*_from_object' methods it can find. See the
+    # 'init_x_from_html' and 'init_x_from_object' methods it can find. See the
     # README.md and Wgit::Document.define_extension method for more details.
     #
-    # @param url_or_obj [String, Wgit::Url, Object#fetch] Either a String
+    # @param url_or_obj [String, Wgit::Url, #fetch] Either a String
     #   representing a URL or a Hash-like object responding to :fetch. e.g. a
     #   MongoDB collection object. The Object's :fetch method should support
     #   Strings as keys.
@@ -105,7 +105,7 @@ module Wgit
     # a default will be used. The default value is: `singleton ? nil : []`.
     #
     # @param var [Symbol] The name of the variable to be initialised.
-    # @param xpath [String, Object#call] The xpath used to find the element(s)
+    # @param xpath [String, #call] The xpath used to find the element(s)
     #   of the webpage. Only used when initializing from HTML.
     #
     #   Pass a callable object (proc etc.) if you want the
@@ -121,15 +121,16 @@ module Wgit
     # @option options [Boolean] :text_content_only The text_content_only option
     #   if true will use the text content of the Nokogiri result object,
     #   otherwise the Nokogiri object itself is returned. Defaults to true.
-    # @yield [value, source, type] Yields the value (Object) about to be
-    #   assigned to the new var, the source of the value (Wgit::Document or DB
-    #   Object) and the source type (Symbol of either :document or :object).
-    #
-    #   The return value of the block becomes the new var value, unless nil.
-    #   Return nil if you want to inspect but not change the var value. The
-    #   block is executed when a Wgit::Document is initialized.
+    # @yieldparam value [Object] The value to be assigned to the new var.
+    # @yieldparam source [Wgit::Document, Object] The source of the value.
+    # @yieldparam type [Symbol] The source type, either :document or (DB)
+    #   :object.
+    # @yieldreturn [Object] The return value of the block becomes the new var
+    #   value, unless nil. Return nil if you want to inspect but not change the
+    #   var value. The block is executed when a Wgit::Document is initialized,
+    #   regardless of the source.
     # @raise [StandardError] If the var param isn't valid.
-    # @return [Symbol] The given var Symbol.
+    # @return [Symbol] The given var Symbol if successful.
     def self.define_extension(var, xpath, options = {}, &block)
       var = var.to_sym
       default_options = { singleton: true, text_content_only: true }
@@ -381,7 +382,7 @@ module Wgit
     # original sentence, which ever is less. The algorithm obviously ensures
     # that the search query is visible somewhere in the sentence.
     #
-    # @param query [String, Object#to_s] The value to search the document's
+    # @param query [String, #to_s] The value to search the document's
     #   @text for.
     # @param case_sensitive [Boolean] Whether character case must match.
     # @param whole_sentence [Boolean] Whether multiple words should be searched
@@ -422,7 +423,7 @@ module Wgit
     # functionality. The original text is returned; no other reference to it
     # is kept thereafter.
     #
-    # @param query [String, Object#to_s] The value to search the document's
+    # @param query [String, #to_s] The value to search the document's
     #   @text for.
     # @param case_sensitive [Boolean] Whether character case must match.
     # @param whole_sentence [Boolean] Whether multiple words should be searched
@@ -499,7 +500,7 @@ module Wgit
 
     # Returns a value from the obj using the given key via obj#fetch.
     #
-    # @param obj [Object#fetch] The object containing the key/value.
+    # @param obj [#fetch] The object containing the key/value.
     # @param key [String] Used to find the value in the obj.
     # @param singleton [Boolean] True if a single value, false otherwise.
     # @yield [value, source] Given the value (String/Object) before it's set as

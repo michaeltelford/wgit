@@ -242,8 +242,8 @@ class TestReadmeCodeExamples < TestHelper
     tables = doc.tables
 
     # Both the collection and each table within the collection are plain Nokogiri objects.
-    tables.class        # => Nokogiri::XML::NodeSet
-    tables.first.class  # => Nokogiri::XML::Element
+    tables.class       # => Nokogiri::XML::NodeSet
+    tables.first.class # => Nokogiri::XML::Element
 
     # Notice how the Document's stats will include our 'tables' extension.
     doc.stats # => {

@@ -16,7 +16,8 @@ module Wgit
     include Assertable
 
     # The amount of allowed redirects before raising an error. Set to 0 to
-    # disable redirects completely.
+    # disable redirects completely; or you can pass `follow_redirects: false`
+    # to any Wgit::Crawler.crawl_* method.
     attr_accessor :redirect_limit
 
     # The maximum amount of time (in seconds) a crawl request has to complete
@@ -106,6 +107,11 @@ module Wgit
     # underneath. See Wgit::Crawler#crawl_site for crawling entire sites.
     #
     # @param urls [*Wgit::Url] The Url's to crawl.
+    # @param follow_redirects [Boolean, Symbol] Whether or not to follow
+    #   redirects. Pass a Symbol to limit where the redirect is allowed to go
+    #   e.g. :host only allows redirects within the same host. Choose from
+    #   :base, :host, :domain or :brand. See Wgit::Url#relative? opts param.
+    #   This value will be used for all urls crawled.
     # @yield [doc] Given each crawled page (Wgit::Document); this is the only
     #   way to interact with them.
     # @raise [StandardError] If no urls are provided.
@@ -125,15 +131,10 @@ module Wgit
     # occurs.
     #
     # @param url [Wgit::Url] The Url to crawl; which will likely be modified.
-    # @param follow_external_redirects [Boolean] Whether or not to follow
-    #   an external redirect. External meaning to a different host. False will
-    #   return nil for such a crawl. If false, you must also provide a `host:`
-    #   parameter.
-    # @param host [Wgit::Url, String] Specify the host by which
-    #   an absolute redirect is determined to be internal or not. Must be
-    #   absolute and contain a protocol prefix. For example, a `host:` of
-    #   'http://www.example.com' will only allow redirects for Url's with a
-    #   `to_host` value of 'www.example.com'.
+    # @param follow_redirects [Boolean, Symbol] Whether or not to follow
+    #   redirects. Pass a Symbol to limit where the redirect is allowed to go
+    #   e.g. :host only allows redirects within the same host. Choose from
+    #   :base, :host, :domain or :brand. See Wgit::Url#relative? opts param.
     # @yield [doc] The crawled HTML page (Wgit::Document) regardless if the
     #   crawl was successful or not. Therefore, Document#url etc. can be used.
     # @return [Wgit::Document, nil] The crawled HTML Document or nil if the
@@ -159,14 +160,10 @@ module Wgit
     #
     # @param url [Wgit::Url] The URL to fetch. This Url object is passed by
     #   reference and gets modified as a result of the fetch/crawl.
-    # @param follow_external_redirects [Boolean] Whether or not to follow
-    #   an external redirect. False will return nil for such a crawl. If false,
-    #   you must also provide a `host:` parameter.
-    # @param host [Wgit::Url, String] Specify the host by which
-    #   an absolute redirect is determined to be internal or not. Must be
-    #   absolute and contain a protocol prefix. For example, a `host:` of
-    #   'http://www.example.com' will only allow redirects for Urls with a
-    #   `to_host` value of 'www.example.com'.
+    # @param follow_redirects [Boolean, Symbol] Whether or not to follow
+    #   redirects. Pass a Symbol to limit where the redirect is allowed to go
+    #   e.g. :host only allows redirects within the same host. Choose from
+    #   :base, :host, :domain or :brand. See Wgit::Url#relative? opts param.
     # @raise [StandardError] If url isn't valid and absolute.
     # @return [String, nil] The crawled HTML or nil if the crawl was
     #   unsuccessful.
@@ -193,14 +190,10 @@ module Wgit
     # @param url [Wgit::Url] The URL to GET and resolve.
     # @param response [Wgit::Response] The response to enrich. Modifies by
     #   reference.
-    # @param follow_external_redirects [Boolean] Whether or not to follow
-    #   an external redirect. If false, you must also provide a `host:`
-    #   parameter.
-    # @param host [Wgit::Url, String] Specify the host by which
-    #   an absolute redirect is determined to be internal or not. Must be
-    #   absolute and contain a protocol prefix. For example, a `host:` of
-    #   'http://www.example.com' will only allow redirects for Urls with a
-    #   `to_host` value of 'www.example.com'.
+    # @param follow_redirects [Boolean, Symbol] Whether or not to follow
+    #   redirects. Pass a Symbol to limit where the redirect is allowed to go
+    #   e.g. :host only allows redirects within the same host. Choose from
+    #   :base, :host, :domain or :brand. See Wgit::Url#relative? opts param.
     # @raise [StandardError] If a redirect isn't allowed etc.
     def resolve(url, response, follow_redirects: true)
       orig_url_base = url.to_url.to_base # Recorded before any redirects.

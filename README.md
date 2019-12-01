@@ -86,7 +86,7 @@ results.first # => "ial materials involving war, spying and corruption.
 
 ## Documentation
 
-100% of Wgit's code is documented using [YARD](https://yardoc.org/), deployed to [rubydoc.info](https://www.rubydoc.info/gems/wgit). This greatly benefits developers in using Wgit in their own programs. Another good source of information (as to how the library behaves) are the [tests](https://github.com/michaeltelford/wgit/tree/master/test). Also, see the [Practical Examples](#Practical-Examples) section below for real working examples of Wgit in action.
+100% of Wgit's code is documented using [YARD](https://yardoc.org/), deployed to [rubydoc.info](https://www.rubydoc.info/github/michaeltelford/wgit/master). This greatly benefits developers in using Wgit in their own programs. Another good source of information (as to how the library behaves) are the [tests](https://github.com/michaeltelford/wgit/tree/master/test). Also, see the [Practical Examples](#Practical-Examples) section below for real working examples of Wgit in action.
 
 ## Practical Examples
 
@@ -96,7 +96,7 @@ In addition to the practical examples below, the [wiki](https://github.com/micha
 
 ### WWW HTML Indexer
 
-See the `Wgit::Indexer#index_www` documentation and source code for an already built example of a WWW HTML indexer. It will crawl any external url's (in the database) and index their HTML for later use, be it searching or otherwise. It will literally crawl the WWW forever if you let it!
+See the [`Wgit::Indexer#index_www`](https://www.rubydoc.info/github/michaeltelford/wgit/master/Wgit%2Eindex_www) documentation and source code for an already built example of a WWW HTML indexer. It will crawl any external URL's (in the database) and index their HTML for later use, be it searching or otherwise. It will literally crawl the WWW forever if you let it!
 
 See the [Database Example](#Database-Example) for information on how to configure a database for use with Wgit.
 
@@ -170,7 +170,7 @@ end
 
 The next example requires a configured database instance. Currently the only supported DBMS is MongoDB. See [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) for a free (small) account or provide your own MongoDB instance.
 
-`Wgit::Database` provides a light wrapper of logic around the `mongo` gem allowing for simple database interactivity and object serialisation. Using Wgit you can index webpages, store them in a database and then search through all that's been indexed. The use of a database is entirely optional however and isn't required for crawling or URL parsing etc.
+[`Wgit::Database`](https://www.rubydoc.info/github/michaeltelford/wgit/master/Wgit/Database) provides a light wrapper of logic around the `mongo` gem allowing for simple database interactivity and object serialisation. Using Wgit you can index webpages, store them in a database and then search through all that's been indexed. The use of a database is entirely optional however and isn't required for crawling or URL parsing etc.
 
 The following versions of MongoDB are supported:
 
@@ -343,8 +343,8 @@ doc = Wgit::Document.new(
 tables = doc.tables
 
 # Both the collection and each table within the collection are plain Nokogiri objects.
-tables.class        # => Nokogiri::XML::NodeSet
-tables.first.class  # => Nokogiri::XML::Element
+tables.class       # => Nokogiri::XML::NodeSet
+tables.first.class # => Nokogiri::XML::Element
 
 # Notice the Document's stats now include our 'tables' extension.
 doc.stats # => {
@@ -352,7 +352,9 @@ doc.stats # => {
 # }
 ```
 
-**Note**: Wgit uses Document extensions to provide much of it's core serialising functionality, providing access to a webpage's text or links for example. These [default Document extensions](https://github.com/michaeltelford/wgit/blob/master/lib/wgit/document_extensions.rb) provide examples for your own.
+Wgit uses Document extensions to provide much of it's core serialising functionality, providing access to a webpage's text or links for example. These [default Document extensions](https://github.com/michaeltelford/wgit/blob/master/lib/wgit/document_extensions.rb) provide examples for your own.
+
+See the [Wgit::Document.define_extension](https://www.rubydoc.info/github/michaeltelford/wgit/master/Wgit%2FDocument.define_extension) docs for more information.
 
 **Extension Notes**:
 

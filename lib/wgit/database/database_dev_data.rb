@@ -1,8 +1,12 @@
 require 'securerandom'
 
 module Wgit
-  # Module containing example DB collection objects used in testing and
-  # development. The 'url' field uses a UUID in order to be unique.
+  # Module containing example DB collection objects. The 'url' fields use a
+  # UUID in order to be unique.
+  #
+  # Used in testing and development. This module isn't packaged in the gem and
+  # is for devs (via the development console) and tests (setup and assertions)
+  # only.
   module DatabaseDevData
     # Returns a Hash representing a Url record in the DB.
     def self.url(url: 'http://www.example.co.uk', timestamps: true)

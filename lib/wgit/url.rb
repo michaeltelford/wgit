@@ -31,7 +31,7 @@ module Wgit
     # Initializes a new instance of Wgit::Url which represents a web based
     # HTTP URL.
     #
-    # @param url_or_obj [String, Wgit::Url, Object#fetch#[]] Is either a String
+    # @param url_or_obj [String, Wgit::Url, #fetch#[]] Is either a String
     #   based URL or an object representing a Database record e.g. a MongoDB
     #   document/object.
     # @param crawled [Boolean] Whether or not the HTML of the URL's web page

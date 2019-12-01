@@ -1,1 +1,7 @@
--o .doc/ - CHANGELOG.md LICENSE.txt README.md --protected --private
+--readme README.md
+--title 'Wgit API Documentation'
+--charset utf-8
+--markup markdown
+--output .doc
+--protected
+- *.md LICENSE.txt

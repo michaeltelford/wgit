@@ -19,7 +19,7 @@ Gem::Specification.new do |s|
   TEXT
 
   s.require_paths = %w[lib]
-  s.files = (Dir['./lib/**/*.rb', '*.md'] - [
+  s.files = (Dir['./lib/**/*.rb', '*.md', '.yardopts'] - [
     './lib/wgit/database/database_dev_data.rb',
     './lib/wgit/database/database_helper.rb'
   ])
@@ -29,7 +29,7 @@ Gem::Specification.new do |s|
     'source_code_uri' => 'https://github.com/michaeltelford/wgit',
     'changelog_uri' => 'https://github.com/michaeltelford/wgit/blob/master/CHANGELOG.md',
     'bug_tracker_uri' => 'https://github.com/michaeltelford/wgit/issues',
-    'documentation_uri' => 'https://www.rubydoc.info/gems/wgit'
+    'documentation_uri' => 'https://www.rubydoc.info/github/michaeltelford/wgit/master'
   }
 
   s.platform              = Gem::Platform::RUBY
