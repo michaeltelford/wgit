@@ -56,11 +56,11 @@ module Wgit
       @body.empty? ? nil : @body
     end
 
-    # Returns true if the response isn't a #success? or a #redirect?
+    # Returns whether or not a server response is absent.
     #
-    # @return [Boolean] True if failed, false otherwise.
+    # @return [Boolean] True if the status is nil or < 1, false otherwise.
     def failure?
-      !success? && !redirect?
+      !success?
     end
 
     # Sets the headers Hash to the given value. The header keys are mapped
@@ -122,13 +122,13 @@ module Wgit
       @status = int.positive? ? int : nil
     end
 
-    # Returns whether or not the response is a 2xx Success.
+    # Returns whether or not a server response is present.
     #
-    # @return [Boolean] True if 2xx Success, false otherwise.
+    # @return [Boolean] True if the status is > 0, false otherwise.
     def success?
       return false unless @status
 
-      @status.between?(200, 299)
+      @status.positive?
     end
 
     alias code       status

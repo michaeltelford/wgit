@@ -44,8 +44,12 @@ class TestResponse < TestHelper
 
   def test_failure?
     r = Wgit::Response.new
+    assert r.failure?
 
     r.status = 500
+    refute r.failure?
+
+    r.status = 0
     assert r.failure?
 
     r.status = 200
@@ -123,7 +127,10 @@ class TestResponse < TestHelper
     r.status = 200
     assert r.success?
 
-    r.status = 301
+    r.status = 500
+    assert r.success?
+
+    r.status = 0
     refute r.success?
   end
 end
