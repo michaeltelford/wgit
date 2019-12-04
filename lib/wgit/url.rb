@@ -114,16 +114,22 @@ module Wgit
 
     # Returns true if self is a relative Url; false if absolute.
     #
-    # All external links in a page are expected to have a scheme prefix e.g.
-    # 'http://', otherwise the link is treated as an internal link (regardless
+    # An absolute URL must have a scheme prefix e.g.
+    # 'http://', otherwise the URL is regarded as being relative (regardless
     # of whether it's valid or not). The only exception is if an opts arg is
     # provided and self is a page belonging to that arg type e.g. host; then
     # the link is relative.
     #
+    # @example
+    #   url = Wgit::Url.new('http://example.com/about')
+    #
+    #   url.relative? # => false
+    #   url.relative?(host: 'http://example.com') # => true
+    #
     # @param opts [Hash] The options with which to check relativity. Only one
     #   opts param should be provided. The provided opts param Url must be
     #   absolute and be prefixed with a scheme. Consider using the output of
-    #   Wgit::Url#to_base which should work unless it's nil.
+    #   Wgit::Url#to_base which should work (unless it's nil).
     # @option opts [Wgit::Url, String] :base The Url base e.g.
     #   http://www.google.com/how which gives a base of
     #   'http://www.google.com'.
@@ -133,7 +139,7 @@ module Wgit
     #   http://www.google.com/how which gives a domain of 'google.com'.
     # @option opts [Wgit::Url, String] :brand The Url brand e.g.
     #   http://www.google.com/how which gives a domain of 'google'.
-    # @raise [StandardError] If self is invalid e.g. empty or an invalid opts
+    # @raise [StandardError] If self is invalid (e.g. empty) or an invalid opts
     #   param has been provided.
     # @return [Boolean] True if relative, false if absolute.
     def relative?(opts = {})
@@ -151,9 +157,9 @@ module Wgit
 
       type, url = opts.first
       url = Wgit::Url.new(url)
-      unless url.to_base
-        raise "Invalid opts param value, it must be absolute and contain \
-protocol scheme: #{url}"
+      if url.invalid?
+        raise "Invalid opts param value, it must be absolute, containing a \
+protocol scheme and domain (e.g. http://example.com): #{url}"
       end
 
       case type
@@ -177,18 +183,20 @@ protocol scheme: #{url}"
       @uri.absolute?
     end
 
-    # Returns if self is a valid and absolute HTTP Url or not.
+    # Returns if self is a valid and absolute HTTP URL or not. Self should
+    # always be crawlable if this method returns true.
     #
-    # @return [Boolean] True if valid and absolute, otherwise false.
+    # @return [Boolean] True if valid, absolute and crawable, otherwise false.
     def valid?
       return false if relative?
-      return false unless start_with?('http://') || start_with?('https://')
+      return false unless to_base && to_domain
       return false if URI::DEFAULT_PARSER.make_regexp.match(normalize).nil?
 
       true
     end
 
-    # Returns if self is an invalid (relative) HTTP Url or not.
+    # Returns if self is an invalid (e.g. relative) HTTP URL. See
+    # Wgit::Url#valid? for the inverse (and more information).
     #
     # @return [Boolean] True if invalid, otherwise false.
     def invalid?
@@ -227,8 +235,9 @@ protocol scheme: #{url}"
     # idempotent. The doc's <base> element is used if present, otherwise
     # doc.url is used as the base; which is concatted with self.
     #
-    # Typically used to build an absolute link obtained from a document e.g.
+    # Typically used to build an absolute link obtained from a document.
     #
+    # @example
     #   link = Wgit::Url.new('/favicon.png')
     #   doc  = Wgit::Document.new('http://example.com')
     #

@@ -112,13 +112,13 @@ module Wgit
     #   xpath value to be derived on Document initialisation (instead of when
     #   the extension is defined). The call method must return a valid xpath
     #   String.
-    # @param options [Hash] The options to define an extension with. The
+    # @param opts [Hash] The options to define an extension with. The
     #   options are only used when intializing from HTML, not the database.
-    # @option options [Boolean] :singleton The singleton option determines
+    # @option opts [Boolean] :singleton The singleton option determines
     #   whether or not the result(s) should be in an Array. If multiple
     #   results are found and singleton is true then the first result will be
     #   used. Defaults to true.
-    # @option options [Boolean] :text_content_only The text_content_only option
+    # @option opts [Boolean] :text_content_only The text_content_only option
     #   if true will use the text content of the Nokogiri result object,
     #   otherwise the Nokogiri object itself is returned. Defaults to true.
     # @yieldparam value [Object] The value to be assigned to the new var.
@@ -131,10 +131,10 @@ module Wgit
     #   regardless of the source.
     # @raise [StandardError] If the var param isn't valid.
     # @return [Symbol] The given var Symbol if successful.
-    def self.define_extension(var, xpath, options = {}, &block)
+    def self.define_extension(var, xpath, opts = {}, &block)
       var = var.to_sym
-      default_options = { singleton: true, text_content_only: true }
-      options = default_options.merge(options)
+      defaults = { singleton: true, text_content_only: true }
+      opts = defaults.merge(opts)
 
       raise "var must match #{REGEX_EXTENSION_NAME}" unless \
       var =~ REGEX_EXTENSION_NAME
@@ -142,7 +142,7 @@ module Wgit
       # Define the private init_*_from_html method for HTML.
       # Gets the HTML's xpath value and creates a var for it.
       func_name = Document.send(:define_method, "init_#{var}_from_html") do
-        result = find_in_html(xpath, options, &block)
+        result = find_in_html(xpath, opts, &block)
         init_var(var, result)
       end
       Document.send :private, func_name
@@ -150,7 +150,7 @@ module Wgit
       # Define the private init_*_from_object method for a Database object.
       # Gets the Object's 'key' value and creates a var for it.
       func_name = Document.send(:define_method, "init_#{var}_from_object") do |obj|
-        result = find_in_object(obj, var.to_s, singleton: options[:singleton], &block)
+        result = find_in_object(obj, var.to_s, singleton: opts[:singleton], &block)
         init_var(var, result)
       end
       Document.send :private, func_name

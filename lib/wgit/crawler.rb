@@ -169,7 +169,7 @@ module Wgit
     #   unsuccessful.
     def fetch(url, follow_redirects: true)
       response = Wgit::Response.new
-      raise "Invalid url: #{url}" unless url.valid?
+      raise "Invalid url: #{url}" if url.invalid?
 
       resolve(url, response, follow_redirects: follow_redirects)
       response.body_or_nil
