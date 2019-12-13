@@ -19,7 +19,7 @@ module Wgit
     include Assertable
 
     # Whether or not the Url has been crawled or not. A custom crawled= method
-    # is provided by this class, overridding the default one.
+    # is provided by this class.
     attr_reader :crawled
 
     # The Time stamp of when this Url was crawled.
