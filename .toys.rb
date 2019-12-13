@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 # The new Rakefile, place any tasks/tools below (listed alphabetically).
-# To load .env vars into the ENV from a tool, use:
+# To load .env vars into the ENV from within a tool definition, use:
 # require 'dotenv/load'
 
 require 'byebug' # Useful for tool development.
@@ -17,7 +17,7 @@ tool :ci do
 
   def run
     run_step 'Build gem', 'build'
-    run_step 'Generate documentation', ['generate_docs', '--no-output']
+    run_step 'Check documentation', ['generate_docs', '--no-output']
     run_step 'Run tests', 'test'
   end
 
@@ -65,6 +65,27 @@ expand :yardoc do |t|
   t.generate_output_flag = true
   t.fail_on_warning = true
   t.fail_on_undocumented_objects = true
+end
+
+tool :generate_rubydocs do
+  desc "Update wgit's docs on rubydoc.info"
+
+  include :terminal
+  include :exec, exit_on_nonzero_status: true
+
+  def run
+    exec "curl 'https://www.rubydoc.info/checkout' \
+      -H 'User-Agent: curl' \
+      -H 'Accept: */*' \
+      -H 'Accept-Language: en-GB,en;q=0.5' --compressed \
+      -H 'Content-Type: application/x-www-form-urlencoded' \
+      -H 'X-Requested-With: XMLHttpRequest' \
+      -H 'Origin: https://www.rubydoc.info' \
+      -H 'Connection: keep-alive' \
+      -H 'Referer: https://www.rubydoc.info/find/github?q=wgit' \
+      --data 'scheme=git&url=git%3A%2F%2Fgithub.com%2Fmichaeltelford%2Fwgit&commit='"
+    puts "\nUpdated rubydoc.info successfully", :green
+  end
 end
 
 # tool :install
