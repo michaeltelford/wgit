@@ -15,7 +15,7 @@ base_url = Wgit::Url.new(ARGV[0])
 path     = "#{File.expand_path(__dir__)}/fixtures/#{base_url.to_host}"
 crawler  = Wgit::Crawler.new
 
-Dir.mkdir(path) unless Dir.exist?(path)
+FileUtils.mkdir_p(path)
 Dir.chdir(path)
 
 # Save the site to disk.

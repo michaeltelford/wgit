@@ -7,13 +7,16 @@
 # Call this script like: `ruby save_page.rb http://blah.com` or use toys task.
 
 require_relative '../../lib/wgit'
+require 'fileutils'
 
 raise 'ARGV[0] must be a URL' unless ARGV[0]
 
 url     = Wgit::Url.new(ARGV[0])
+path    = "#{File.expand_path(__dir__)}/fixtures"
 crawler = Wgit::Crawler.new
 
-Dir.chdir("#{File.expand_path(__dir__)}/fixtures")
+FileUtils.mkdir_p(path)
+Dir.chdir(path)
 
 # Save the HTML file for the page.
 crawler.crawl_url(url) do |doc|
