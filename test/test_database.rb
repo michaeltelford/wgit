@@ -197,10 +197,8 @@ class TestDatabase < TestHelper
 
   def test_size
     db = Wgit::Database.new
-    size = db.size
 
-    assert_instance_of Integer, size
-    refute_nil size
+    assert db.size.zero?
   end
 
   def test_num_urls
