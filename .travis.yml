@@ -1,4 +1,6 @@
 language: ruby
 cache: bundler
+services: docker
+before_script: bundle exec toys db start
 script: bundle exec toys ci
 after_success: bundle exec toys generate_rubydocs
