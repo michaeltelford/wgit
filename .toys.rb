@@ -4,6 +4,7 @@
 # To load .env vars into the ENV from within a tool definition, use:
 # require 'dotenv/load'
 
+require 'json'
 require 'byebug' # Useful for tool development.
 
 # tool :build
@@ -56,6 +57,65 @@ tool :console do
 
   def run
     exec './bin/console'
+  end
+end
+
+# namespace :db
+tool :db do
+  tool :build do
+    desc 'Build the mongo DB image from ./docker/Dockerfile'
+
+    include :exec, exit_on_nonzero_status: true
+
+    def run
+      exec 'docker build -t michaeltelford/mongo-wgit ./docker'
+    end
+  end
+
+  tool :push do
+    desc 'Push the local mongo DB image to Docker Hub'
+
+    include :exec, exit_on_nonzero_status: true
+
+    def run
+      exec 'docker login' unless docker_authenticated?
+      exec 'docker push michaeltelford/mongo-wgit'
+    end
+
+    def docker_authenticated?
+      docker_config = "#{Dir.home}/.docker/config.json"
+      return false unless File.exist?(docker_config)
+
+      config = JSON.load(File.read(docker_config))
+      auths = config['auths']
+      return false unless auths && !auths.empty?
+
+      true
+    end
+  end
+
+  tool :start do
+    desc 'Start a local mongo DB docker daemon'
+
+    include :terminal
+    include :exec, exit_on_nonzero_status: true
+
+    def run
+      exec 'docker run --name mongo-wgit -p 27017:27017 --rm -d michaeltelford/mongo-wgit'
+      puts "Successfully started container 'mongo-wgit'", :green
+    end
+  end
+
+  tool :stop do
+    desc 'Stop the local mongo DB docker container'
+
+    include :terminal
+    include :exec, exit_on_nonzero_status: true
+
+    def run
+      exec 'docker stop mongo-wgit'
+      puts "Successfully stopped container 'mongo-wgit'", :green
+    end
   end
 end
 
@@ -157,6 +217,7 @@ tool :setup do
   end
 end
 
+# namespace :test
 tool :test do
   desc 'Run all tests'
 
