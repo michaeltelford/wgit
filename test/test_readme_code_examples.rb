@@ -194,7 +194,7 @@ class TestReadmeCodeExamples < TestHelper
       "<html><p>Hello world!</p><a href='https://made-up-link.com'>Click this link.</a></html>"
     )
 
-    # Now crawled Documents will contain all visible link text.
+    # Now every crawled Document#text will include <a> link text.
     doc.text           # => ["Hello world!", "Click this link."]
     doc.search('link') # => ["Click this link."]
 
@@ -211,7 +211,7 @@ class TestReadmeCodeExamples < TestHelper
 
     require 'wgit'
 
-    # Let's get all the page's table elements.
+    # Let's get all the page's <table> elements.
     Wgit::Document.define_extension(
       :tables,                 # Wgit::Document#tables will return the page's tables.
       '//table',               # The xpath to extract the tables.

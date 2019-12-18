@@ -168,11 +168,15 @@ end
 
 ## Database Example
 
-The next example requires a configured database instance. Currently the only supported DBMS is MongoDB. See [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) for a free (small) account or provide your own MongoDB instance.
+The next example requires a configured database instance. The use of a database for Wgit is entirely optional however and isn't required for crawling or URL parsing etc. A database is only needed when indexing (inserting crawled data into the database).
 
-[`Wgit::Database`](https://www.rubydoc.info/github/michaeltelford/wgit/master/Wgit/Database) provides a light wrapper of logic around the `mongo` gem allowing for simple database interactivity and object serialisation. Using Wgit you can index webpages, store them in a database and then search through all that's been indexed. The use of a database is entirely optional however and isn't required for crawling or URL parsing etc.
+Currently the only supported DBMS is MongoDB. See [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) for a (small) free account or provide your own MongoDB instance. Take a look at this [Docker Hub image](https://hub.docker.com/r/michaeltelford/mongo-wgit) for an already built example of a `mongo` image configured for use with Wgit; the source of which can be found in the [`./docker`](https://github.com/michaeltelford/wgit/tree/master/docker) directory of this repository.
 
-The following versions of MongoDB are supported:
+[`Wgit::Database`](https://www.rubydoc.info/github/michaeltelford/wgit/master/Wgit/Database) provides a light wrapper of logic around the `mongo` gem allowing for simple database interactivity and object serialisation. Using Wgit you can index webpages, store them in a database and then search through all that's been indexed; quickly and easily.
+
+### Versioning
+
+The following versions of MongoDB are currently supported:
 
 | Gem    | Database |
 | ------ | -------- |
@@ -191,7 +195,7 @@ Wgit provides respective Ruby classes for each collection object, allowing for s
 
 ### Configuring MongoDB
 
-Follow the steps below to configure MongoDB for use with Wgit. This is only needed if you want to read/write database records.
+Follow the steps below to configure MongoDB for use with Wgit. This is only required if you want to read/write database records using your own (manually configured) instance of Mongo DB.
 
 1) Create collections for: `urls` and `documents`.
 2) Add a [*unique index*](https://docs.mongodb.com/manual/core/index-unique/) for the `url` field in **both** collections using:
@@ -201,7 +205,7 @@ Follow the steps below to configure MongoDB for use with Wgit. This is only need
 | `urls`      | `{ "url" : 1 }`     | `{ unique : true }` |
 | `documents` | `{ "url.url" : 1 }` | `{ unique : true }` |
 
-3) Enable `textSearchEnabled` in MongoDB's configuration (if not already so).
+3) Enable `textSearchEnabled` in MongoDB's configuration (if not already so - it's typically enabled by default).
 4) Create a [*text search index*](https://docs.mongodb.com/manual/core/index-text/#index-feature-text) for the `documents` collection using:
 ```json
 {
@@ -212,7 +216,7 @@ Follow the steps below to configure MongoDB for use with Wgit. This is only need
 }
 ```
 
-**Note**: The *text search index* (in step 4) lists all document fields to be searched by MongoDB when calling `Wgit::Database#search`. Therefore, you should append this list with any other fields that you want searched. For example, if you [extend the API](#Extending-The-API) then you might want to search your new fields in the database by adding them to the index above.
+**Note**: The *text search index* lists all document fields to be searched by MongoDB when calling `Wgit::Database#search`. Therefore, you should append this list with any other fields that you want searched. For example, if you [extend the API](#Extending-The-API) then you might want to search your new fields in the database by adding them to the index above.
 
 ### Code Example
 
@@ -294,7 +298,7 @@ doc = Wgit::Document.new(
   "<html><p>Hello world!</p><a href='https://made-up-link.com'>Click this link.</a></html>"
 )
 
-# Now crawled Documents will contain all visible link text.
+# Now every crawled Document#text will include <a> link text.
 doc.text           # => ["Hello world!", "Click this link."]
 doc.search('link') # => ["Click this link."]
 ```
@@ -312,7 +316,7 @@ Here's how to add a Document extension to serialise a specific page element:
 ```ruby
 require 'wgit'
 
-# Let's get all the page's table elements.
+# Let's get all the page's <table> elements.
 Wgit::Document.define_extension(
   :tables,                  # Wgit::Document#tables will return the page's tables.
   '//table',                # The xpath to extract the tables.
@@ -358,8 +362,8 @@ See the [Wgit::Document.define_extension](https://www.rubydoc.info/github/michae
 
 **Extension Notes**:
 
-- It's recommended that URL's be mapped into `Wgit::Url` objects. Url's are treated as Strings when being inserted into the database.
-- A `Wgit::Document` extension once initialised will become a Document instance variable, meaning that it will be inserted into the Database if it's a primitive type e.g. `String`, `Array` etc. Plain ole Ruby objects won't be inserted.
+- It's recommended that URL's be mapped into `Wgit::Url` objects. `Wgit::Url`'s are treated as Strings when being inserted into the database.
+- A `Wgit::Document` extension (once initialised) will become a Document instance variable, meaning that the value will be inserted into the Database if it's a primitive type e.g. `String`, `Array` etc. Complex types e.g. Ruby objects won't be inserted. It's up to you to ensure the data you want inserted, can be inserted.
 - Once inserted into the Database, you can search a `Wgit::Document`'s extension attributes by updating the Database's *text search index*. See the [Database Example](#Database-Example) for more information.
 
 ## Caveats
@@ -407,6 +411,8 @@ And you're good to go!
 ### Tooling
 
 Wgit uses the [`toys`](https://github.com/dazuma/toys) gem (instead of Rake) for task invocation e.g. running the tests etc. For a full list of available tasks AKA tools, run `toys --tools`. You can search for a tool using `toys -s tool_name`. The most commonly used tools are listed below...
+
+Run `toys db` to see a list of database related tools, enabling you to run a Mongo DB instance locally using Docker.
 
 Run `toys test` to execute the tests (or `toys test smoke` for a faster running subset). You can also run `toys console` for an interactive (`pry`) REPL that will allow you to experiment with the code.
 
