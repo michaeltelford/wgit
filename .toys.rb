@@ -86,7 +86,7 @@ tool :db do
       docker_config = "#{Dir.home}/.docker/config.json"
       return false unless File.exist?(docker_config)
 
-      config = JSON.load(File.read(docker_config))
+      config = JSON.parse(File.read(docker_config))
       auths = config['auths']
       return false unless auths && !auths.empty?
 

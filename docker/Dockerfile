@@ -1,4 +1,4 @@
-FROM mongo:latest
+FROM mongo:4.2
 
 ENV MONGO_INITDB_ROOT_USERNAME rubyapp
 ENV MONGO_INITDB_ROOT_PASSWORD abcdef
