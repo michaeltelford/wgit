@@ -4,7 +4,7 @@
 # Script to save a single web page's HTML to disk. For example,
 # http://blah.com/admin/about will be saved as:
 # <path_to_script>/fixtures/blah.com.html
-# Call this script like: `ruby save_page.rb http://blah.com` or use toys task.
+# Call this script like: `ruby save_page.rb "http://blah.com"` or use toys task.
 
 require_relative '../../lib/wgit'
 require 'fileutils'

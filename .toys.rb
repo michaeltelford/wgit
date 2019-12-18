@@ -97,29 +97,6 @@ end
 # tool :lint
 expand :rubocop, name: :lint
 
-tool :mtest do
-  desc 'Runs entire test_*.rb file or single test at --line'
-  required_arg :file
-  flag :line, '-l', '--line=VALUE'
-
-  include :exec, exit_on_nonzero_status: true
-
-  def run
-    exec "bundle exec mtest #{test_cmd}"
-  end
-
-  def test_cmd
-    cmd = options[:file]
-    raise 'Colon not allowed, use --line' if cmd.include?(':')
-
-    cmd = "test/test_#{cmd}" unless cmd.start_with?('test/test_')
-    cmd += '.rb' unless cmd.end_with?('.rb')
-    cmd += ":#{line}" if line
-
-    cmd
-  end
-end
-
 tool :release do
   desc 'The SAFE release task which double checks things!'
   long_desc 'Tag and push commits to Github, then build and push the gem to Rubygems.'
@@ -162,32 +139,6 @@ tool :rubocop do
   end
 end
 
-tool :save_page do
-  desc 'Download/update a web page test fixture to test/mock/fixtures'
-  required_arg :url
-
-  include :exec, exit_on_nonzero_status: true
-  include :terminal
-
-  def run
-    exec "ruby test/mock/save_page.rb #{options[:url]}"
-    puts "Don't forget to mock the page in test/mock/fixtures.rb", :green
-  end
-end
-
-tool :save_site do
-  desc 'Download/update a web site test fixture to test/mock/fixtures'
-  required_arg :url
-
-  include :exec, exit_on_nonzero_status: true
-  include :terminal
-
-  def run
-    exec "ruby test/mock/save_site.rb #{options[:url]}"
-    puts "Don't forget to mock the site in test/mock/fixtures.rb", :green
-  end
-end
-
 tool :setup do
   desc 'Sets up the cloned repo for development'
 
@@ -206,23 +157,83 @@ tool :setup do
   end
 end
 
-# tool :smoke
-expand :minitest do |t|
-  t.name = :smoke
-  t.libs = ['lib']
-  t.files = [
-    'test/test_url.rb',
-    'test/test_document.rb',
-    'test/test_response.rb',
-    'test/test_crawler.rb',
-    'test/test_readme_code_examples.rb'
-  ]
-end
+tool :test do
+  desc 'Run all tests'
 
-# tool :test
-expand :minitest do |t|
-  t.libs = ['lib']
-  t.files = ['test/test_*.rb']
+  include :exec, exit_on_nonzero_status: true
+
+  def run
+    exec_tool('test all')
+  end
+
+  # tool :all
+  expand :minitest do |t|
+    t.name = :all
+    t.libs = ['lib']
+    t.files = ['test/test_*.rb']
+  end
+
+  tool :file do
+    desc 'Runs entire test_*.rb file or single test at --line'
+    required_arg :file
+    flag :line, '-l', '--line=VALUE'
+
+    include :exec, exit_on_nonzero_status: true
+
+    def run
+      exec "bundle exec mtest #{test_cmd}"
+    end
+
+    def test_cmd
+      cmd = options[:file]
+      raise 'Colon not allowed, use --line' if cmd.include?(':')
+
+      cmd = "test/test_#{cmd}" unless cmd.start_with?('test/test_')
+      cmd += '.rb' unless cmd.end_with?('.rb')
+      cmd += ":#{line}" if line
+
+      cmd
+    end
+  end
+
+  tool :save_page do
+    desc 'Download/update a web page test fixture to test/mock/fixtures'
+    required_arg :url
+
+    include :exec, exit_on_nonzero_status: true
+    include :terminal
+
+    def run
+      exec "ruby test/mock/save_page.rb #{options[:url]}"
+      puts "Don't forget to mock the page in test/mock/fixtures.rb", :green
+    end
+  end
+
+  tool :save_site do
+    desc 'Download/update a web site test fixture to test/mock/fixtures'
+    required_arg :url
+
+    include :exec, exit_on_nonzero_status: true
+    include :terminal
+
+    def run
+      exec "ruby test/mock/save_site.rb #{options[:url]}"
+      puts "Don't forget to mock the site in test/mock/fixtures.rb", :green
+    end
+  end
+
+  # tool :smoke
+  expand :minitest do |t|
+    t.name = :smoke
+    t.libs = ['lib']
+    t.files = [
+      'test/test_url.rb',
+      'test/test_document.rb',
+      'test/test_response.rb',
+      'test/test_crawler.rb',
+      'test/test_readme_code_examples.rb'
+    ]
+  end
 end
 
 tool :yardoc do
