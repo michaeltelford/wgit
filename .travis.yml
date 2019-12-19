@@ -1,4 +1,7 @@
 language: ruby
+rvm:
+    - 2.5
+    - 2.6
 cache: bundler
 services: docker
 before_script: bundle exec toys db start
