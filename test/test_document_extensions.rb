@@ -2,6 +2,7 @@ require_relative 'helpers/test_helper'
 
 # Tests the ability to extend the Wgit::Document functionality by extracting
 # custom page elements that aren't extracted by default.
+#
 # WARNING: Certain tests will clear down the DB prior to the test run.
 # NOTE: Every test case should clean up after itself by removing any defined
 # extensions in the 'teardown' method to avoid affecting other tests.

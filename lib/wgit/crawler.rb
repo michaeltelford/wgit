@@ -15,6 +15,14 @@ module Wgit
   class Crawler
     include Assertable
 
+    # The URL file extensions (from `<a>` hrefs) which will be crawled by
+    # #crawl_site. The idea is to omit anything that isn't HTML and therefore
+    # doesn't keep the crawl of the site going. All URL's without a file
+    # extension will be crawled, because they're assumed to be HTML.
+    SUPPORTED_FILE_EXTENSIONS = Set.new(%w[
+      asp aspx cfm cgi htm html htmlx jsp php
+    ])
+
     # The amount of allowed redirects before raising an error. Set to 0 to
     # disable redirects completely; or you can pass `follow_redirects: false`
     # to any Wgit::Crawler.crawl_* method.
@@ -47,9 +55,13 @@ module Wgit
     end
 
     # Crawls an entire website's HTML pages by recursively going through
-    # its internal <a> links. Each crawled Document is yielded to a block. Use
-    # the allow and disallow paths params to partially and selectively crawl a
-    # site.
+    # its internal `<a>` links. Each crawled Document is yielded to a block.
+    # Use `doc.empty?` to determine if the crawled link is valid.
+    #
+    # Use the allow and disallow paths params to partially and selectively
+    # crawl a site; the glob syntax is fully supported e.g. `'wiki/\*'` etc.
+    # Note that each path must NOT start with a slash; the only exception being
+    # a `/` on its own with no other characters, referring to the index page.
     #
     # Only redirects to the same host are followed. For example, the Url
     # 'http://www.example.co.uk/how' has a host of 'www.example.co.uk' meaning
@@ -63,13 +75,14 @@ module Wgit
     #   It is recommended that this URL be the index page of the site to give a
     #   greater chance of finding all pages within that site/host.
     # @param allow_paths [String, Array<String>] Filters links by selecting
-    #   them only if their path includes one of allow_paths.
+    #   them if their path `File.fnmatch?` one of allow_paths.
     # @param disallow_paths [String, Array<String>] Filters links by rejecting
-    #   them if their path includes one of disallow_paths.
+    #   them if their path `File.fnmatch?` one of disallow_paths.
     # @yield [doc] Given each crawled page (Wgit::Document) of the site.
     #   A block is the only way to interact with each crawled Document.
+    #   Use `doc.empty?` to determine if the page is valid.
     # @return [Array<Wgit::Url>, nil] Unique Array of external urls collected
-    #   from all of the site's pages or nil if the url could not be
+    #   from all of the site's pages or nil if the given url could not be
     #   crawled successfully.
     def crawl_site(url, allow_paths: nil, disallow_paths: nil, &block)
       doc = crawl_url(url, &block)
@@ -278,28 +291,29 @@ module Wgit
 
     # Returns a doc's internal HTML page links in absolute form; used when
     # crawling a site. Use the allow and disallow paths params to partially
-    # and selectively crawl a site.
+    # and selectively crawl a site; the glob syntax is supported e.g.
+    # `'wiki/\*'` etc. Note that each path should NOT start with a slash.
     #
     # Override this method in a subclass to change how a site
-    # is crawled; not what is extracted from each page (Document extensions
+    # is crawled, not what is extracted from each page (Document extensions
     # should be used for this purpose instead). Just remember that only HTML
-    # files containing <a> links can keep the crawl going beyond the base URL.
+    # files containing `<a>` links keep the crawl going beyond the base URL.
     #
     # @param doc [Wgit::Document] The document from which to extract it's
-    #   internal page links.
+    #   internal (absolute) page links.
     # @param allow_paths [String, Array<String>] Filters links by selecting
-    #   them only if their path includes one of allow_paths.
+    #   them if their path `File.fnmatch?` one of allow_paths.
     # @param disallow_paths [String, Array<String>] Filters links by rejecting
-    #   them if their path includes one of disallow_paths.
+    #   them if their path `File.fnmatch?` one of disallow_paths.
     # @return [Array<Wgit::Url>] The internal page links from doc.
     def get_internal_links(doc, allow_paths: nil, disallow_paths: nil)
       links = doc
               .internal_absolute_links
               .map(&:omit_fragment) # Because fragments don't alter content.
               .uniq
-              .reject do |link|
+              .select do |link|
         ext = link.to_extension
-        ext ? !%w[htm html].include?(ext.downcase) : false
+        ext ? SUPPORTED_FILE_EXTENSIONS.include?(ext.downcase) : true
       end
 
       return links if allow_paths.nil? && disallow_paths.nil?
@@ -349,6 +363,7 @@ module Wgit
       links
     end
 
+    # Validate the paths are suitable for filtering.
     def validate_paths(paths)
       paths = [paths] unless paths.is_a?(Array)
       raise 'The provided paths must all be Strings' \
@@ -361,14 +376,15 @@ module Wgit
     end
 
     # Filters links by selecting/rejecting them based on their path.
+    # Uses File.fnmatch? so that globbing is supported.
     def filter_links(links, filter_method, paths)
       links.send(filter_method) do |link|
-        link_path = link.to_path
-        next(false) unless link_path
+        # Turn http://example.com into / meaning index.
+        link = (link.to_endpoint == '/') ? '/' : link.omit_base
 
         match = false
         paths.each do |pattern|
-          match = File.fnmatch?(pattern, link_path, File::FNM_EXTGLOB)
+          match = File.fnmatch?(pattern, link, File::FNM_EXTGLOB)
           break if match
         end
 

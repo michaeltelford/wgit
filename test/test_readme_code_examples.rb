@@ -203,7 +203,7 @@ class TestReadmeCodeExamples < TestHelper
     assert_equal ['Hello world!', 'Click this link.'], doc.text
     assert_equal ['Click this link.'], doc.search('link')
 
-    assert_equal :a, Wgit::Document.text_elements.delete(:a)
+    Wgit::Document.text_elements.delete(:a)
   end
 
   def test_extending_the_api__define_extension

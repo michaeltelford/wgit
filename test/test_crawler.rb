@@ -667,6 +667,26 @@ class TestCrawler < TestHelper
     assert_equal 'The provided paths cannot be empty', ex.message
   end
 
+  def test_get_internal_links__with_url_extensions
+    url = Wgit::Url.new('http://www.php.com/index.php')
+    html = File.read('test/mock/fixtures/php.html')
+    doc = Wgit::Document.new(url, html)
+    crawler = Wgit::Crawler.new
+
+    assert_equal [
+      'http://www.php.com/about.php',
+      'http://www.php.com/index.php?foo=bar'
+    ], crawler.send(:get_internal_links, doc)
+
+    assert_equal [
+      'http://www.php.com/index.php?foo=bar'
+    ], crawler.send(:get_internal_links, doc, disallow_paths: '*.php')
+
+    assert_empty crawler.send(
+      :get_internal_links, doc, disallow_paths: ['*.php', '*.php[?]*']
+    )
+  end
+
   def test_get_internal_links__allow_paths
     url = Wgit::Url.new('http://www.belfastpilates.co.uk/')
     html = File.read('test/mock/fixtures/www.belfastpilates.co.uk/index.html')

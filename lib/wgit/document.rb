@@ -22,10 +22,10 @@ module Wgit
     # The HTML elements that make up the visible text on a page.
     # These elements are used to initialize the @text of the Document.
     # See the README.md for how to add to this Array dynamically.
-    @text_elements = %i[
-      dd div dl dt figcaption figure hr li
-      main ol p pre span ul h1 h2 h3 h4 h5
-    ]
+    @text_elements = Set.new(%i[
+      dd div dl dt figcaption figure h1 h2
+      h3 h4 h5 hr li main ol p pre span ul
+    ])
 
     class << self
       # Class level instance reader method for @text_elements.

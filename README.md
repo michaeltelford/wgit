@@ -282,7 +282,7 @@ Below describes these two methods in more detail.
 
 ### 1. Extending The Default Text Elements
 
-Wgit contains an array of `Wgit::Document.text_elements` which are the default set of HTML elements containing text; which in turn are serialised to have their text accessible via `Wgit::Document#text`.
+Wgit contains a Set of `Wgit::Document.text_elements` which are the default set of HTML elements containing text; which in turn are serialised to have their text accessible via `Wgit::Document#text`.
 
 The below code example shows how to extend the text serialised from a webpage; in doing so making the text accessible to methods such as `Wgit::Document#text` and `Wgit::Document#search` etc.
 
