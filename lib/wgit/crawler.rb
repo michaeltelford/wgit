@@ -209,7 +209,7 @@ module Wgit
 
         yield(url, response, location) if block_given?
 
-        # Validate redirect is allowed.
+        # Validate if the redirect is allowed.
         raise "Redirect not allowed: #{location}" unless follow_redirects
 
         if within && !location.relative?(within => orig_url_base)
@@ -336,38 +336,39 @@ module Wgit
 
     # Validate and filter by the given URL paths.
     def process_paths(links, allow_paths, disallow_paths)
-      raise "You can't provide both allow_paths: and disallow_paths: params" \
-      if allow_paths && disallow_paths
-
-      if allow_paths  # White list.
-        filter_method = :select
-        paths         = allow_paths
-      else            # Black list.
-        filter_method = :reject
-        paths         = disallow_paths
+      if allow_paths
+        paths = validate_paths(allow_paths)
+        filter_links(links, :select!, paths)
       end
 
-      paths = [paths] unless paths.is_a?(Array)
-      paths = paths
-              .compact
-              .reject(&:empty?)
-              .uniq
-              .map { |path| Wgit::Url.new(path).to_path }
+      if disallow_paths
+        paths = validate_paths(disallow_paths)
+        filter_links(links, :reject!, paths)
+      end
 
-      raise 'The provided paths cannot be empty' if paths.empty?
-
-      filter_links_by_path(links, filter_method, paths)
+      links
     end
 
-    # Filters links by selecting or rejecting them based on their path.
-    def filter_links_by_path(links, filter_method, paths)
+    def validate_paths(paths)
+      paths = [paths] unless paths.is_a?(Array)
+      raise 'The provided paths must all be Strings' \
+      unless paths.all? { |path| path.is_a?(String) }
+
+      Wgit::Utils.process_arr(paths, encode: false)
+      raise 'The provided paths cannot be empty' if paths.empty?
+
+      paths
+    end
+
+    # Filters links by selecting/rejecting them based on their path.
+    def filter_links(links, filter_method, paths)
       links.send(filter_method) do |link|
         link_path = link.to_path
         next(false) unless link_path
 
         match = false
-        paths.each do |path|
-          match = link_path.start_with?(path)
+        paths.each do |pattern|
+          match = File.fnmatch?(pattern, link_path, File::FNM_EXTGLOB)
           break if match
         end
 

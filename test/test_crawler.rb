@@ -293,28 +293,25 @@ class TestCrawler < TestHelper
   def test_crawl_site__allow_paths
     url = Wgit::Url.new 'http://www.belfastpilates.co.uk/'
     c = Wgit::Crawler.new
-    assert_crawl_site(c, url, 7, 5, expected_pages: [
+    assert_crawl_site(c, url, 6, 5, expected_pages: [
       'http://www.belfastpilates.co.uk/',
-      'http://www.belfastpilates.co.uk/about-us',
       'http://www.belfastpilates.co.uk/about-us/the-team',
       'http://www.belfastpilates.co.uk/about-us/our-facilities',
       'http://www.belfastpilates.co.uk/about-us/testimonials',
       'http://www.belfastpilates.co.uk/pilates/pilates-classes',
       'http://www.belfastpilates.co.uk/pilates/pilates-classes/pilates-classes-timetable'
     ], allow_paths: [
-      '/about-us',
-      'pilates/pilates-classes'
+      'about-us/*',
+      'pilates/pilates-classes*'
     ])
   end
 
   def test_crawl_site__disallow_paths
     url = Wgit::Url.new 'http://www.belfastpilates.co.uk/privacy-policy'
     c = Wgit::Crawler.new
-    assert_crawl_site(c, url, 14, 9, expected_pages: [
+    assert_crawl_site(c, url, 12, 9, expected_pages: [
       'http://www.belfastpilates.co.uk/privacy-policy',
-      'http://www.belfastpilates.co.uk/',
       'http://www.belfastpilates.co.uk/pilates/what-is-pilates',
-      'http://www.belfastpilates.co.uk/pilates/pilates-classes',
       'http://www.belfastpilates.co.uk/pilates/pilates-classes/pilates-classes-timetable',
       'http://www.belfastpilates.co.uk/pilates/pilates-faqs',
       'http://www.belfastpilates.co.uk/physiotheraphy',
@@ -323,12 +320,13 @@ class TestCrawler < TestHelper
       'http://www.belfastpilates.co.uk/official-launch-party',
       'http://www.belfastpilates.co.uk/youre-invited',
       'http://www.belfastpilates.co.uk/gift-vouchers-now-available-to-purchase',
-      'http://www.belfastpilates.co.uk/category/uncategorized',
-      'http://www.belfastpilates.co.uk/pilates'
+      'http://www.belfastpilates.co.uk/pilates',
+      'http://www.belfastpilates.co.uk/category/uncategorized'
     ], disallow_paths: [
-      'about-us',
-      'pilates-classes/',
-      '/author/'
+      'about-us*',
+      'pilates/pilates-classes',
+      'author/*',
+      '/'
     ])
   end
 
@@ -659,12 +657,12 @@ class TestCrawler < TestHelper
 
     # Some error scenarios for partial site crawls using paths.
     ex = assert_raises(StandardError) do
-      crawler.send(:get_internal_links, doc, allow_paths: [], disallow_paths: [])
+      crawler.send(:get_internal_links, doc, allow_paths: [true])
     end
-    assert_equal "You can't provide both allow_paths: and disallow_paths: params", ex.message
+    assert_equal "The provided paths must all be Strings", ex.message
 
     ex = assert_raises(StandardError) do
-      crawler.send(:get_internal_links, doc, allow_paths: ['', nil, ''])
+      crawler.send(:get_internal_links, doc, allow_paths: ['', '  '])
     end
     assert_equal 'The provided paths cannot be empty', ex.message
   end
@@ -676,17 +674,16 @@ class TestCrawler < TestHelper
     crawler = Wgit::Crawler.new
 
     assert_equal [
-      'http://www.belfastpilates.co.uk/about-us',
-      'http://www.belfastpilates.co.uk/about-us/the-team',
-      'http://www.belfastpilates.co.uk/about-us/our-facilities',
-      'http://www.belfastpilates.co.uk/about-us/testimonials',
+      'http://www.belfastpilates.co.uk/privacy-policy',
       'http://www.belfastpilates.co.uk/pilates/what-is-pilates',
       'http://www.belfastpilates.co.uk/pilates/pilates-classes',
       'http://www.belfastpilates.co.uk/pilates/pilates-classes/pilates-classes-timetable',
-      'http://www.belfastpilates.co.uk/pilates/pilates-faqs'
+      'http://www.belfastpilates.co.uk/pilates/pilates-faqs',
+      'http://www.belfastpilates.co.uk/contact-us'
     ], crawler.send(:get_internal_links, doc, allow_paths: [
-      'pilates',
-      '/about-us'
+      'contact?us',
+      'pilates*',
+      'privacy-policy'
     ])
   end
 
@@ -697,11 +694,9 @@ class TestCrawler < TestHelper
     crawler = Wgit::Crawler.new
 
     assert_equal [
-      'http://www.belfastpilates.co.uk/pilates/what-is-pilates',
       'http://www.belfastpilates.co.uk/pilates/pilates-classes',
-      'http://www.belfastpilates.co.uk/pilates/pilates-classes/pilates-classes-timetable',
-      'http://www.belfastpilates.co.uk/pilates/pilates-faqs'
-    ], crawler.send(:get_internal_links, doc, allow_paths: '/pilates/')
+      'http://www.belfastpilates.co.uk/pilates/pilates-classes/pilates-classes-timetable'
+    ], crawler.send(:get_internal_links, doc, allow_paths: '*/pilates-classes*')
   end
 
   def test_get_internal_links__disallow_paths
@@ -712,18 +707,21 @@ class TestCrawler < TestHelper
 
     assert_equal [
       'http://www.belfastpilates.co.uk/',
-      'http://www.belfastpilates.co.uk/privacy-policy',
+      'http://www.belfastpilates.co.uk/about-us',
+      'http://www.belfastpilates.co.uk/about-us/the-team',
+      'http://www.belfastpilates.co.uk/about-us/our-facilities',
+      'http://www.belfastpilates.co.uk/about-us/testimonials',
       'http://www.belfastpilates.co.uk/physiotheraphy',
       'http://www.belfastpilates.co.uk/latest-news',
-      'http://www.belfastpilates.co.uk/contact-us',
       'http://www.belfastpilates.co.uk/official-launch-party',
       'http://www.belfastpilates.co.uk/author/adminbpp',
       'http://www.belfastpilates.co.uk/category/uncategorized',
       'http://www.belfastpilates.co.uk/youre-invited',
       'http://www.belfastpilates.co.uk/gift-vouchers-now-available-to-purchase'
     ], crawler.send(:get_internal_links, doc, disallow_paths: [
-      'pilates/',
-      'about-us'
+      'contact?us',
+      'pilates*',
+      'privacy-policy'
     ])
   end
 
@@ -740,6 +738,8 @@ class TestCrawler < TestHelper
       'http://www.belfastpilates.co.uk/about-us/our-facilities',
       'http://www.belfastpilates.co.uk/about-us/testimonials',
       'http://www.belfastpilates.co.uk/privacy-policy',
+      'http://www.belfastpilates.co.uk/pilates/what-is-pilates',
+      'http://www.belfastpilates.co.uk/pilates/pilates-faqs',
       'http://www.belfastpilates.co.uk/physiotheraphy',
       'http://www.belfastpilates.co.uk/latest-news',
       'http://www.belfastpilates.co.uk/contact-us',
@@ -748,7 +748,26 @@ class TestCrawler < TestHelper
       'http://www.belfastpilates.co.uk/category/uncategorized',
       'http://www.belfastpilates.co.uk/youre-invited',
       'http://www.belfastpilates.co.uk/gift-vouchers-now-available-to-purchase'
-    ], crawler.send(:get_internal_links, doc, disallow_paths: '/pilates')
+    ], crawler.send(:get_internal_links, doc, disallow_paths: '*/pilates-classes*')
+  end
+
+  def test_get_internal_links__combined_paths
+    url = Wgit::Url.new('http://www.belfastpilates.co.uk/')
+    html = File.read('test/mock/fixtures/www.belfastpilates.co.uk/index.html')
+    doc = Wgit::Document.new(url, html)
+    crawler = Wgit::Crawler.new
+
+    assert_equal [
+      'http://www.belfastpilates.co.uk/',
+      'http://www.belfastpilates.co.uk/about-us/the-team',
+      'http://www.belfastpilates.co.uk/about-us/our-facilities',
+      'http://www.belfastpilates.co.uk/about-us/testimonials',
+      'http://www.belfastpilates.co.uk/pilates/what-is-pilates'
+    ], crawler.send(:get_internal_links, doc, disallow_paths: '*/pilates*', allow_paths: [
+      'about-us/*',
+      'pilates/*',
+      '/'
+    ])
   end
 
   private
