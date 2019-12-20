@@ -188,9 +188,9 @@ module Wgit
     #
     # @param arr [Enumerable] The Array to process. arr is modified.
     # @return [Enumerable] The processed arr is both modified and then returned.
-    def self.process_arr(arr)
+    def self.process_arr(arr, encode: true)
       if arr.is_a?(Array)
-        arr.map! { |str| process_str(str) }
+        arr.map! { |str| process_str(str, encode: encode) }
         arr.reject! { |str| str.is_a?(String) ? str.empty? : false }
         arr.compact!
         arr.uniq!

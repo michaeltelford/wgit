@@ -129,12 +129,24 @@ class TestUtils < TestHelper
   end
 
   def test_process_arr
-    a = ['', true, nil, true, false, ' hello world ']
+    a = ['', true, nil, true, false, ' hello world ', " hello world \xFE "]
     a2 = Wgit::Utils.process_arr a
+    expected = [true, false, 'hello world', 'hello world �']
+
+    assert_equal expected, a
+    assert_equal expected, a2
+  end
+
+  def test_process_arr__encode_false
+    a = ['', true, nil, true, false, ' hello world ']
+    a2 = Wgit::Utils.process_arr a, encode: false
     expected = [true, false, 'hello world']
 
     assert_equal expected, a
     assert_equal expected, a2
+
+    a = ['', true, nil, true, false, ' hello world ', " hello world \xFE "]
+    assert_raises(ArgumentError) { Wgit::Utils.process_arr(a, encode: false) }
   end
 
   private
