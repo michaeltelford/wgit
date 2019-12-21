@@ -32,9 +32,9 @@ module Wgit
     # before raising an error. Set to 0 to disable time outs completely.
     attr_accessor :time_out
 
-    # Whether or not to UTF-8 encode the HTML once crawled. Set to false if
-    # crawling more than just HTML e.g. images etc.
-    attr_accessor :encode_html
+    # Whether or not to UTF-8 encode the response body once crawled. Set to
+    # false if crawling more than just HTML e.g. images.
+    attr_accessor :encode
 
     # The Wgit::Response of the most recently crawled URL.
     attr_reader :last_response
@@ -46,12 +46,12 @@ module Wgit
     # @param time_out [Integer, Float] The maximum amount of time (in seconds)
     #   a crawl request has to complete before raising an error. Set to 0 to
     #   disable time outs completely.
-    # @param encode_html [Boolean] Whether or not to UTF-8 encode the HTML once
-    #   crawled. Set to false if crawling more than just HTML e.g. images etc.
-    def initialize(redirect_limit: 5, time_out: 5, encode_html: true)
+    # @param encode [Boolean] Whether or not to UTF-8 encode the response body
+    #   once crawled. Set to false if crawling more than just HTML e.g. images.
+    def initialize(redirect_limit: 5, time_out: 5, encode: true)
       @redirect_limit = redirect_limit
       @time_out       = time_out
-      @encode_html    = encode_html
+      @encode         = encode
     end
 
     # Crawls an entire website's HTML pages by recursively going through
@@ -158,7 +158,7 @@ module Wgit
       assert_type(url, Wgit::Url)
 
       html = fetch(url, follow_redirects: follow_redirects)
-      doc  = Wgit::Document.new(url, html, encode_html: @encode_html)
+      doc  = Wgit::Document.new(url, html, encode: @encode)
 
       yield(doc) if block_given?
 

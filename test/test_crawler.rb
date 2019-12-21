@@ -22,7 +22,7 @@ class TestCrawler < TestHelper
     assert_nil c.last_response
     assert_equal 5, c.redirect_limit
     assert_equal 5, c.time_out
-    assert c.encode_html
+    assert c.encode
   end
 
   def test_initialise__redirect_limit
@@ -31,7 +31,7 @@ class TestCrawler < TestHelper
     assert_nil c.last_response
     assert_equal 3, c.redirect_limit
     assert_equal 5, c.time_out
-    assert c.encode_html
+    assert c.encode
   end
 
   def test_initialise__time_out
@@ -40,16 +40,16 @@ class TestCrawler < TestHelper
     assert_nil c.last_response
     assert_equal 5, c.redirect_limit
     assert_equal 3, c.time_out
-    assert c.encode_html
+    assert c.encode
   end
 
   def test_initialise__encode_html
-    c = Wgit::Crawler.new encode_html: false
+    c = Wgit::Crawler.new encode: false
 
     assert_nil c.last_response
     assert_equal 5, c.redirect_limit
     assert_equal 5, c.time_out
-    refute c.encode_html
+    refute c.encode
   end
 
   def test_crawl_url
@@ -362,7 +362,7 @@ class TestCrawler < TestHelper
     crawled = []
 
     # We use ImageCrawler defined at the top of the file.
-    crawler = ImageCrawler.new encode_html: false
+    crawler = ImageCrawler.new encode: false
     crawler.crawl_site(url) do |doc|
       crawled << doc.url
     end

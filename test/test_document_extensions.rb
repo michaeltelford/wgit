@@ -74,7 +74,7 @@ class TestDocumentExtension < TestHelper
     assert ['https://made-up-link.com'], doc.links
     assert ['Hello world!', 'Click this link.'], doc.text
 
-    assert_equal :a, Wgit::Document.text_elements.delete(:a)
+    Wgit::Document.text_elements.delete(:a)
   end
 
   def test_document_extension__with_defaults
@@ -328,7 +328,8 @@ class TestDocumentExtension < TestHelper
     assert db_doc.respond_to? :table_text
     assert_instance_of String, db_doc.table_text
     assert_equal 'Header TextAnother Header', db_doc.table_text
-    assert_equal :a, Wgit::Document.text_elements.delete(:a)
+
+    Wgit::Document.text_elements.delete(:a)
   end
 
   def test_document_extension__init_from_mongo_doc
