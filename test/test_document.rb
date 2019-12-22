@@ -459,8 +459,7 @@ Minitest framework."
     # Test whole_sentence: false.
     results = doc.search('used code', whole_sentence: false)
     assert_equal([
-      "is primarily for testing the Ruby code used in Wgit with the \
-Minitest framework."
+      " page is primarily for testing the Ruby code used in Wgit with the Minitest fram"
     ], results)
 
     # Test whole_sentence: true.
@@ -469,8 +468,7 @@ Minitest framework."
     # Test case_sensitive: false, whole_sentence: true with exact words.
     results = doc.search('coDe usEd', whole_sentence: true)
     assert_equal([
-      "is primarily for testing the Ruby code used in Wgit with the \
-Minitest framework."
+      " page is primarily for testing the Ruby code used in Wgit with the Minitest fram"
     ], results)
 
     # Test case_sensitive: true, whole_sentence: true with exact words.

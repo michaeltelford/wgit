@@ -404,10 +404,12 @@ module Wgit
       results = {}
 
       @text.each do |sentence|
+        sentence = sentence.strip
+        next if results[sentence]
+
         hits = sentence.scan(regex).count
         next unless hits.positive?
 
-        sentence.strip!
         index = sentence.index(regex) # Index of first match.
         Wgit::Utils.format_sentence_length(sentence, index, sentence_limit)
 
