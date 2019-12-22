@@ -55,7 +55,7 @@ end
 # Text.
 Wgit::Document.define_extension(
   :text,
-  proc { Wgit::Document.text_elements_xpath },
+  Wgit::Document::TEXT_ELEMENTS_XPATH,
   singleton: false,
   text_content_only: true
 )

@@ -269,47 +269,15 @@ urls_to_crawl = db.uncrawled_urls # => Results will include top_result.external_
 
 ## Extending The API
 
-Document serialising in Wgit is the means of downloading a web page and serialising parts of its content into accessible document attributes/methods. For example, `Wgit::Document#author` will return you the webpage's HTML element value of `meta[@name='author']`.
+Document serialising in Wgit is the means of downloading a web page and extracting parts of its content into accessible document attributes/methods. For example, `Wgit::Document#author` will return you the webpage's HTML element value of `meta[@name='author']`.
 
-By default, Wgit serialises what it thinks are the most important pieces of information from each webpage. This of course is often not enough given the nature of webpages and their differences from each other. Therefore, there exists a set of ways to extend the default serialising logic.
+By default, Wgit serialises what it thinks are the most important pieces of information from each webpage. This of course is often not enough given the nature of the WWW and the differences from one webpage to the next. Therefore, there exists a way to extend the default serialising logic.
 
-There are two ways to extend the Document serialising behaviour of Wgit:
+### Defining Custom Serialisers Via Document Extensions
 
-1. Add the elements containing **text** that you're interested in to be serialised.
-2. Define custom serialisers matched to specific **elements** that you're interested in.
+You can define a Document extension for each HTML element(s) that you want to extract into a `Wgit::Document` instance variable, equipped with a getter method. Once an extension is defined, any crawled Documents will contain your extracted content.
 
-Below describes these two methods in more detail.
-
-### 1. Extending The Default Text Elements
-
-Wgit contains a Set of `Wgit::Document.text_elements` which are the default set of HTML elements containing text; which in turn are serialised to have their text accessible via `Wgit::Document#text`.
-
-The below code example shows how to extend the text serialised from a webpage; in doing so making the text accessible to methods such as `Wgit::Document#text` and `Wgit::Document#search` etc.
-
-```ruby
-require 'wgit'
-
-# Let's add the text of links e.g. <a> tags.
-Wgit::Document.text_elements << :a
-
-# Our Document has a link whose's text we're interested in.
-doc = Wgit::Document.new(
-  'http://some_url.com',
-  "<html><p>Hello world!</p><a href='https://made-up-link.com'>Click this link.</a></html>"
-)
-
-# Now every crawled Document#text will include <a> link text.
-doc.text           # => ["Hello world!", "Click this link."]
-doc.search('link') # => ["Click this link."]
-```
-
-**Note**: This only works for textual page content. For more control over the serialised elements themselves, see below.
-
-### 2. Defining Custom Serialisers Via Document Extensions
-
-If you want full control over the elements being serialised for your own purposes, then you can define a custom serialiser for each type of element that you're interested in.
-
-Once the page element has been serialised, accessed via a `Wgit::Document` instance method, you can do with it as you wish e.g. obtain it's text value or manipulate the element etc. Since you can choose to return text or plain [Nokogiri](https://www.rubydoc.info/github/sparklemotion/nokogiri) objects, you have the full control that the Nokogiri gem gives you.
+Once the page element has been serialised, you can do with it as you wish e.g. obtain it's text value or manipulate the element etc. Since you can choose to return the element's text or the [Nokogiri](https://www.rubydoc.info/github/sparklemotion/nokogiri) object, you have the full power that the Nokogiri gem gives you.
 
 Here's how to add a Document extension to serialise a specific page element:
 

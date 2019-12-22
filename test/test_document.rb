@@ -44,11 +44,7 @@ class TestDocument < TestHelper
         'http://ftp.mytestsite.com/files'
       ],
       'text' => [
-        'Howdy!', "Welcome to my site, I hope you like what you \
-see and enjoy browsing the various randomness.", "This page is \
-primarily for testing the Ruby code used in Wgit with the \
-Minitest framework.", "Minitest rocks!! It's simplicity \
-and power matches the Ruby language in which it's developed."
+        'My Test Webpage', 'Howdy!', 'Welcome', 'Foo Bar', 'Google', 'Security', 'Welcome to my site, I hope you like what you see and enjoy browsing the various randomness.', 'About', 'About 2', 'Index', 'This page is primarily for testing the Ruby code used in Wgit with the Minitest framework.', "Minitest rocks!! It's simplicity and power matches the Ruby language in which it's developed.", 'Yahoo', 'Contact', 'Bing', 'Index 2', 'Index 3', 'Tests', 'Duck Duck Go', 'Blog', 'Example.com Blog', 'Contents', 'Same Domain FTP Server', 'Same Domain FTP Server 2', 'Same Domain FTP Server Files'
       ]
     }
     @stats = {
@@ -58,8 +54,8 @@ and power matches the Ruby language in which it's developed."
       author: 15,
       keywords: 3,
       links: 20,
-      text_snippets: 4,
-      text_bytes: 280
+      text_snippets: 25,
+      text_bytes: 489
     }
   end
 
