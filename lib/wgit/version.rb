@@ -5,7 +5,7 @@
 # @author Michael Telford
 module Wgit
   # The current gem version of Wgit.
-  VERSION = '0.5.1'
+  VERSION = '0.6.0'
 
   # Returns the current gem version of Wgit as a String.
   def self.version

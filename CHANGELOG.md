@@ -9,6 +9,21 @@
 - ...
 ---
 
+## v0.6.0
+### Added
+- Added `Wgit::Utils.proces_arr encode:` param.
+### Changed/Removed
+- Breaking changes: Updated `Wgit::Response#success?` and `#failure?` logic.
+- Breaking changes: Updated `Wgit::Crawler` redirect logic. See the [docs](https://www.rubydoc.info/github/michaeltelford/wgit/Wgit/Crawler#crawl_url-instance_method) for more info.
+- Breaking changes: Updated `Wgit::Crawler#crawl_site` path params logic to support globs e.g. `allow_paths: 'wiki/*'`. See the [docs](https://www.rubydoc.info/github/michaeltelford/wgit/Wgit/Crawler#crawl_site-instance_method) for more info.
+- Breaking changes: Refactored references of `encode_html:` to `encode:` in the `Wgit::Document` and `Wgit::Crawler` classes.
+- Breaking changes: `Wgit::Document.text_elements_xpath` is now `//*/text()`. This means that more text is extracted from each page and you can no longer be selective of the text elements on a page.
+- Improved `Wgit::Url#valid?` and `#relative?`.
+### Fixed
+- Bug fix in `Wgit::Crawler#crawl_site` where `*.php` URLs weren't being crawled. The fix was to implement `Wgit::Crawler::SUPPORTED_FILE_EXTENSIONS`.
+- Bug fix in `Wgit::Document#search`.
+---
+
 ## v0.5.1
 ### Added
 - `Wgit.version_str` method.

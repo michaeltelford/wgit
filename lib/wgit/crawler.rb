@@ -16,7 +16,7 @@ module Wgit
     include Assertable
 
     # The URL file extensions (from `<a>` hrefs) which will be crawled by
-    # #crawl_site. The idea is to omit anything that isn't HTML and therefore
+    # `#crawl_site`. The idea is to omit anything that isn't HTML and therefore
     # doesn't keep the crawl of the site going. All URL's without a file
     # extension will be crawled, because they're assumed to be HTML.
     SUPPORTED_FILE_EXTENSIONS = Set.new(%w[

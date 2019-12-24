@@ -19,7 +19,12 @@ Gem::Specification.new do |s|
   TEXT
 
   s.require_paths = %w[lib]
-  s.files = (Dir['./lib/**/*.rb', '*.md', '.yardopts'] - [
+  s.files = (Dir[
+    './lib/**/*.rb',
+    '*.md',
+    'LICENSE.txt',
+    '.yardopts'
+  ] - [ # Ignored files go below...
     './lib/wgit/database/database_dev_data.rb',
     './lib/wgit/database/database_helper.rb'
   ])
