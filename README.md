@@ -354,6 +354,16 @@ This executable will be similar in nature to `./bin/console` which is currently 
 
 See the [CHANGELOG.md](https://github.com/michaeltelford/wgit/blob/master/CHANGELOG.md) for differences (including any breaking changes) between releases of Wgit.
 
+### Gem Versioning
+
+The `wgit` gem follows these versioning rules:
+
+- The version format is `MAJOR.MINOR.PATCH` e.g. `0.1.0`.
+- Since the gem hasn't reached `v1.0.0` yet, slightly different semantic versioning rules apply.
+- The `PATCH` represents *non breaking changes* while the `MINOR` represents *breaking changes* e.g. updating from version `0.1.0` to `0.2.0` will likely introduce breaking changes necessitating updates to your codebase.
+- To determine what changes are needed, consult the `CHANGELOG.md`. If you need help, raise an issue.
+- Once `wgit v1.0.0` is released, *normal* [semantic versioning](https://semver.org/) rules will apply e.g. only a `MAJOR` version change should introduce breaking changes.
+
 ## License
 
 The gem is available as open source under the terms of the MIT License. See [LICENSE.txt](https://github.com/michaeltelford/wgit/blob/master/LICENSE.txt) for more details.
