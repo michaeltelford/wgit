@@ -529,7 +529,7 @@ class TestCrawler < TestHelper
     e = assert_raises(StandardError) do
       c.send(:resolve, url, resp, follow_redirects: false)
     end
-    assert_equal "Redirect not allowed: https://twitter.com", e.message
+    assert_equal 'Redirect not allowed: https://twitter.com', e.message
     assert_equal 'http://twitter.com', url
     assert resp.redirect?
   end
@@ -587,7 +587,7 @@ class TestCrawler < TestHelper
       # Error for :foo opts param.
       c.send :resolve, url, resp, follow_redirects: :foo
     end
-    assert_equal "Unknown opts param: :foo, use one of: [:base, :host, :domain, :brand]", e.message
+    assert_equal 'Unknown opts param: :foo, use one of: [:base, :host, :domain, :brand]', e.message
     assert_equal 'http://twitter.com', url
     assert resp.redirect?
   end
@@ -659,7 +659,7 @@ class TestCrawler < TestHelper
     ex = assert_raises(StandardError) do
       crawler.send(:get_internal_links, doc, allow_paths: [true])
     end
-    assert_equal "The provided paths must all be Strings", ex.message
+    assert_equal 'The provided paths must all be Strings', ex.message
 
     ex = assert_raises(StandardError) do
       crawler.send(:get_internal_links, doc, allow_paths: ['', '  '])
