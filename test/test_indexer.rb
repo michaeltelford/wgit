@@ -18,6 +18,20 @@ class TestIndexer < TestHelper
     assert_instance_of Wgit::Indexer,  indexer
     assert_instance_of Wgit::Crawler,  indexer.crawler
     assert_instance_of Wgit::Database, indexer.db
+
+    assert_equal @db, indexer.db
+  end
+
+  def test_initialize__with_crawler
+    crawler = Wgit::Crawler.new
+    indexer = Wgit::Indexer.new @db, crawler
+
+    assert_instance_of Wgit::Indexer,  indexer
+    assert_instance_of Wgit::Crawler,  indexer.crawler
+    assert_instance_of Wgit::Database, indexer.db
+
+    assert_equal @db,     indexer.db
+    assert_equal crawler, indexer.crawler
   end
 
   def test_index_www__one_site

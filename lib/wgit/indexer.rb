@@ -40,6 +40,10 @@ module Wgit
   #   nil to use ENV['WGIT_CONNECTION_STRING'].
   # @param insert_externals [Boolean] Whether or not to insert the website's
   #   external Url's into the database.
+  # @param allow_paths [String, Array<String>] Filters links by selecting
+  #   them if their path `File.fnmatch?` one of allow_paths.
+  # @param disallow_paths [String, Array<String>] Filters links by rejecting
+  #   them if their path `File.fnmatch?` one of disallow_paths.
   # @yield [doc] Given the Wgit::Document of each crawled webpage, before it's
   #   inserted into the database allowing for prior manipulation.
   # @return [Integer] The total number of pages crawled within the website.
@@ -122,7 +126,7 @@ module Wgit
     Wgit::Utils.printf_search_results(results)
   end
 
-  # Class which sets up a crawler and saves the indexed docs to a database.
+  # Class which crawls and saves the indexed Documents to a database.
   class Indexer
     # The crawler used to index the WWW.
     attr_reader :crawler
@@ -133,10 +137,11 @@ module Wgit
     # Initialize the Indexer.
     #
     # @param database [Wgit::Database] The database instance (already
-    #   initialized with the correct connection string etc).
-    def initialize(database)
-      @crawler = Wgit::Crawler.new
+    #   initialized and connected) used to index.
+    # @param crawler [Wgit::Crawler] The crawler instance used to index.
+    def initialize(database, crawler = Wgit::Crawler.new)
       @db      = database
+      @crawler = crawler
     end
 
     # Retrieves uncrawled url's from the database and recursively crawls each
@@ -214,6 +219,10 @@ the next iteration.")
     # @param url [Wgit::Url] The base Url of the website to crawl.
     # @param insert_externals [Boolean] Whether or not to insert the website's
     #   external Url's into the database.
+    # @param allow_paths [String, Array<String>] Filters links by selecting
+    #   them if their path `File.fnmatch?` one of allow_paths.
+    # @param disallow_paths [String, Array<String>] Filters links by rejecting
+    #   them if their path `File.fnmatch?` one of disallow_paths.
     # @yield [doc] Given the Wgit::Document of each crawled web page before
     #   it's inserted into the database allowing for prior manipulation. Return
     #   nil or false from the block to prevent the document from being saved
