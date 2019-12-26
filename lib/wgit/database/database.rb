@@ -154,7 +154,7 @@ module Wgit
     #   DB.
     # @return [Array<Wgit::Document>] The search results obtained from the DB.
     def search(
-      query, case_sensitive: false, whole_sentence: false, limit: 10, skip: 0
+      query, case_sensitive: false, whole_sentence: true, limit: 10, skip: 0
     )
       query = query.to_s.strip
       query.replace('"' + query + '"') if whole_sentence

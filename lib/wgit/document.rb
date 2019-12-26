@@ -366,7 +366,7 @@ module Wgit
     #   sentence.
     # @return [Array<String>] A subset of @text, matching the query.
     def search(
-      query, case_sensitive: false, whole_sentence: false, sentence_limit: 80
+      query, case_sensitive: false, whole_sentence: true, sentence_limit: 80
     )
       query = query.to_s
       raise 'A search query must be provided' if query.empty?
@@ -409,7 +409,7 @@ module Wgit
     #   sentence.
     # @return [String] This Document's original @text value.
     def search!(
-      query, case_sensitive: false, whole_sentence: false, sentence_limit: 80
+      query, case_sensitive: false, whole_sentence: true, sentence_limit: 80
     )
       orig_text = @text
       @text = search(

@@ -100,7 +100,7 @@ module Wgit
   #   database.
   def self.indexed_search(
     query, connection_string: nil,
-    case_sensitive: false, whole_sentence: false,
+    case_sensitive: false, whole_sentence: true,
     limit: 10, skip: 0, sentence_limit: 80, &block
   )
     db = Wgit::Database.new(connection_string)

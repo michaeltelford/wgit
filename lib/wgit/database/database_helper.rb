@@ -104,7 +104,7 @@ accept duplicate urls. Exception details: #{err_msg}"
 
     # Searches the database's Document collection for the given query, formats
     # and pretty prints the results to the command line.
-    def search(query, case_sensitive: false, whole_sentence: false)
+    def search(query, case_sensitive: false, whole_sentence: true)
       Wgit.indexed_search(
         query, case_sensitive: case_sensitive, whole_sentence: whole_sentence
       )
