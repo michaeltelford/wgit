@@ -8,9 +8,9 @@
 
 ---
 
-Wgit is a Ruby gem similar in nature to GNU's `wget` tool. It provides an easy to use API for programmatic URL parsing, HTML indexing and searching.
+Wgit is a Ruby library primarily used for crawling, indexing and searching HTML webpages.
 
-Fundamentally, Wgit is a HTTP indexer/scraper which crawls URL's to retrieve and serialise their page contents for later use. You can use Wgit to copy entire websites if required. Wgit also provides a means to search indexed documents stored in a database. Therefore, this library provides the main components of a WWW search engine. The Wgit API is easily extended allowing you to pull out the parts of a webpage that are important to you, the code snippets or tables for example. As Wgit is a library, it supports many different use cases including data mining, analytics, web indexing and URL parsing to name a few.
+Fundamentally, Wgit is a HTTP indexer/scraper which crawls URL's to retrieve and serialise their page contents for later use. You can use Wgit to scrape entire websites if required. Wgit also provides a means to search indexed documents stored in a database. Therefore, this library provides the main components of a WWW search engine. The Wgit API is easily extended allowing you to pull out the parts of a webpage that are important to you, the code snippets or tables for example. As Wgit is a library, it supports many different use cases including data mining, analytics, web indexing and URL parsing to name a few.
 
 Check out this [demo application](https://search-engine-rb.herokuapp.com) - a search engine (see its [repository](https://github.com/michaeltelford/search_engine)) built using Wgit and Sinatra, deployed to Heroku. Heroku's free tier is used so the initial page load may be slow. Try searching for "Ruby" or something else that's Ruby related.
 
@@ -271,11 +271,11 @@ urls_to_crawl = db.uncrawled_urls # => Results will include top_result.external_
 
 Document serialising in Wgit is the means of downloading a web page and extracting parts of its content into accessible document attributes/methods. For example, `Wgit::Document#author` will return you the webpage's HTML element value of `meta[@name='author']`.
 
-By default, Wgit serialises what it thinks are the most important pieces of information from each webpage. This of course is often not enough given the nature of the WWW and the differences from one webpage to the next. Therefore, there exists a way to extend the default serialising logic.
+Wgit provides some [default extensions](https://github.com/michaeltelford/wgit/blob/master/lib/wgit/document_extensions.rb) to extract a page's text, links etc. This of course is often not enough given the nature of the WWW and the differences from one webpage to the next. Therefore, there exists a way to extend the default serialising logic.
 
-### Extracting Specific Page Elements via Document Extensions
+### Serialising Additional Page Elements via Document Extensions
 
-You can define a Document extension for each HTML element(s) that you want to extract into a `Wgit::Document` instance variable, equipped with a getter method. Once an extension is defined, any crawled Documents will contain your extracted content.
+You can define a Document extension for each HTML element(s) that you want to extract and serialise into a `Wgit::Document` instance variable, equipped with a getter method. Once an extension is defined, all crawled Documents will contain your extracted content.
 
 Once the page element has been serialised, you can do with it as you wish e.g. obtain it's text value or manipulate the element etc. Since you can choose to return the element's text or the [Nokogiri](https://www.rubydoc.info/github/sparklemotion/nokogiri) object, you have the full power that the Nokogiri gem gives you.
 
@@ -296,6 +296,7 @@ Wgit::Document.define_extension(
 end
 
 # Our Document has a table which we're interested in.
+# Note, it doesn't matter how the Document is initialised e.g. manually or crawled.
 doc = Wgit::Document.new(
   'http://some_url.com',
   <<~HTML
@@ -324,8 +325,6 @@ doc.stats # => {
 # }
 ```
 
-Wgit uses Document extensions to provide much of it's core serialising functionality, providing access to a webpage's text or links for example. These [default Document extensions](https://github.com/michaeltelford/wgit/blob/master/lib/wgit/document_extensions.rb) provide examples for your own.
-
 See the [Wgit::Document.define_extension](https://www.rubydoc.info/github/michaeltelford/wgit/master/Wgit%2FDocument.define_extension) docs for more information.
 
 **Extension Notes**:
@@ -339,7 +338,7 @@ See the [Wgit::Document.define_extension](https://www.rubydoc.info/github/michae
 Below are some points to keep in mind when using Wgit:
 
 - All absolute `Wgit::Url`'s must be prefixed with an appropiate protocol e.g. `https://` etc.
-- By default, up to 5 URL redirects will be followed; this is configurable however.
+- By default, up to 5 URL redirects will be followed; this is [configurable](https://www.rubydoc.info/github/michaeltelford/wgit/master/Wgit/Crawler#redirect_limit-instance_method) however.
 - IRI's (URL's containing non ASCII characters) **are** supported and will be normalised/escaped prior to being crawled.
 
 ## Executable

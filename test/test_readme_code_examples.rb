@@ -197,6 +197,7 @@ class TestReadmeCodeExamples < TestHelper
     end
 
     # Our Document has a table which we're interested in.
+    # Note, it doesn't matter how the Document is initialised e.g. manually or crawled.
     doc = Wgit::Document.new(
       'http://some_url.com',
       <<~HTML
