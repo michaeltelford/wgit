@@ -16,11 +16,11 @@ db.createUser({
 db.createCollection("urls");
 db.createCollection("documents");
 
-db.urls.createIndex({ "url" : 1 }, { unique : true });
-db.documents.createIndex({ "url.url" : 1 }, { unique : true });
+db.urls.createIndex({ "url" : 1 }, { "unique" : true, "name": "unique_url" });
+db.documents.createIndex({ "url.url" : 1 }, { "unique" : true, "name": "unique_url" });
 db.documents.createIndex({
   "text": "text",
   "author": "text",
   "keywords": "text",
   "title": "text"
-});
+}, { "name": "text_search" });
