@@ -51,6 +51,10 @@ Or install it yourself as:
 
     $ gem install wgit
 
+Verify the install by using the executable (to start a shell session):
+
+    $ wgit
+
 ## Basic Usage
 
 ```ruby
@@ -343,11 +347,15 @@ Below are some points to keep in mind when using Wgit:
 
 ## Executable
 
-Currently there is no executable provided with Wgit, however...
+Installing the Wgit gem also adds the `wgit` executable to your `$PATH`. The executable launches an interactive shell session with the Wgit gem already loaded; making it super easy to index and search from the command line without the need for scripts.
 
-In future versions of Wgit, an executable will be packaged with the gem. The executable will provide a `pry` console with the `wgit` gem already loaded. Using the console, you'll easily be able to index and search the web without having to write your own scripts.
+The `wgit` executable does the following things (in order):
 
-This executable will be similar in nature to `./bin/console` which is currently used for development and isn't packaged as part of the `wgit` gem.
+1. `require wgit`
+2. `eval`'s a `.wgit.rb` file (if one exists in either the local or home directory, which ever is found first)
+3. Starts an interactive shell (using `pry` if it's installed, or `irb` if not)
+
+The `.wgit.rb` file can be used to seed fixture data or define helper functions for the session. For example, you could define a function which indexes your website for quick and easy searching everytime you start a new session. **Note** that variables should either be instance variables (e.g. `@url`) or be accessed via a getter method (e.g. `def url; ...; end`).
 
 ## Change Log
 
@@ -389,10 +397,12 @@ And you're good to go!
 
 Wgit uses the [`toys`](https://github.com/dazuma/toys) gem (instead of Rake) for task invocation e.g. running the tests etc. For a full list of available tasks AKA tools, run `toys --tools`. You can search for a tool using `toys -s tool_name`. The most commonly used tools are listed below...
 
-Run `toys db` to see a list of database related tools, enabling you to run a Mongo DB instance locally using Docker.
-
-Run `toys test` to execute the tests (or `toys test smoke` for a faster running subset). You can also run `toys console` for an interactive (`pry`) REPL that will allow you to experiment with the code.
+Run `toys db` to see a list of database related tools, enabling you to run a Mongo DB instance locally using Docker. Run `toys test` to execute the tests (or `toys test smoke` for a faster running subset that doesn't require a database).
 
 To generate code documentation run `toys yardoc`. To browse the generated documentation in a browser run `toys yardoc --serve`. You can also use the `yri` command line tool e.g. `yri Wgit::Crawler#crawl_site` etc.
 
 To install this gem onto your local machine, run `toys install`.
+
+### Console
+
+You can run `toys console` for an interactive shell using the `./bin/wgit` executable. The `toys setup` task will have created a `.env` and `.wgit.rb` file which gets loaded by the executable. You can use the contents of this [gist](https://gist.github.com/michaeltelford/b90d5e062da383be503ca2c3a16e9164) to turn the executable into a development console. It defines some useful functions, fixtures and connects to the database etc. Don't forget to set the `WGIT_CONNECTION_STRING` in the `.env` file.

@@ -3,6 +3,7 @@
 .doc
 .DS_Store
 .env
+.wgit.rb
 .yardoc
 **/pkg
 **/spike.rb

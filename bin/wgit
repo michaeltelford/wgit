@@ -1,0 +1,31 @@
+#!/usr/bin/env ruby
+
+require 'wgit'
+
+# Eval .wgit.rb file (if it exists).
+puts 'Searching for .wgit.rb in local and home directories...'
+['.', Dir.home].each do |dir|
+  path = "#{dir}/.wgit.rb"
+  if File.exist?(path)
+    puts "Eval'ing #{path}"
+    eval(File.read(path), binding)
+    break
+  end
+end
+
+puts "\n#{Wgit.version_str}\n\n"
+
+# Use Pry if installed or fall back to IRB.
+begin
+  require 'pry'
+  klass = Pry
+rescue LoadError
+  require 'irb'
+  klass = IRB
+
+  puts "Starting IRB because Pry isn't installed."
+end
+
+klass.start
+
+puts 'Interactive session complete.'

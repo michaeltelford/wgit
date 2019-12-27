@@ -51,12 +51,12 @@ tool :compile do
 end
 
 tool :console do
-  desc 'Run the development console'
+  desc 'Run the wgit console'
 
   include :exec, exit_on_nonzero_status: true
 
   def run
-    exec './bin/console'
+    exec './bin/wgit'
   end
 end
 
@@ -207,6 +207,7 @@ tool :setup do
 
   def run
     exec_cmd 'touch .env'
+    exec_cmd 'touch .wgit.rb'
 
     puts 'Setup complete', :green
   end
