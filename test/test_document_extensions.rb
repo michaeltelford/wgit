@@ -429,8 +429,12 @@ class TestDocumentExtension < TestHelper
   end
 
   def test_remove_extension__success
+    assert %i[base title author keywords links text], Wgit::Document.extensions
     Wgit::Document.define_extension(:blah, '//blah')
+    assert Wgit::Document.extensions.include?(:blah)
+
     assert Wgit::Document.remove_extension(:blah)
+    refute Wgit::Document.extensions.include?(:blah)
   end
 
   def test_remove_extension__failure

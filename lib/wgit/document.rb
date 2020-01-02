@@ -22,6 +22,14 @@ module Wgit
     # The xpath used to extract the visible text on a page.
     TEXT_ELEMENTS_XPATH = '//*/text()'.freeze
 
+    # Set of Symbols representing the defined Document extensions.
+    @extensions = Set.new
+
+    class << self
+      # Class level attr_reader for the Document defined extensions.
+      attr_reader :extensions
+    end
+
     # The URL of the webpage, an instance of Wgit::Url.
     attr_reader :url
 
@@ -120,7 +128,7 @@ module Wgit
         result = find_in_html(xpath, opts, &block)
         init_var(var, result)
       end
-      Document.send :private, func_name
+      Document.send(:private, func_name)
 
       # Define the private init_*_from_object method for a Database object.
       # Gets the Object's 'key' value and creates a var for it.
@@ -128,8 +136,9 @@ module Wgit
         result = find_in_object(obj, var.to_s, singleton: opts[:singleton], &block)
         init_var(var, result)
       end
-      Document.send :private, func_name
+      Document.send(:private, func_name)
 
+      @extensions << var
       var
     end
 
@@ -144,6 +153,7 @@ module Wgit
       Document.send(:remove_method, "init_#{var}_from_html")
       Document.send(:remove_method, "init_#{var}_from_object")
 
+      @extensions.delete(var.to_sym)
       true
     rescue NameError
       false
