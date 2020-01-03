@@ -3,6 +3,7 @@ require_relative 'utils'
 require_relative 'assertable'
 require 'nokogiri'
 require 'json'
+require 'set'
 
 module Wgit
   # Class primarily modeling a HTML web document, although other MIME types
