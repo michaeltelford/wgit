@@ -206,6 +206,7 @@ tool :setup do
   include :terminal
 
   def run
+    exec_cmd 'gem install wgit'
     exec_cmd 'touch .env'
     exec_cmd 'touch .wgit.rb'
 
@@ -225,7 +226,7 @@ tool :test do
   include :exec, exit_on_nonzero_status: true
 
   def run
-    exec_tool('test all')
+    exec_tool 'test all'
   end
 
   # tool :all
