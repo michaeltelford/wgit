@@ -9,6 +9,18 @@
 - ...
 ---
 
+## v0.7.0
+### Added
+- `Wgit::Indexer.new` optional `crawler:` named param.
+- `bin/wgit` executable; available after `gem install wgit`. Just type `wgit` at the command line for an interactive shell session with the Wgit gem already loaded.
+- `Document.extensions` returning a Set of all defined extensions.
+### Changed/Removed
+- Potential breaking changes: Updated the default search param from `whole_sentence: false` to `true` across all search methods e.g. `Wgit::Database#search`, `Wgit::Document#search` `Wgit.indexed_search` etc. This brings back more relevant search results by default.
+- Updated the Docker image to now include index names; making it easier to identify them.
+### Fixed
+- ...
+---
+
 ## v0.6.0
 ### Added
 - Added `Wgit::Utils.proces_arr encode:` param.

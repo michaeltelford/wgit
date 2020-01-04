@@ -8,11 +8,11 @@ def eval_wgit
 
   ['.', Dir.home].each do |dir|
     path = "#{dir}/.wgit.rb"
-    if File.exist?(path)
-      puts "Eval'ing #{path} (call `eval_wgit` after changes)"
-      eval(File.read(path))
-      break
-    end
+    next unless File.exist?(path)
+
+    puts "Eval'ing #{path} (call `eval_wgit` after changes)"
+    eval(File.read(path))
+    break
   end
 end
 

@@ -1,13 +1,23 @@
 AllCops:
   Exclude:
-    # Readme code examples shouldn't be modified by `rubocop -a`.
-    - 'test/test_readme_code_examples.rb'
+    - 'test/**/*'
+    - '.wgit.rb'
 Style/FrozenStringLiteralComment:
   Enabled: false
-Metrics/LineLength:
+Layout/LineLength:
   Exclude:
-    - 'test/test_*.rb'
     - 'lib/wgit/database/database_dev_data.rb'
 Style/ClassVars:
   Exclude:
     - 'lib/wgit/database/database_helper.rb'
+Layout/HashAlignment:
+  Enabled: false
+Security/Eval:
+  Exclude:
+    - 'bin/wgit'
+Style/GuardClause:
+  Exclude:
+    - 'wgit.gemspec'
+Metrics/BlockLength:
+  Exclude:
+    - '.toys.rb'

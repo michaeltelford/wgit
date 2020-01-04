@@ -19,9 +19,9 @@ module Wgit
     # `#crawl_site`. The idea is to omit anything that isn't HTML and therefore
     # doesn't keep the crawl of the site going. All URL's without a file
     # extension will be crawled, because they're assumed to be HTML.
-    SUPPORTED_FILE_EXTENSIONS = Set.new(%w[
-      asp aspx cfm cgi htm html htmlx jsp php
-    ])
+    SUPPORTED_FILE_EXTENSIONS = Set.new(
+      %w[asp aspx cfm cgi htm html htmlx jsp php]
+    )
 
     # The amount of allowed redirects before raising an error. Set to 0 to
     # disable redirects completely; or you can pass `follow_redirects: false`
