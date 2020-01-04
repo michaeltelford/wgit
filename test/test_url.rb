@@ -201,6 +201,8 @@ class TestUrl < TestHelper
     # Common type URL's.
     assert Wgit::Url.new('/about.html').relative?
     refute Wgit::Url.new('http://www.google.co.uk').relative?
+    assert Wgit::Url.new('//fonts.googleapis.com').relative?
+    assert Wgit::Url.new('doesntexist').relative?
 
     # IRI's.
     assert Wgit::Url.new('/über').relative?

@@ -242,11 +242,14 @@ class TestCrawler < TestHelper
     # Test custom small site.
     url = Wgit::Url.new 'http://test-site.com'
     c = Wgit::Crawler.new
-    assert_crawl_site c, url, 6, 2, expected_pages: [
+    assert_crawl_site c, url, 9, 2, expected_pages: [
       'http://test-site.com',
       'http://test-site.com/contact',
       'http://test-site.com/search',
       'http://test-site.com/about',
+      'http://test-site.com/ftp',
+      'http://test-site.com/sneaky',
+      'http://test-site.com/doesntexist',
       'http://test-site.com/public/records',
       'http://test-site.com/public/records?q=username'
     ], expected_externals: [
@@ -257,11 +260,14 @@ class TestCrawler < TestHelper
     # Test custom small site not starting on the index page.
     url = Wgit::Url.new 'http://test-site.com/search'
     c = Wgit::Crawler.new
-    assert_crawl_site c, url, 6, 2, expected_pages: [
+    assert_crawl_site c, url, 9, 2, expected_pages: [
       'http://test-site.com/search',
       'http://test-site.com/',
       'http://test-site.com/contact',
       'http://test-site.com/about',
+      'http://test-site.com/ftp',
+      'http://test-site.com/sneaky',
+      'http://test-site.com/doesntexist',
       'http://test-site.com/public/records',
       'http://test-site.com/public/records?q=username'
     ], expected_externals: [
@@ -272,11 +278,14 @@ class TestCrawler < TestHelper
     # Test custom small site with an initial host redirect.
     url = Wgit::Url.new 'http://myserver.com' # Redirects to test-site.com.
     c = Wgit::Crawler.new
-    assert_crawl_site c, url, 6, 2, expected_pages: [
+    assert_crawl_site c, url, 9, 2, expected_pages: [
       'http://test-site.com',
       'http://test-site.com/contact',
       'http://test-site.com/search',
       'http://test-site.com/about',
+      'http://test-site.com/ftp',
+      'http://test-site.com/sneaky',
+      'http://test-site.com/doesntexist',
       'http://test-site.com/public/records',
       'http://test-site.com/public/records?q=username'
     ], expected_externals: [
@@ -813,22 +822,22 @@ class TestCrawler < TestHelper
     ext_links = crawler.crawl_site(
       url, allow_paths: allow_paths, disallow_paths: disallow_paths
     ) do |doc|
+      crawled << doc.url
+
       assert_equal url.to_host, doc.url.to_host
       assert doc.url.crawled?
       refute_nil doc.url.date_crawled
 
       case doc.url
       when 'http://test-site.com/sneaky' # Redirects to different domain.
-        assert_empty doc
-        refute_nil doc.url.crawl_duration
+        assert_empty_doc(doc)
       when 'http://test-site.com/ftp'    # Redirects to different host.
-        assert_empty doc
-        refute_nil doc.url.crawl_duration
+        assert_empty_doc(doc)
+      when 'http://test-site.com/doesntexist' # Times out without a response.
+        assert_empty_doc(doc)
       else
         refute_empty doc
         refute_nil doc.url.crawl_duration
-
-        crawled << doc.url
       end
     end
 
@@ -853,5 +862,10 @@ class TestCrawler < TestHelper
     assert_equal end_url, response.url
     assert_equal end_url, start_url
     assert_instance_of Typhoeus::Response, response.adapter_response
+  end
+
+  def assert_empty_doc(doc)
+    assert_empty doc
+    refute_nil doc.url.crawl_duration
   end
 end

@@ -31,6 +31,7 @@ stub_page 'http://smtp.test-site.com'
 stub_redirect 'http://myserver.com', 'http://www.myserver.com'
 stub_redirect 'http://www.myserver.com', 'http://test-site.com'
 stub_timeout 'http://doesnt_exist/'
+stub_timeout 'http://test-site.com/doesntexist'
 
 # Match all *.jpg URL's for belfastpilates.co.uk.
 stub_request(:get, Regexp.new('http://www.belfastpilates.co.uk/(.*).(?:jpg|jpeg)'))
