@@ -1,7 +1,7 @@
 require_relative 'helpers/test_helper'
 
 # Tests the ability to extend the Wgit::Document functionality by extracting
-# custom page elements that aren't by default.
+# custom page elements that aren't extracted by default.
 #
 # WARNING: Certain tests will clear down the DB prior to the test run.
 # NOTE: Every test case should clean up after itself by removing any defined
@@ -58,6 +58,23 @@ class TestDocumentExtension < TestHelper
     if Wgit::Document.remove_extension(:array)
       Wgit::Document.send(:remove_method, :array)
     end
+  end
+
+  # Extends the text elements by processing <a> tags and adds the tag text
+  # into Document#text.
+  def test_text_elements_extension
+    Wgit::Document.text_elements << :a
+
+    doc = Wgit::Document.new(
+      'http://some_url.com',
+      "<html><p>Hello world!</p>\
+<a href='https://made-up-link.com'>Click this link.</a></html>"
+    )
+
+    assert ['https://made-up-link.com'], doc.links
+    assert ['Hello world!', 'Click this link.'], doc.text
+
+    Wgit::Document.text_elements.delete(:a)
   end
 
   def test_document_extension__with_defaults
@@ -250,6 +267,9 @@ class TestDocumentExtension < TestHelper
   def test_document_extension__init_from_database
     clear_db
 
+    # Define a text extension.
+    Wgit::Document.text_elements << :a
+
     # Define a Document extension.
     name = Wgit::Document.define_extension(
       :table_text, '//table',
@@ -291,7 +311,7 @@ class TestDocumentExtension < TestHelper
       author: nil,
       keywords: nil,
       links: ['https://made-up-link.com'],
-      text: ['Hello world!', 'Click this link.', 'Header Text', 'Another Header'],
+      text: ['Hello world!', 'Click this link.'],
       table_text: 'Header TextAnother Header'
     )
 
@@ -304,10 +324,12 @@ class TestDocumentExtension < TestHelper
     assert_instance_of Wgit::Document, db_doc
     assert_equal 'http://some_url.com', db_doc.url
     assert_equal ['https://made-up-link.com'], db_doc.links
-    assert_equal ['Hello world!', 'Click this link.', 'Header Text', 'Another Header'], db_doc.text
+    assert_equal ['Hello world!', 'Click this link.'], db_doc.text
     assert db_doc.respond_to? :table_text
     assert_instance_of String, db_doc.table_text
     assert_equal 'Header TextAnother Header', db_doc.table_text
+
+    Wgit::Document.text_elements.delete(:a)
   end
 
   def test_document_extension__init_from_mongo_doc

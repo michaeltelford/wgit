@@ -273,15 +273,45 @@ urls_to_crawl = db.uncrawled_urls # => Results will include top_result.external_
 
 ## Extending The API
 
-Document serialising in Wgit is the means of downloading a web page and extracting parts of its content into accessible document attributes/methods. For example, `Wgit::Document#author` will return you the webpage's HTML element value of `meta[@name='author']`.
+Document serialising in Wgit is the means of downloading a web page and serialising parts of its content into accessible `Wgit::Document` attributes/methods. For example, `Wgit::Document#author` will return you the webpage's xpath value of `meta[@name='author']`.
 
-Wgit provides some [default extensions](https://github.com/michaeltelford/wgit/blob/master/lib/wgit/document_extensions.rb) to extract a page's text, links etc. This of course is often not enough given the nature of the WWW and the differences from one webpage to the next. Therefore, there exists a way to extend the default serialising logic.
+There are two ways to extend the Document serialising behaviour of Wgit for your own means:
 
-### Serialising Additional Page Elements via Document Extensions
+1. Add additional **textual** content to `Wgit::Document#text`.
+2. Define `Wgit::Document` instance methods for specific HTML **elements**.
 
-You can define a Document extension for each HTML element(s) that you want to extract and serialise into a `Wgit::Document` instance variable, equipped with a getter method. Once an extension is defined, all crawled Documents will contain your extracted content.
+Below describes these two methods in more detail.
 
-Once the page element has been serialised, you can do with it as you wish e.g. obtain it's text value or manipulate the element etc. Since you can choose to return the element's text or the [Nokogiri](https://www.rubydoc.info/github/sparklemotion/nokogiri) object, you have the full power that the Nokogiri gem gives you.
+### 1. Extending The Default Text Elements
+
+Wgit contains a set of `Wgit::Document.text_elements` defining which HTML elements contain text on a page; which in turn are serialised. Once serialised you can process this text content via methods like `Wgit::Document#text` and `Wgit::Document#search` etc.
+
+The below code example shows how to extract additional text from a webpage:
+
+```ruby
+require 'wgit'
+
+# Let's add the text of links e.g. <a> tags.
+Wgit::Document.text_elements << :a
+
+# Our Document has a link whose's text we're interested in.
+doc = Wgit::Document.new(
+  'http://some_url.com',
+  "<html><p>Hello world!</p><a href='https://made-up-link.com'>Click this link.</a></html>"
+)
+
+# Now every crawled Document#text will include <a> link text.
+doc.text           # => ["Hello world!", "Click this link."]
+doc.search('link') # => ["Click this link."]
+```
+
+**Note**: This only works for *textual* page content. For more control over the serialised *elements* themselves, see below.
+
+### 2. Serialising Specific HTML Elements (via Document Extensions)
+
+Wgit provides some [default extensions](https://github.com/michaeltelford/wgit/blob/master/lib/wgit/document_extensions.rb) to extract a page's text, links etc. This of course is often not enough given the nature of the WWW and the differences from one webpage to the next.
+
+Therefore, you can define a Document extension for each HTML element(s) that you want to extract and serialise into a `Wgit::Document` instance variable, equipped with a getter method. Once an extension is defined, all crawled Documents will contain your extracted content.
 
 Here's how to add a Document extension to serialise a specific page element:
 
@@ -293,14 +323,13 @@ Wgit::Document.define_extension(
   :tables,                  # Wgit::Document#tables will return the page's tables.
   '//table',                # The xpath to extract the tables.
   singleton: false,         # True returns the first table found, false returns all.
-  text_content_only: false, # True returns one or more Strings of the tables text,
-                            # false returns the tables as Nokogiri objects (see below).
+  text_content_only: false, # True returns the table text, false returns the Nokogiri object.
 ) do |tables|
-  # Here we can manipulate the object(s) before they're set as Wgit::Document#tables.
+  # Here we can inspect/manipulate the tables before they're set as Wgit::Document#tables.
 end
 
-# Our Document has a table which we're interested in.
-# Note, it doesn't matter how the Document is initialised e.g. manually or crawled.
+# Our Document has a table which we're interested in. Note it doesn't matter how the Document
+# is initialised e.g. manually (as below) or via Wgit::Crawler methods etc.
 doc = Wgit::Document.new(
   'http://some_url.com',
   <<~HTML

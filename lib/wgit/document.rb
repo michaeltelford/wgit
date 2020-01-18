@@ -20,13 +20,21 @@ module Wgit
     # Regex for the allowed var names when defining an extension.
     REGEX_EXTENSION_NAME = /[a-z0-9_]+/.freeze
 
-    # The xpath used to extract the visible text on a page.
-    TEXT_ELEMENTS_XPATH = '//*/text()'.freeze
+    # The HTML elements that make up the visible text on a page.
+    # These elements are used to initialize the @text of the Document.
+    # See the README.md for how to add to this Set dynamically.
+    @text_elements = Set.new(%i[
+      dd div dl dt figcaption figure h1 h2
+      h3 h4 h5 hr li main ol p pre span ul
+    ])
 
     # Set of Symbols representing the defined Document extensions.
     @extensions = Set.new
 
     class << self
+      # Class level instance reader method for @text_elements.
+      attr_reader :text_elements
+
       # Class level attr_reader for the Document defined extensions.
       attr_reader :extensions
     end
@@ -71,6 +79,23 @@ module Wgit
     end
 
     ### Document Class Methods ###
+
+    # Uses Document.text_elements to build an xpath String, used to obtain
+    # all of the combined visual text on a webpage.
+    #
+    # @return [String] An xpath String to obtain a webpage's text elements.
+    def self.text_elements_xpath
+      xpath = ''
+      return xpath if Wgit::Document.text_elements.empty?
+
+      el_xpath = '//%s/text()'
+      Wgit::Document.text_elements.each_with_index do |el, i|
+        xpath += ' | ' unless i.zero?
+        xpath += format(el_xpath, el)
+      end
+
+      xpath
+    end
 
     # Defines an extension, which is a way to serialise HTML elements into
     # instance variables upon Document initialization. See the default

@@ -180,6 +180,32 @@ class TestReadmeCodeExamples < TestHelper
     assert_equal urls_to_crawl.length, top_result.external_links.length
   end
 
+  def test_extending_the_api__extend_text_elements
+    ### PUT README CODE BELOW ###
+
+    require 'wgit'
+
+    # Let's add the text of links e.g. <a> tags.
+    Wgit::Document.text_elements << :a
+
+    # Our Document has a link whose's text we're interested in.
+    doc = Wgit::Document.new(
+      'http://some_url.com',
+      "<html><p>Hello world!</p><a href='https://made-up-link.com'>Click this link.</a></html>"
+    )
+
+    # Now every crawled Document#text will include <a> link text.
+    doc.text           # => ["Hello world!", "Click this link."]
+    doc.search('link') # => ["Click this link."]
+
+    ### PUT README CODE ABOVE ###
+
+    assert_equal ['Hello world!', 'Click this link.'], doc.text
+    assert_equal ['Click this link.'], doc.search('link')
+
+    Wgit::Document.text_elements.delete(:a)
+  end
+
   def test_extending_the_api__define_extension
     ### PUT README CODE BELOW ###
 
@@ -187,17 +213,16 @@ class TestReadmeCodeExamples < TestHelper
 
     # Let's get all the page's <table> elements.
     Wgit::Document.define_extension(
-      :tables,                 # Wgit::Document#tables will return the page's tables.
-      '//table',               # The xpath to extract the tables.
-      singleton: false,        # True returns the first table found, false returns all.
-      text_content_only: false # True returns one or more Strings of the tables text,
-                               # false returns the tables as Nokogiri objects (see below).
+      :tables,                  # Wgit::Document#tables will return the page's tables.
+      '//table',                # The xpath to extract the tables.
+      singleton: false,         # True returns the first table found, false returns all.
+      text_content_only: false, # True returns the table text, false returns the Nokogiri object.
     ) do |tables|
-      # Here we can manipulate the object(s) before they're set as Wgit::Document#tables.
+      # Here we can inspect/manipulate the tables before they're set as Wgit::Document#tables.
     end
 
-    # Our Document has a table which we're interested in.
-    # Note, it doesn't matter how the Document is initialised e.g. manually or crawled.
+    # Our Document has a table which we're interested in. Note it doesn't matter how the Document
+    # is initialised e.g. manually (as below) or via Wgit::Crawler methods etc.
     doc = Wgit::Document.new(
       'http://some_url.com',
       <<~HTML
@@ -220,7 +245,7 @@ class TestReadmeCodeExamples < TestHelper
     tables.class       # => Nokogiri::XML::NodeSet
     tables.first.class # => Nokogiri::XML::Element
 
-    # Notice how the Document's stats will include our 'tables' extension.
+    # Notice the Document's stats now include our 'tables' extension.
     doc.stats # => {
     #   :url=>19, :html=>242, :links=>0, :text_snippets=>2, :text_bytes=>65, :tables=>1
     # }
@@ -231,7 +256,7 @@ class TestReadmeCodeExamples < TestHelper
     assert_instance_of Nokogiri::XML::NodeSet, tables
     assert_instance_of Nokogiri::XML::Element, tables.first
     assert_equal({
-      :url=>19, :html=>242, :links=>0, :text_snippets=>8, :text_bytes=>91, :tables=>1
+      :url=>19, :html=>242, :links=>0, :text_snippets=>2, :text_bytes=>65, :tables=>1
     }, doc.stats)
 
     # Remove the extension.
