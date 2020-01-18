@@ -173,7 +173,7 @@ module Wgit
       (@url == other.url) && (@html == other.html)
     end
 
-    # Is a shortcut for calling Document#html[range].
+    # Shortcut for calling Document#html[range].
     #
     # @param range [Range] The range of @html to return.
     # @return [String] The given range of @html.

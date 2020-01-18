@@ -131,11 +131,11 @@ module Wgit
       @status.positive?
     end
 
-    alias code       status
-    alias content    body
-    alias crawl_time total_time
-    alias to_s       body
-    alias redirects  redirections
-    alias length     size
+    alias code           status
+    alias content        body
+    alias crawl_duration total_time
+    alias to_s           body
+    alias redirects      redirections
+    alias length         size
   end
 end
