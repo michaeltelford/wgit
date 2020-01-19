@@ -32,7 +32,7 @@ class TestReadmeCodeExamples < TestHelper
     doc.title # => "WikiLeaks - What is WikiLeaks"
     doc.stats # => {
               #   :url=>44, :html=>28133, :title=>17, :keywords=>0,
-              #   :links=>35, :text_snippets=>67, :text_bytes=>13735
+              #   :links=>35, :text=>67, :text_bytes=>13735
               # }
     doc.links # => ["#submit_help_contact", "#submit_help_tor", "#submit_help_tips", ...]
     doc.text  # => ["The Courage Foundation is an international organisation that <snip>", ...]
@@ -252,7 +252,7 @@ class TestReadmeCodeExamples < TestHelper
 
     # Note, the Document's stats now include our 'tables' extension.
     doc.stats # => {
-    #   :url=>19, :html=>242, :links=>0, :text_snippets=>8, :text_bytes=>91, :tables=>1
+    #   :url=>19, :html=>242, :links=>0, :text=>8, :text_bytes=>91, :tables=>1
     # }
 
     ### PUT README CODE ABOVE ###
@@ -261,7 +261,7 @@ class TestReadmeCodeExamples < TestHelper
     assert_instance_of Nokogiri::XML::NodeSet, tables
     assert_instance_of Nokogiri::XML::Element, tables.first
     assert_equal({
-      :url=>19, :html=>242, :links=>0, :text_snippets=>8, :text_bytes=>91, :tables=>1
+      :url=>19, :html=>242, :links=>0, :text=>8, :text_bytes=>91, :tables=>1
     }, doc.stats)
 
     # Remove the extension.

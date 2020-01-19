@@ -290,8 +290,8 @@ module Wgit
       instance_variables.each do |var|
         # Add up the total bytes of text as well as the length.
         if var == :@text
-          hash[:text_snippets] = @text.length
-          hash[:text_bytes]    = @text.sum(&:length)
+          hash[:text]       = @text.length
+          hash[:text_bytes] = @text.sum(&:length)
         # Else take the var's #length method return value.
         else
           next unless instance_variable_get(var).respond_to?(:length)

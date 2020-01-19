@@ -92,7 +92,7 @@ class TestDocument < TestHelper
       author: 15,
       keywords: 3,
       links: 20,
-      text_snippets: 35,
+      text: 35,
       text_bytes: 563
     }
   end
