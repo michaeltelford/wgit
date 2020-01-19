@@ -24,8 +24,11 @@ module Wgit
     # These elements are used to initialize the @text of the Document.
     # See the README.md for how to add to this Set dynamically.
     @text_elements = Set.new(%i[
-      dd div dl dt figcaption figure h1 h2
-      h3 h4 h5 hr li main ol p pre span ul
+      a abbr address article aside b bdi bdo blockquote button caption cite
+      code data dd del details dfn div dl dt em figcaption figure footer h1 h2
+      h3 h4 h5 h6 header hr i input ins kbd label legend li main mark meter ol
+      option output p pre q rb rt ruby s samp section small span strong sub
+      summary sup td textarea th time u ul var wbr
     ])
 
     # Set of Symbols representing the defined Document extensions.

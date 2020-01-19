@@ -8,10 +8,10 @@
   <link rel="stylesheet" href="/styles.css">
   <script type="text/javascript" src="http://www.mytestsite.com/client.js"></script>
   <script type="text/javascript" src="http://www.external-scripts.com/code.js"></script>
-  <script type="text/javascript">alert("Hello from html head")</script>
+  <script type="text/javascript">var msg = "Hello from html head";</script>
 </head>
 <body id="main-body" onload="">
-  <script type="text/javascript">alert("Hello from html body")</script>
+  <script type="text/javascript">var msg = "Hello from html body";</script>
   <h1>Howdy!</h1>
   <a href="#welcome">Welcome</a>
   <a href="?foo=bar">Foo Bar</a>
@@ -23,13 +23,38 @@
   <a href="/">Index</a>
   <br>
   <br>
-  <img src="smiley.jpg" alt="Smiley face" height="42" width="42">
-  <img src="https://imgur.com/smiley.jpg" alt="Another smiley face" height="42" width="42">
+  <img src="https://www.w3schools.com/html/pic_trulli.jpg" alt="Image alt text" height="20" width="20">
   <p>This page is primarily for testing the Ruby code used in Wgit with the Minitest framework.</p>
+  <span>
+    Here is a table:
+    <table>
+      <tr><th>Country</th><th>Capital</th></tr>
+      <tr><td>England</td><td>London</td></tr>
+      <tr><td>Ireland</td><td>Dublin</td></tr>
+    </table>
+  </span>
+  <br />
   <div id="minitest">
     Minitest rocks!! It's simplicity and power matches the Ruby language in which it's developed.
   </div>
   <br>
+  <div id="login-form">
+    <form action="#">
+      <div>
+        <label for="username">Username:</label><br />
+        <input name="username" type="text" />
+      </div>
+      <div>
+        <label for="password">Password:</label><br />
+        <input name="password" type="password" />
+      </div>
+      <div>
+        <button type="submit">Login</button>
+        <button type="reset">Clear Form</button>
+      </div>
+    </form>
+  </div>
+  <br />
   <a href="http://www.yahoo.com">Yahoo</a>
   <a href="/contact.html">Contact</a>
   <a href="http://www.bing.com/">Bing</a>

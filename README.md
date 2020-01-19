@@ -291,18 +291,23 @@ The below code example shows how to extract additional text from a webpage:
 ```ruby
 require 'wgit'
 
-# Let's add the text of links e.g. <a> tags.
-Wgit::Document.text_elements << :a
+# The default text_elements cover most visible page text but let's say we
+# have a <table> element with text content that we want.
+Wgit::Document.text_elements << :table
 
-# Our Document has a link whose's text we're interested in.
 doc = Wgit::Document.new(
   'http://some_url.com',
-  "<html><p>Hello world!</p><a href='https://made-up-link.com'>Click this link.</a></html>"
+  <<~HTML
+  <html>
+    <p>Hello world!</p>
+    <table>My table</table>
+  </html>
+  HTML
 )
 
-# Now every crawled Document#text will include <a> link text.
-doc.text           # => ["Hello world!", "Click this link."]
-doc.search('link') # => ["Click this link."]
+# Now every crawled Document#text will include <table> text content.
+doc.text            # => ["Hello world!", "My table"]
+doc.search('table') # => ["My table"]
 ```
 
 **Note**: This only works for *textual* page content. For more control over the serialised *elements* themselves, see below.
@@ -352,9 +357,9 @@ tables = doc.tables
 tables.class       # => Nokogiri::XML::NodeSet
 tables.first.class # => Nokogiri::XML::Element
 
-# Notice the Document's stats now include our 'tables' extension.
+# Note, the Document's stats now include our 'tables' extension.
 doc.stats # => {
-#   :url=>19, :html=>242, :links=>0, :text_snippets=>2, :text_bytes=>65, :tables=>1
+#   :url=>19, :html=>242, :links=>0, :text_snippets=>8, :text_bytes=>91, :tables=>1
 # }
 ```
 

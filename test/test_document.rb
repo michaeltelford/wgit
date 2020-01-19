@@ -20,7 +20,11 @@ class TestDocument < TestHelper
       'base' => nil, # Gets set if using html_with_base.
       'title' => 'My Test Webpage',
       'author' => 'Michael Telford',
-      'keywords' => ['Minitest', 'Ruby', 'Test Document'],
+      'keywords' => [
+        'Minitest',
+        'Ruby',
+        'Test Document'
+      ],
       'links' => [
         '#welcome',
         '?foo=bar',
@@ -44,22 +48,52 @@ class TestDocument < TestHelper
         'http://ftp.mytestsite.com/files'
       ],
       'text' => [
-        'Howdy!', "Welcome to my site, I hope you like what you \
-see and enjoy browsing the various randomness.", "This page is \
-primarily for testing the Ruby code used in Wgit with the \
-Minitest framework.", "Minitest rocks!! It's simplicity \
-and power matches the Ruby language in which it's developed."
+        'Howdy!',
+        'Welcome',
+        'Foo Bar',
+        'Google',
+        'Security',
+        'Welcome to my site, I hope you like what you see and enjoy browsing the various randomness.',
+        'About',
+        'About 2',
+        'Index',
+        'This page is primarily for testing the Ruby code used in Wgit with the Minitest framework.',
+        'Here is a table:',
+        'Country',
+        'Capital',
+        'England',
+        'London',
+        'Ireland',
+        'Dublin',
+        "Minitest rocks!! It's simplicity and power matches the Ruby language in which it's developed.",
+        'Username:',
+        'Password:',
+        'Login',
+        'Clear Form',
+        'Yahoo',
+        'Contact',
+        'Bing',
+        'Index 2',
+        'Index 3',
+        'Tests',
+        'Duck Duck Go',
+        'Blog',
+        'Example.com Blog',
+        'Contents',
+        'Same Domain FTP Server',
+        'Same Domain FTP Server 2',
+        'Same Domain FTP Server Files'
       ]
     }
     @stats = {
       url: 30,
-      html: 2351,
+      html: 2970,
       title: 15,
       author: 15,
       keywords: 3,
       links: 20,
-      text_snippets: 4,
-      text_bytes: 280
+      text_snippets: 35,
+      text_bytes: 563
     }
   end
 

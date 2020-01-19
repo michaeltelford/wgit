@@ -60,21 +60,23 @@ class TestDocumentExtension < TestHelper
     end
   end
 
-  # Extends the text elements by processing <a> tags and adds the tag text
-  # into Document#text.
   def test_text_elements_extension
-    Wgit::Document.text_elements << :a
+    Wgit::Document.text_elements << :table
 
     doc = Wgit::Document.new(
       'http://some_url.com',
-      "<html><p>Hello world!</p>\
-<a href='https://made-up-link.com'>Click this link.</a></html>"
+      <<~HTML
+      <html>
+        <p>Hello world!</p>
+        <table>My table</table>
+      </html>
+      HTML
     )
 
-    assert ['https://made-up-link.com'], doc.links
-    assert ['Hello world!', 'Click this link.'], doc.text
+    assert_equal ['Hello world!', 'My table'], doc.text
+    assert Wgit::Document.text_elements.include?(:table)
 
-    Wgit::Document.text_elements.delete(:a)
+    Wgit::Document.text_elements.delete(:table)
   end
 
   def test_document_extension__with_defaults
@@ -268,7 +270,7 @@ class TestDocumentExtension < TestHelper
     clear_db
 
     # Define a text extension.
-    Wgit::Document.text_elements << :a
+    Wgit::Document.text_elements << :table
 
     # Define a Document extension.
     name = Wgit::Document.define_extension(
@@ -287,14 +289,14 @@ class TestDocumentExtension < TestHelper
       url,
       "<html><p>Hello world!</p>\
 <a href='https://made-up-link.com'>Click this link.</a>\
-<table><th>Header Text</th><th>Another Header</th></table></html>"
+<table>Boomsk<th>Header Text</th><th>Another Header</th></table></html>"
     )
 
     # Some basic Document assertions before the database interactions.
     assert_equal :table_text, name
     assert ['https://made-up-link.com'], doc.links
     assert doc.respond_to? :table_text
-    assert_equal 'Header TextAnother Header', doc.table_text
+    assert_equal 'BoomskHeader TextAnother Header', doc.table_text
 
     db = Wgit::Database.new
     db.insert doc # Uses Document#to_h and Model.document.
@@ -311,8 +313,8 @@ class TestDocumentExtension < TestHelper
       author: nil,
       keywords: nil,
       links: ['https://made-up-link.com'],
-      text: ['Hello world!', 'Click this link.'],
-      table_text: 'Header TextAnother Header'
+      text: ['Hello world!', 'Click this link.', 'Boomsk', 'Header Text', 'Another Header'],
+      table_text: 'BoomskHeader TextAnother Header'
     )
 
     results = db.search 'Hello world'
@@ -324,12 +326,13 @@ class TestDocumentExtension < TestHelper
     assert_instance_of Wgit::Document, db_doc
     assert_equal 'http://some_url.com', db_doc.url
     assert_equal ['https://made-up-link.com'], db_doc.links
-    assert_equal ['Hello world!', 'Click this link.'], db_doc.text
+    assert_equal ['Hello world!', 'Click this link.', 'Boomsk', 'Header Text', 'Another Header'], db_doc.text
     assert db_doc.respond_to? :table_text
     assert_instance_of String, db_doc.table_text
-    assert_equal 'Header TextAnother Header', db_doc.table_text
+    assert_equal 'BoomskHeader TextAnother Header', db_doc.table_text
+    assert Wgit::Document.text_elements.include?(:table)
 
-    Wgit::Document.text_elements.delete(:a)
+    Wgit::Document.text_elements.delete(:table)
   end
 
   def test_document_extension__init_from_mongo_doc
