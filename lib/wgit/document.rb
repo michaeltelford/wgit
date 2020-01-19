@@ -20,9 +20,7 @@ module Wgit
     # Regex for the allowed var names when defining an extension.
     REGEX_EXTENSION_NAME = /[a-z0-9_]+/.freeze
 
-    # The HTML elements that make up the visible text on a page.
-    # These elements are used to initialize the @text of the Document.
-    # See the README.md for how to add to this Set dynamically.
+    # Set of text elements used to build Document#text.
     @text_elements = Set.new(%i[
       a abbr address article aside b bdi bdo blockquote button caption cite
       code data dd del details dfn div dl dt em figcaption figure footer h1 h2
@@ -35,10 +33,13 @@ module Wgit
     @extensions = Set.new
 
     class << self
-      # Class level instance reader method for @text_elements.
+      # Set of HTML elements that make up the visible text on a page. These
+      # elements are used to initialize the Wgit::Document#text. See the
+      # README.md for how to add to this Set dynamically.
       attr_reader :text_elements
 
-      # Class level attr_reader for the Document defined extensions.
+      # Set of Symbols representing the defined Document extensions. Is
+      # read-only. Use Wgit::Document.define_extension for a new extension.
       attr_reader :extensions
     end
 

@@ -388,6 +388,36 @@ class TestCrawler < TestHelper
     ], crawled
   end
 
+  def test_crawl_site__add_supported_url_extension
+    # odd-extension.com returns a HTML page with a link to /other.html5.
+    # other.html5 isn't crawled until we add it to supported_file_extensions.
+    url = 'http://odd-extension.com'.to_url
+    crawler = Wgit::Crawler.new
+
+    crawled = []
+    crawler.crawl_site(url) do |doc|
+      assert_crawl(doc)
+      crawled << doc.url
+    end
+
+    assert_equal ['http://odd-extension.com'], crawled
+
+    Wgit::Crawler.supported_file_extensions << 'html5'
+
+    crawled = []
+    crawler.crawl_site(url) do |doc|
+      assert_crawl(doc)
+      crawled << doc.url
+    end
+
+    assert_equal [
+      'http://odd-extension.com',
+      'http://odd-extension.com/other.html5'
+    ], crawled
+
+    Wgit::Crawler.supported_file_extensions.delete 'html5'
+  end
+
   def test_fetch
     c = Wgit::Crawler.new
     url = Wgit::Url.new 'http://txti.es/'

@@ -32,6 +32,7 @@ stub_redirect 'http://myserver.com', 'http://www.myserver.com'
 stub_redirect 'http://www.myserver.com', 'http://test-site.com'
 stub_timeout 'http://doesnt_exist/'
 stub_timeout 'http://test-site.com/doesntexist'
+stub_page 'http://odd-extension.com/other.html5', body: '<p>Hello world</p>'
 
 # Match all *.jpg URL's for belfastpilates.co.uk.
 stub_request(:get, Regexp.new('http://www.belfastpilates.co.uk/(.*).(?:jpg|jpeg)'))
@@ -45,7 +46,8 @@ pages = [
   'https://static.xx.fbcdn.net/rsrc.php/v3/y1/l/0,cross/NvZ4mNTW3Fd.css',
   'http://altitudejunkies.com',
   'http://www.mountainmadness.com',
-  'http://www.adventureconsultants.com'
+  'http://www.adventureconsultants.com',
+  'http://odd-extension.com'
 ]
 
 sites = [

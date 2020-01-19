@@ -11,17 +11,25 @@ require 'typhoeus'
 module Wgit
   # The Crawler class provides a means of crawling web based HTTP Wgit::Url's,
   # serialising their HTML into Wgit::Document instances. This is the only Wgit
-  # class which contains network logic e.g. request/response handling.
+  # class which contains network logic e.g. HTTP request/response handling.
   class Crawler
     include Assertable
 
-    # The URL file extensions (from `<a>` hrefs) which will be crawled by
-    # `#crawl_site`. The idea is to omit anything that isn't HTML and therefore
-    # doesn't keep the crawl of the site going. All URL's without a file
-    # extension will be crawled, because they're assumed to be HTML.
-    SUPPORTED_FILE_EXTENSIONS = Set.new(
+    # Set of supported file extensions for Wgit::Crawler#crawl_site.
+    @supported_file_extensions = Set.new(
       %w[asp aspx cfm cgi htm html htmlx jsp php]
     )
+
+    class << self
+      # The URL file extensions (from `<a>` hrefs) which will be crawled by
+      # `#crawl_site`. The idea is to omit anything that isn't HTML and therefore
+      # doesn't keep the crawl of the site going. All URL's without a file
+      # extension will be crawled, because they're assumed to be HTML.
+      # The `#crawl` method will crawl anything since it's given the URL(s).
+      # You can add your own site's URL file extension e.g.
+      # `Wgit::Crawler.supported_file_extensions << 'html5'` etc.
+      attr_reader :supported_file_extensions
+    end
 
     # The amount of allowed redirects before raising an error. Set to 0 to
     # disable redirects completely; or you can pass `follow_redirects: false`
@@ -313,7 +321,9 @@ module Wgit
               .uniq
               .select do |link|
         ext = link.to_extension
-        ext ? SUPPORTED_FILE_EXTENSIONS.include?(ext.downcase) : true
+        ext ?
+          Wgit::Crawler.supported_file_extensions.include?(ext.downcase) :
+          true
       end
 
       return links if allow_paths.nil? && disallow_paths.nil?
