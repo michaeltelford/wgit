@@ -9,6 +9,17 @@
 - ...
 ---
 
+## v0.8.0
+### Added
+- To the range of `Wgit::Document.text_elements`. Now (only and) all visible page text should be extracted into `Wgit::Document#text` successfully.
+### Changed/Removed
+- Potential breaking change: Renamed `Wgit::Response#crawl_time` (alias) to be `#crawl_duration`.
+- Potential breaking change: Renamed `Document#stats[:text_snippets]` to be `:text`.
+- Updated `Wgit::Crawler::SUPPORTED_FILE_EXTENSIONS` to be `Wgit::Crawler.supported_file_extensions`, making it configurable. Now you can add your own URL extensions if needed.
+### Fixed
+- An issue where too much `Wgit::Document#text` was being extracted from the HTML. This was fixed by reverting the recent commit: "Document.text_elements_xpath is now `//*/text()`".
+---
+
 ## v0.7.0
 ### Added
 - `Wgit::Indexer.new` optional `crawler:` named param.

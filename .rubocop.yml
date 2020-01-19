@@ -12,6 +12,8 @@ Style/ClassVars:
     - 'lib/wgit/database/database_helper.rb'
 Layout/HashAlignment:
   Enabled: false
+Layout/FirstArrayElementIndentation:
+  Enabled: false
 Security/Eval:
   Exclude:
     - 'bin/wgit'
