@@ -338,8 +338,8 @@ module Wgit
       @doc.css(selector)
     end
 
-    # Returns all internal links from this Document in relative form. Internal
-    # meaning a link to another document on the same host.
+    # Returns all unique internal links from this Document in relative form.
+    # Internal meaning a link to another document on the same host.
     #
     # This Document's host is used to determine if an absolute URL is actually
     # a relative link e.g. For a Document representing
@@ -348,7 +348,7 @@ module Wgit
     # as an internal link because both Documents live on the same host. Also
     # see Wgit::Document#internal_absolute_links.
     #
-    # @return [Array<Wgit::Url>] Self's internal Url's in relative form.
+    # @return [Array<Wgit::Url>] Self's unique internal Url's in relative form.
     def internal_links
       return [] if @links.empty?
 
@@ -362,19 +362,19 @@ module Wgit
       Wgit::Utils.process_arr(links)
     end
 
-    # Returns all internal links from this Document in absolute form by
+    # Returns all unique internal links from this Document in absolute form by
     # appending them to self's #base_url. Also see
     # Wgit::Document#internal_links.
     #
-    # @return [Array<Wgit::Url>] Self's internal Url's in absolute form.
+    # @return [Array<Wgit::Url>] Self's unique internal Url's in absolute form.
     def internal_absolute_links
       internal_links.map { |link| link.prefix_base(self) }
     end
 
-    # Returns all external links from this Document in absolute form. External
-    # meaning a link to a different host.
+    # Returns all unique external links from this Document in absolute form.
+    # External meaning a link to a different host.
     #
-    # @return [Array<Wgit::Url>] Self's external Url's in absolute form.
+    # @return [Array<Wgit::Url>] Self's unique external Url's in absolute form.
     def external_links
       return [] if @links.empty?
 
