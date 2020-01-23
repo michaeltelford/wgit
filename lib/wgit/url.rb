@@ -90,6 +90,21 @@ module Wgit
       obj.is_a?(Wgit::Url) ? obj : new(obj)
     end
 
+    # Returns a Wgit::Url instance from Wgit::Url.parse, or nil if obj cannot
+    # be parsed successfully e.g. the String is invalid.
+    #
+    # Use this method when you can't gaurentee that obj is parsable as a URL.
+    # See Wgit::Url.parse for more information.
+    #
+    # @param obj [Object] The object to parse, which #is_a?(String).
+    # @raise [StandardError] If obj.is_a?(String) is false.
+    # @return [Wgit::Url] A Wgit::Url instance or nil (if obj is invalid).
+    def self.parse_or_nil(obj)
+      parse(obj)
+    rescue Addressable::URI::InvalidURIError
+      nil
+    end
+
     # Sets the @crawled instance var, also setting @date_crawled for
     # convenience.
     #

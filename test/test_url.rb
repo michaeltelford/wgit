@@ -106,6 +106,46 @@ class TestUrl < TestHelper
     assert_equal 'Can only parse if obj#is_a?(String)', e.message
   end
 
+  def test_parse_or_nil__from_string
+    url = Wgit::Url.parse_or_nil 'http://www.google.co.uk'
+
+    assert_equal 'http://www.google.co.uk', url
+    refute url.crawled
+    assert_nil url.date_crawled
+    assert_nil url.crawl_duration
+    refute_nil url.instance_variable_get :@uri
+  end
+
+  def test_parse_or_nil__from_url
+    time = Time.now
+    url = Wgit::Url.new(
+      'http://example.com',
+      crawled: true,
+      date_crawled: time,
+      crawl_duration: 1.5
+    )
+    parsed = Wgit::Url.parse_or_nil url
+
+    assert_equal 'http://example.com', parsed
+    assert url.crawled
+    assert_equal time, url.date_crawled
+    assert_equal 1.5, url.crawl_duration
+    refute_nil url.instance_variable_get :@uri
+  end
+
+  def test_parse_or_nil__returns_nil
+    assert_nil Wgit::Url.parse_or_nil('http://')
+    assert_nil Wgit::Url.parse_or_nil('https://')
+  end
+
+  def test_parse_or_nil__fails
+    e = assert_raises { Wgit::Url.parse_or_nil nil }
+    assert_equal 'Can only parse if obj#is_a?(String)', e.message
+
+    e = assert_raises { Wgit::Url.parse_or_nil({}) }
+    assert_equal 'Can only parse if obj#is_a?(String)', e.message
+  end
+
   def test_valid?
     assert Wgit::Url.new('http://www.google.co.uk').valid?
     assert Wgit::Url.new('http://google.com').valid?
