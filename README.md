@@ -68,10 +68,11 @@ crawler.last_response.class # => Wgit::Response is a wrapper for Typhoeus::Respo
 
 doc.class # => Wgit::Document
 doc.class.public_instance_methods(false).sort # => [
-# :==, :[], :author, :base, :base_url, :content, :css, :doc, :empty?, :external_links,
-# :external_urls, :html, :internal_absolute_links, :internal_absolute_urls,
-# :internal_links, :internal_urls, :keywords, :links, :score, :search, :search!,
-# :size, :statistics, :stats, :text, :title, :to_h, :to_json, :url, :xpath
+# :==, :[], :author, :base, :base_url, :content, :css, :description, :doc, :empty?,
+# :external_links, :external_urls, :html, :internal_absolute_links,
+# :internal_absolute_urls,:internal_links, :internal_urls, :keywords, :links, :score,
+# :search, :search!, :size, :statistics, :stats, :text, :title, :to_h, :to_json,
+# :url, :xpath
 # ]
 
 doc.url   # => "https://wikileaks.org/What-is-Wikileaks.html"

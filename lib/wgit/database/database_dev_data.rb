@@ -35,6 +35,7 @@ module Wgit
           timestamps: false
         ),
         'title' => 'Altitude Junkies | Everest',
+        'description' => 'Altitude Junkies offer one of the most cost-effective full-service expeditions on Everest on the Nepalese side of the mountain.',
         'base' => nil,
         'author' => 'LTE Designs',
         'keywords' => ['Everest', 'Highest Peak', 'High Altitude', 'Altitude Junkies'],

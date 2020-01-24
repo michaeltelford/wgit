@@ -22,10 +22,11 @@ class TestReadmeCodeExamples < TestHelper
 
     doc.class # => Wgit::Document
     doc.class.public_instance_methods(false).sort # => [
-    # :==, :[], :author, :base, :base_url, :content, :css, :doc, :empty?, :external_links,
-    # :external_urls, :html, :internal_absolute_links, :internal_absolute_urls,
-    # :internal_links, :internal_urls, :keywords, :links, :score, :search, :search!,
-    # :size, :statistics, :stats, :text, :title, :to_h, :to_json, :url, :xpath
+    # :==, :[], :author, :base, :base_url, :content, :css, :description, :doc, :empty?,
+    # :external_links, :external_urls, :html, :internal_absolute_links,
+    # :internal_absolute_urls,:internal_links, :internal_urls, :keywords, :links, :score,
+    # :search, :search!, :size, :statistics, :stats, :text, :title, :to_h, :to_json,
+    # :url, :xpath
     # ]
 
     doc.url   # => "https://wikileaks.org/What-is-Wikileaks.html"
@@ -44,7 +45,7 @@ class TestReadmeCodeExamples < TestHelper
     ### PUT README CODE ABOVE ###
 
     assert_instance_of Wgit::Response, crawler.last_response
-    assert_equal([:==, :[], :author, :base, :base_url, :content, :css, :doc, :empty?, :external_links, :external_urls, :html, :internal_absolute_links, :internal_absolute_urls, :internal_links, :internal_urls, :keywords, :links, :score, :search, :search!, :size, :statistics, :stats, :text, :title, :to_h, :to_json, :url, :xpath], doc.class.public_instance_methods(false).sort)
+    assert_equal([:==, :[], :author, :base, :base_url, :content, :css, :description, :doc, :empty?, :external_links, :external_urls, :html, :internal_absolute_links, :internal_absolute_urls, :internal_links, :internal_urls, :keywords, :links, :score, :search, :search!, :size, :statistics, :stats, :text, :title, :to_h, :to_json, :url, :xpath], doc.class.public_instance_methods(false).sort)
 
     assert_equal 'https://wikileaks.org/What-is-Wikileaks.html', doc.url
     assert_equal 'WikiLeaks - What is WikiLeaks', doc.title

@@ -32,7 +32,7 @@ class TestModel < TestHelper
 
     model = Wgit::Model.document(doc)
 
-    assert_equal %w[author base keywords links text title url], model.keys.sort
+    assert_equal %w[author base description keywords links text title url], model.keys.sort
     assert_equal %w[crawl_duration crawled date_crawled url], model['url'].keys.sort
     refute model['url'].values.any?(&:nil?)
   end

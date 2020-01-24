@@ -20,6 +20,14 @@ Wgit::Document.define_extension(
   text_content_only: true
 )
 
+# Description.
+Wgit::Document.define_extension(
+  :description,
+  '//meta[@name="description"]/@content',
+  singleton: true,
+  text_content_only: true
+)
+
 # Author.
 Wgit::Document.define_extension(
   :author,

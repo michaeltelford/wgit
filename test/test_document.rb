@@ -19,6 +19,7 @@ class TestDocument < TestHelper
       'score' => 12.05,
       'base' => nil, # Gets set if using html_with_base.
       'title' => 'My Test Webpage',
+      'description' => 'Webpage for testing the wgit gem',
       'author' => 'Michael Telford',
       'keywords' => [
         'Minitest',
@@ -87,8 +88,9 @@ class TestDocument < TestHelper
     }
     @stats = {
       url: 30,
-      html: 2970,
+      html: 3041,
       title: 15,
+      description: 32,
       author: 15,
       keywords: 3,
       links: 20,
@@ -549,6 +551,7 @@ Minitest framework."
     if html && !html.empty?
       assert_equal html, doc.html
       assert_equal @mongo_doc_dup['title'], doc.title
+      assert_equal @mongo_doc_dup['description'], doc.description
       assert_equal @mongo_doc_dup['author'], doc.author
       assert_equal @mongo_doc_dup['keywords'], doc.keywords
       assert_equal @mongo_doc_dup['links'], doc.links
@@ -557,6 +560,7 @@ Minitest framework."
     else
       assert_empty doc.html
       assert_nil doc.title
+      assert_nil doc.description
       assert_nil doc.author
       assert_nil doc.keywords
       assert_empty doc.links
