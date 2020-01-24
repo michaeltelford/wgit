@@ -12,6 +12,8 @@
 ## v0.8.0
 ### Added
 - To the range of `Wgit::Document.text_elements`. Now (only and) all visible page text should be extracted into `Wgit::Document#text` successfully.
+- `Wgit::Document#description` default extension.
+- `Wgit::Url.parse_or_nil` method.
 ### Changed/Removed
 - Potential breaking change: Renamed `Wgit::Response#crawl_time` (alias) to be `#crawl_duration`.
 - Potential breaking change: Renamed `Document#stats[:text_snippets]` to be `:text`.
