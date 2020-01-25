@@ -323,7 +323,7 @@ module Wgit
         ext = link.to_extension
         ext ?
           Wgit::Crawler.supported_file_extensions.include?(ext.downcase) :
-          true
+          true # URLs without an extension are assumed HTML.
       end
 
       return links if allow_paths.nil? && disallow_paths.nil?

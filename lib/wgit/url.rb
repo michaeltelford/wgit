@@ -102,6 +102,8 @@ module Wgit
     def self.parse_or_nil(obj)
       parse(obj)
     rescue Addressable::URI::InvalidURIError
+      Wgit.logger.debug("Wgit::Url.parse_or_nil('#{obj}') exception: \
+Addressable::URI::InvalidURIError")
       nil
     end
 
