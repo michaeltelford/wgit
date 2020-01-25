@@ -17,6 +17,7 @@
 ### Changed/Removed
 - Potential breaking change: Renamed `Wgit::Response#crawl_time` (alias) to be `#crawl_duration`.
 - Potential breaking change: Renamed `Document#stats[:text_snippets]` to be `:text`.
+- Potential breaking change: `Wgit::Document.define_extension`'s block return value now becomes the `var` value, even when `nil` is returned. This allows `var` to be set to `nil`.
 - Updated `Wgit::Crawler::SUPPORTED_FILE_EXTENSIONS` to be `Wgit::Crawler.supported_file_extensions`, making it configurable. Now you can add your own URL extensions if needed.
 ### Fixed
 - An issue where too much `Wgit::Document#text` was being extracted from the HTML. This was fixed by reverting the recent commit: "Document.text_elements_xpath is now `//*/text()`".
