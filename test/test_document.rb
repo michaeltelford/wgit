@@ -240,6 +240,13 @@ class TestDocument < TestHelper
     end
   end
 
+  def test_base__invalid_url
+    html = html_with_base 'http://' # Raises Addressable::URI::InvalidURIError.
+    doc = Wgit::Document.new 'http://www.mytestsite.com/home'.to_url, html
+
+    assert_nil doc.base
+  end
+
   def test_external_links
     doc = Wgit::Document.new 'http://www.mytestsite.com/home'.to_url, @html
     assert_equal [

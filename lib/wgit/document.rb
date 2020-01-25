@@ -111,11 +111,12 @@ module Wgit
     # the xpath or database object result(s).
     #
     # When initialising from HTML, a singleton value of true will only
-    # ever return one result; otherwise all xpath results are returned in an
-    # Array. When initialising from a database object, the value is taken as
-    # is and singleton is only used to define the default empty value.
-    # If a value cannot be found (in either the HTML or database object), then
-    # a default will be used. The default value is: `singleton ? nil : []`.
+    # ever return the first result found; otherwise all the results are
+    # returned in an Array. When initialising from a database object, the value
+    # is taken as is and singleton is only used to define the default empty
+    # value. If a value cannot be found (in either the HTML or database
+    # object), then a default will be used. The default value is:
+    # `singleton ? nil : []`.
     #
     # @param var [Symbol] The name of the variable to be initialised.
     # @param xpath [String, #call] The xpath used to find the element(s)
@@ -134,14 +135,16 @@ module Wgit
     # @option opts [Boolean] :text_content_only The text_content_only option
     #   if true will use the text content of the Nokogiri result object,
     #   otherwise the Nokogiri object itself is returned. Defaults to true.
-    # @yieldparam value [Object] The value to be assigned to the new var.
-    # @yieldparam source [Wgit::Document, Object] The source of the value.
-    # @yieldparam type [Symbol] The source type, either :document or (DB)
-    #   :object.
-    # @yieldreturn [Object] The return value of the block becomes the new var
-    #   value, unless nil. Return nil if you want to inspect but not change the
-    #   var value. The block is executed when a Wgit::Document is initialized,
-    #   regardless of the source.
+    # @yield The block is executed when a Wgit::Document is initialized,
+    #   regardless of the source. Use it (optionally) to process the result
+    #   value.
+    # @yieldparam value [Object] The result value to be assigned to the new
+    #   `var`.
+    # @yieldparam source [Wgit::Document, Object] The source of the `value`.
+    # @yieldparam type [Symbol] The `source` type, either `:document` or (DB)
+    #   `:object`.
+    # @yieldreturn [Object] The return value of the block becomes the new var's
+    #   value. Return the block's value param unchanged if you want to inspect.
     # @raise [StandardError] If the var param isn't valid.
     # @return [Symbol] The given var Symbol if successful.
     def self.define_extension(var, xpath, opts = {}, &block)
@@ -172,12 +175,12 @@ module Wgit
       var
     end
 
-    # Removes the init_* methods created when an extension is defined.
-    # Therefore, this is the opposing method to Document.define_extension.
+    # Removes the `init_*` methods created when an extension is defined.
+    # Therefore, this is the opposing method to `Document.define_extension`.
     # Returns true if successful or false if the method(s) cannot be found.
     #
     # @param var [Symbol] The extension variable already defined.
-    # @return [Boolean] True if the extension var was found and removed;
+    # @return [Boolean] True if the extension `var` was found and removed;
     #   otherwise false.
     def self.remove_extension(var)
       Document.send(:remove_method, "init_#{var}_from_html")
@@ -466,19 +469,16 @@ module Wgit
     # Override this method to custom configure the Nokogiri object returned.
     # Gets called from Wgit::Document.new upon initialization.
     #
+    # @yield [config] The given block is passed to Nokogiri::HTML for initialisation.
     # @raise [StandardError] If @html isn't set.
     # @return [Nokogiri::HTML] The initialised Nokogiri HTML object.
-    def init_nokogiri
+    def init_nokogiri(&block)
       raise '@html must be set' unless @html
 
-      Nokogiri::HTML(@html) do |config|
-        # TODO: Remove #'s below when crawling in production.
-        # config.options = Nokogiri::XML::ParseOptions::STRICT |
-        #                 Nokogiri::XML::ParseOptions::NONET
-      end
+      Nokogiri::HTML(@html, &block)
     end
 
-    # Returns a value/object from this Document's @html using the given xpath
+    # Extracts a value/object from this Document's @html using the given xpath
     # parameter.
     #
     # @param xpath [String] Used to find the value/object in @html.
@@ -486,10 +486,15 @@ module Wgit
     #   Object) : results (Array).
     # @param text_content_only [Boolean] text_content_only ? result.content
     #   (String) : result (Nokogiri Object).
-    # @yield [value, source] Given the value (String/Object) before it's set as
-    #   an instance variable so that you can inspect/alter the value if
-    #   desired. Return nil from the block if you don't want to override the
-    #   value. Also given the source (Symbol) which is always :document.
+    # @yield The block is executed when a Wgit::Document is initialized,
+    #   regardless of the source. Use it (optionally) to process the result
+    #   value.
+    # @yieldparam value [Object] The result value to be returned.
+    # @yieldparam source [Wgit::Document, Object] The source of the `value`.
+    # @yieldparam type [Symbol] The `source` type, either `:document` or (DB)
+    #   `:object`.
+    # @yieldreturn [Object] The return value of the block gets returned. Return
+    #   the block's `value` param unchanged if you simply want to inspect it.
     # @return [String, Object] The value found in the html or the default value
     #   (singleton ? nil : []).
     def find_in_html(xpath, singleton: true, text_content_only: true)
@@ -507,23 +512,25 @@ module Wgit
 
       singleton ? Wgit::Utils.process_str(result) : Wgit::Utils.process_arr(result)
 
-      if block_given?
-        new_result = yield(result, self, :document)
-        result = new_result unless new_result.nil?
-      end
+      result = yield(result, self, :document) if block_given?
 
       result
     end
 
-    # Returns a value from the obj using the given key via obj#fetch.
+    # Returns a value from the obj using the given key via `obj#fetch`.
     #
     # @param obj [#fetch] The object containing the key/value.
     # @param key [String] Used to find the value in the obj.
     # @param singleton [Boolean] True if a single value, false otherwise.
-    # @yield [value, source] Given the value (String/Object) before it's set as
-    #   an instance variable so that you can inspect/alter the value if
-    #   desired. Return nil from the block if you don't want to override the
-    #   value. Also given the source (Symbol) which is always :object.
+    # @yield The block is executed when a Wgit::Document is initialized,
+    #   regardless of the source. Use it (optionally) to process the result
+    #   value.
+    # @yieldparam value [Object] The result value to be returned.
+    # @yieldparam source [Wgit::Document, Object] The source of the `value`.
+    # @yieldparam type [Symbol] The `source` type, either `:document` or (DB)
+    #   `:object`.
+    # @yieldreturn [Object] The return value of the block gets returned. Return
+    #   the block's `value` param unchanged if you simply want to inspect it.
     # @return [String, Object] The value found in the obj or the default value
     #   (singleton ? nil : []).
     def find_in_object(obj, key, singleton: true)
@@ -534,10 +541,7 @@ module Wgit
 
       singleton ? Wgit::Utils.process_str(result) : Wgit::Utils.process_arr(result)
 
-      if block_given?
-        new_result = yield(result, obj, :object)
-        result = new_result unless new_result.nil?
-      end
+      result = yield(result, obj, :object) if block_given?
 
       result
     end

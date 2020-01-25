@@ -59,7 +59,7 @@ Wgit::Document.define_extension(
 ) do |links|
   links
     .map { |link| Wgit::Url.parse_or_nil(link) }
-    .compact
+    .compact # Remove unparsable links.
 end
 
 # Text.

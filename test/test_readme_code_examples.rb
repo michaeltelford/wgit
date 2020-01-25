@@ -225,6 +225,7 @@ class TestReadmeCodeExamples < TestHelper
       text_content_only: false, # True returns the table text, false returns the Nokogiri object.
     ) do |tables|
       # Here we can inspect/manipulate the tables before they're set as Wgit::Document#tables.
+      tables
     end
 
     # Our Document has a table which we're interested in. Note it doesn't matter how the Document

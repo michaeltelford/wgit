@@ -172,7 +172,7 @@ class TestDocumentExtension < TestHelper
     assert_equal 'curl', snippet.content
   end
 
-  def test_document_extension__change_simple_value
+  def test_document_extension__change_simple_value__from_html
     # We get the first image's alt text value and then upcase it.
     # default_opts = { singleton: true, text_content_only: true }
     name = Wgit::Document.define_extension(:img_alt, '//img/@alt') do |value|
@@ -193,19 +193,40 @@ class TestDocumentExtension < TestHelper
     assert_equal 'SMILEY FACE', alt_text
   end
 
-  def test_document_extension__examine_value
-    # We get the first image's dimensions to determine the area value but by
-    # returning nil we don't change the actual Nokogiri object.
+  def test_document_extension__change_simple_value__from_object
+    # We get the first image's alt text value and then upcase it.
+    # default_opts = { singleton: true, text_content_only: true }
+    name = Wgit::Document.define_extension(:img_alt, '//img/@alt') do |value|
+      value&.upcase
+    end
+
+    doc = Wgit::Document.new(
+      'url' => 'http://example.com', 'img_alt' => 'Smiley face'
+    )
+
+    assert_equal :img_alt, name
+    assert doc.respond_to? :img_alt
+    alt_text = doc.img_alt
+
+    assert_instance_of String, alt_text
+    assert_equal 'SMILEY FACE', alt_text
+  end
+
+  def test_document_extension__examine_value__from_html
+    # We get the first image's dimensions to determine the area value but we
+    # don't change the actual Nokogiri object.
     obj = nil
     area = 0.0
 
     opts = { singleton: true, text_content_only: false }
     name = Wgit::Document.define_extension(:img, '//img', opts) do |img_obj|
-      obj = img_obj # For assertions further down.
+      obj = img_obj # Used for assertions further down.
+
       height = img_obj.get_attribute(:height).to_i
       width = img_obj.get_attribute(:width).to_i
       area = height * width
-      nil
+
+      img_obj # Return the object unchanged.
     end
 
     doc = Wgit::Document.new(
@@ -219,6 +240,37 @@ class TestDocumentExtension < TestHelper
     img = doc.img
 
     assert_instance_of Nokogiri::XML::Element, img
+    assert_equal obj, img
+    assert_equal 120, area
+  end
+
+  def test_document_extension__examine_value__from_object
+    # We get the first image's dimensions to determine the area value but we
+    # don't change the actual value.
+    obj = nil
+    area = 0.0
+
+    opts = { singleton: true, text_content_only: false }
+    name = Wgit::Document.define_extension(:img, '//img', opts) do |img_obj|
+      obj = img_obj # Used for assertions further down.
+
+      height = img_obj.fetch('height').to_i
+      width = img_obj.fetch('width').to_i
+      area = height * width
+
+      img_obj # Return the object unchanged.
+    end
+
+    hash_obj = {
+      'url' => 'http://example.com', 'img' => { 'height' => 10, 'width' => 12 }
+    }
+    doc = Wgit::Document.new(hash_obj)
+
+    assert_equal :img, name
+    assert doc.respond_to? :img
+    img = doc.img
+
+    assert_equal hash_obj['img'], img
     assert_equal obj, img
     assert_equal 120, area
   end
