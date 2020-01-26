@@ -11,7 +11,7 @@ class String
   #
   # @return [Wgit::Url] The converted URL.
   def to_url
-    Wgit::Url.new(self)
+    Wgit::Url.parse(self)
   end
 end
 

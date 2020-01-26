@@ -15,6 +15,7 @@ class TestCoreExt < TestHelper
     url = s.to_url
     assert_instance_of Wgit::Url, url
     assert_equal s, url
+    assert_equal url.object_id, url.to_url.object_id
   end
 
   def test_array_to_urls
