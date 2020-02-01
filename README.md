@@ -433,7 +433,7 @@ And you're good to go!
 
 Wgit uses the [`toys`](https://github.com/dazuma/toys) gem (instead of Rake) for task invocation e.g. running the tests etc. For a full list of available tasks AKA tools, run `toys --tools`. You can search for a tool using `toys -s tool_name`. The most commonly used tools are listed below...
 
-Run `toys db` to see a list of database related tools, enabling you to run a Mongo DB instance locally using Docker. Run `toys test` to execute the tests (or `toys test smoke` for a faster running subset that doesn't require a database).
+Run `toys db` to see a list of database related tools, enabling you to run a Mongo DB instance locally using Docker. Run `toys test` to execute the tests (or `toys test smoke` for a faster running subset).
 
 To generate code documentation run `toys yardoc`. To browse the generated documentation in a browser run `toys yardoc --serve`. You can also use the `yri` command line tool e.g. `yri Wgit::Crawler#crawl_site` etc.
 
