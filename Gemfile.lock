@@ -31,7 +31,7 @@ GEM
     minitest (5.13.0)
     mongo (2.11.2)
       bson (>= 4.6.0, < 5.0.0)
-    nokogiri (1.10.7)
+    nokogiri (1.10.8)
       mini_portile2 (~> 2.4.0)
     parallel (1.19.1)
     parser (2.7.0.1)
