@@ -362,7 +362,7 @@ module Wgit
         link.to_host == @url.to_host ? Wgit::Url.new('/') : link
       end
 
-      Wgit::Utils.process_arr(links)
+      Wgit::Utils.sanitize(links)
     end
 
     # Returns all unique internal links from this Document in absolute form by
@@ -385,7 +385,7 @@ module Wgit
               .reject { |link| link.relative?(host: @url.to_base) }
               .map(&:omit_trailing_slash)
 
-      Wgit::Utils.process_arr(links)
+      Wgit::Utils.sanitize(links)
     end
 
     # Searches the @text for the given query and returns the results.
@@ -510,10 +510,8 @@ module Wgit
                  text_content_only ? results.map(&:content) : results
                end
 
-      singleton ? Wgit::Utils.process_str(result) : Wgit::Utils.process_arr(result)
-
+      Wgit::Utils.sanitize(result)
       result = yield(result, self, :document) if block_given?
-
       result
     end
 
@@ -539,10 +537,8 @@ module Wgit
       default = singleton ? nil : []
       result  = obj.fetch(key.to_s, default)
 
-      singleton ? Wgit::Utils.process_str(result) : Wgit::Utils.process_arr(result)
-
+      Wgit::Utils.sanitize(result)
       result = yield(result, obj, :object) if block_given?
-
       result
     end
 
@@ -561,7 +557,7 @@ module Wgit
       @doc   = init_nokogiri
       @score = 0.0
 
-      Wgit::Utils.process_str(@html, encode: encode)
+      Wgit::Utils.sanitize(@html, encode: encode)
 
       # Dynamically run the init_*_from_html methods.
       Document.private_instance_methods(false).each do |method|
@@ -582,7 +578,7 @@ module Wgit
       @doc   = init_nokogiri
       @score = obj.fetch('score', 0.0)
 
-      Wgit::Utils.process_str(@html, encode: encode)
+      Wgit::Utils.sanitize(@html, encode: encode)
 
       # Dynamically run the init_*_from_object methods.
       Document.private_instance_methods(false).each do |method|

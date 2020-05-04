@@ -379,7 +379,7 @@ module Wgit
       raise 'The provided paths must all be Strings' \
       unless paths.all? { |path| path.is_a?(String) }
 
-      Wgit::Utils.process_arr(paths, encode: false)
+      Wgit::Utils.sanitize(paths, encode: false)
       raise 'The provided paths cannot be empty' if paths.empty?
 
       paths

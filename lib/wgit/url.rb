@@ -530,7 +530,6 @@ protocol scheme and domain (e.g. http://example.com): #{url}"
 
     alias +            concat
     alias crawled?     crawled
-    alias normalise    normalize
     alias is_relative? relative?
     alias is_absolute? absolute?
     alias is_valid?    valid?
