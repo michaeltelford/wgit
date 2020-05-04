@@ -9,7 +9,7 @@ Wgit::Document.define_extension(
   singleton: true,
   text_content_only: true
 ) do |base|
-  Wgit::Url.parse_or_nil(base) if base
+  Wgit::Url.parse?(base) if base
 end
 
 # Title.
@@ -58,7 +58,7 @@ Wgit::Document.define_extension(
   text_content_only: true
 ) do |links|
   links
-    .map { |link| Wgit::Url.parse_or_nil(link) }
+    .map { |link| Wgit::Url.parse?(link) }
     .compact # Remove unparsable links.
 end
 

@@ -99,10 +99,10 @@ module Wgit
     # @param obj [Object] The object to parse, which #is_a?(String).
     # @raise [StandardError] If obj.is_a?(String) is false.
     # @return [Wgit::Url] A Wgit::Url instance or nil (if obj is invalid).
-    def self.parse_or_nil(obj)
+    def self.parse?(obj)
       parse(obj)
     rescue Addressable::URI::InvalidURIError
-      Wgit.logger.debug("Wgit::Url.parse_or_nil('#{obj}') exception: \
+      Wgit.logger.debug("Wgit::Url.parse?('#{obj}') exception: \
 Addressable::URI::InvalidURIError")
       nil
     end
