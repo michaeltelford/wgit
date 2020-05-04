@@ -9,6 +9,15 @@
 - ...
 ---
 
+## v0.9.0
+### Added
+- ...
+### Changed/Removed
+- Breaking change: Renamed `Url.parse_or_nil` to be `parse?`.
+### Fixed
+- ...
+---
+
 ## v0.8.0
 ### Added
 - To the range of `Wgit::Document.text_elements`. Now (only and) all visible page text should be extracted into `Wgit::Document#text` successfully.

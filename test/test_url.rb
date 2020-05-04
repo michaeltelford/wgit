@@ -107,7 +107,7 @@ class TestUrl < TestHelper
   end
 
   def test_parse_or_nil__from_string
-    url = Wgit::Url.parse_or_nil 'http://www.google.co.uk'
+    url = Wgit::Url.parse? 'http://www.google.co.uk'
 
     assert_equal 'http://www.google.co.uk', url
     refute url.crawled
@@ -124,7 +124,7 @@ class TestUrl < TestHelper
       date_crawled: time,
       crawl_duration: 1.5
     )
-    parsed = Wgit::Url.parse_or_nil url
+    parsed = Wgit::Url.parse? url
 
     assert_equal 'http://example.com', parsed
     assert url.crawled
@@ -134,15 +134,15 @@ class TestUrl < TestHelper
   end
 
   def test_parse_or_nil__returns_nil
-    assert_nil Wgit::Url.parse_or_nil('http://')
-    assert_nil Wgit::Url.parse_or_nil('https://')
+    assert_nil Wgit::Url.parse?('http://')
+    assert_nil Wgit::Url.parse?('https://')
   end
 
   def test_parse_or_nil__fails
-    e = assert_raises { Wgit::Url.parse_or_nil nil }
+    e = assert_raises { Wgit::Url.parse? nil }
     assert_equal 'Can only parse if obj#is_a?(String)', e.message
 
-    e = assert_raises { Wgit::Url.parse_or_nil({}) }
+    e = assert_raises { Wgit::Url.parse?({}) }
     assert_equal 'Can only parse if obj#is_a?(String)', e.message
   end
 
