@@ -15,7 +15,7 @@ module Wgit
 
       model = url.to_h
 
-      Wgit::Utils.remove_non_bson_types(model)
+      Wgit::Utils.sanitize_model(model)
     end
 
     # The data model for a Wgit::Document collection object.
@@ -28,7 +28,7 @@ module Wgit
       model = doc.to_h(include_html: false, include_score: false)
       model['url'] = url(doc.url) # Expand Url String into full object.
 
-      Wgit::Utils.remove_non_bson_types(model)
+      Wgit::Utils.sanitize_model(model)
     end
 
     # Common fields when inserting a record into the DB.

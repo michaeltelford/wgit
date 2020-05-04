@@ -165,15 +165,34 @@ module Wgit
       nil
     end
 
-    # Processes a String to make it uniform. Strips any leading/trailing white
+    # Sanitises the obj to make it uniform by calling the correct sanitize_*
+    # method for its type e.g. if obj.is_a? String then sanitize(obj). Any type
+    # not in the case statement will be ignored and returned as is.
+    #
+    # @param obj [Object] The object to be sanitised.
+    # @param encode [Boolean] Whether or not to encode to UTF-8 replacing
+    #   invalid characters.
+    # @return [Object] The sanitised obj is both modified and then returned.
+    def self.sanitize(obj, encode: true)
+      case obj
+      when String
+        sanitize_str(obj, encode: encode)
+      when Array
+        sanitize_arr(obj, encode: encode)
+      else
+        obj
+      end
+    end
+
+    # Sanitises a String to make it uniform. Strips any leading/trailing white
     # space. Also applies UTF-8 encoding (replacing invalid characters) if
     # `encode: true`.
     #
-    # @param str [String] The String to process. str is modified.
+    # @param str [String] The String to sanitise. str is modified.
     # @param encode [Boolean] Whether or not to encode to UTF-8 replacing
     #   invalid characters.
-    # @return [String] The processed str is both modified and then returned.
-    def self.process_str(str, encode: true)
+    # @return [String] The sanitised str is both modified and then returned.
+    def self.sanitize_str(str, encode: true)
       if str.is_a?(String)
         str.encode!('UTF-8', undef: :replace, invalid: :replace) if encode
         str.strip!
@@ -182,15 +201,15 @@ module Wgit
       str
     end
 
-    # Processes an Array to make it uniform. Removes empty Strings and nils,
-    # processes non empty Strings using Wgit::Utils.process_str and removes
+    # Sanitises an Array to make it uniform. Removes empty Strings and nils,
+    # processes non empty Strings using Wgit::Utils.sanitize and removes
     # duplicates.
     #
-    # @param arr [Enumerable] The Array to process. arr is modified.
-    # @return [Enumerable] The processed arr is both modified and then returned.
-    def self.process_arr(arr, encode: true)
+    # @param arr [Enumerable] The Array to sanitise. arr is modified.
+    # @return [Enumerable] The sanitised arr is both modified and then returned.
+    def self.sanitize_arr(arr, encode: true)
       if arr.is_a?(Array)
-        arr.map! { |str| process_str(str, encode: encode) }
+        arr.map! { |str| sanitize(str, encode: encode) }
         arr.reject! { |str| str.is_a?(String) ? str.empty? : false }
         arr.compact!
         arr.uniq!
@@ -201,9 +220,9 @@ module Wgit
 
     # Returns the model having removed non bson types (for use with MongoDB).
     #
-    # @param model_hash [Hash] The model Hash to process.
+    # @param model_hash [Hash] The model Hash to sanitise.
     # @return [Hash] The model Hash with non bson types removed.
-    def self.remove_non_bson_types(model_hash)
+    def self.sanitize_model(model_hash)
       model_hash.select { |_k, v| v.respond_to?(:bson_type) }
     end
   end

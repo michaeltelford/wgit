@@ -45,7 +45,7 @@ Wgit::Document.define_extension(
 ) do |keywords, _source, type|
   if keywords && (type == :document)
     keywords = keywords.split(',')
-    Wgit::Utils.process_arr(keywords)
+    Wgit::Utils.sanitize(keywords)
   end
   keywords
 end

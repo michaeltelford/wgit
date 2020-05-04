@@ -11,9 +11,12 @@
 
 ## v0.9.0
 ### Added
-- ...
+- `Utils.sanitize` which calls `sanitize_*` underneath.
 ### Changed/Removed
+- Breaking change: Removed `Url#normalise`, use `Url#normalize` instead.
 - Breaking change: Renamed `Url.parse_or_nil` to be `parse?`.
+- Breaking change: Renamed `Utils.process_*` to be `Utils.sanitize_*`.
+- Breaking change: Renamed `Utils.remove_non_bson_types` to be `Utils.sanitize_model`.
 ### Fixed
 - ...
 ---

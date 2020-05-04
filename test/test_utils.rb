@@ -107,46 +107,50 @@ class TestUtils < TestHelper
     assert_equal printf_expected_output, buffer.string
   end
 
-  def test_process_str
+  def test_sanitize__str
     s  = " hello world \xFE "
-    s2 = Wgit::Utils.process_str s
+    s2 = Wgit::Utils.sanitize s
     expected = 'hello world �'
 
     assert_equal expected, s
     assert_equal expected, s2
   end
 
-  def test_process_str__encode_false
+  def test_sanitize__str__encode_false
     s  = ' hello world '
-    s2 = Wgit::Utils.process_str s, encode: false
+    s2 = Wgit::Utils.sanitize s, encode: false
     expected = 'hello world'
 
     assert_equal expected, s
     assert_equal expected, s2
 
     s = " hello world \xFE "
-    assert_raises(ArgumentError) { Wgit::Utils.process_str(s, encode: false) }
+    assert_raises(ArgumentError) { Wgit::Utils.sanitize(s, encode: false) }
   end
 
-  def test_process_arr
+  def test_sanitize__arr
     a = ['', true, nil, true, false, ' hello world ', " hello world \xFE "]
-    a2 = Wgit::Utils.process_arr a
+    a2 = Wgit::Utils.sanitize a
     expected = [true, false, 'hello world', 'hello world �']
 
     assert_equal expected, a
     assert_equal expected, a2
   end
 
-  def test_process_arr__encode_false
+  def test_sanitize__arr__encode_false
     a = ['', true, nil, true, false, ' hello world ']
-    a2 = Wgit::Utils.process_arr a, encode: false
+    a2 = Wgit::Utils.sanitize a, encode: false
     expected = [true, false, 'hello world']
 
     assert_equal expected, a
     assert_equal expected, a2
 
     a = ['', true, nil, true, false, ' hello world ', " hello world \xFE "]
-    assert_raises(ArgumentError) { Wgit::Utils.process_arr(a, encode: false) }
+    assert_raises(ArgumentError) { Wgit::Utils.sanitize(a, encode: false) }
+  end
+
+  def test_sanitize__random_type
+    assert Wgit::Utils.sanitize(true)
   end
 
   private
