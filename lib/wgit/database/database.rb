@@ -255,6 +255,30 @@ module Wgit
       end
     end
 
+    ### Delete Data ###
+
+    # Deletes everything in the urls collection.
+    #
+    # @return [Integer] The number of deleted records.
+    def clear_urls
+      @client[:urls].delete_many({}).n
+    end
+
+    # Deletes everything in the documents collection.
+    #
+    # @return [Integer] The number of deleted records.
+    def clear_docs
+      @client[:documents].delete_many({}).n
+    end
+
+    # Deletes everything in the urls and documents collections. This will nuke
+    # the entire database so yeah... be careful.
+    #
+    # @return [Integer] The number of deleted records.
+    def clear_db
+      clear_urls + clear_docs
+    end
+
     protected
 
     # Insert one or more Url objects into the DB.
@@ -263,7 +287,7 @@ module Wgit
     # @raise [StandardError] If data type isn't supported.
     # @return [Integer] The number of inserted Urls.
     def insert_urls(data)
-      if data.respond_to?(:map)
+      if data.respond_to?(:map!)
         assert_arr_type(data, Wgit::Url)
         data.map! { |url| Wgit::Model.url(url) }
       else
@@ -281,8 +305,8 @@ module Wgit
     # @raise [StandardError] If data type isn't supported.
     # @return [Integer] The number of inserted Documents.
     def insert_docs(data)
-      if data.respond_to?(:map)
-        assert_arr_types(data, Wgit::Document)
+      if data.respond_to?(:map!)
+        assert_arr_type(data, Wgit::Document)
         data.map! { |doc| Wgit::Model.document(doc) }
       else
         assert_types(data, Wgit::Document)
@@ -361,7 +385,7 @@ module Wgit
         result.n
       # Multiple docs.
       when Array
-        assert_arr_types(data, Hash)
+        assert_arr_type(data, Hash)
         data.map! { |hash| hash.merge(Wgit::Model.common_insert_data) }
         result = @client[collection.to_sym].insert_many(data)
         raise 'DB write(s) (insert) failed' unless write_succeeded?(
@@ -400,7 +424,7 @@ module Wgit
     # @param single [Boolean] Wether or not a single record is being updated.
     # @param collection [Symbol] Either :urls or :documents.
     def mutate(single, collection, selection, update)
-      assert_arr_types([selection, update], Hash)
+      assert_arr_type([selection, update], Hash)
 
       collection = collection.to_sym
       unless %i[urls documents].include?(collection)
@@ -417,12 +441,11 @@ module Wgit
       result.n
     end
 
-    alias count         size
-    alias length        size
-    alias num_documents num_docs
-    alias document?     doc?
-    alias insert_url    insert_urls
-    alias insert_doc    insert_docs
-    alias num_objects   num_records
+    alias count       size
+    alias length      size
+    alias document?   doc?
+    alias insert_url  insert_urls
+    alias insert_doc  insert_docs
+    alias num_objects num_records
   end
 end

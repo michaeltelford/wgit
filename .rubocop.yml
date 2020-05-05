@@ -6,10 +6,10 @@ Style/FrozenStringLiteralComment:
   Enabled: false
 Layout/LineLength:
   Exclude:
-    - 'lib/wgit/database/database_dev_data.rb'
+    - 'test/helpers/database_test_data.rb'
 Style/ClassVars:
   Exclude:
-    - 'lib/wgit/database/database_helper.rb'
+    - 'test/helpers/database_helper.rb'
 Layout/HashAlignment:
   Enabled: false
 Layout/FirstArrayElementIndentation:

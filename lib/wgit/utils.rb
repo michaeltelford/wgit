@@ -145,9 +145,21 @@ module Wgit
     # @param keyword_limit [Integer] The max amount of keywords to be
     #   outputted to the stream.
     # @param stream [#puts] Any object that respond_to?(:puts). It is used
-    #   to output text somewhere e.g. a file or STDOUT.
+    #   to output text somewhere e.g. a file or STDERR.
+    # @return [Integer] The number of results.
     def self.printf_search_results(results, keyword_limit: 5, stream: STDOUT)
       raise 'stream must respond_to? :puts' unless stream.respond_to?(:puts)
+
+      stream.puts 'Search Results'
+      stream.puts '--------------'
+      stream.puts
+
+      if results.empty?
+        stream.puts 'No results matched your search query'
+        stream.puts
+
+        return 0
+      end
 
       results.each do |doc|
         title    = (doc.title || '<no title>')
@@ -162,17 +174,17 @@ module Wgit
         stream.puts
       end
 
-      nil
+      results.size
     end
 
     # Sanitises the obj to make it uniform by calling the correct sanitize_*
     # method for its type e.g. if obj.is_a? String then sanitize(obj). Any type
     # not in the case statement will be ignored and returned as is.
     #
-    # @param obj [Object] The object to be sanitised.
+    # @param obj [Object] The object to be sanitized.
     # @param encode [Boolean] Whether or not to encode to UTF-8 replacing
     #   invalid characters.
-    # @return [Object] The sanitised obj is both modified and then returned.
+    # @return [Object] The sanitized obj is both modified and then returned.
     def self.sanitize(obj, encode: true)
       case obj
       when String
@@ -188,10 +200,10 @@ module Wgit
     # space. Also applies UTF-8 encoding (replacing invalid characters) if
     # `encode: true`.
     #
-    # @param str [String] The String to sanitise. str is modified.
+    # @param str [String] The String to sanitize. str is modified.
     # @param encode [Boolean] Whether or not to encode to UTF-8 replacing
     #   invalid characters.
-    # @return [String] The sanitised str is both modified and then returned.
+    # @return [String] The sanitized str is both modified and then returned.
     def self.sanitize_str(str, encode: true)
       if str.is_a?(String)
         str.encode!('UTF-8', undef: :replace, invalid: :replace) if encode
@@ -205,8 +217,8 @@ module Wgit
     # processes non empty Strings using Wgit::Utils.sanitize and removes
     # duplicates.
     #
-    # @param arr [Enumerable] The Array to sanitise. arr is modified.
-    # @return [Enumerable] The sanitised arr is both modified and then returned.
+    # @param arr [Enumerable] The Array to sanitize. arr is modified.
+    # @return [Enumerable] The sanitized arr is both modified and then returned.
     def self.sanitize_arr(arr, encode: true)
       if arr.is_a?(Array)
         arr.map! { |str| sanitize(str, encode: encode) }
@@ -216,14 +228,6 @@ module Wgit
       end
 
       arr
-    end
-
-    # Returns the model having removed non bson types (for use with MongoDB).
-    #
-    # @param model_hash [Hash] The model Hash to sanitise.
-    # @return [Hash] The model Hash with non bson types removed.
-    def self.sanitize_model(model_hash)
-      model_hash.select { |_k, v| v.respond_to?(:bson_type) }
     end
   end
 end

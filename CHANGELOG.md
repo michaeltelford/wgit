@@ -10,13 +10,20 @@
 ---
 
 ## v0.9.0
+This release is a big one with the introduction of a `Wgit::DSL`. The `README` has been revamped as a result with new usage examples. And all of the wiki articles have been updated to reflect the latest code base.
 ### Added
-- `Utils.sanitize` which calls `sanitize_*` underneath.
+- `Wgit::DSL` module providing a wrapper around the underlying classes and methods. Check out the `README` for example usage.
+- `Wgit::Utils.sanitize` which calls `.sanitize_*` underneath.
+- `Wgit::Crawler#next_urls` method placeholder - if defined, it's called to retrieve the next url's to crawl during `#crawl_site`. Otherwise a default is used (as it was before). Use this to override how the site is crawled.
+- `Wgit::Database` methods: `#clear_urls`, `#clear_docs`, `#clear_db`.
 ### Changed/Removed
-- Breaking change: Removed `Url#normalise`, use `Url#normalize` instead.
-- Breaking change: Renamed `Url.parse_or_nil` to be `parse?`.
-- Breaking change: Renamed `Utils.process_*` to be `Utils.sanitize_*`.
-- Breaking change: Renamed `Utils.remove_non_bson_types` to be `Utils.sanitize_model`.
+- Breaking change: Moved all `Wgit.index*` convienence methods into `Wgit::DSL`.
+- Breaking change: Removed `Wgit::Url#normalise`, use `#normalize` instead.
+- Breaking change: Removed `Wgit::Database#num_documents`, use `#num_docs` instead.
+- Breaking change: Renamed `Wgit::Url.parse_or_nil` to be `.parse?`.
+- Breaking change: Renamed `Wgit::Utils.process_*` to be `.sanitize_*`.
+- Breaking change: Renamed `Wgit::Utils.remove_non_bson_types` to be `Wgit::Model.select_bson_types`.
+- Updated `Utils.printf_search_results` format and it's return type, which is now the number of results passed in.
 ### Fixed
 - ...
 ---

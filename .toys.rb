@@ -51,7 +51,7 @@ tool :compile do
 end
 
 tool :console do
-  desc 'Run the wgit console'
+  desc 'Run the (latest) wgit console script'
 
   include :exec, exit_on_nonzero_status: true
 

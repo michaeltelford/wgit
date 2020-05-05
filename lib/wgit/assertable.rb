@@ -6,7 +6,7 @@ module Wgit
     # Default type fail message.
     DEFAULT_TYPE_FAIL_MSG = 'Expected: %s, Actual: %s'
     # Wrong method message.
-    WRONG_METHOD_MSG = 'arr must be Enumerable, use a different method'
+    NON_ENUMERABLE_MSG = 'Expected an Enumerable responding to #each, not: %s'
     # Default duck fail message.
     DEFAULT_DUCK_FAIL_MSG = "%s doesn't respond_to? %s"
     # Default required keys message.
@@ -42,7 +42,9 @@ present: %s"
     # @raise [StandardError] If the assertion fails.
     # @return [Object] The given arr on successful assertion.
     def assert_arr_types(arr, type_or_types, msg = nil)
-      raise WRONG_METHOD_MSG unless arr.respond_to?(:each)
+      unless arr.respond_to?(:each)
+        raise format(NON_ENUMERABLE_MSG, arr.class)
+      end
 
       arr.each { |obj| assert_types(obj, type_or_types, msg) }
     end
@@ -56,7 +58,7 @@ present: %s"
     # @raise [StandardError] If the assertion fails.
     # @return [Object] The given obj_or_objs on successful assertion.
     def assert_respond_to(obj_or_objs, methods, msg = nil)
-      methods = [methods] unless methods.respond_to?(:all?)
+      methods = *methods
 
       if obj_or_objs.respond_to?(:each)
         obj_or_objs.each { |obj| _assert_respond_to(obj, methods, msg) }

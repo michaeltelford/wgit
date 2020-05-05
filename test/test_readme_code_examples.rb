@@ -4,7 +4,7 @@ require 'securerandom'
 # Test class for code snippets in the README.md.
 # WARNING: The DB is cleared down at the start of the database example test.
 class TestReadmeCodeExamples < TestHelper
-  include Wgit::DatabaseHelper
+  include DatabaseHelper
 
   # Runs before every test.
   def setup; end

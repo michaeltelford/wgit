@@ -9,12 +9,12 @@ module Wgit
   # Class modeling a web based HTTP URL.
   #
   # Can be an internal/relative link e.g. "about.html" or an absolute URL
-  # e.g. "http://www.google.co.uk". Is a subclass of String and uses 'uri' and
-  # 'addressable/uri' internally.
+  # e.g. "http://www.google.co.uk". Is a subclass of String and uses `URI` and
+  # `addressable/uri` internally.
   #
-  # Most of the methods in this class return new Wgit::Url instances making the
-  # method calls chainable e.g. url.omit_base.omit_fragment etc. The methods
-  # also try to be idempotent where possible.
+  # Most of the methods in this class return new `Wgit::Url` instances making
+  # the method calls chainable e.g. `url.omit_base.omit_fragment` etc. The
+  # methods also try to be idempotent where possible.
   class Url < String
     include Assertable
 
@@ -249,8 +249,8 @@ protocol scheme and domain (e.g. http://example.com): #{url}"
     # modify the receiver.
     #
     # If self is absolute then it's returned as is, making this method
-    # idempotent. The doc's <base> element is used if present, otherwise
-    # doc.url is used as the base; which is concatted with self.
+    # idempotent. The doc's `<base>` element is used if present, otherwise
+    # `doc.url` is used as the base; which is concatted with self.
     #
     # Typically used to build an absolute link obtained from a document.
     #

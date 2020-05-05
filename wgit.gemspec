@@ -19,16 +19,13 @@ Gem::Specification.new do |s|
   TEXT
 
   s.require_paths = %w[lib]
-  s.files = (Dir[
+  s.files = Dir[
     './lib/**/*.rb',
     'bin/wgit',
     '*.md',
     'LICENSE.txt',
     '.yardopts'
-  ] - [ # Ignored files go below...
-    './lib/wgit/database/database_dev_data.rb',
-    './lib/wgit/database/database_helper.rb'
-  ])
+  ]
   s.bindir = 'bin'
   s.executable = 'wgit'
   s.post_install_message = "Added the 'wgit' executable to $PATH"

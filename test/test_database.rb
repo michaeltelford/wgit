@@ -3,17 +3,17 @@ require_relative 'helpers/test_helper'
 # Test class for the Database methods.
 # WARNING: The DB is cleared down prior to each test run.
 class TestDatabase < TestHelper
-  include Wgit::DatabaseHelper
+  include DatabaseHelper
 
   # Runs before every test.
   def setup
     clear_db
 
-    @url = Wgit::Url.new(Wgit::DatabaseDevData.url)
-    @doc = Wgit::Document.new(Wgit::DatabaseDevData.doc)
+    @url = Wgit::Url.new(DatabaseTestData.url)
+    @doc = Wgit::Document.new(DatabaseTestData.doc)
 
-    @urls = Array.new(3) { Wgit::Url.new(Wgit::DatabaseDevData.url) }
-    @docs = Array.new(3) { Wgit::Document.new(Wgit::DatabaseDevData.doc) }
+    @urls = Array.new(3) { Wgit::Url.new(DatabaseTestData.url) }
+    @docs = Array.new(3) { Wgit::Document.new(DatabaseTestData.doc) }
   end
 
   def test_initialize
@@ -262,6 +262,33 @@ class TestDatabase < TestHelper
     assert_equal 1, result
     assert doc?(Wgit::Model.document(@doc))
     refute doc? url: @doc.url, title: 'Altitude Junkies | Everest'
+  end
+
+  def test_clear_urls
+    seed { urls 3 }
+    db = Wgit::Database.new
+
+    assert_equal 3, db.clear_urls
+    assert_equal 0, db.num_urls
+  end
+
+  def test_clear_docs
+    seed { docs 3 }
+    db = Wgit::Database.new
+
+    assert_equal 3, db.clear_docs
+    assert_equal 0, db.num_docs
+  end
+
+  def test_clear_db
+    seed do
+      urls 3
+      docs 2
+    end
+    db = Wgit::Database.new
+
+    assert_equal 5, db.clear_db
+    assert_equal 0, db.num_records
   end
 
   private
