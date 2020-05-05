@@ -91,7 +91,7 @@ class TestUtils < TestHelper
     results = []
 
     5.times do
-      doc_hash        = Wgit::DatabaseDevData.doc
+      doc_hash        = DatabaseTestData.doc
       doc_hash['url'] = 'http://altitudejunkies.com/everest.html'
 
       doc = Wgit::Document.new(doc_hash)
@@ -102,9 +102,22 @@ class TestUtils < TestHelper
 
     # Setup a buffer to record the output.
     buffer = StringIO.new
-    Wgit::Utils.printf_search_results(results, stream: buffer)
+    num_results = Wgit::Utils.printf_search_results(results, stream: buffer)
 
-    assert_equal printf_expected_output, buffer.string
+    assert_equal 5, num_results
+    assert_equal printf_output__results, buffer.string
+  end
+
+  def test_printf_search_results__empty
+    # Setup the test results data.
+    results = []
+
+    # Setup a buffer to record the output.
+    buffer = StringIO.new
+    num_results = Wgit::Utils.printf_search_results(results, stream: buffer)
+
+    assert_equal 0, num_results
+    assert_equal printf_output__no_results, buffer.string
   end
 
   def test_sanitize__str
@@ -155,12 +168,10 @@ class TestUtils < TestHelper
 
   private
 
-  def printf_expected_output
+  def printf_output__results
     <<~TEXT
-      Altitude Junkies | Everest
-      Everest, Highest Peak, High Altitude, Altitude Junkies
-      e Summit for the hugely successful IMAX Everest film from the 1996 spring season
-      http://altitudejunkies.com/everest.html
+      Search Results
+      --------------
 
       Altitude Junkies | Everest
       Everest, Highest Peak, High Altitude, Altitude Junkies
@@ -181,6 +192,21 @@ class TestUtils < TestHelper
       Everest, Highest Peak, High Altitude, Altitude Junkies
       e Summit for the hugely successful IMAX Everest film from the 1996 spring season
       http://altitudejunkies.com/everest.html
+
+      Altitude Junkies | Everest
+      Everest, Highest Peak, High Altitude, Altitude Junkies
+      e Summit for the hugely successful IMAX Everest film from the 1996 spring season
+      http://altitudejunkies.com/everest.html
+
+    TEXT
+  end
+
+  def printf_output__no_results
+    <<~TEXT
+      Search Results
+      --------------
+
+      No results matched your search query
 
     TEXT
   end

@@ -7,7 +7,7 @@ require_relative 'helpers/test_helper'
 # NOTE: Every test case should clean up after itself by removing any defined
 # extensions in the 'teardown' method to avoid affecting other tests.
 class TestDocumentExtension < TestHelper
-  include Wgit::DatabaseHelper
+  include DatabaseHelper
 
   # Runs before every test.
   def setup; end
@@ -350,8 +350,7 @@ class TestDocumentExtension < TestHelper
     assert doc.respond_to? :table_text
     assert_equal 'BoomskHeader TextAnother Header', doc.table_text
 
-    db = Wgit::Database.new
-    db.insert doc # Uses Document#to_h and Model.document.
+    database.insert doc # Uses Document#to_h and Model.document.
 
     assert doc?(
       url: {
@@ -369,7 +368,7 @@ class TestDocumentExtension < TestHelper
       table_text: 'BoomskHeader TextAnother Header'
     )
 
-    results = db.search 'Hello world'
+    results = database.search 'Hello world'
     assert_equal 1, results.length
 
     db_doc = results.first

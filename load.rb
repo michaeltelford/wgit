@@ -13,10 +13,10 @@ load 'lib/wgit/document_extensions.rb'
 load 'lib/wgit/crawler.rb'
 load 'lib/wgit/database/model.rb'
 load 'lib/wgit/database/database.rb'
-load 'lib/wgit/database/database_dev_data.rb'
-load 'lib/wgit/database/database_helper.rb'
 load 'lib/wgit/indexer.rb'
+load 'lib/wgit/dsl.rb'
 load 'lib/wgit/core_ext.rb'
 
 include Wgit # Remove the name space around code (for development purposes).
+include DSL
 include Assertable

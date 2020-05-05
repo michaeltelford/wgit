@@ -42,6 +42,15 @@ class TestAssertable < TestHelper
     assert_equal s, e.message
   end
 
+  def test_assert_arr_types__non_enumerable
+    e = assert_raises StandardError do
+      assert_arr_type 'non enumerable', Integer
+    end
+    s = 'Expected an Enumerable responding to #each, not: String'
+
+    assert_equal s, e.message
+  end
+
   def test_assert_respond_to__pass
     objs = ['Hello World!', [1, 2, 3]]
 

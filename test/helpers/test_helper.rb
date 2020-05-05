@@ -14,8 +14,8 @@ require_relative '../mock/fixtures' # Mock HTTP responses.
 # Require all code being tested once, in one place.
 require_relative '../../lib/wgit'
 require_relative '../../lib/wgit/core_ext'
-require_relative '../../lib/wgit/database/database_helper'
-require_relative '../../lib/wgit/database/database_dev_data'
+require_relative 'database_helper'
+require_relative 'database_test_data'
 
 Maxitest.timeout  = 60           # Fail test after N seconds.
 Wgit.logger.level = Logger::WARN # Remove STDOUT noise from test run.
@@ -25,7 +25,6 @@ class TestHelper < Minitest::Test
   # Fires everytime this class is inherited from.
   def self.inherited(child)
     Dotenv.load # Set the DB connection string from the ENV.
-
     super       # Run the tests.
   end
 

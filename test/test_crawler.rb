@@ -1,10 +1,9 @@
 require_relative 'helpers/test_helper'
 
-# Crawl the site's index page for <a> tags that link to jpg's.
-class ImageCrawler < Wgit::Crawler
-  def get_internal_links(doc, allow_paths: nil, disallow_paths: nil)
-    doc.internal_absolute_links
-       .select { |link| %w[jpg jpeg].include?(link.to_extension) }
+# Class purely for testing #next_urls override at the class level.
+class CustomCrawler < Wgit::Crawler
+  def next_urls(doc)
+    [] # Kill the crawl to prove the override works.
   end
 end
 
@@ -366,15 +365,19 @@ class TestCrawler < TestHelper
     refute_nil url.crawl_duration
   end
 
-  def test_crawl_site__get_internal_links_override
+  def test_crawl_site__next_urls__instance_level
     url = Wgit::Url.new 'http://www.belfastpilates.co.uk/'
     crawled = []
 
-    # We use ImageCrawler defined at the top of the file.
-    crawler = ImageCrawler.new encode: false
-    crawler.crawl_site(url) do |doc|
-      crawled << doc.url
+    # We override #next_urls to only crawl jpg/jpeg file URLs.
+    crawler = Wgit::Crawler.new encode: false
+    def crawler.next_urls(doc)
+      doc
+        .internal_absolute_links
+        .select { |link| %w[jpg jpeg].include?(link.to_extension) }
     end
+
+    crawler.crawl_site(url) { |doc| crawled << doc.url }
 
     assert_equal [
       'http://www.belfastpilates.co.uk/',
@@ -386,6 +389,21 @@ class TestCrawler < TestHelper
       'http://www.belfastpilates.co.uk/wp-content/uploads/2016/09/185-1024x569.jpg',
       'http://www.belfastpilates.co.uk/wp-content/uploads/2016/09/studio-1024x661.jpg'
     ], crawled
+  end
+
+  def test_crawl_site__next_urls__class_level
+    url = Wgit::Url.new 'http://www.belfastpilates.co.uk/'
+    crawled = []
+
+    # CustomCrawler has overidden #next_urls at the class level to return [].
+    crawler = CustomCrawler.new
+    crawler.crawl_site(url) { |doc| crawled << doc.url }
+
+    assert_equal ['http://www.belfastpilates.co.uk/'], crawled
+    assert crawler.respond_to?(:next_urls)
+
+    CustomCrawler.remove_method :next_urls
+    refute crawler.respond_to?(:next_urls)
   end
 
   def test_crawl_site__add_supported_url_extension

@@ -11,4 +11,5 @@ require_relative 'wgit/crawler'
 require_relative 'wgit/database/model'
 require_relative 'wgit/database/database'
 require_relative 'wgit/indexer'
+require_relative 'wgit/dsl'
 # require_relative 'wgit/core_ext' - Must be explicitly required.

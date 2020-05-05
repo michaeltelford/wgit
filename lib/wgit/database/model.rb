@@ -14,8 +14,7 @@ module Wgit
       raise 'url must respond_to? :to_h' unless url.respond_to?(:to_h)
 
       model = url.to_h
-
-      Wgit::Utils.sanitize_model(model)
+      select_bson_types(model)
     end
 
     # The data model for a Wgit::Document collection object.
@@ -28,7 +27,7 @@ module Wgit
       model = doc.to_h(include_html: false, include_score: false)
       model['url'] = url(doc.url) # Expand Url String into full object.
 
-      Wgit::Utils.sanitize_model(model)
+      select_bson_types(model)
     end
 
     # Common fields when inserting a record into the DB.
@@ -48,6 +47,14 @@ module Wgit
       {
         date_modified: Wgit::Utils.time_stamp
       }
+    end
+
+    # Returns the model having removed non bson types (for use with MongoDB).
+    #
+    # @param model_hash [Hash] The model Hash to sanitize.
+    # @return [Hash] The model Hash with non bson types removed.
+    def self.select_bson_types(model_hash)
+      model_hash.select { |_k, v| v.respond_to?(:bson_type) }
     end
   end
 end

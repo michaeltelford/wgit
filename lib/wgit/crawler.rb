@@ -9,9 +9,9 @@ require 'set'
 require 'typhoeus'
 
 module Wgit
-  # The Crawler class provides a means of crawling web based HTTP Wgit::Url's,
-  # serialising their HTML into Wgit::Document instances. This is the only Wgit
-  # class which contains network logic e.g. HTTP request/response handling.
+  # The Crawler class provides a means of crawling web based HTTP `Wgit::Url`s,
+  # serialising their HTML into `Wgit::Document` instances. This is the only
+  # Wgit class which contains network logic (HTTP request/response handling).
   class Crawler
     include Assertable
 
@@ -302,10 +302,11 @@ module Wgit
     # and selectively crawl a site; the glob syntax is supported e.g.
     # `'wiki/\*'` etc. Note that each path should NOT start with a slash.
     #
-    # Override this method in a subclass to change how a site
-    # is crawled, not what is extracted from each page (Document extensions
-    # should be used for this purpose instead). Just remember that only HTML
-    # files containing `<a>` links keep the crawl going beyond the base URL.
+    # Define `#next_urls(doc) -> Array<Wgit::Url>` to manually override how the
+    # site gets crawled, not what is extracted from each page (Document
+    # extensions should be used for this purpose instead). All returned URL's
+    # should be in absolute form and be on the same domain as the site being
+    # crawled. The allow/disallow paths will be applied to the returned value.
     #
     # @param doc [Wgit::Document] The document from which to extract it's
     #   internal (absolute) page links.
@@ -315,15 +316,13 @@ module Wgit
     #   them if their path `File.fnmatch?` one of disallow_paths.
     # @return [Array<Wgit::Url>] The internal page links from doc.
     def get_internal_links(doc, allow_paths: nil, disallow_paths: nil)
-      links = doc
-              .internal_absolute_links
-              .map(&:omit_fragment) # Because fragments don't alter content.
-              .uniq
-              .select do |link|
-        ext = link.to_extension
-        ext ?
-          Wgit::Crawler.supported_file_extensions.include?(ext.downcase) :
-          true # URLs without an extension are assumed HTML.
+      links = respond_to?(:next_urls) ?
+                next_urls(doc) :
+                default_next_urls(doc)
+
+      assert_arr_type(links, Wgit::Url)
+      if links.any? { |link| link.to_domain != doc.url.to_domain }
+        raise 'The next_urls must be within the site domain'
       end
 
       return links if allow_paths.nil? && disallow_paths.nil?
@@ -333,29 +332,19 @@ module Wgit
 
     private
 
-    # Returns whether or not to follow redirects, and within what context e.g.
-    # :host, :domain etc.
-    def redirect?(follow_redirects)
-      return [true, follow_redirects] if follow_redirects.is_a?(Symbol)
-
-      unless [true, false].include?(follow_redirects)
-        raise "follow_redirects: must be a Boolean or Symbol, not: \
-#{follow_redirects}"
-      end
-
-      [follow_redirects, nil]
-    end
-
-    # Log (at debug level) the HTTP request/response details.
-    def log_http(response)
-      resp_template  = '[http] Response: %s (%s bytes in %s seconds)'
-      log_status     = (response.status || 0)
-      log_total_time = response.total_time.truncate(3)
-
-      Wgit.logger.debug("[http] Request:  #{response.url}")
-      Wgit.logger.debug(
-        format(resp_template, log_status, response.size, log_total_time)
-      )
+    # Returns the default set of links used to continue crawling a site.
+    # By default, any <a> href that's deemed to return HTML gets returned.
+    def default_next_urls(doc)
+      doc
+        .internal_absolute_links
+        .map(&:omit_fragment) # Because fragments don't alter content.
+        .uniq
+        .select do |link| # Whitelist only HTML content.
+          ext = link.to_extension
+          ext ?
+            Wgit::Crawler.supported_file_extensions.include?(ext.downcase) :
+            true # URLs without an extension are assumed HTML.
+        end
     end
 
     # Validate and filter by the given URL paths.
@@ -375,7 +364,7 @@ module Wgit
 
     # Validate the paths are suitable for filtering.
     def validate_paths(paths)
-      paths = [paths] unless paths.is_a?(Array)
+      paths = *paths
       raise 'The provided paths must all be Strings' \
       unless paths.all? { |path| path.is_a?(String) }
 
@@ -400,6 +389,31 @@ module Wgit
 
         match
       end
+    end
+
+    # Returns whether or not to follow redirects, and within what context e.g.
+    # :host, :domain etc.
+    def redirect?(follow_redirects)
+      return [true, follow_redirects] if follow_redirects.is_a?(Symbol)
+
+      unless [true, false].include?(follow_redirects)
+        raise "follow_redirects: must be a Boolean or Symbol, not: \
+#{follow_redirects}"
+      end
+
+      [follow_redirects, nil]
+    end
+
+    # Log (at debug level) the HTTP request/response details.
+    def log_http(response)
+      resp_template  = '[http] Response: %s (%s bytes in %s seconds)'
+      log_status     = (response.status || 0)
+      log_total_time = response.total_time.truncate(3)
+
+      Wgit.logger.debug("[http] Request:  #{response.url}")
+      Wgit.logger.debug(
+        format(resp_template, log_status, response.size, log_total_time)
+      )
     end
 
     alias crawl       crawl_urls
