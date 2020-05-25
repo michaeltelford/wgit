@@ -63,8 +63,9 @@ module Wgit
     end
 
     # Crawls an entire website's HTML pages by recursively going through
-    # its internal `<a>` links. Each crawled Document is yielded to a block.
-    # Use `doc.empty?` to determine if the crawled link is valid.
+    # its internal `<a>` links; this can be overridden with `follow: xpath`.
+    # Each crawled Document is yielded to a block. Use `doc.empty?` to
+    # determine if the crawled link was successful / is valid.
     #
     # Use the allow and disallow paths params to partially and selectively
     # crawl a site; the glob syntax is fully supported e.g. `'wiki/\*'` etc.
@@ -82,6 +83,10 @@ module Wgit
     # @param url [Wgit::Url] The base URL of the website to be crawled.
     #   It is recommended that this URL be the index page of the site to give a
     #   greater chance of finding all pages within that site/host.
+    # @param follow [String] The xpath extracting links to be followed during
+    #   the crawl. This changes how a site is crawled. Only links pointing to
+    #   the site domain are allowed. The `:default` is any `<a>` href returning
+    #   HTML.
     # @param allow_paths [String, Array<String>] Filters links by selecting
     #   them if their path `File.fnmatch?` one of allow_paths.
     # @param disallow_paths [String, Array<String>] Filters links by rejecting
@@ -107,7 +112,7 @@ module Wgit
 
       crawled   = Set.new([url, alt_url])
       externals = Set.new(doc.external_links)
-      internals = Set.new(get_internal_links(doc, link_opts))
+      internals = Set.new(next_internal_links(doc, link_opts))
 
       return externals.to_a if internals.empty?
 
@@ -122,7 +127,7 @@ module Wgit
           crawled += [orig_link, link] # Push both links in case of redirects.
           next if doc.nil?
 
-          internals += get_internal_links(doc, link_opts)
+          internals += next_internal_links(doc, link_opts)
           externals += doc.external_links
         end
       end
@@ -157,7 +162,8 @@ module Wgit
     # Crawl the url returning the response Wgit::Document or nil, if an error
     # occurs.
     #
-    # @param url [Wgit::Url] The Url to crawl; which will likely be modified.
+    # @param url [Wgit::Url] The Url to crawl; which will be modified in the
+    #   event of a redirect.
     # @param follow_redirects [Boolean, Symbol] Whether or not to follow
     #   redirects. Pass a Symbol to limit where the redirect is allowed to go
     #   e.g. :host only allows redirects within the same host. Choose from
@@ -304,24 +310,25 @@ module Wgit
     end
 
     # Returns a doc's internal HTML page links in absolute form; used when
-    # crawling a site. Use the allow and disallow paths params to partially
-    # and selectively crawl a site; the glob syntax is supported e.g.
-    # `'wiki/\*'` etc. Note that each path should NOT start with a slash.
+    # crawling a site. By default, any `<a>` href returning HTML is returned;
+    # override this with `xpath:` if desired.
     #
-    # Define `#next_urls(doc) -> Array<Wgit::Url>` to manually override how the
-    # site gets crawled, not what is extracted from each page (Document
-    # extensions should be used for this purpose instead). All returned URL's
-    # should be in absolute form and be on the same domain as the site being
-    # crawled. The allow/disallow paths will be applied to the returned value.
+    # Use the allow and disallow paths params to partially and selectively
+    # crawl a site; the glob syntax is supported e.g. `'wiki/\*'` etc. Note
+    # that each path should NOT start with a slash.
     #
     # @param doc [Wgit::Document] The document from which to extract it's
     #   internal (absolute) page links.
+    # @param xpath [String] The xpath selecting links to be returned. Only
+    #   links pointing to the doc.url domain are allowed. The :default is any
+    #   <a> href returning HTML. The allow/disallow paths will be applied to
+    #   the returned value.
     # @param allow_paths [String, Array<String>] Filters links by selecting
     #   them if their path `File.fnmatch?` one of allow_paths.
     # @param disallow_paths [String, Array<String>] Filters links by rejecting
     #   them if their path `File.fnmatch?` one of disallow_paths.
     # @return [Array<Wgit::Url>] The internal page links from doc.
-    def get_internal_links(
+    def next_internal_links(
       doc, xpath: :default, allow_paths: nil, disallow_paths: nil
     )
       links = xpath && xpath != :default ?

@@ -95,8 +95,11 @@ def stub_fixtures(pages, sites)
   end
 
   sites.each do |url|
-    dir = URI(url).host
-    stub_page(url, fixture: "#{dir}/index")
+    dir        = URI(url).host
+    index_file = "#{dir}/index.html"
+    index_path = "#{fixtures_dir}/#{index_file}"
+
+    stub_page(url, fixture: index_file) if File.exists?(index_path)
     stub_dir(url, fixtures_dir, dir)
   end
 end

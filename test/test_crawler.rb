@@ -1,12 +1,5 @@
 require_relative 'helpers/test_helper'
 
-# Class purely for testing #next_urls override at the class level.
-class CustomCrawler < Wgit::Crawler
-  def next_urls(doc)
-    [] # Kill the crawl to prove the override works.
-  end
-end
-
 # Test class for the Crawler methods.
 class TestCrawler < TestHelper
   # Run non DB tests in parallel for speed.
@@ -365,13 +358,29 @@ class TestCrawler < TestHelper
     refute_nil url.crawl_duration
   end
 
-  def test_crawl_site__next_urls__instance_level
+  def test_crawl_site__follow_xpath
+    url     = Wgit::Url.new 'http://quotes.toscrape.com/tag/humor/'
+    xpath   = "//li[@class='next']/a/@href"
+    crawler = Wgit::Crawler.new
+    crawled = []
+
+    crawler.crawl_site(url, follow: xpath) { |doc| crawled << doc.url }
+
+    assert_equal [
+      'http://quotes.toscrape.com/tag/humor/',
+      'http://quotes.toscrape.com/tag/humor/page/2/'
+    ], crawled
+  end
+
+  # Test overriding the #follow_default method to crawl a site. This scenario
+  # isn't recommended to users but is tested to prove it works if performed.
+  def test_crawl_site__override_follow_default
     url = Wgit::Url.new 'http://www.belfastpilates.co.uk/'
     crawled = []
 
-    # We override #next_urls to only crawl jpg/jpeg file URLs.
+    # We override #follow_default to crawl jpg files on the index page.
     crawler = Wgit::Crawler.new encode: false
-    def crawler.next_urls(doc)
+    def crawler.follow_default(doc)
       doc
         .internal_absolute_links
         .select { |link| %w[jpg jpeg].include?(link.to_extension) }
@@ -389,21 +398,6 @@ class TestCrawler < TestHelper
       'http://www.belfastpilates.co.uk/wp-content/uploads/2016/09/185-1024x569.jpg',
       'http://www.belfastpilates.co.uk/wp-content/uploads/2016/09/studio-1024x661.jpg'
     ], crawled
-  end
-
-  def test_crawl_site__next_urls__class_level
-    url = Wgit::Url.new 'http://www.belfastpilates.co.uk/'
-    crawled = []
-
-    # CustomCrawler has overidden #next_urls at the class level to return [].
-    crawler = CustomCrawler.new
-    crawler.crawl_site(url) { |doc| crawled << doc.url }
-
-    assert_equal ['http://www.belfastpilates.co.uk/'], crawled
-    assert crawler.respond_to?(:next_urls)
-
-    CustomCrawler.remove_method :next_urls
-    refute crawler.respond_to?(:next_urls)
   end
 
   def test_crawl_site__add_supported_url_extension
@@ -710,16 +704,16 @@ class TestCrawler < TestHelper
       'http://www.mytestsite.com/tests.html',
       'http://www.mytestsite.com/blog',
       'http://www.mytestsite.com/contents'
-    ], crawler.send(:get_internal_links, doc)
+    ], crawler.send(:next_internal_links, doc)
 
     # Some error scenarios for partial site crawls using paths.
     ex = assert_raises(StandardError) do
-      crawler.send(:get_internal_links, doc, allow_paths: [true])
+      crawler.send(:next_internal_links, doc, allow_paths: [true])
     end
     assert_equal 'The provided paths must all be Strings', ex.message
 
     ex = assert_raises(StandardError) do
-      crawler.send(:get_internal_links, doc, allow_paths: ['', '  '])
+      crawler.send(:next_internal_links, doc, allow_paths: ['', '  '])
     end
     assert_equal 'The provided paths cannot be empty', ex.message
   end
@@ -733,14 +727,14 @@ class TestCrawler < TestHelper
     assert_equal [
       'http://www.php.com/about.php',
       'http://www.php.com/index.php?foo=bar'
-    ], crawler.send(:get_internal_links, doc)
+    ], crawler.send(:next_internal_links, doc)
 
     assert_equal [
       'http://www.php.com/index.php?foo=bar'
-    ], crawler.send(:get_internal_links, doc, disallow_paths: '*.php')
+    ], crawler.send(:next_internal_links, doc, disallow_paths: '*.php')
 
     assert_empty crawler.send(
-      :get_internal_links, doc, disallow_paths: ['*.php', '*.php[?]*']
+      :next_internal_links, doc, disallow_paths: ['*.php', '*.php[?]*']
     )
   end
 
@@ -757,7 +751,7 @@ class TestCrawler < TestHelper
       'http://www.belfastpilates.co.uk/pilates/pilates-classes/pilates-classes-timetable',
       'http://www.belfastpilates.co.uk/pilates/pilates-faqs',
       'http://www.belfastpilates.co.uk/contact-us'
-    ], crawler.send(:get_internal_links, doc, allow_paths: [
+    ], crawler.send(:next_internal_links, doc, allow_paths: [
       'contact?us',
       'pilates*',
       'privacy-policy'
@@ -773,7 +767,7 @@ class TestCrawler < TestHelper
     assert_equal [
       'http://www.belfastpilates.co.uk/pilates/pilates-classes',
       'http://www.belfastpilates.co.uk/pilates/pilates-classes/pilates-classes-timetable'
-    ], crawler.send(:get_internal_links, doc, allow_paths: '*/pilates-classes*')
+    ], crawler.send(:next_internal_links, doc, allow_paths: '*/pilates-classes*')
   end
 
   def test_get_internal_links__disallow_paths
@@ -795,7 +789,7 @@ class TestCrawler < TestHelper
       'http://www.belfastpilates.co.uk/category/uncategorized',
       'http://www.belfastpilates.co.uk/youre-invited',
       'http://www.belfastpilates.co.uk/gift-vouchers-now-available-to-purchase'
-    ], crawler.send(:get_internal_links, doc, disallow_paths: [
+    ], crawler.send(:next_internal_links, doc, disallow_paths: [
       'contact?us',
       'pilates*',
       'privacy-policy'
@@ -825,7 +819,7 @@ class TestCrawler < TestHelper
       'http://www.belfastpilates.co.uk/category/uncategorized',
       'http://www.belfastpilates.co.uk/youre-invited',
       'http://www.belfastpilates.co.uk/gift-vouchers-now-available-to-purchase'
-    ], crawler.send(:get_internal_links, doc, disallow_paths: '*/pilates-classes*')
+    ], crawler.send(:next_internal_links, doc, disallow_paths: '*/pilates-classes*')
   end
 
   def test_get_internal_links__combined_paths
@@ -840,7 +834,7 @@ class TestCrawler < TestHelper
       'http://www.belfastpilates.co.uk/about-us/our-facilities',
       'http://www.belfastpilates.co.uk/about-us/testimonials',
       'http://www.belfastpilates.co.uk/pilates/what-is-pilates'
-    ], crawler.send(:get_internal_links, doc, disallow_paths: '*/pilates*', allow_paths: [
+    ], crawler.send(:next_internal_links, doc, disallow_paths: '*/pilates*', allow_paths: [
       'about-us/*',
       'pilates/*',
       '/'

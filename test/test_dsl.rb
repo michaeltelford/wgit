@@ -8,7 +8,9 @@ class TestDSL < TestHelper
 
   # Runs before every test.
   def setup
-    @dsl_url      = nil
+    @dsl_crawler  = nil
+    @dsl_start    = nil
+    @dsl_follow   = nil
     @dsl_conn_str = nil
   end
 
@@ -32,6 +34,7 @@ class TestDSL < TestHelper
     assert_instance_of Wgit::Crawler, @dsl_crawler
     assert_equal @dsl_crawler.object_id, crawler.object_id
     assert_equal 10, crawler.redirect_limit
+    assert_equal crawler.object_id, crawler.object_id
   end
 
   def test_start
@@ -39,38 +42,14 @@ class TestDSL < TestHelper
       crawler.time_out = 10
     end
 
-    assert_equal 'http://example.com', @dsl_url
+    assert_equal 'http://example.com', @dsl_start
     assert_equal 10, crawler.time_out
   end
 
   def test_follow
-    follow('//a/@href') do |links, doc, type|
-      assert_instance_of Wgit::Document, doc
-      assert_equal :document, type
+    follow '//a/@href'
 
-      links + [Wgit::Url.new('http://www.foobar.com/about')]
-    end
-
-    doc = Wgit::Document.new 'http://www.example.com', <<~HTML
-      <html>
-        <a href="/contact">Valid link</a>
-        <a href="http://">Invalid link</a>
-      </html>
-    HTML
-    expected_next_urls = [
-      'http://www.example.com/contact',
-      'http://www.foobar.com/about'
-    ]
-
-    assert Wgit::Document.extensions.include? :dsl_next_urls
-    assert crawler.respond_to? :next_urls
-    assert_equal expected_next_urls, doc.dsl_next_urls
-    assert_equal expected_next_urls, crawler.next_urls(doc)
-    assert doc.dsl_next_urls.all? { |url| url.is_a? Wgit::Url }
-
-    # Clean up the extractor for other tests.
-    Wgit::Document.remove_extension :dsl_next_urls
-    Wgit::Document.send(:remove_method, :dsl_next_urls)
+    assert_equal '//a/@href', @dsl_follow
   end
 
   def test_crawl__no_url
