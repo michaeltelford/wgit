@@ -481,7 +481,7 @@ module Wgit
     # Extracts a value/object from this Document's @html using the given xpath
     # parameter.
     #
-    # @param xpath [String] Used to find the value/object in @html.
+    # @param xpath [String, #call] Used to find the value/object in @html.
     # @param singleton [Boolean] singleton ? results.first (single Nokogiri
     #   Object) : results (Array).
     # @param text_content_only [Boolean] text_content_only ? result.content

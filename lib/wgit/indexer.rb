@@ -108,9 +108,14 @@ the next iteration.")
     #   into the database.
     # @return [Integer] The total number of webpages/documents indexed.
     def index_site(
-      url, insert_externals: true, allow_paths: nil, disallow_paths: nil
+      url, insert_externals: true, follow: :default,
+      allow_paths: nil, disallow_paths: nil
     )
-      crawl_opts = { allow_paths: allow_paths, disallow_paths: disallow_paths }
+      crawl_opts = {
+        follow: follow,
+        allow_paths: allow_paths,
+        disallow_paths: disallow_paths
+      }
       total_pages_indexed = 0
 
       ext_urls = @crawler.crawl_site(url, crawl_opts) do |doc|

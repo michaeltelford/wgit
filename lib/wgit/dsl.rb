@@ -19,26 +19,15 @@ the 'start' function"
 
     def start(url = nil, &block)
       crawler(&block)
-      @dsl_url = url if url
+      @dsl_start = url if url
     end
 
-    def follow(xpath, &block)
-      extract(:dsl_next_urls, xpath, singleton: false) do |urls, doc, type|
-        # Convert the valid URL Strings into absolute Wgit::Urls.
-        urls
-          .map! { |url| Wgit::Url.parse?(url)&.prefix_base(doc) }
-          .compact!
-        block ? block.call(urls, doc, type) : urls
-      end
-
-      # Defining #next_urls lets us control the next pages to be crawled.
-      def crawler.next_urls(doc)
-        doc.dsl_next_urls
-      end
+    def follow(xpath)
+      @dsl_follow = xpath
     end
 
     def crawl(*urls, follow_redirects: true, &block)
-      urls << @dsl_url if urls.empty?
+      urls << @dsl_start if urls.empty?
       raise DSL_ERROR__NO_START_URL if urls.compact.empty?
 
       urls.map! { |url| Wgit::Url.parse(url) }
@@ -46,11 +35,16 @@ the 'start' function"
     end
 
     def crawl_site(
-      url = @dsl_url, allow_paths: nil, disallow_paths: nil, &block
+      url = @dsl_start, follow: @dsl_follow,
+      allow_paths: nil, disallow_paths: nil, &block
     )
       raise DSL_ERROR__NO_START_URL unless url
 
-      opts = { allow_paths: allow_paths, disallow_paths: disallow_paths }
+      xpath = follow || :default
+      opts  = {
+        follow: xpath, allow_paths: allow_paths, disallow_paths: disallow_paths
+      }
+
       crawler.crawl_site(Wgit::Url.parse(url), opts, &block)
     end
 
@@ -109,19 +103,22 @@ the 'start' function"
     #   is inserted into the database allowing for prior manipulation.
     # @return [Integer] The total number of pages crawled within the website.
     def index_site(
-      url = @dsl_url, connection_string: @dsl_conn_str, insert_externals: true,
+      url = @dsl_start, connection_string: @dsl_conn_str,
+      insert_externals: true, follow: @dsl_follow,
       allow_paths: nil, disallow_paths: nil, &block
     )
       raise DSL_ERROR__NO_START_URL unless url
 
-      url     = Wgit::Url.parse(url)
-      db      = Wgit::Database.new(connection_string)
-      indexer = Wgit::Indexer.new(db, crawler)
+      url        = Wgit::Url.parse(url)
+      db         = Wgit::Database.new(connection_string)
+      indexer    = Wgit::Indexer.new(db, crawler)
+      xpath      = follow || :default
+      crawl_opts = {
+        insert_externals: insert_externals, follow: xpath,
+        allow_paths: allow_paths, disallow_paths: disallow_paths
+      }
 
-      indexer.index_site(
-        url, insert_externals: insert_externals,
-             allow_paths: allow_paths, disallow_paths: disallow_paths, &block
-      )
+      indexer.index_site(url, crawl_opts, &block)
     end
 
     # Convenience method to index a single webpage using
@@ -141,7 +138,7 @@ the 'start' function"
       *urls, connection_string: @dsl_conn_str,
       insert_externals: true, &block
     )
-      urls << @dsl_url if urls.empty?
+      urls << @dsl_start if urls.empty?
       raise DSL_ERROR__NO_START_URL if urls.compact.empty?
 
       db      = Wgit::Database.new(connection_string)

@@ -92,16 +92,22 @@ module Wgit
     # @return [Array<Wgit::Url>, nil] Unique Array of external urls collected
     #   from all of the site's pages or nil if the given url could not be
     #   crawled successfully.
-    def crawl_site(url, allow_paths: nil, disallow_paths: nil, &block)
+    def crawl_site(
+      url, follow: :default, allow_paths: nil, disallow_paths: nil, &block
+    )
       doc = crawl_url(url, &block)
       return nil if doc.nil?
 
-      path_opts = { allow_paths: allow_paths, disallow_paths: disallow_paths }
+      link_opts = {
+        xpath: follow,
+        allow_paths: allow_paths,
+        disallow_paths: disallow_paths
+      }
       alt_url   = url.end_with?('/') ? url.chop : url + '/'
 
       crawled   = Set.new([url, alt_url])
       externals = Set.new(doc.external_links)
-      internals = Set.new(get_internal_links(doc, path_opts))
+      internals = Set.new(get_internal_links(doc, link_opts))
 
       return externals.to_a if internals.empty?
 
@@ -116,7 +122,7 @@ module Wgit
           crawled += [orig_link, link] # Push both links in case of redirects.
           next if doc.nil?
 
-          internals += get_internal_links(doc, path_opts)
+          internals += get_internal_links(doc, link_opts)
           externals += doc.external_links
         end
       end
@@ -315,15 +321,12 @@ module Wgit
     # @param disallow_paths [String, Array<String>] Filters links by rejecting
     #   them if their path `File.fnmatch?` one of disallow_paths.
     # @return [Array<Wgit::Url>] The internal page links from doc.
-    def get_internal_links(doc, allow_paths: nil, disallow_paths: nil)
-      links = respond_to?(:next_urls) ?
-                next_urls(doc) :
-                default_next_urls(doc)
-
-      assert_arr_type(links, Wgit::Url)
-      if links.any? { |link| link.to_domain != doc.url.to_domain }
-        raise 'The next_urls must be within the site domain'
-      end
+    def get_internal_links(
+      doc, xpath: :default, allow_paths: nil, disallow_paths: nil
+    )
+      links = xpath && xpath != :default ?
+                follow_xpath(doc, xpath) :
+                follow_default(doc)
 
       return links if allow_paths.nil? && disallow_paths.nil?
 
@@ -332,9 +335,28 @@ module Wgit
 
     private
 
+    # Returns the next links used to continue crawling a site. The xpath value
+    # is used to obtain the links. Any valid URL Strings will be converted into
+    # absolute Wgit::Urls. Invalid URLs will be silently dropped. Any link not
+    # pointing to the site domain will raise an error.
+    def follow_xpath(doc, xpath)
+      links = doc.send(:find_in_html, xpath, singleton: false) do |links|
+        links
+          .map { |link| Wgit::Url.parse?(link)&.prefix_base(doc) }
+          .compact
+      end
+
+      if links.any? { |link| link.to_domain != doc.url.to_domain }
+        raise 'The links to follow must be within the site domain'
+      end
+
+      links
+    end
+
     # Returns the default set of links used to continue crawling a site.
-    # By default, any <a> href that's deemed to return HTML gets returned.
-    def default_next_urls(doc)
+    # By default, any <a> href returning HTML and pointing to the same domain
+    # will get returned.
+    def follow_default(doc)
       doc
         .internal_absolute_links
         .map(&:omit_fragment) # Because fragments don't alter content.
