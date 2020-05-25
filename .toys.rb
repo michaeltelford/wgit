@@ -275,12 +275,16 @@ tool :test do
   tool :save_site do
     desc 'Download/update a web site test fixture to test/mock/fixtures'
     required_arg :url
+    flag :follow, '-f', '--follow=VALUE'
 
     include :exec, exit_on_nonzero_status: true
     include :terminal
 
     def run
-      exec "ruby test/mock/save_site.rb #{options[:url]}"
+      cmd = follow ?
+              "ruby test/mock/save_site.rb #{options[:url]} #{follow}" :
+              "ruby test/mock/save_site.rb #{options[:url]}"
+      exec cmd
       puts "Don't forget to mock the site in test/mock/fixtures.rb", :green
     end
   end

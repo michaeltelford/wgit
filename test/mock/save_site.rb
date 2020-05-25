@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-# Script to save an entire website's HTML to disk. For example,
+# A script which saves a website's HTML to disk. For example,
 # http://blah.com/admin/about will be saved as:
 # <path_to_script>/fixtures/blah.com/admin/about.html
 # Call this script like: `ruby save_site.rb http://blah.com` or use toys task.
@@ -12,6 +12,7 @@ require 'fileutils'
 raise 'ARGV[0] must be a URL' unless ARGV[0]
 
 base_url = Wgit::Url.new(ARGV[0])
+xpath    = ARGV[1] || :default
 path     = "#{File.expand_path(__dir__)}/fixtures/#{base_url.to_host}"
 crawler  = Wgit::Crawler.new
 
@@ -19,7 +20,7 @@ FileUtils.mkdir_p(path)
 Dir.chdir(path)
 
 # Save the site to disk.
-crawler.crawl_site(base_url) do |doc|
+crawler.crawl_site(base_url, follow: xpath) do |doc|
   url = doc.url
 
   if doc.empty?
