@@ -98,6 +98,10 @@ the next iteration.")
     # @param url [Wgit::Url] The base Url of the website to crawl.
     # @param insert_externals [Boolean] Whether or not to insert the website's
     #   external Url's into the database.
+    # @param follow [String] The xpath extracting links to be followed during
+    #   the crawl. This changes how a site is crawled. Only links pointing to
+    #   the site domain are allowed. The `:default` is any `<a>` href returning
+    #   HTML.
     # @param allow_paths [String, Array<String>] Filters links by selecting
     #   them if their path `File.fnmatch?` one of allow_paths.
     # @param disallow_paths [String, Array<String>] Filters links by rejecting

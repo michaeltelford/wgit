@@ -9,24 +9,30 @@
 require_relative '../../lib/wgit'
 require 'fileutils'
 
-raise 'ARGV[0] must be a URL' unless ARGV[0]
+def save_page(url)
+  url     = Wgit::Url.parse(url)
+  path    = "#{File.expand_path(__dir__)}/fixtures"
+  crawler = Wgit::Crawler.new
 
-url     = Wgit::Url.new(ARGV[0])
-path    = "#{File.expand_path(__dir__)}/fixtures"
-crawler = Wgit::Crawler.new
+  FileUtils.mkdir_p(path)
+  Dir.chdir(path)
 
-FileUtils.mkdir_p(path)
-Dir.chdir(path)
+  # Save the HTML file for the page.
+  crawler.crawl_url(url) do |doc|
+    if doc.empty?
+      puts "Invalid URL: #{doc.url}"
+      next
+    end
 
-# Save the HTML file for the page.
-crawler.crawl_url(url) do |doc|
-  if doc.empty?
-    puts "Invalid URL: #{doc.url}"
-    next
+    file_path = url.to_host
+    file_path += '.html' unless file_path.end_with? '.html'
+    puts "Saving document #{file_path}"
+    File.open(file_path, 'w') { |f| f.write(doc.html) }
   end
+end
 
-  file_path = url.to_host
-  file_path += '.html' unless file_path.end_with? '.html'
-  puts "Saving document #{file_path}"
-  File.open(file_path, 'w') { |f| f.write(doc.html) }
+if $0 == __FILE__
+  raise 'ARGV[0] must be a URL' unless ARGV[0]
+  url = ARGV[0]
+  save_page(url)
 end

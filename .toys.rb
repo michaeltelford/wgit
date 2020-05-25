@@ -267,7 +267,8 @@ tool :test do
     include :terminal
 
     def run
-      exec "ruby test/mock/save_page.rb #{options[:url]}"
+      load 'test/mock/save_page.rb'
+      save_page(options[:url])
       puts "Don't forget to mock the page in test/mock/fixtures.rb", :green
     end
   end
@@ -281,10 +282,9 @@ tool :test do
     include :terminal
 
     def run
-      cmd = follow ?
-              "ruby test/mock/save_site.rb #{options[:url]} #{follow}" :
-              "ruby test/mock/save_site.rb #{options[:url]}"
-      exec cmd
+      load 'test/mock/save_site.rb'
+      xpath = follow || :default
+      save_site(options[:url], follow: xpath)
       puts "Don't forget to mock the site in test/mock/fixtures.rb", :green
     end
   end

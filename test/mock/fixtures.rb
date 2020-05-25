@@ -1,4 +1,4 @@
-# See `toys -s save` for tasks to save a web fixture to disk;
+# See `toys -s save` for tasks on saving a web fixture to disk;
 # then mock it's HTTP response below so it's available to crawl in the tests
 # using Wgit. Note that you can mock a response without a saved fixture.
 
@@ -37,8 +37,8 @@ stub_page 'http://odd-extension.com/other.html5', body: '<p>Hello world</p>'
 # Match all *.jpg URL's for belfastpilates.co.uk.
 stub_request(:get, Regexp.new('http://www.belfastpilates.co.uk/(.*).(?:jpg|jpeg)'))
 
-# Mock responses based on the fixtures saved to disk. Both single webpages and
-# full websites are supported.
+# Mock responses based on individual files saved to disk. The URL should match
+# the file name (minus the scheme prefix and .html extension suffix).
 pages = [
   'https://motherfuckingwebsite.com/',
   'https://wikileaks.org/What-is-Wikileaks.html',
@@ -50,10 +50,13 @@ pages = [
   'http://odd-extension.com'
 ]
 
+# Mock sites based on a collection of files saved in a directory.
+# NOTE: URL's listed below MUST NOT have a path, only a scheme and host.
 sites = [
   'http://txti.es/',
   'http://www.belfastpilates.co.uk/',
-  'http://test-site.com'
+  'http://test-site.com',
+  'http://quotes.toscrape.com/'
 ]
 
 stub_fixtures pages, sites
