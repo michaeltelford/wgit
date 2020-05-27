@@ -1,5 +1,5 @@
 --readme README.md
---title 'Wgit API Documentation'
+--title 'Wgit Gem Documentation'
 --charset utf-8
 --markup markdown
 --output .doc

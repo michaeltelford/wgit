@@ -1,5 +1,5 @@
 module Wgit
-  # Response class representing a generic HTTP crawl response.
+  # Response class modeling a generic HTTP GET response.
   class Response
     # The underlying HTTP adapter/library response object.
     attr_accessor :adapter_response

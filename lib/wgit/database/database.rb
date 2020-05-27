@@ -9,8 +9,8 @@ require 'logger'
 require 'mongo'
 
 module Wgit
-  # Class modeling a DB connection and CRUD operations for the Url and Document
-  # collections.
+  # Class providing a DB connection and CRUD operations for the Url and
+  # Document collections.
   class Database
     include Assertable
 

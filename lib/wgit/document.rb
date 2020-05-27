@@ -6,13 +6,13 @@ require 'json'
 require 'set'
 
 module Wgit
-  # Class primarily modeling a HTML web document, although other MIME types
+  # Class modeling/serialising a HTML web document, although other MIME types
   # will work e.g. images etc. Also doubles as a search result when
   # loading Documents from the database via `Wgit::Database#search`.
   #
   # The initialize method dynamically initializes instance variables from the
   # Document HTML / Database object e.g. text. This bit is dynamic so that the
-  # Document class can be easily extended allowing you to pull out the bits of
+  # Document class can be easily extended allowing you to extract the bits of
   # a webpage that are important to you. See `Wgit::Document.define_extension`.
   class Document
     include Assertable

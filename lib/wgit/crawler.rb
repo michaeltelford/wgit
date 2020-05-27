@@ -10,8 +10,8 @@ require 'typhoeus'
 
 module Wgit
   # The Crawler class provides a means of crawling web based HTTP `Wgit::Url`s,
-  # serialising their HTML into `Wgit::Document` instances. This is the only
-  # Wgit class which contains network logic (HTTP request/response handling).
+  # and serialising their HTML into `Wgit::Document` instances. This is the
+  # only Wgit class containing network logic (HTTP request/response handling).
   class Crawler
     include Assertable
 
@@ -87,10 +87,10 @@ module Wgit
     #   the crawl. This changes how a site is crawled. Only links pointing to
     #   the site domain are allowed. The `:default` is any `<a>` href returning
     #   HTML.
-    # @param allow_paths [String, Array<String>] Filters links by selecting
-    #   them if their path `File.fnmatch?` one of allow_paths.
-    # @param disallow_paths [String, Array<String>] Filters links by rejecting
-    #   them if their path `File.fnmatch?` one of disallow_paths.
+    # @param allow_paths [String, Array<String>] Filters the `follow:` links by
+    #   selecting them if their path `File.fnmatch?` one of allow_paths.
+    # @param disallow_paths [String, Array<String>] Filters the `follow` links
+    #   by rejecting them if their path `File.fnmatch?` one of disallow_paths.
     # @yield [doc] Given each crawled page (Wgit::Document) of the site.
     #   A block is the only way to interact with each crawled Document.
     #   Use `doc.empty?` to determine if the page is valid.
