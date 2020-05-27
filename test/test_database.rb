@@ -187,6 +187,26 @@ class TestDatabase < TestHelper
     end
   end
 
+  def test_search!
+    @docs.last.text << 'Foo Bar'
+
+    seed { docs @docs }
+
+    db = Wgit::Database.new
+
+    # Test the result doc's text snippets all match the query.
+    match = nil
+    results = db.search!('foo bar') do |doc|
+      assert_instance_of Wgit::Document, doc
+      match = doc
+    end
+
+    assert_equal 1, results.length
+    assert results.all? { |doc| doc.instance_of? Wgit::Document }
+    assert results.first.object_id, match.object_id
+    assert_equal ['Foo Bar'], match.text
+  end
+
   def test_stats
     db = Wgit::Database.new
     stats = db.stats

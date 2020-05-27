@@ -173,8 +173,53 @@ module Wgit
       return [] if results.count < 1 # respond_to? :empty? == false
 
       # results.respond_to? :map! is false so we use map and overwrite the var.
-      results = results.map { |mongo_doc| Wgit::Document.new(mongo_doc) }
-      results.each { |doc| yield(doc) } if block_given?
+      results = results.map do |mongo_doc|
+        doc = Wgit::Document.new(mongo_doc)
+        yield(doc) if block_given?
+        doc
+      end
+
+      results
+    end
+
+    # Searches the database's Documents for the given query and then searches
+    # each result in turn using `doc.search!`. This method is therefore the
+    # equivalent of calling `Wgit::Database#search` and then
+    # `Wgit::Document#search!` in turn. See their documentation for more info.
+    #
+    # @param query [String] The text query to search with.
+    # @param case_sensitive [Boolean] Whether character case must match.
+    # @param whole_sentence [Boolean] Whether multiple words should be searched
+    #   for separately.
+    # @param limit [Integer] The max number of results to return.
+    # @param skip [Integer] The number of results to skip.
+    # @param sentence_limit [Integer] The max length of each search result
+    #   sentence.
+    # @yield [doc] Given each search result (Wgit::Document) returned from the
+    #   DB having called `doc.search!(query)`.
+    # @return [Array<Wgit::Document>] The search results obtained from the DB
+    #   having called `doc.search!(query)`.
+    def search!(
+      query, case_sensitive: false, whole_sentence: true,
+      limit: 10, skip: 0, sentence_limit: 80
+    )
+      results = search(
+        query,
+        case_sensitive: case_sensitive,
+        whole_sentence: whole_sentence,
+        limit: limit,
+        skip: skip
+      )
+
+      results.each do |doc|
+        doc.search!(
+          query,
+          case_sensitive: case_sensitive,
+          whole_sentence: whole_sentence,
+          sentence_limit: sentence_limit
+        )
+        yield(doc) if block_given?
+      end
 
       results
     end

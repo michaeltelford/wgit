@@ -173,9 +173,9 @@ the 'start' function"
       limit: 10, skip: 0, sentence_limit: 80, &block
     )
       stream = File.open(File::NULL, 'w') unless stream
-      db = Wgit::Database.new(connection_string)
+      db     = Wgit::Database.new(connection_string)
 
-      results = db.search(
+      results = db.search!(
         query,
         case_sensitive: case_sensitive,
         whole_sentence: whole_sentence,
@@ -183,15 +183,6 @@ the 'start' function"
         skip: skip,
         &block
       )
-
-      results.each do |doc|
-        doc.search!(
-          query,
-          case_sensitive: case_sensitive,
-          whole_sentence: whole_sentence,
-          sentence_limit: sentence_limit
-        )
-      end
 
       Wgit::Utils.printf_search_results(results, stream: stream)
 
