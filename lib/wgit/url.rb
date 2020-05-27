@@ -6,11 +6,11 @@ require 'uri'
 require 'addressable/uri'
 
 module Wgit
-  # Class modeling a web based HTTP URL.
+  # Class modeling/serialising a web based HTTP URL.
   #
   # Can be an internal/relative link e.g. "about.html" or an absolute URL
   # e.g. "http://www.google.co.uk". Is a subclass of String and uses `URI` and
-  # `addressable/uri` internally.
+  # `addressable/uri` internally for parsing.
   #
   # Most of the methods in this class return new `Wgit::Url` instances making
   # the method calls chainable e.g. `url.omit_base.omit_fragment` etc. The
@@ -28,7 +28,7 @@ module Wgit
     # The duration of the crawl for this Url (in seconds).
     attr_accessor :crawl_duration
 
-    # Initializes a new instance of Wgit::Url which represents a web based
+    # Initializes a new instance of Wgit::Url which models a web based
     # HTTP URL.
     #
     # @param url_or_obj [String, Wgit::Url, #fetch#[]] Is either a String

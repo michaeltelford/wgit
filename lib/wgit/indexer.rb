@@ -4,8 +4,8 @@ require_relative 'crawler'
 require_relative 'database/database'
 
 module Wgit
-  # Class which crawls and saves the indexed Documents to a database. Can be
-  # thought of as a combination of Wgit::Crawler and Wgit::Database.
+  # Class which crawls and saves the Documents to a database. Can be thought of
+  # as a combination of Wgit::Crawler and Wgit::Database.
   class Indexer
     # The crawler used to index the WWW.
     attr_reader :crawler
@@ -102,10 +102,10 @@ the next iteration.")
     #   the crawl. This changes how a site is crawled. Only links pointing to
     #   the site domain are allowed. The `:default` is any `<a>` href returning
     #   HTML.
-    # @param allow_paths [String, Array<String>] Filters links by selecting
-    #   them if their path `File.fnmatch?` one of allow_paths.
-    # @param disallow_paths [String, Array<String>] Filters links by rejecting
-    #   them if their path `File.fnmatch?` one of disallow_paths.
+    # @param allow_paths [String, Array<String>] Filters the `follow:` links by
+    #   selecting them if their path `File.fnmatch?` one of allow_paths.
+    # @param disallow_paths [String, Array<String>] Filters the `follow` links
+    #   by rejecting them if their path `File.fnmatch?` one of disallow_paths.
     # @yield [doc] Given the Wgit::Document of each crawled web page before
     #   it's inserted into the database allowing for prior manipulation. Return
     #   nil or false from the block to prevent the document from being saved
@@ -155,6 +155,7 @@ site: #{url}")
     #   before it's inserted into the database allowing for prior
     #   manipulation. Return nil or false from the block to prevent the
     #   document from being saved into the database.
+    # @raise [StandardError] if no urls are provided.
     def index_urls(*urls, insert_externals: true, &block)
       raise 'You must provide at least one Url' if urls.empty?
 
