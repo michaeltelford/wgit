@@ -112,7 +112,7 @@ the next iteration.")
     #   into the database.
     # @return [Integer] The total number of webpages/documents indexed.
     def index_site(
-      url, insert_externals: true, follow: :default,
+      url, insert_externals: false, follow: :default,
       allow_paths: nil, disallow_paths: nil
     )
       crawl_opts = {
@@ -156,7 +156,7 @@ site: #{url}")
     #   manipulation. Return nil or false from the block to prevent the
     #   document from being saved into the database.
     # @raise [StandardError] if no urls are provided.
-    def index_urls(*urls, insert_externals: true, &block)
+    def index_urls(*urls, insert_externals: false, &block)
       raise 'You must provide at least one Url' if urls.empty?
 
       opts = { insert_externals: insert_externals }
@@ -176,7 +176,7 @@ site: #{url}")
     #   before it's inserted into the database allowing for prior
     #   manipulation. Return nil or false from the block to prevent the
     #   document from being saved into the database.
-    def index_url(url, insert_externals: true)
+    def index_url(url, insert_externals: false)
       document = @crawler.crawl_url(url) do |doc|
         result = block_given? ? yield(doc) : true
 

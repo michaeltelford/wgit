@@ -66,6 +66,9 @@ class TestDSL < TestHelper
   end
 
   def test_crawl__several_urls
+    # Shouldn't be used because of the urls param.
+    start 'http://example.com/doesntexist'
+
     urls = []
     crawl 'https://duckduckgo.com', 'http://twitter.com' do |doc|
       urls << doc.url
@@ -94,6 +97,9 @@ class TestDSL < TestHelper
   end
 
   def test_crawl_site__url_param
+    # Shouldn't be used because of the url param.
+    start 'http://example.com/doesntexist'
+
     crawl_site('http://txti.es/') do |doc|
       assert_equal 'http://txti.es/', doc.url
       break # Don't bother crawling the entire site.
@@ -170,15 +176,18 @@ class TestDSL < TestHelper
     clear_db
 
     start 'http://txti.es/'
-    index_site connection_string: ENV['WGIT_CONNECTION_STRING'], insert_externals: false
+    index_site connection_string: ENV['WGIT_CONNECTION_STRING'], insert_externals: true
 
     assert doc?('url.url' => 'http://txti.es/')
     assert_equal 7, database.num_docs
-    assert_equal 1, database.num_urls
+    assert_equal 8, database.num_urls
   end
 
   def test_index_site__url_param
     clear_db
+
+    # Shouldn't be used because of the url param.
+    start 'http://example.com/doesntexist'
 
     index_site 'http://txti.es/' do |doc|
       # Dont save the index page to the DB.
@@ -187,7 +196,7 @@ class TestDSL < TestHelper
 
     refute doc?('url.url' => 'http://txti.es/')
     assert_equal 6, database.num_docs
-    assert_equal 8, database.num_urls
+    assert_equal 1, database.num_urls
   end
 
   def test_index_site__allow_paths
@@ -218,7 +227,7 @@ class TestDSL < TestHelper
     clear_db
 
     start 'http://txti.es/'
-    index connection_string: ENV['WGIT_CONNECTION_STRING'], insert_externals: false
+    index connection_string: ENV['WGIT_CONNECTION_STRING']
 
     assert doc?('url.url' => 'http://txti.es/')
     assert_equal 1, database.num_docs
@@ -239,9 +248,12 @@ class TestDSL < TestHelper
   def test_index__several_urls
     clear_db
 
+    # Shouldn't be used because of the urls param.
+    start 'http://example.com/doesntexist'
+
     # Dont save the page to the DB.
     urls = []
-    index('http://txti.es/', 'http://test-site.com') do |doc|
+    index('http://txti.es/', 'http://test-site.com', insert_externals: true) do |doc|
       urls << doc.url
     end
 
