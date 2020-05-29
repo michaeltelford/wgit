@@ -105,7 +105,7 @@ class TestIndexer < TestHelper
     refute url? url: url
 
     # Index the site and don't insert the external urls.
-    @indexer.index_site url, insert_externals: false
+    @indexer.index_site url
 
     # Assert that url.crawled gets updated.
     assert url? url: url, crawled: true
@@ -121,8 +121,8 @@ class TestIndexer < TestHelper
 
     refute url? url: url
 
-    # Index the site and don't insert the external urls.
-    @indexer.index_site url do |doc|
+    # Index the site and insert the external urls.
+    @indexer.index_site url, insert_externals: true do |doc|
       assert_instance_of Wgit::Document, doc
       num_pages_crawled += 1
       true # To insert the doc into the DB.
@@ -145,7 +145,7 @@ class TestIndexer < TestHelper
     refute url? url: url
 
     # Index the site and don't insert the external urls.
-    @indexer.index_site url, insert_externals: false do |doc|
+    @indexer.index_site url do |doc|
       assert_instance_of Wgit::Document, doc
       false # To avoid inserting the doc into the DB.
     end
@@ -183,7 +183,7 @@ class TestIndexer < TestHelper
     url = Wgit::Url.new 'https://motherfuckingwebsite.com/'
 
     # Index one URL.
-    @indexer.index_urls url
+    @indexer.index_urls url, insert_externals: true
 
     # The site has one doc plus its url and one external url.
     assert_equal 2, database.num_urls
@@ -209,7 +209,7 @@ class TestIndexer < TestHelper
     refute url? url: url
 
     # Index the page and don't insert the external urls.
-    @indexer.index_url url, insert_externals: false
+    @indexer.index_url url
 
     # Assert that url.crawled gets updated.
     assert url? url: url, crawled: true
@@ -225,7 +225,7 @@ class TestIndexer < TestHelper
     refute url? url: url
 
     # Index the page and insert the external urls.
-    @indexer.index_url url
+    @indexer.index_url url, insert_externals: true
 
     # Assert that url.crawled gets updated.
     assert url? url: url, crawled: true
@@ -243,7 +243,7 @@ class TestIndexer < TestHelper
     refute url? url: url
 
     # Index the page and don't insert the external urls.
-    @indexer.index_url url, insert_externals: false do |doc|
+    @indexer.index_url url do |doc|
       assert_instance_of Wgit::Document, doc
       false # To avoid inserting the doc into the DB.
     end

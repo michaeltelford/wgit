@@ -201,7 +201,7 @@ the 'start' function"
     # @return [Integer] The total number of pages crawled within the website.
     def index_site(
       url = @dsl_start, connection_string: @dsl_conn_str,
-      insert_externals: true, follow: @dsl_follow,
+      insert_externals: false, follow: @dsl_follow,
       allow_paths: nil, disallow_paths: nil, &block
     )
       raise DSL_ERROR__NO_START_URL unless url
@@ -235,7 +235,7 @@ the 'start' function"
     #   been set.
     def index(
       *urls, connection_string: @dsl_conn_str,
-      insert_externals: true, &block
+      insert_externals: false, &block
     )
       urls << @dsl_start if urls.empty?
       raise DSL_ERROR__NO_START_URL if urls.compact.empty?
