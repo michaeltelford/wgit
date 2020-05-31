@@ -212,13 +212,13 @@ class TestReadmeCodeExamples < TestHelper
     Wgit::Document.text_elements.delete(:table)
   end
 
-  def test_extending_the_api__define_extension
+  def test_extending_the_api__define_extractor
     ### PUT README CODE BELOW ###
 
     require 'wgit'
 
     # Let's get all the page's <table> elements.
-    Wgit::Document.define_extension(
+    Wgit::Document.define_extractor(
       :tables,                  # Wgit::Document#tables will return the page's tables.
       '//table',                # The xpath to extract the tables.
       singleton: false,         # True returns the first table found, false returns all.
@@ -252,7 +252,7 @@ class TestReadmeCodeExamples < TestHelper
     tables.class       # => Nokogiri::XML::NodeSet
     tables.first.class # => Nokogiri::XML::Element
 
-    # Note, the Document's stats now include our 'tables' extension.
+    # Note, the Document's stats now include our 'tables' extractor.
     doc.stats # => {
     #   :url=>19, :html=>242, :links=>0, :text=>8, :text_bytes=>91, :tables=>1
     # }
@@ -266,8 +266,8 @@ class TestReadmeCodeExamples < TestHelper
       :url=>19, :html=>242, :links=>0, :text=>8, :text_bytes=>91, :tables=>1
     }, doc.stats)
 
-    # Remove the extension.
-    Wgit::Document.remove_extension(:tables)
+    # Remove the extractor.
+    Wgit::Document.remove_extractor(:tables)
     Wgit::Document.send(:remove_method, :tables)
   end
 end

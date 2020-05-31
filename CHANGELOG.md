@@ -24,6 +24,7 @@ This release is a big one with the introduction of a `Wgit::DSL`. The `README` h
 - Breaking change: Renamed `Wgit::Utils.process_*` to be `.sanitize_*`.
 - Breaking change: Renamed `Wgit::Utils.remove_non_bson_types` to be `Wgit::Model.select_bson_types`.
 - Breaking change: Changed `Wgit::Indexer.index*` named param default from `insert_externals: true` to `false`. Explicitly set it to `true` for the old behaviour.
+- Breaking change: Renamed `Wgit::Document.define_extension` to `define_extractor`. Same goes for `remove_extension -> remove_extractor` and `extensions -> extractors`. See the docs for more information.
 - Updated `Utils.printf_search_results` format and it's return type, which is now the number of results passed in.
 - Updated `Wgit::Indexer.new` which can now be called without parameters - the first param (for a database) now defaults to `Wgit::Database.new` which can be used if `ENV['WGIT_CONNECTION_STRING']` is set.
 ### Fixed
