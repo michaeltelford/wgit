@@ -18,7 +18,7 @@ module Wgit
     # @param database [Wgit::Database] The database instance (already
     #   initialized and connected) used to index.
     # @param crawler [Wgit::Crawler] The crawler instance used to index.
-    def initialize(database, crawler = Wgit::Crawler.new)
+    def initialize(database = Wgit::Database.new, crawler = Wgit::Crawler.new)
       @db      = database
       @crawler = crawler
     end
@@ -256,6 +256,7 @@ site: #{url}")
       count
     end
 
+    alias database    db
     alias index       index_urls
     alias index_pages index_urls
     alias index_page  index_url
