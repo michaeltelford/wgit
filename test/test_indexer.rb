@@ -13,6 +13,16 @@ class TestIndexer < TestHelper
   end
 
   def test_initialize
+    indexer = Wgit::Indexer.new
+
+    assert_instance_of Wgit::Indexer,  indexer
+    assert_instance_of Wgit::Crawler,  indexer.crawler
+    assert_instance_of Wgit::Database, indexer.db
+
+    refute_equal database, indexer.db
+  end
+
+  def test_initialize__with_database
     indexer = Wgit::Indexer.new database
 
     assert_instance_of Wgit::Indexer,  indexer
@@ -22,7 +32,7 @@ class TestIndexer < TestHelper
     assert_equal database, indexer.db
   end
 
-  def test_initialize__with_crawler
+  def test_initialize__with_database_and_crawler
     crawler = Wgit::Crawler.new
     indexer = Wgit::Indexer.new database, crawler
 
@@ -30,8 +40,8 @@ class TestIndexer < TestHelper
     assert_instance_of Wgit::Crawler,  indexer.crawler
     assert_instance_of Wgit::Database, indexer.db
 
-    assert_equal database, indexer.db
     assert_equal crawler,  indexer.crawler
+    assert_equal database, indexer.db
   end
 
   def test_index_www__one_site
