@@ -17,15 +17,15 @@ class TestDSL < TestHelper
   ### CRAWLER METHOD TESTS ###
 
   def test_extract
-    refute Wgit::Document.extensions.include? :blah
+    refute Wgit::Document.extractors.include? :blah
 
     opts = { singleton: false, text_content_only: false }
     extract(:blah, '//blah', opts) { |blah| blah }
 
-    assert Wgit::Document.extensions.include? :blah
+    assert Wgit::Document.extractors.include? :blah
 
     # Clean up the extractor for other tests.
-    Wgit::Document.remove_extension :blah
+    Wgit::Document.remove_extractor :blah
   end
 
   def test_crawler

@@ -13,12 +13,12 @@ module Wgit
   # The initialize method dynamically initializes instance variables from the
   # Document HTML / Database object e.g. text. This bit is dynamic so that the
   # Document class can be easily extended allowing you to extract the bits of
-  # a webpage that are important to you. See `Wgit::Document.define_extension`.
+  # a webpage that are important to you. See `Wgit::Document.define_extractor`.
   class Document
     include Assertable
 
-    # Regex for the allowed var names when defining an extension.
-    REGEX_EXTENSION_NAME = /[a-z0-9_]+/.freeze
+    # Regex for the allowed var names when defining an extractor.
+    REGEX_EXTRACTOR_NAME = /[a-z0-9_]+/.freeze
 
     # Set of text elements used to build Document#text.
     @text_elements = Set.new(%i[
@@ -29,8 +29,8 @@ module Wgit
       summary sup td textarea th time u ul var wbr
     ])
 
-    # Set of Symbols representing the defined Document extensions.
-    @extensions = Set.new
+    # Set of Symbols representing the defined Document extractors.
+    @extractors = Set.new
 
     class << self
       # Set of HTML elements that make up the visible text on a page. These
@@ -38,9 +38,9 @@ module Wgit
       # README.md for how to add to this Set dynamically.
       attr_reader :text_elements
 
-      # Set of Symbols representing the defined Document extensions. Is
-      # read-only. Use Wgit::Document.define_extension for a new extension.
-      attr_reader :extensions
+      # Set of Symbols representing the defined Document extractors. Is
+      # read-only. Use Wgit::Document.define_extractor for a new extractor.
+      attr_reader :extractors
     end
 
     # The URL of the webpage, an instance of Wgit::Url.
@@ -62,7 +62,7 @@ module Wgit
     #
     # During initialisation, the Document will call any private
     # `init_*_from_html` and `init_*_from_object` methods it can find. See the
-    # README.md and Wgit::Document.define_extension method for more details.
+    # Wgit::Document.define_extractor method for more details.
     #
     # @param url_or_obj [String, Wgit::Url, #fetch] Either a String
     #   representing a URL or a Hash-like object responding to :fetch. e.g. a
@@ -101,13 +101,16 @@ module Wgit
       xpath
     end
 
-    # Defines an extension, which is a way to serialise HTML elements into
-    # instance variables upon Document initialization. See the default
-    # extensions defined in 'document_extensions.rb' as examples.
+    # Defines a content extractor, which is a way to serialise HTML elements
+    # into instance variables upon Document initialization. See the default
+    # extractors defined in 'document_extractors.rb' as examples. Defining an
+    # extractor means that every subsequently crawled/initialized document
+    # will attempt to extract the xpath's content. Use `#xpath` for a one off
+    # content extraction.
     #
-    # Note that defined extensions work for both Documents initialized from
+    # Note that defined extractors work for both Documents initialized from
     # HTML (via Wgit::Crawler methods) and from database objects.
-    # An extension once defined, initializes a private instance variable with
+    # An extractor once defined, initializes a private instance variable with
     # the xpath or database object result(s).
     #
     # When initialising from HTML, a singleton value of true will only
@@ -118,15 +121,16 @@ module Wgit
     # object), then a default will be used. The default value is:
     # `singleton ? nil : []`.
     #
-    # @param var [Symbol] The name of the variable to be initialised.
+    # @param var [Symbol] The name of the variable to be initialised, that will
+    #   contain the extracted content.
     # @param xpath [String, #call] The xpath used to find the element(s)
     #   of the webpage. Only used when initializing from HTML.
     #
     #   Pass a callable object (proc etc.) if you want the
     #   xpath value to be derived on Document initialisation (instead of when
-    #   the extension is defined). The call method must return a valid xpath
+    #   the extractor is defined). The call method must return a valid xpath
     #   String.
-    # @param opts [Hash] The options to define an extension with. The
+    # @param opts [Hash] The options to define an extractor with. The
     #   options are only used when intializing from HTML, not the database.
     # @option opts [Boolean] :singleton The singleton option determines
     #   whether or not the result(s) should be in an Array. If multiple
@@ -147,13 +151,13 @@ module Wgit
     #   value. Return the block's value param unchanged if you want to inspect.
     # @raise [StandardError] If the var param isn't valid.
     # @return [Symbol] The given var Symbol if successful.
-    def self.define_extension(var, xpath, opts = {}, &block)
+    def self.define_extractor(var, xpath, opts = {}, &block)
       var = var.to_sym
       defaults = { singleton: true, text_content_only: true }
       opts = defaults.merge(opts)
 
-      raise "var must match #{REGEX_EXTENSION_NAME}" unless \
-      var =~ REGEX_EXTENSION_NAME
+      raise "var must match #{REGEX_EXTRACTOR_NAME}" unless \
+      var =~ REGEX_EXTRACTOR_NAME
 
       # Define the private init_*_from_html method for HTML.
       # Gets the HTML's xpath value and creates a var for it.
@@ -171,22 +175,22 @@ module Wgit
       end
       Document.send(:private, func_name)
 
-      @extensions << var
+      @extractors << var
       var
     end
 
-    # Removes the `init_*` methods created when an extension is defined.
-    # Therefore, this is the opposing method to `Document.define_extension`.
+    # Removes the `init_*` methods created when an extractor is defined.
+    # Therefore, this is the opposing method to `Document.define_extractor`.
     # Returns true if successful or false if the method(s) cannot be found.
     #
-    # @param var [Symbol] The extension variable already defined.
-    # @return [Boolean] True if the extension `var` was found and removed;
+    # @param var [Symbol] The extractor variable to remove.
+    # @return [Boolean] True if the extractor `var` was found and removed;
     #   otherwise false.
-    def self.remove_extension(var)
+    def self.remove_extractor(var)
       Document.send(:remove_method, "init_#{var}_from_html")
       Document.send(:remove_method, "init_#{var}_from_object")
 
-      @extensions.delete(var.to_sym)
+      @extractors.delete(var.to_sym)
       true
     rescue NameError
       false
@@ -284,7 +288,7 @@ module Wgit
 
     # Returns a Hash containing this Document's instance variables and
     # their #length (if they respond to it). Works dynamically so that any
-    # user defined extensions (and their created instance vars) will appear in
+    # user defined extractors (and their created instance vars) will appear in
     # the returned Hash as well. The number of text snippets as well as total
     # number of textual bytes are always included in the returned Hash.
     #

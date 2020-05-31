@@ -8,17 +8,18 @@ the 'start' function"
 
     ### CRAWLER METHODS ###
 
-    # Defines an extension using `Wgit::Document.define_extension` underneath.
+    # Defines an extractor using `Wgit::Document.define_extractor` underneath.
     #
-    # @param var [Symbol] The name of the variable to be initialised.
+    # @param var [Symbol] The name of the variable to be initialised, that will
+    #   contain the extracted content.
     # @param xpath [String, #call] The xpath used to find the element(s)
     #   of the webpage. Only used when initializing from HTML.
     #
     #   Pass a callable object (proc etc.) if you want the
     #   xpath value to be derived on Document initialisation (instead of when
-    #   the extension is defined). The call method must return a valid xpath
+    #   the extractor is defined). The call method must return a valid xpath
     #   String.
-    # @param opts [Hash] The options to define an extension with. The
+    # @param opts [Hash] The options to define an extractor with. The
     #   options are only used when intializing from HTML, not the database.
     # @option opts [Boolean] :singleton The singleton option determines
     #   whether or not the result(s) should be in an Array. If multiple
@@ -40,7 +41,7 @@ the 'start' function"
     # @raise [StandardError] If the var param isn't valid.
     # @return [Symbol] The given var Symbol if successful.
     def extract(var, xpath, opts = {}, &block)
-      Wgit::Document.define_extension(var, xpath, opts, &block)
+      Wgit::Document.define_extractor(var, xpath, opts, &block)
     end
 
     # Initializes a `Wgit::Crawler`. This crawler is then used in all crawl and

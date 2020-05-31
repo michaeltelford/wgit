@@ -313,19 +313,19 @@ doc.search('table') # => ["My table"]
 
 **Note**: This only works for *textual* page content. For more control over the serialised *elements* themselves, see below.
 
-### 2. Serialising Specific HTML Elements (via Document Extensions)
+### 2. Serialising Specific HTML Elements (via Document Extractors)
 
-Wgit provides some [default extensions](https://github.com/michaeltelford/wgit/blob/master/lib/wgit/document_extensions.rb) to extract a page's text, links etc. This of course is often not enough given the nature of the WWW and the differences from one webpage to the next.
+Wgit provides some [default extractors](https://github.com/michaeltelford/wgit/blob/master/lib/wgit/document_extractors.rb) to extract a page's text, links etc. This of course is often not enough given the nature of the WWW and the differences from one webpage to the next.
 
-Therefore, you can define a Document extension for each HTML element(s) that you want to extract and serialise into a `Wgit::Document` instance variable, equipped with a getter method. Once an extension is defined, all crawled Documents will contain your extracted content.
+Therefore, you can define a Document extractor for each HTML element(s) that you want to extract and serialise into a `Wgit::Document` instance variable, equipped with a getter method. Once an extractor is defined, all crawled Documents will contain your extracted content.
 
-Here's how to add a Document extension to serialise a specific page element:
+Here's how to add a Document extractor to serialise a specific page element:
 
 ```ruby
 require 'wgit'
 
 # Let's get all the page's <table> elements.
-Wgit::Document.define_extension(
+Wgit::Document.define_extractor(
   :tables,                  # Wgit::Document#tables will return the page's tables.
   '//table',                # The xpath to extract the tables.
   singleton: false,         # True returns the first table found, false returns all.
@@ -359,19 +359,19 @@ tables = doc.tables
 tables.class       # => Nokogiri::XML::NodeSet
 tables.first.class # => Nokogiri::XML::Element
 
-# Note, the Document's stats now include our 'tables' extension.
+# Note, the Document's stats now include our 'tables' extractor.
 doc.stats # => {
 #   :url=>19, :html=>242, :links=>0, :text=>8, :text_bytes=>91, :tables=>1
 # }
 ```
 
-See the [Wgit::Document.define_extension](https://www.rubydoc.info/github/michaeltelford/wgit/master/Wgit%2FDocument.define_extension) docs for more information.
+See the [Wgit::Document.define_extractor](https://www.rubydoc.info/github/michaeltelford/wgit/master/Wgit%2FDocument.define_extractor) docs for more information.
 
-**Extension Notes**:
+**Extractor Notes**:
 
 - It's recommended that URL's be mapped into `Wgit::Url` objects. `Wgit::Url`'s are treated as Strings when being inserted into the database.
-- A `Wgit::Document` extension (once initialised) will become a Document instance variable, meaning that the value will be inserted into the Database if it's a primitive type e.g. `String`, `Array` etc. Complex types e.g. Ruby objects won't be inserted. It's up to you to ensure the data you want inserted, can be inserted.
-- Once inserted into the Database, you can search a `Wgit::Document`'s extension attributes by updating the Database's *text search index*. See the [Database Example](#Database-Example) for more information.
+- A `Wgit::Document` extractor (once initialised) will become a Document instance variable, meaning that the value will be inserted into the Database if it's a primitive type e.g. `String`, `Array` etc. Complex types e.g. Ruby objects won't be inserted. It's up to you to ensure the data you want inserted, can be inserted.
+- Once inserted into the Database, you can search a `Wgit::Document`'s extractor attributes by updating the Database's *text search index*. See the [Database Example](#Database-Example) for more information.
 
 ## Caveats
 

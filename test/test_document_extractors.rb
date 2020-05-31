@@ -5,62 +5,62 @@ require_relative 'helpers/test_helper'
 #
 # WARNING: Certain tests will clear down the DB prior to the test run.
 # NOTE: Every test case should clean up after itself by removing any defined
-# extensions in the 'teardown' method to avoid affecting other tests.
-class TestDocumentExtension < TestHelper
+# extractors in the 'teardown' method to avoid affecting other tests.
+class TestDocumentExtractors < TestHelper
   include DatabaseHelper
 
   # Runs before every test.
   def setup; end
 
-  # Runs after every test and should remove all defined extensions
+  # Runs after every test and should remove all defined extractors
   # to avoid affecting other tests.
   def teardown
-    if Wgit::Document.remove_extension(:table_text)
+    if Wgit::Document.remove_extractor(:table_text)
       Wgit::Document.send(:remove_method, :table_text)
     end
 
-    if Wgit::Document.remove_extension(:tables)
+    if Wgit::Document.remove_extractor(:tables)
       Wgit::Document.send(:remove_method, :tables)
     end
 
-    if Wgit::Document.remove_extension(:code_snippets)
+    if Wgit::Document.remove_extractor(:code_snippets)
       Wgit::Document.send(:remove_method, :code_snippets)
     end
 
-    if Wgit::Document.remove_extension(:code_snippet)
+    if Wgit::Document.remove_extractor(:code_snippet)
       Wgit::Document.send(:remove_method, :code_snippet)
     end
 
-    if Wgit::Document.remove_extension(:img_alt)
+    if Wgit::Document.remove_extractor(:img_alt)
       Wgit::Document.send(:remove_method, :img_alt)
     end
 
-    if Wgit::Document.remove_extension(:img)
+    if Wgit::Document.remove_extractor(:img)
       Wgit::Document.send(:remove_method, :img)
     end
 
-    if Wgit::Document.remove_extension(:has_div)
+    if Wgit::Document.remove_extractor(:has_div)
       Wgit::Document.send(:remove_method, :has_div)
     end
 
-    if Wgit::Document.remove_extension(:blockquote)
+    if Wgit::Document.remove_extractor(:blockquote)
       Wgit::Document.send(:remove_method, :blockquote)
     end
 
-    if Wgit::Document.remove_extension(:code)
+    if Wgit::Document.remove_extractor(:code)
       Wgit::Document.send(:remove_method, :code)
     end
 
-    if Wgit::Document.remove_extension(:single)
+    if Wgit::Document.remove_extractor(:single)
       Wgit::Document.send(:remove_method, :single)
     end
 
-    if Wgit::Document.remove_extension(:array)
+    if Wgit::Document.remove_extractor(:array)
       Wgit::Document.send(:remove_method, :array)
     end
   end
 
-  def test_text_elements_extension
+  def test_text_elements__addition
     Wgit::Document.text_elements << :table
 
     doc = Wgit::Document.new(
@@ -79,9 +79,9 @@ class TestDocumentExtension < TestHelper
     Wgit::Document.text_elements.delete(:table)
   end
 
-  def test_document_extension__with_defaults
+  def test_document_extractor__with_defaults
     # Test default scenario - singleton: true and text_content_only: true.
-    name = Wgit::Document.define_extension(:table_text, '//table',
+    name = Wgit::Document.define_extractor(:table_text, '//table',
                                            singleton: true, text_content_only: true)
 
     doc = Wgit::Document.new(
@@ -98,10 +98,10 @@ class TestDocumentExtension < TestHelper
     assert_equal 'Header TextAnother Header', table_text
   end
 
-  def test_document_extension__with_non_defaults
+  def test_document_extractor__with_non_defaults
     # Test singleton: false and text_content_only: false
     # NOTE: test_readme_code_examples defines :tables so we use :tables.
-    name = Wgit::Document.define_extension(:tables, '//table',
+    name = Wgit::Document.define_extractor(:tables, '//table',
                                            singleton: false, text_content_only: false)
 
     doc = Wgit::Document.new(
@@ -126,9 +126,9 @@ class TestDocumentExtension < TestHelper
     assert_instance_of Nokogiri::XML::Element, tables.first
   end
 
-  def test_document_extension__with_mixed_defaults
+  def test_document_extractor__with_mixed_defaults
     # Test singleton: false and text_content_only: true
-    name = Wgit::Document.define_extension(
+    name = Wgit::Document.define_extractor(
       :code_snippets,
       '//code',
       singleton: false,
@@ -150,9 +150,9 @@ class TestDocumentExtension < TestHelper
     assert_equal %w[curl wget wgit], snippets
   end
 
-  def test_document_extension__with_mixed_defaults_2
+  def test_document_extractor__with_mixed_defaults_2
     # Test singleton: true and text_content_only: false
-    name = Wgit::Document.define_extension(
+    name = Wgit::Document.define_extractor(
       :code_snippet,
       '//code',
       singleton: true,
@@ -172,10 +172,10 @@ class TestDocumentExtension < TestHelper
     assert_equal 'curl', snippet.content
   end
 
-  def test_document_extension__change_simple_value__from_html
+  def test_document_extractor__change_simple_value__from_html
     # We get the first image's alt text value and then upcase it.
     # default_opts = { singleton: true, text_content_only: true }
-    name = Wgit::Document.define_extension(:img_alt, '//img/@alt') do |value|
+    name = Wgit::Document.define_extractor(:img_alt, '//img/@alt') do |value|
       value&.upcase
     end
 
@@ -193,10 +193,10 @@ class TestDocumentExtension < TestHelper
     assert_equal 'SMILEY FACE', alt_text
   end
 
-  def test_document_extension__change_simple_value__from_object
+  def test_document_extractor__change_simple_value__from_object
     # We get the first image's alt text value and then upcase it.
     # default_opts = { singleton: true, text_content_only: true }
-    name = Wgit::Document.define_extension(:img_alt, '//img/@alt') do |value|
+    name = Wgit::Document.define_extractor(:img_alt, '//img/@alt') do |value|
       value&.upcase
     end
 
@@ -212,14 +212,14 @@ class TestDocumentExtension < TestHelper
     assert_equal 'SMILEY FACE', alt_text
   end
 
-  def test_document_extension__examine_value__from_html
+  def test_document_extractor__examine_value__from_html
     # We get the first image's dimensions to determine the area value but we
     # don't change the actual Nokogiri object.
     obj = nil
     area = 0.0
 
     opts = { singleton: true, text_content_only: false }
-    name = Wgit::Document.define_extension(:img, '//img', opts) do |img_obj|
+    name = Wgit::Document.define_extractor(:img, '//img', opts) do |img_obj|
       obj = img_obj # Used for assertions further down.
 
       height = img_obj.get_attribute(:height).to_i
@@ -244,14 +244,14 @@ class TestDocumentExtension < TestHelper
     assert_equal 120, area
   end
 
-  def test_document_extension__examine_value__from_object
+  def test_document_extractor__examine_value__from_object
     # We get the first image's dimensions to determine the area value but we
     # don't change the actual value.
     obj = nil
     area = 0.0
 
     opts = { singleton: true, text_content_only: false }
-    name = Wgit::Document.define_extension(:img, '//img', opts) do |img_obj|
+    name = Wgit::Document.define_extractor(:img, '//img', opts) do |img_obj|
       obj = img_obj # Used for assertions further down.
 
       height = img_obj.fetch('height').to_i
@@ -275,9 +275,9 @@ class TestDocumentExtension < TestHelper
     assert_equal 120, area
   end
 
-  def test_document_extension__return_predicate_from_html
-    # Define an extension which returns an elements presence (predicate).
-    Wgit::Document.define_extension(:has_div, '//div') do |value|
+  def test_document_extractor__return_predicate_from_html
+    # Define an extractor which returns an elements presence (predicate).
+    Wgit::Document.define_extractor(:has_div, '//div') do |value|
       value ? true : false
     end
     url = 'http://example.com'.to_url
@@ -289,9 +289,9 @@ class TestDocumentExtension < TestHelper
     assert doc.has_div
   end
 
-  def test_document_extension__return_predicate_from_object
-    # Define an extension which returns an elements presence (predicate).
-    Wgit::Document.define_extension(:has_div, '//div') do |value|
+  def test_document_extractor__return_predicate_from_object
+    # Define an extractor which returns an elements presence (predicate).
+    Wgit::Document.define_extractor(:has_div, '//div') do |value|
       value ? true : false
     end
 
@@ -302,10 +302,10 @@ class TestDocumentExtension < TestHelper
     assert doc.has_div
   end
 
-  def test_define_extension__init_from_crawl
+  def test_define_extractor__init_from_crawl
     # We get the first blockquote on the crawled page.
     # default_opts = { singleton: true, text_content_only: true }
-    name = Wgit::Document.define_extension(:blockquote, '//blockquote')
+    name = Wgit::Document.define_extractor(:blockquote, '//blockquote')
 
     url = 'https://motherfuckingwebsite.com/'.to_url
     doc = Wgit::Crawler.new.crawl_url(url)
@@ -318,14 +318,14 @@ class TestDocumentExtension < TestHelper
     assert_equal "\"Good design is as little design as possible.\"\n            - some German motherfucker", blockquote
   end
 
-  def test_document_extension__init_from_database
+  def test_document_extractor__init_from_database
     clear_db
 
-    # Define a text extension.
+    # Define a text extractor.
     Wgit::Document.text_elements << :table
 
-    # Define a Document extension.
-    name = Wgit::Document.define_extension(
+    # Define a Document extractor.
+    name = Wgit::Document.define_extractor(
       :table_text, '//table',
       singleton: true, text_content_only: true
     )
@@ -386,8 +386,8 @@ class TestDocumentExtension < TestHelper
     Wgit::Document.text_elements.delete(:table)
   end
 
-  def test_document_extension__init_from_mongo_doc
-    # Simulate a Wgit::Document with extensions initialized and stored in
+  def test_document_extractor__init_from_mongo_doc
+    # Simulate a Wgit::Document with extractors initialized and stored in
     # MongoDB before being retrieved as a Hash instance.
     extended_mongo_doc = {
       'url' => 'https://google.co.uk',
@@ -396,8 +396,8 @@ class TestDocumentExtension < TestHelper
       'code' => "puts 'hello world'"
     }
 
-    # Define the 'code' Document extension.
-    name = Wgit::Document.define_extension(:code, '//code',
+    # Define the 'code' Document extractor.
+    name = Wgit::Document.define_extractor(:code, '//code',
                                            singleton: true, text_content_only: true)
 
     doc = Wgit::Document.new extended_mongo_doc
@@ -410,16 +410,16 @@ class TestDocumentExtension < TestHelper
     assert_equal extended_mongo_doc['code'], doc.code
   end
 
-  def test_define_extension__invalid_var_name
+  def test_define_extractor__invalid_var_name
     e = assert_raises(StandardError) do
-      Wgit::Document.define_extension(:ABC, '//blah')
+      Wgit::Document.define_extractor(:ABC, '//blah')
     end
 
-    assert_equal "var must match #{Wgit::Document::REGEX_EXTENSION_NAME}", e.message
+    assert_equal "var must match #{Wgit::Document::REGEX_EXTRACTOR_NAME}", e.message
   end
 
   def test_document_empty_singleton_value__from_html
-    name = Wgit::Document.define_extension(:single, '//single',
+    name = Wgit::Document.define_extractor(:single, '//single',
                                            singleton: true, text_content_only: true)
 
     doc = Wgit::Document.new(
@@ -434,7 +434,7 @@ class TestDocumentExtension < TestHelper
   end
 
   def test_document_empty_array_value__from_html
-    name = Wgit::Document.define_extension(:array, '//array',
+    name = Wgit::Document.define_extractor(:array, '//array',
                                            singleton: false, text_content_only: true)
 
     doc = Wgit::Document.new(
@@ -449,7 +449,7 @@ class TestDocumentExtension < TestHelper
   end
 
   def test_document_empty_singleton_value__from_obj
-    name = Wgit::Document.define_extension(:single, '//single',
+    name = Wgit::Document.define_extractor(:single, '//single',
                                            singleton: true, text_content_only: true)
 
     doc = Wgit::Document.new(
@@ -462,7 +462,7 @@ class TestDocumentExtension < TestHelper
   end
 
   def test_document_empty_array_value__from_obj
-    name = Wgit::Document.define_extension(:array, '//array',
+    name = Wgit::Document.define_extractor(:array, '//array',
                                            singleton: false, text_content_only: true)
 
     doc = Wgit::Document.new(
@@ -475,7 +475,7 @@ class TestDocumentExtension < TestHelper
   end
 
   def test_block_values__from_html
-    Wgit::Document.define_extension(:code, '//code') do |value, source, type|
+    Wgit::Document.define_extractor(:code, '//code') do |value, source, type|
       refute_nil value
       assert_instance_of Wgit::Document, source
       assert_equal :document, type
@@ -495,7 +495,7 @@ class TestDocumentExtension < TestHelper
       'code' => "puts 'hello world'"
     }
 
-    Wgit::Document.define_extension(:code, '//code') do |value, source, type|
+    Wgit::Document.define_extractor(:code, '//code') do |value, source, type|
       refute_nil value
       assert_instance_of Hash, source
       assert_equal :object, type
@@ -504,17 +504,17 @@ class TestDocumentExtension < TestHelper
     Wgit::Document.new extended_mongo_doc
   end
 
-  def test_remove_extension__success
-    assert %i[base title author keywords links text], Wgit::Document.extensions
-    Wgit::Document.define_extension(:blah, '//blah')
-    assert Wgit::Document.extensions.include?(:blah)
+  def test_remove_extractor__success
+    assert %i[base title author keywords links text], Wgit::Document.extractors
+    Wgit::Document.define_extractor(:blah, '//blah')
+    assert Wgit::Document.extractors.include?(:blah)
 
-    assert Wgit::Document.remove_extension(:blah)
-    refute Wgit::Document.extensions.include?(:blah)
+    assert Wgit::Document.remove_extractor(:blah)
+    refute Wgit::Document.extractors.include?(:blah)
   end
 
-  def test_remove_extension__failure
+  def test_remove_extractor__failure
     # blah2 doesn't exist so false should be returned.
-    refute Wgit::Document.remove_extension(:blah2)
+    refute Wgit::Document.remove_extractor(:blah2)
   end
 end

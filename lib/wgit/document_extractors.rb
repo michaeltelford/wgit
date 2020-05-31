@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-### Default Document Extensions ###
+### Default Document Extractors ###
 
 # Base.
-Wgit::Document.define_extension(
+Wgit::Document.define_extractor(
   :base,
   '//base/@href',
   singleton: true,
@@ -13,7 +13,7 @@ Wgit::Document.define_extension(
 end
 
 # Title.
-Wgit::Document.define_extension(
+Wgit::Document.define_extractor(
   :title,
   '//title',
   singleton: true,
@@ -21,7 +21,7 @@ Wgit::Document.define_extension(
 )
 
 # Description.
-Wgit::Document.define_extension(
+Wgit::Document.define_extractor(
   :description,
   '//meta[@name="description"]/@content',
   singleton: true,
@@ -29,7 +29,7 @@ Wgit::Document.define_extension(
 )
 
 # Author.
-Wgit::Document.define_extension(
+Wgit::Document.define_extractor(
   :author,
   '//meta[@name="author"]/@content',
   singleton: true,
@@ -37,7 +37,7 @@ Wgit::Document.define_extension(
 )
 
 # Keywords.
-Wgit::Document.define_extension(
+Wgit::Document.define_extractor(
   :keywords,
   '//meta[@name="keywords"]/@content',
   singleton: true,
@@ -51,7 +51,7 @@ Wgit::Document.define_extension(
 end
 
 # Links.
-Wgit::Document.define_extension(
+Wgit::Document.define_extractor(
   :links,
   '//a/@href',
   singleton: false,
@@ -63,7 +63,7 @@ Wgit::Document.define_extension(
 end
 
 # Text.
-Wgit::Document.define_extension(
+Wgit::Document.define_extractor(
   :text,
   proc { Wgit::Document.text_elements_xpath },
   singleton: false,

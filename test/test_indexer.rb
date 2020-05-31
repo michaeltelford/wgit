@@ -61,8 +61,8 @@ class TestIndexer < TestHelper
     assert_equal 1, database.num_docs
   end
 
-  def test_index_www__one_site__define_extension
-    Wgit::Document.define_extension(
+  def test_index_www__one_site__define_extractor
+    Wgit::Document.define_extractor(
       :aside, '//aside', singleton: false, text_content_only: true
     )
 
@@ -72,11 +72,11 @@ class TestIndexer < TestHelper
     # Index only one site.
     @indexer.index_www max_sites: 1
 
-    # Assert that the indexed document contains our extension data.
+    # Assert that the indexed document contains our extracted content.
     assert doc?(aside: "And it's fucking perfect.")
 
-    # Remove the defined extension to avoid interfering with other tests.
-    Wgit::Document.remove_extension(:aside)
+    # Remove the defined extractor to avoid interfering with other tests.
+    Wgit::Document.remove_extractor(:aside)
     Wgit::Document.send(:remove_method, :aside)
   end
 
