@@ -145,7 +145,8 @@ module Wgit
     #   :base, :host, :domain or :brand. See Wgit::Url#relative? opts param.
     #   This value will be used for all urls crawled.
     # @yield [doc] Given each crawled page (Wgit::Document); this is the only
-    #   way to interact with them.
+    #   way to interact with them. Use `doc.empty?` to determine if the page
+    #   is valid.
     # @raise [StandardError] If no urls are provided.
     # @return [Wgit::Document] The last Document crawled.
     def crawl_urls(*urls, follow_redirects: true, &block)
@@ -170,6 +171,7 @@ module Wgit
     #   :base, :host, :domain or :brand. See Wgit::Url#relative? opts param.
     # @yield [doc] The crawled HTML page (Wgit::Document) regardless if the
     #   crawl was successful or not. Therefore, Document#url etc. can be used.
+    #   Use `doc.empty?` to determine if the page is valid.
     # @return [Wgit::Document, nil] The crawled HTML Document or nil if the
     #   crawl was unsuccessful.
     def crawl_url(url, follow_redirects: true)

@@ -150,17 +150,6 @@ module Wgit
     def self.printf_search_results(results, keyword_limit: 5, stream: STDOUT)
       raise 'stream must respond_to? :puts' unless stream.respond_to?(:puts)
 
-      stream.puts 'Search Results'
-      stream.puts '--------------'
-      stream.puts
-
-      if results.empty?
-        stream.puts 'No results matched your search query'
-        stream.puts
-
-        return 0
-      end
-
       results.each do |doc|
         title    = (doc.title || '<no title>')
         keywords = doc.keywords&.take(keyword_limit)&.join(', ')

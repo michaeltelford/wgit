@@ -26,3 +26,9 @@ A clear and concise description of what you expected to happen.
 ## Possible Solutions
 
 1. ...
+
+## Tests
+
+What tests would prove this bug is fixed?
+
+1. ...

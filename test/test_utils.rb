@@ -117,7 +117,7 @@ class TestUtils < TestHelper
     num_results = Wgit::Utils.printf_search_results(results, stream: buffer)
 
     assert_equal 0, num_results
-    assert_equal printf_output__no_results, buffer.string
+    assert_equal '', buffer.string
   end
 
   def test_sanitize__str
@@ -170,9 +170,6 @@ class TestUtils < TestHelper
 
   def printf_output__results
     <<~TEXT
-      Search Results
-      --------------
-
       Altitude Junkies | Everest
       Everest, Highest Peak, High Altitude, Altitude Junkies
       e Summit for the hugely successful IMAX Everest film from the 1996 spring season
@@ -197,16 +194,6 @@ class TestUtils < TestHelper
       Everest, Highest Peak, High Altitude, Altitude Junkies
       e Summit for the hugely successful IMAX Everest film from the 1996 spring season
       http://altitudejunkies.com/everest.html
-
-    TEXT
-  end
-
-  def printf_output__no_results
-    <<~TEXT
-      Search Results
-      --------------
-
-      No results matched your search query
 
     TEXT
   end
