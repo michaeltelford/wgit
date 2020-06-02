@@ -12,10 +12,10 @@ Gem::Specification.new do |s|
   s.license  = 'MIT'
 
   s.summary = <<~TEXT
-    Wgit is a Ruby library primarily used for crawling, indexing and searching HTML webpages.
+    Wgit is a HTML web crawler written in Ruby - it allows you to extract the data you want from the web.
   TEXT
   s.description = <<~TEXT
-    Fundamentally, Wgit is a HTTP indexer/scraper which crawls URL's to retrieve and serialise their page contents for later use. You can use Wgit to scrape entire websites if required. Wgit also provides a means to search indexed documents stored in a database. Therefore, this library provides the main components of a WWW search engine. The Wgit API is easily extended allowing you to pull out the parts of a webpage that are important to you, the code snippets or tables for example. As Wgit is a library, it supports many different use cases including data mining, analytics, web indexing and URL parsing to name a few.
+    Wgit was primarily designed to crawl static HTML websites to index and search their content - providing the basis of any search engine; but Wgit is suitable for many application domains including: URL parsing, data mining and statistical analysis.
   TEXT
 
   s.require_paths = %w[lib]
