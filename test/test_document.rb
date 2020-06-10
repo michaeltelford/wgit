@@ -532,10 +532,22 @@ Minitest framework."
     assert_equal @mongo_doc_dup['title'], results.first.content
   end
 
+  def test_at_xpath
+    doc = Wgit::Document.new 'http://www.mytestsite.com/home'.to_url, @html
+    result = doc.at_xpath('//title')
+    assert_equal @mongo_doc_dup['title'], result.content
+  end
+
   def test_css
     doc = Wgit::Document.new 'http://www.mytestsite.com/home'.to_url, @html
     results = doc.css('title')
     assert_equal @mongo_doc_dup['title'], results.first.content
+  end
+
+  def test_at_css
+    doc = Wgit::Document.new 'http://www.mytestsite.com/home'.to_url, @html
+    result = doc.at_css('title')
+    assert_equal @mongo_doc_dup['title'], result.content
   end
 
   private

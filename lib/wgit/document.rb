@@ -329,7 +329,7 @@ module Wgit
     end
 
     # Uses Nokogiri's xpath method to search the doc's html and return the
-    # results.
+    # results. Use `#at_xpath` for returning the first result only.
     #
     # @param xpath [String] The xpath to search the @html with.
     # @return [Nokogiri::XML::NodeSet] The result set of the xpath search.
@@ -337,13 +337,31 @@ module Wgit
       @doc.xpath(xpath)
     end
 
-    # Uses Nokogiri's css method to search the doc's html and return the
-    # results.
+    # Uses Nokogiri's `at_xpath` method to search the doc's html and return the
+    # result. Use `#xpath` for returning several results.
+    #
+    # @param xpath [String] The xpath to search the @html with.
+    # @return [Nokogiri::XML::Element] The result of the xpath search.
+    def at_xpath(xpath)
+      @doc.at_xpath(xpath)
+    end
+
+    # Uses Nokogiri's `css` method to search the doc's html and return the
+    # results. Use `#at_css` for returning the first result only.
     #
     # @param selector [String] The CSS selector to search the @html with.
     # @return [Nokogiri::XML::NodeSet] The result set of the CSS search.
     def css(selector)
       @doc.css(selector)
+    end
+
+    # Uses Nokogiri's `at_css` method to search the doc's html and return the
+    # result. Use `#css` for returning several results.
+    #
+    # @param selector [String] The CSS selector to search the @html with.
+    # @return [Nokogiri::XML::Element] The result of the CSS search.
+    def at_css(selector)
+      @doc.at_css(selector)
     end
 
     # Returns all unique internal links from this Document in relative form.

@@ -16,6 +16,7 @@ This release is a big one with the introduction of a `Wgit::DSL`. The `README` h
 - `Wgit::Utils.sanitize` which calls `.sanitize_*` underneath.
 - `Wgit::Crawler#crawl_site` now has a `follow:` named param - if set, it's xpath value is used to retrieve the next url's to crawl. Otherwise the `:default` is used (as it was before). Use this to override how the site is crawled.
 - `Wgit::Database` methods: `#clear_urls`, `#clear_docs`, `#clear_db`.
+- `Wgit::Document` methods: `#at_xpath`, `#at_css` - which call nokogiri underneath.
 ### Changed/Removed
 - Breaking change: Moved all `Wgit.index*` convienence methods into `Wgit::DSL`.
 - Breaking change: Removed `Wgit::Url#normalise`, use `#normalize` instead.
@@ -27,6 +28,7 @@ This release is a big one with the introduction of a `Wgit::DSL`. The `README` h
 - Breaking change: Renamed `Wgit::Document.define_extension` to `define_extractor`. Same goes for `remove_extension -> remove_extractor` and `extensions -> extractors`. See the docs for more information.
 - Updated `Utils.printf_search_results` to return the number of results.
 - Updated `Wgit::Indexer.new` which can now be called without parameters - the first param (for a database) now defaults to `Wgit::Database.new` which works if `ENV['WGIT_CONNECTION_STRING']` is set.
+- Updated `Wgit::Document.define_extractor` to define a setter method (as well as the usual getter method).
 ### Fixed
 - ...
 ---
