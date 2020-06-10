@@ -122,7 +122,8 @@ module Wgit
     # `singleton ? nil : []`.
     #
     # @param var [Symbol] The name of the variable to be initialised, that will
-    #   contain the extracted content.
+    #   contain the extracted content. A getter and setter method is defined
+    #   for the initialised variable.
     # @param xpath [String, #call] The xpath used to find the element(s)
     #   of the webpage. Only used when initializing from HTML.
     #
@@ -593,11 +594,11 @@ module Wgit
       end
     end
 
-    # Initialises an instance variable and defines a getter method for it.
+    # Initialises an instance variable and defines an accessor method for it.
     #
     # @param var [Symbol] The name of the variable to be initialized.
     # @param value [Object] The newly initialized variable's value.
-    # @return [Symbol] The name of the newly created getter method.
+    # @return [Symbol] The name of the defined getter method.
     def init_var(var, value)
       # instance_var_name starts with @, var_name doesn't.
       var = var.to_s
@@ -606,6 +607,12 @@ module Wgit
 
       instance_variable_set(instance_var_name, value)
 
+      # Define a setter method.
+      Document.send(:define_method, "#{var_name}=".to_sym) do |new_value|
+        instance_variable_set(instance_var_name, new_value)
+      end
+
+      # Define a getter method.
       Document.send(:define_method, var_name) do
         instance_variable_get(instance_var_name)
       end

@@ -96,6 +96,10 @@ class TestDocumentExtractors < TestHelper
 
     assert_instance_of String, table_text
     assert_equal 'Header TextAnother Header', table_text
+
+    assert doc.respond_to? :table_text=
+    doc.table_text = 'Hello World'
+    assert_equal 'Hello World', doc.table_text
   end
 
   def test_document_extractor__with_non_defaults
