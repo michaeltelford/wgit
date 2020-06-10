@@ -492,7 +492,8 @@ module Wgit
     # Override this method to custom configure the Nokogiri object returned.
     # Gets called from Wgit::Document.new upon initialization.
     #
-    # @yield [config] The given block is passed to Nokogiri::HTML for initialisation.
+    # @yield [config] The given block is passed to Nokogiri::HTML for
+    #   initialisation.
     # @raise [StandardError] If @html isn't set.
     # @return [Nokogiri::HTML] The initialised Nokogiri HTML object.
     def init_nokogiri(&block)
@@ -521,17 +522,12 @@ module Wgit
     # @return [String, Object] The value found in the html or the default value
     #   (singleton ? nil : []).
     def find_in_html(xpath, singleton: true, text_content_only: true)
-      default = singleton ? nil : []
-      xpath   = xpath.call if xpath.respond_to?(:call)
-      results = @doc.xpath(xpath)
+      xpath  = xpath.call if xpath.respond_to?(:call)
+      result = singleton ? @doc.at_xpath(xpath) : @doc.xpath(xpath)
 
-      return default if results.nil? || results.empty?
-
-      result = if singleton
-                 text_content_only ? results.first.content : results.first
-               else
-                 text_content_only ? results.map(&:content) : results
-               end
+      if text_content_only
+        result = singleton ? result&.content : result.map(&:content)
+      end
 
       Wgit::Utils.sanitize(result)
       result = yield(result, self, :document) if block_given?
@@ -624,16 +620,9 @@ module Wgit
       instance_var_name = "@#{var_name}".to_sym
 
       instance_variable_set(instance_var_name, value)
+      Wgit::Document.attr_accessor(var_name)
 
-      # Define a setter method.
-      Document.send(:define_method, "#{var_name}=".to_sym) do |new_value|
-        instance_variable_set(instance_var_name, new_value)
-      end
-
-      # Define a getter method.
-      Document.send(:define_method, var_name) do
-        instance_variable_get(instance_var_name)
-      end
+      var_name
     end
 
     alias content                html
