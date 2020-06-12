@@ -151,6 +151,14 @@ the 'start' function"
       crawler.last_response
     end
 
+    # Nilifies the DSL instance variables.
+    def reset
+      @dsl_crawler  = nil
+      @dsl_start    = nil
+      @dsl_follow   = nil
+      @dsl_conn_str = nil
+    end
+
     ### INDEXER METHODS ###
 
     # Defines the connection string to the database used in subsequent `index*`

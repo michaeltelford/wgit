@@ -179,6 +179,19 @@ class TestDSL < TestHelper
     assert_instance_of Wgit::Response, last_response
   end
 
+  def test_reset
+    start('http://example.com') { |c| c.time_out = 5 }
+    follow '//a'
+    connection_string ENV['WGIT_CONNECTION_STRING']
+
+    reset
+
+    assert_nil @dsl_crawler
+    assert_nil @dsl_start
+    assert_nil @dsl_follow
+    assert_nil @dsl_conn_str
+  end
+
   ### INDEXER METHOD TESTS ###
 
   def test_connection_string
