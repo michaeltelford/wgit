@@ -61,13 +61,13 @@ the 'start' function"
     # passed to the method instead. You can also omit the url param and just
     # use the block to configure the crawler instead.
     #
-    # @param url [String, Wgit::Url, nil] The URL to crawl or nil (if only
-    #   using the block to configure the crawler).
+    # @param url [String, Wgit::Url, Array<String, Wgit::Url>] The URL to crawl
+    #   or nil (if only using the block to configure the crawler).
     # @yield [crawler] The crawler that'll be used in the subsequent
     #   crawl/index; use the block to configure.
-    def start(url = nil, &block)
+    def start(*urls, &block)
       crawler(&block)
-      @dsl_start = url
+      @dsl_start = urls
     end
 
     # Sets the xpath to be followed when `crawl_site` or `index_site` is
@@ -84,7 +84,8 @@ the 'start' function"
     # Crawls one or more individual urls using `Wgit::Crawler#crawl_url`
     # underneath. If no urls are provided, then the `start` URL is used.
     #
-    # @param urls [*Wgit::Url] The Url's to crawl. Defaults to the `start` URL.
+    # @param urls [*Wgit::Url] The URL's to crawl. Defaults to the `start`
+    #   URL(s).
     # @param follow_redirects [Boolean, Symbol] Whether or not to follow
     #   redirects. Pass a Symbol to limit where the redirect is allowed to go
     #   e.g. :host only allows redirects within the same host. Choose from
@@ -96,20 +97,20 @@ the 'start' function"
     #   been set.
     # @return [Wgit::Document] The last Document crawled.
     def crawl(*urls, follow_redirects: true, &block)
-      urls << @dsl_start if urls.empty?
-      raise DSL_ERROR__NO_START_URL if urls.compact.empty?
+      urls = (@dsl_start || []) if urls.empty?
+      raise DSL_ERROR__NO_START_URL if urls.empty?
 
       urls.map! { |url| Wgit::Url.parse(url) }
       crawler.crawl_urls(*urls, follow_redirects: follow_redirects, &block)
     end
 
     # Crawls an entire site using `Wgit::Crawler#crawl_site` underneath. If no
-    # url is provided, then the `start` URL is used.
+    # url is provided, then the first `start` URL is used.
     #
     # @param url [Wgit::Url] The base URL of the website to be crawled.
     #   It is recommended that this URL be the index page of the site to give a
     #   greater chance of finding all pages within that site/host. Defaults to
-    #   the `start` URL.
+    #   the first `start` URL.
     # @param follow [String] The xpath extracting links to be followed during
     #   the crawl. This changes how a site is crawled. Only links pointing to
     #   the site domain are allowed. The `:default` is any `<a>` href returning
@@ -127,17 +128,20 @@ the 'start' function"
     #   from all of the site's pages or nil if the given url could not be
     #   crawled successfully.
     def crawl_site(
-      url = @dsl_start, follow: @dsl_follow,
+      *urls, follow: @dsl_follow,
       allow_paths: nil, disallow_paths: nil, &block
     )
-      raise DSL_ERROR__NO_START_URL unless url
+      urls = (@dsl_start || []) if urls.empty?
+      raise DSL_ERROR__NO_START_URL if urls.empty?
 
       xpath = follow || :default
       opts  = {
         follow: xpath, allow_paths: allow_paths, disallow_paths: disallow_paths
       }
 
-      crawler.crawl_site(Wgit::Url.parse(url), opts, &block)
+      urls.reduce([]) do |externals, url|
+        externals + crawler.crawl_site(Wgit::Url.parse(url), opts, &block)
+      end
     end
 
     # Returns the DSL's `crawler#last_response`.
@@ -182,13 +186,13 @@ the 'start' function"
 
     # Indexes a single website using `Wgit::Indexer#index_site` underneath.
     #
-    # @param url [Wgit::Url, String] The base Url of the website to crawl. Can
+    # @param url [Wgit::Url, String] The base URL of the website to crawl. Can
     #   be set using `start`.
     # @param connection_string [String] The database connection string. Set as
     #   nil to use ENV['WGIT_CONNECTION_STRING'] or set using
     #   `connection_string`.
     # @param insert_externals [Boolean] Whether or not to insert the website's
-    #   external Url's into the database.
+    #   external URL's into the database.
     # @param follow [String] The xpath extracting links to be followed during
     #   the crawl. This changes how a site is crawled. Only links pointing to
     #   the site domain are allowed. The `:default` is any `<a>` href returning
@@ -201,13 +205,13 @@ the 'start' function"
     #   is inserted into the database allowing for prior manipulation.
     # @return [Integer] The total number of pages crawled within the website.
     def index_site(
-      url = @dsl_start, connection_string: @dsl_conn_str,
+      *urls, connection_string: @dsl_conn_str,
       insert_externals: false, follow: @dsl_follow,
       allow_paths: nil, disallow_paths: nil, &block
     )
-      raise DSL_ERROR__NO_START_URL unless url
+      urls = (@dsl_start || []) if urls.empty?
+      raise DSL_ERROR__NO_START_URL if urls.empty?
 
-      url        = Wgit::Url.parse(url)
       db         = Wgit::Database.new(connection_string)
       indexer    = Wgit::Indexer.new(db, crawler)
       xpath      = follow || :default
@@ -216,18 +220,20 @@ the 'start' function"
         allow_paths: allow_paths, disallow_paths: disallow_paths
       }
 
-      indexer.index_site(url, crawl_opts, &block)
+      urls.reduce(0) do |total, url|
+        total + indexer.index_site(Wgit::Url.parse(url), crawl_opts, &block)
+      end
     end
 
     # Indexes a single webpage using `Wgit::Indexer#index_url` underneath.
     #
-    # @param urls [*Wgit::Url] The webpage Url's to crawl. Defaults to the
-    #   `start` Url.
+    # @param urls [*Wgit::Url] The webpage URL's to crawl. Defaults to the
+    #   `start` URL(s).
     # @param connection_string [String] The database connection string. Set as
     #   nil to use ENV['WGIT_CONNECTION_STRING'] or set using
     #   `connection_string`.
     # @param insert_externals [Boolean] Whether or not to insert the website's
-    #   external Url's into the database.
+    #   external URL's into the database.
     # @yield [doc] Given the Wgit::Document of the crawled webpage,
     #   before it's inserted into the database allowing for prior
     #   manipulation. Return nil or false from the block to prevent the
@@ -238,8 +244,8 @@ the 'start' function"
       *urls, connection_string: @dsl_conn_str,
       insert_externals: false, &block
     )
-      urls << @dsl_start if urls.empty?
-      raise DSL_ERROR__NO_START_URL if urls.compact.empty?
+      urls = (@dsl_start || []) if urls.empty?
+      raise DSL_ERROR__NO_START_URL if urls.empty?
 
       db      = Wgit::Database.new(connection_string)
       indexer = Wgit::Indexer.new(db, crawler)
@@ -300,7 +306,8 @@ the 'start' function"
       db.clear_db
     end
 
-    alias crawl_r crawl_site
-    alias index_r index_site
+    alias crawl_r    crawl_site
+    alias index_r    index_site
+    alias start_urls start
   end
 end

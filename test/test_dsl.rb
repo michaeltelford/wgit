@@ -42,7 +42,16 @@ class TestDSL < TestHelper
       crawler.time_out = 10
     end
 
-    assert_equal 'http://example.com', @dsl_start
+    assert_equal ['http://example.com'], @dsl_start
+    assert_equal 10, crawler.time_out
+  end
+
+  def test_start__several_urls
+    start 'http://example.com', 'http://txti.es/' do |crawler|
+      crawler.time_out = 10
+    end
+
+    assert_equal ['http://example.com', 'http://txti.es/'], @dsl_start
     assert_equal 10, crawler.time_out
   end
 
@@ -73,6 +82,15 @@ class TestDSL < TestHelper
     crawl 'https://duckduckgo.com', 'http://twitter.com' do |doc|
       urls << doc.url
     end
+
+    assert_equal %w[https://duckduckgo.com https://twitter.com], urls
+  end
+
+  def test_crawl__start__several_urls
+    start 'https://duckduckgo.com', 'http://twitter.com'
+
+    urls = []
+    crawl { |doc| urls << doc.url }
 
     assert_equal %w[https://duckduckgo.com https://twitter.com], urls
   end
@@ -124,6 +142,36 @@ class TestDSL < TestHelper
     assert urls.include? 'http://txti.es/'
     urls.delete 'http://txti.es/'
     assert urls.none? { |url| url.include? 'images' }
+  end
+
+  def test_crawl_site__several_urls
+    # Shouldn't be used because of the urls param.
+    start 'http://twitter.com'
+
+    urls = []
+    externals = crawl_site 'http://txti.es/', 'http://test-site.com' do |doc|
+      urls << doc.url
+    end
+
+    assert_equal 16, urls.size
+    refute urls.include?('http://twitter.com')
+    assert urls.include?('http://txti.es/')
+    assert urls.include?('http://test-site.com')
+    assert externals.include?('http://twitter.com/txties')
+    assert externals.include?('http://ftp.test-site.com')
+  end
+
+  def test_crawl_site__start__several_urls
+    start 'http://txti.es/', 'http://test-site.com'
+
+    urls = []
+    externals = crawl_site { |doc| urls << doc.url }
+
+    assert_equal 16, urls.size
+    assert urls.include?('http://txti.es/')
+    assert urls.include?('http://test-site.com')
+    assert externals.include?('http://twitter.com/txties')
+    assert externals.include?('http://ftp.test-site.com')
   end
 
   def test_last_response
@@ -262,6 +310,42 @@ class TestDSL < TestHelper
     assert doc?('url.url' => 'http://test-site.com')
     assert_equal 2, database.num_docs
     assert_equal 4, database.num_urls
+  end
+
+  def test_index_site__several_urls
+    clear_db
+
+    # Shouldn't be used because of the urls param.
+    start 'http://twitter.com'
+
+    urls = []
+    count = index_site 'http://txti.es/', 'http://test-site.com' do |doc|
+      urls << doc.url
+      true # Index the page.
+    end
+
+    assert_equal 16, urls.size
+    assert_equal 13, count # 3 urls are invalid/external redirects.
+    refute urls.include?('http://twitter.com')
+    assert urls.include?('http://txti.es/')
+    assert urls.include?('http://test-site.com')
+  end
+
+  def test_index_site__start__several_urls
+    clear_db
+
+    start 'http://txti.es/', 'http://test-site.com'
+
+    urls = []
+    count = index_site do |doc|
+      urls << doc.url
+      true # Index the page.
+    end
+
+    assert_equal 16, urls.size
+    assert_equal 13, count # 3 urls are invalid/external redirects.
+    assert urls.include?('http://txti.es/')
+    assert urls.include?('http://test-site.com')
   end
 
   def test_search
