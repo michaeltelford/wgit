@@ -13,6 +13,7 @@
 This release is a big one with the introduction of a `Wgit::DSL`. The `README` has been revamped as a result with new usage examples. And all of the wiki articles have been updated to reflect the latest code base.
 ### Added
 - `Wgit::DSL` module providing a wrapper around the underlying classes and methods. Check out the `README` for example usage.
+- `Wgit::Base` class to inherit from, acting as an alternative form of using the DSL.
 - `Wgit::Utils.sanitize` which calls `.sanitize_*` underneath.
 - `Wgit::Crawler#crawl_site` now has a `follow:` named param - if set, it's xpath value is used to retrieve the next url's to crawl. Otherwise the `:default` is used (as it was before). Use this to override how the site is crawled.
 - `Wgit::Database` methods: `#clear_urls`, `#clear_docs`, `#clear_db`.

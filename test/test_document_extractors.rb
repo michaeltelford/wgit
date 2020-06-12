@@ -204,9 +204,9 @@ class TestDocumentExtractors < TestHelper
       value&.upcase
     end
 
-    doc = Wgit::Document.new(
+    doc = Wgit::Document.new({
       'url' => 'http://example.com', 'img_alt' => 'Smiley face'
-    )
+    })
 
     assert_equal :img_alt, name
     assert doc.respond_to? :img_alt
@@ -299,10 +299,10 @@ class TestDocumentExtractors < TestHelper
       value ? true : false
     end
 
-    doc = Wgit::Document.new('url' => 'http://example.com', 'has_div' => false)
+    doc = Wgit::Document.new({'url' => 'http://example.com', 'has_div' => false})
     refute doc.has_div
 
-    doc = Wgit::Document.new('url' => 'http://example.com', 'has_div' => true)
+    doc = Wgit::Document.new({'url' => 'http://example.com', 'has_div' => true})
     assert doc.has_div
   end
 
@@ -456,9 +456,9 @@ class TestDocumentExtractors < TestHelper
     name = Wgit::Document.define_extractor(:single, '//single',
                                            singleton: true, text_content_only: true)
 
-    doc = Wgit::Document.new(
+    doc = Wgit::Document.new({
       'url' => 'https://google.co.uk'
-    )
+    })
 
     assert_equal :single, name
     assert doc.respond_to? :single
@@ -469,9 +469,9 @@ class TestDocumentExtractors < TestHelper
     name = Wgit::Document.define_extractor(:array, '//array',
                                            singleton: false, text_content_only: true)
 
-    doc = Wgit::Document.new(
+    doc = Wgit::Document.new({
       'url' => 'https://google.co.uk'
-    )
+    })
 
     assert_equal :array, name
     assert doc.respond_to? :array

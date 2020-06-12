@@ -122,7 +122,7 @@ the next iteration.")
       }
       total_pages_indexed = 0
 
-      ext_urls = @crawler.crawl_site(url, crawl_opts) do |doc|
+      ext_urls = @crawler.crawl_site(url, **crawl_opts) do |doc|
         result = block_given? ? yield(doc) : true
 
         if result && !doc.empty? && write_doc_to_db(doc)
@@ -160,7 +160,7 @@ site: #{url}")
       raise 'You must provide at least one Url' if urls.empty?
 
       opts = { insert_externals: insert_externals }
-      Wgit::Utils.each(urls) { |url| index_url(url, opts, &block) }
+      Wgit::Utils.each(urls) { |url| index_url(url, **opts, &block) }
 
       nil
     end

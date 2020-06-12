@@ -10,12 +10,12 @@ require 'dotenv'
 require 'byebug' # Call 'byebug' anywhere in the code to debug.
 
 require_relative '../mock/fixtures' # Mock HTTP responses.
+require_relative 'database_helper'
+require_relative 'database_test_data'
 
 # Require all code being tested once, in one place.
 require_relative '../../lib/wgit'
 require_relative '../../lib/wgit/core_ext'
-require_relative 'database_helper'
-require_relative 'database_test_data'
 
 Maxitest.timeout  = 60           # Fail test after N seconds.
 Wgit.logger.level = Logger::WARN # Remove STDOUT noise from test run.

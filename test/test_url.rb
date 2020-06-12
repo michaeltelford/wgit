@@ -57,12 +57,12 @@ class TestUrl < TestHelper
 
   def test_initialize__from_mongo_doc
     time = Time.now
-    url = Wgit::Url.new(
+    url = Wgit::Url.new({
       'url' => 'http://www.google.co.uk',
       'crawled' => true,
       'date_crawled' => time,
       'crawl_duration' => 1.5
-    )
+    })
 
     assert_equal 'http://www.google.co.uk', url
     assert url.crawled

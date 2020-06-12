@@ -163,7 +163,7 @@ module Wgit
       # Define the private init_*_from_html method for HTML.
       # Gets the HTML's xpath value and creates a var for it.
       func_name = Document.send(:define_method, "init_#{var}_from_html") do
-        result = find_in_html(xpath, opts, &block)
+        result = find_in_html(xpath, **opts, &block)
         init_var(var, result)
       end
       Document.send(:private, func_name)

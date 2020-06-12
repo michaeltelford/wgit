@@ -112,7 +112,7 @@ module Wgit
 
       crawled   = Set.new([url, alt_url])
       externals = Set.new(doc.external_links)
-      internals = Set.new(next_internal_links(doc, link_opts))
+      internals = Set.new(next_internal_links(doc, **link_opts))
 
       return externals.to_a if internals.empty?
 
@@ -127,7 +127,7 @@ module Wgit
           crawled += [orig_link, link] # Push both links in case of redirects.
           next if doc.nil?
 
-          internals += next_internal_links(doc, link_opts)
+          internals += next_internal_links(doc, **link_opts)
           externals += doc.external_links
         end
       end
@@ -155,7 +155,7 @@ module Wgit
       opts = { follow_redirects: follow_redirects }
       doc = nil
 
-      Wgit::Utils.each(urls) { |url| doc = crawl_url(url, opts, &block) }
+      Wgit::Utils.each(urls) { |url| doc = crawl_url(url, **opts, &block) }
 
       doc
     end
@@ -308,7 +308,7 @@ module Wgit
       }
 
       # See https://rubydoc.info/gems/typhoeus for more info.
-      Typhoeus.get(url, opts)
+      Typhoeus.get(url, **opts)
     end
 
     # Returns a doc's internal HTML page links in absolute form; used when
