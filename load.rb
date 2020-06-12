@@ -15,6 +15,7 @@ load 'lib/wgit/database/model.rb'
 load 'lib/wgit/database/database.rb'
 load 'lib/wgit/indexer.rb'
 load 'lib/wgit/dsl.rb'
+load 'lib/wgit/base.rb'
 load 'lib/wgit/core_ext.rb'
 
 include Wgit # Remove the name space around code (for development purposes).

@@ -144,7 +144,7 @@ opts = {
 }
 
 indexer = Wgit::Indexer.new
-indexer.index_site(wiki, opts)
+indexer.index_site(wiki, **opts)
 ```
 
 ## Why Not Wgit?

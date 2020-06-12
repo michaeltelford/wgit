@@ -61,7 +61,7 @@ the 'start' function"
     # passed to the method instead. You can also omit the url param and just
     # use the block to configure the crawler instead.
     #
-    # @param url [String, Wgit::Url, Array<String, Wgit::Url>] The URL to crawl
+    # @param urls [*String, *Wgit::Url] The URL(s) to crawl
     #   or nil (if only using the block to configure the crawler).
     # @yield [crawler] The crawler that'll be used in the subsequent
     #   crawl/index; use the block to configure.
@@ -107,10 +107,10 @@ the 'start' function"
     # Crawls an entire site using `Wgit::Crawler#crawl_site` underneath. If no
     # url is provided, then the first `start` URL is used.
     #
-    # @param url [Wgit::Url] The base URL of the website to be crawled.
-    #   It is recommended that this URL be the index page of the site to give a
-    #   greater chance of finding all pages within that site/host. Defaults to
-    #   the first `start` URL.
+    # @param urls [*String, *Wgit::Url] The base URL(s) of the website(s) to be
+    #   crawled. It is recommended that this URL be the index page of the site
+    #   to give a greater chance of finding all pages within that site/host.
+    #   Defaults to the `start` URLs.
     # @param follow [String] The xpath extracting links to be followed during
     #   the crawl. This changes how a site is crawled. Only links pointing to
     #   the site domain are allowed. The `:default` is any `<a>` href returning
@@ -140,7 +140,7 @@ the 'start' function"
       }
 
       urls.reduce([]) do |externals, url|
-        externals + crawler.crawl_site(Wgit::Url.parse(url), opts, &block)
+        externals + crawler.crawl_site(Wgit::Url.parse(url), **opts, &block)
       end
     end
 
@@ -194,8 +194,8 @@ the 'start' function"
 
     # Indexes a single website using `Wgit::Indexer#index_site` underneath.
     #
-    # @param url [Wgit::Url, String] The base URL of the website to crawl. Can
-    #   be set using `start`.
+    # @param urls [*String, *Wgit::Url] The base URL(s) of the website(s) to
+    #   crawl. Can be set using `start`.
     # @param connection_string [String] The database connection string. Set as
     #   nil to use ENV['WGIT_CONNECTION_STRING'] or set using
     #   `connection_string`.
@@ -229,7 +229,7 @@ the 'start' function"
       }
 
       urls.reduce(0) do |total, url|
-        total + indexer.index_site(Wgit::Url.parse(url), crawl_opts, &block)
+        total + indexer.index_site(Wgit::Url.parse(url), **crawl_opts, &block)
       end
     end
 
