@@ -4,7 +4,7 @@ module Wgit
   module DSL
     # Error message shown when there's no URL to crawl.
     DSL_ERROR__NO_START_URL = "missing url, pass as parameter to this or \
-the 'start' function"
+the 'start' function".freeze
 
     ### CRAWLER METHODS ###
 
