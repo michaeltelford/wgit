@@ -42,9 +42,7 @@ present: %s"
     # @raise [StandardError] If the assertion fails.
     # @return [Object] The given arr on successful assertion.
     def assert_arr_types(arr, type_or_types, msg = nil)
-      unless arr.respond_to?(:each)
-        raise format(NON_ENUMERABLE_MSG, arr.class)
-      end
+      raise format(NON_ENUMERABLE_MSG, arr.class) unless arr.respond_to?(:each)
 
       arr.each { |obj| assert_types(obj, type_or_types, msg) }
     end

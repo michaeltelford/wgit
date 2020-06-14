@@ -189,6 +189,26 @@ class TestIndexer < TestHelper
     assert_equal 0, database.num_docs
   end
 
+  def test_index_site__manipulate_doc
+    url = Wgit::Url.new 'https://motherfuckingwebsite.com/'
+
+    refute url? url: url
+
+    # Index the page and change the title before saving to DB.
+    @indexer.index_site url do |doc|
+      doc.title = 'Boomskies!'
+      true # Index the page.
+    end
+
+    # Assert that doc.title gets updated.
+    assert doc? title: 'Boomskies!'
+    assert url? url: url, crawled: true
+
+    # The site has one doc plus its url.
+    assert_equal 1, database.num_urls
+    assert_equal 1, database.num_docs
+  end
+
   def test_index_urls__one_url
     url = Wgit::Url.new 'https://motherfuckingwebsite.com/'
 
@@ -211,6 +231,26 @@ class TestIndexer < TestHelper
     assert_equal 2, database.num_urls
     assert_equal 2, database.num_docs
     assert_empty database.uncrawled_urls
+  end
+
+  def test_index_urls__manipulate_doc
+    url = Wgit::Url.new 'https://motherfuckingwebsite.com/'
+
+    refute url? url: url
+
+    # Index the page and change the title before saving to DB.
+    @indexer.index_urls url do |doc|
+      doc.title = 'Boomskies!'
+      true # Index the page.
+    end
+
+    # Assert that doc.title gets updated.
+    assert doc? title: 'Boomskies!'
+    assert url? url: url, crawled: true
+
+    # The site has one doc plus its url.
+    assert_equal 1, database.num_urls
+    assert_equal 1, database.num_docs
   end
 
   def test_index_url__without_externals
@@ -285,5 +325,25 @@ class TestIndexer < TestHelper
     # The site has one doc plus its url.
     assert_equal 1, database.num_urls
     assert_equal 0, database.num_docs
+  end
+
+  def test_index_url__manipulate_doc
+    url = Wgit::Url.new 'https://motherfuckingwebsite.com/'
+
+    refute url? url: url
+
+    # Index the page and change the title before saving to DB.
+    @indexer.index_url url do |doc|
+      doc.title = 'Boomskies!'
+      true # Index the page.
+    end
+
+    # Assert that doc.title gets updated.
+    assert doc? title: 'Boomskies!'
+    assert url? url: url, crawled: true
+
+    # The site has one doc plus its url.
+    assert_equal 1, database.num_urls
+    assert_equal 1, database.num_docs
   end
 end

@@ -379,9 +379,9 @@ module Wgit
       return [] if @links.empty?
 
       links = @links
-                .select { |link| link.relative?(host: @url.to_base) }
-                .map(&:omit_base)
-                .map do |link| # Map @url.to_host into / as it's a duplicate.
+              .select { |link| link.relative?(host: @url.to_base) }
+              .map(&:omit_base)
+              .map do |link| # Map @url.to_host into / as it's a duplicate.
         link.to_host == @url.to_host ? Wgit::Url.new('/') : link
       end
 
@@ -405,8 +405,8 @@ module Wgit
       return [] if @links.empty?
 
       links = @links
-                .reject { |link| link.relative?(host: @url.to_base) }
-                .map(&:omit_trailing_slash)
+              .reject { |link| link.relative?(host: @url.to_base) }
+              .map(&:omit_trailing_slash)
 
       Wgit::Utils.sanitize(links)
     end

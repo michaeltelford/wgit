@@ -8,7 +8,7 @@
 
 ---
 
-Wgit is a HTML web crawler written in Ruby - it allows you to extract the data you want from the web.
+Wgit is a HTML web crawler, written in Ruby, that allows you to extract the data you want from the web.
 
 Wgit was primarily designed to crawl static HTML websites to index and search their content - providing the basis of any search engine; but Wgit is suitable for many application domains including:
 
@@ -62,7 +62,7 @@ end
 puts JSON.generate(quotes)
 ```
 
-The DSL makes it easy to write one off scripts for experimenting with. Wgit's DSL is simply a wrapper around the underlying classes however. For comparison, here is the above example written using the Wgit classes *instead of* the DSL:
+The DSL makes it easy to write scripts for experimenting with. Wgit's DSL is simply a wrapper around the underlying classes however. For comparison, here is the above example written using the Wgit API *instead of* the DSL:
 
 ```ruby
 require 'wgit'
@@ -153,7 +153,7 @@ So why might you not use Wgit, I hear you ask?
 
 - Wgit doesn't allow for webpage interaction e.g. signing in as a user. There are better gems out there for that.
 - Wgit (for now) doesn't render/process any Javascript it finds on a crawled document - meaning it may not play well with SPAs.
-- Wgit while fast (using `libcurl` for networking etc.), isn't multi-threaded; so each URL gets crawled sequentially. You could hand each crawled document to a worker thread for processing - but if you need concurrent crawling then you might want to consider something else.
+- Wgit while fast (using `libcurl` for HTTP etc.), isn't multi-threaded; so each URL gets crawled sequentially. You could hand each crawled document to a worker thread for processing - but if you need concurrent crawling then you might want to consider something else.
 
 ## Installation
 
