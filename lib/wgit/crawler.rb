@@ -333,9 +333,11 @@ module Wgit
     def next_internal_links(
       doc, xpath: :default, allow_paths: nil, disallow_paths: nil
     )
-      links = xpath && xpath != :default ?
-                follow_xpath(doc, xpath) :
+      links = if xpath && xpath != :default
+                follow_xpath(doc, xpath)
+              else
                 follow_default(doc)
+              end
 
       return links if allow_paths.nil? && disallow_paths.nil?
 
@@ -349,9 +351,9 @@ module Wgit
     # absolute Wgit::Urls. Invalid URLs will be silently dropped. Any link not
     # pointing to the site domain will raise an error.
     def follow_xpath(doc, xpath)
-      links = doc.send(:find_in_html, xpath, singleton: false) do |links|
-        links
-          .map { |link| Wgit::Url.parse?(link)&.prefix_base(doc) }
+      links = doc.send(:find_in_html, xpath, singleton: false) do |urls|
+        urls
+          .map { |url| Wgit::Url.parse?(url)&.prefix_base(doc) }
           .compact
       end
 
@@ -372,9 +374,11 @@ module Wgit
         .uniq
         .select do |link| # Whitelist only HTML content.
           ext = link.to_extension
-          ext ?
-            Wgit::Crawler.supported_file_extensions.include?(ext.downcase) :
+          if ext
+            Wgit::Crawler.supported_file_extensions.include?(ext.downcase)
+          else
             true # URLs without an extension are assumed HTML.
+          end
         end
     end
 

@@ -296,6 +296,7 @@ the 'start' function".freeze
         whole_sentence: whole_sentence,
         limit: limit,
         skip: skip,
+        sentence_limit: sentence_limit,
         &block
       )
 

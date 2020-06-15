@@ -15,13 +15,15 @@ This release is a big one with the introduction of a `Wgit::DSL`. The `README` h
 - `Wgit::DSL` module providing a wrapper around the underlying classes and methods. Check out the `README` for example usage.
 - `Wgit::Base` class to inherit from, acting as an alternative form of using the DSL.
 - `Wgit::Utils.sanitize` which calls `.sanitize_*` underneath.
-- `Wgit::Crawler#crawl_site` now has a `follow:` named param - if set, it's xpath value is used to retrieve the next url's to crawl. Otherwise the `:default` is used (as it was before). Use this to override how the site is crawled.
+- `Wgit::Crawler#crawl_site` now has a `follow:` named param - if set, it's xpath value is used to retrieve the next urls to crawl. Otherwise the `:default` is used (as it was before). Use this to override how the site is crawled.
 - `Wgit::Database` methods: `#clear_urls`, `#clear_docs`, `#clear_db`.
 - `Wgit::Document` methods: `#at_xpath`, `#at_css` - which call nokogiri underneath.
+- `Wgit::Indexer#index_urls` method which can index several urls in one call.
 ### Changed/Removed
 - Breaking change: Moved all `Wgit.index*` convienence methods into `Wgit::DSL`.
 - Breaking change: Removed `Wgit::Url#normalise`, use `#normalize` instead.
 - Breaking change: Removed `Wgit::Database#num_documents`, use `#num_docs` instead.
+- Breaking change: Renamed `Wgit::Indexer#index_page` to `#index_url`.
 - Breaking change: Renamed `Wgit::Url.parse_or_nil` to be `.parse?`.
 - Breaking change: Renamed `Wgit::Utils.process_*` to be `.sanitize_*`.
 - Breaking change: Renamed `Wgit::Utils.remove_non_bson_types` to be `Wgit::Model.select_bson_types`.

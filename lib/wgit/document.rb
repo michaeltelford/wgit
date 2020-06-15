@@ -241,10 +241,14 @@ module Wgit
     # @return [Wgit::Url] The base URL of this Document e.g.
     #   'http://example.com/public'.
     def base_url(link: nil)
-      raise "Document @url ('#{@url}') cannot be relative if <base> is nil" \
       if @url.relative? && @base.nil?
-      raise "Document @url ('#{@url}') and <base> ('#{@base}') both can't be relative" \
+        raise "Document @url ('#{@url}') cannot be relative if <base> is nil"
+      end
+
       if @url.relative? && @base&.relative?
+        raise "Document @url ('#{@url}') and <base> ('#{@base}') both can't \
+be relative"
+      end
 
       get_base = -> { @base.relative? ? @url.to_base.concat(@base) : @base }
 

@@ -194,7 +194,7 @@ class TestDatabase < TestHelper
 
     db = Wgit::Database.new
 
-    # Test the result doc's text snippets all match the query.
+    # Assert the result doc's text contains the query.
     match = nil
     results = db.search!('foo bar') do |doc|
       assert_instance_of Wgit::Document, doc

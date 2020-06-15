@@ -115,8 +115,6 @@ Addressable::URI::InvalidURIError")
     def crawled=(bool)
       @crawled      = bool
       @date_crawled = bool ? Wgit::Utils.time_stamp : nil
-
-      bool
     end
 
     # Overrides String#replace setting the new_url @uri and String value.

@@ -2,7 +2,7 @@
 
 require_relative 'helpers/test_helper'
 
-# Test class for the Ruby default extractor methods.
+# Test class for the Ruby core extension methods.
 class TestCoreExt < TestHelper
   # Run non DB tests in parallel for speed.
   parallelize_me!
