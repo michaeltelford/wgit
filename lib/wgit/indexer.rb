@@ -256,10 +256,8 @@ site: #{url}")
       count
     end
 
-    alias database    db
-    alias index       index_urls
-    alias index_pages index_urls
-    alias index_page  index_url
-    alias index_r     index_site
+    alias database db
+    alias index    index_urls
+    alias index_r  index_site
   end
 end

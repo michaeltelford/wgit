@@ -69,7 +69,10 @@ module Wgit
     # @param headers [Hash] The new response headers.
     # @return [Hash] @headers's new value.
     def headers=(headers)
-      return @headers = {} unless headers
+      unless headers
+        @headers = {}
+        return
+      end
 
       @headers = headers.map do |k, v|
         k = k.downcase.gsub('-', '_').to_sym

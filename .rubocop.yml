@@ -1,25 +1,31 @@
 AllCops:
+  Include:
+    - 'lib/**/*.rb'
+    - 'bin/**'
+Security/Eval:
   Exclude:
-    - 'test/**/*'
-    - '.wgit.rb'
+    - 'bin/wgit'
+Metrics/ParameterLists:
+  Exclude:
+    - 'lib/wgit/dsl.rb'
+    - 'lib/wgit/database/database.rb'
 Style/FrozenStringLiteralComment:
   Enabled: false
-Layout/LineLength:
-  Exclude:
-    - 'test/helpers/database_test_data.rb'
-Style/ClassVars:
-  Exclude:
-    - 'test/helpers/database_helper.rb'
 Layout/HashAlignment:
   Enabled: false
 Layout/FirstArrayElementIndentation:
   Enabled: false
-Security/Eval:
-  Exclude:
-    - 'bin/wgit'
-Style/GuardClause:
-  Exclude:
-    - 'wgit.gemspec'
-Metrics/BlockLength:
-  Exclude:
-    - '.toys.rb'
+Metrics/ModuleLength:
+  Enabled: false
+Metrics/ClassLength:
+  Enabled: false
+Style/Documentation:
+  Enabled: false
+Metrics/MethodLength:
+  Max: 30
+Metrics/PerceivedComplexity:
+  Max: 12
+Metrics/CyclomaticComplexity:
+  Max: 12
+Layout/LineLength:
+  Max: 85
