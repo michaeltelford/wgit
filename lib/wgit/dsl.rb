@@ -211,6 +211,8 @@ the 'start' function".freeze
     #   by rejecting them if their path `File.fnmatch?` one of disallow_paths.
     # @yield [doc] Given the Wgit::Document of each crawled webpage, before it
     #   is inserted into the database allowing for prior manipulation.
+    # @raise [StandardError] If no url is provided and no `start` URL has been
+    #   set.
     # @return [Integer] The total number of pages crawled within the website.
     def index_site(
       *urls, connection_string: @dsl_conn_str,
