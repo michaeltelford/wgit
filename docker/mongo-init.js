@@ -19,8 +19,17 @@ db.createCollection("documents");
 db.urls.createIndex({ "url" : 1 }, { "unique" : true, "name": "unique_url" });
 db.documents.createIndex({ "url.url" : 1 }, { "unique" : true, "name": "unique_url" });
 db.documents.createIndex({
-  "text": "text",
-  "author": "text",
-  "keywords": "text",
-  "title": "text"
-}, { "name": "text_search" });
+  title: "text",
+  description: "text",
+  keywords: "text",
+  text: "text"
+},
+{
+  weights: {
+    title: 2,
+    description: 2,
+    keywords: 2,
+    text: 1
+  },
+  name: "text_search"
+});

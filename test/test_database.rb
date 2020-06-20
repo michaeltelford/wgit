@@ -16,6 +16,13 @@ class TestDatabase < TestHelper
     @docs = Array.new(3) { Wgit::Document.new(DatabaseTestData.doc) }
   end
 
+  # Runs after every test.
+  def teardown
+    # Reset the text index for other tests.
+    db = Wgit::Database.new
+    db.text_index = Wgit::Database::DEFAULT_TEXT_INDEX
+  end
+
   def test_initialize
     db = Wgit::Database.new
     refute_nil db.connection_string
@@ -44,6 +51,64 @@ class TestDatabase < TestHelper
       e = assert_raises(StandardError) { Wgit::Database.connect }
       assert_equal "connection_string and ENV['WGIT_CONNECTION_STRING'] are nil", e.message
     end
+  end
+
+  # We test both methods together for convenience.
+  def test_create_collections__unique_indexes
+    db = Wgit::Database.new
+
+    urls = db.client[Wgit::Database::URLS_COLLECTION]
+    docs = db.client[Wgit::Database::URLS_COLLECTION]
+
+    urls.drop
+    docs.drop
+
+    db.create_collections
+    db.create_unique_indexes
+
+    assert_equal 2, urls.indexes.count
+    assert_equal 2, docs.indexes.count
+  end
+
+  def test_text_index__default_index
+    db = Wgit::Database.new
+
+    assert_equal Wgit::Database::DEFAULT_TEXT_INDEX, db.text_index
+  end
+
+  def test_text_index_equals__fails
+    db = Wgit::Database.new
+
+    ex = assert_raises(StandardError) { db.text_index = true }
+    assert_equal 'fields must be an Array or Hash, not a TrueClass', ex.message
+  end
+
+  def test_text_index_equals__symbols
+    db = Wgit::Database.new
+    index = db.text_index = %i[title code]
+
+    assert_equal(%i[title code], index)
+    assert_equal({ title: 1, code: 1 }, db.text_index)
+  end
+
+  def test_text_index_equals__hash
+    db = Wgit::Database.new
+    index = db.text_index = { title: 2, code: 1 }
+
+    assert_equal({ title: 2, code: 1 }, index)
+    assert_equal({ title: 2, code: 1 }, db.text_index)
+  end
+
+  def test_text_index__search_results
+    # Mimic an extracted field and seed in the DB.
+    @doc.instance_variable_set :@code, ['bundle install']
+    seed { doc @doc }
+
+    db = Wgit::Database.new
+    assert_empty db.search('bundle')
+
+    db.text_index = %i[code]
+    refute_empty db.search('bundle')
   end
 
   def test_insert_urls

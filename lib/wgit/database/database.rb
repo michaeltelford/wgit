@@ -14,11 +14,36 @@ module Wgit
   class Database
     include Assertable
 
+    # The name of the urls collection.
+    URLS_COLLECTION = :urls.freeze
+
+    # The name of the documents collection.
+    DOCUMENTS_COLLECTION = :documents.freeze
+
+    # The name of the documents collection text search index.
+    TEXT_INDEX = 'text_search'
+
+    # The name of the urls and documents collections unique index.
+    UNIQUE_INDEX = 'unique_url'
+
+    # The documents collection default text search index. Use
+    # `db.text_index = Wgit::Database::DEFAULT_TEXT_INDEX` to revert changes.
+    DEFAULT_TEXT_INDEX = {
+      title: 2,
+      description: 2,
+      keywords: 2,
+      text: 1
+    }.freeze
+
     # The connection string for the database.
     attr_reader :connection_string
 
     # The database client object. Gets set when a connection is established.
     attr_reader :client
+
+    # The documents collection text index, used to search the DB.
+    # A custom setter method is also provided for changing the search logic.
+    attr_reader :text_index
 
     # Initializes a connected database client using the provided
     # connection_string or ENV['WGIT_CONNECTION_STRING'].
@@ -34,6 +59,7 @@ module Wgit
 
       @client = Database.establish_connection(connection_string)
       @connection_string = connection_string
+      @text_index = DEFAULT_TEXT_INDEX
     end
 
     # A class alias for Database.new.
@@ -61,6 +87,72 @@ module Wgit
 
       # Connects to the database here.
       Mongo::Client.new(connection_string)
+    end
+
+    ### DDL ###
+
+    # Creates the urls and documents collections if they don't already exist.
+    # This method is therefore idempotent.
+    #
+    # @return [nil] Always returns nil.
+    def create_collections
+      db.client[URLS_COLLECTION].create rescue nil
+      db.client[DOCUMENTS_COLLECTION].create rescue nil
+
+      nil
+    end
+
+    # Creates the urls and documents unique 'url' indexes if they don't already
+    # exist. This method is therefore idempotent.
+    #
+    # @return [nil] Always returns nil.
+    def create_unique_indexes
+      @client[URLS_COLLECTION].indexes.create_one(
+        { 'url' => 1 },
+        name: UNIQUE_INDEX, unique: true,
+      ) rescue nil
+
+      @client[DOCUMENTS_COLLECTION].indexes.create_one(
+        { 'url.url' => 1 },
+        name: UNIQUE_INDEX, unique: true,
+      ) rescue nil
+
+      nil
+    end
+
+    # Set the documents collection text search index aka the fields to #search.
+    # This is labor intensive on large collections so change little and wisely.
+    # This method is idempotent in that it will remove the index if it already
+    # exists before it creates the new index.
+    #
+    # @param fields [Array<Symbol>, Hash<Symbol, Integer>] The field names or
+    #   the field names and their coresponding search weights.
+    # @return [Array<Symbol>, Hash] The passed in value of fields. Use
+    #   `#text_index` to get the new index's fields and weights.
+    # @raise [StandardError] If fields is of an incorrect type or an error
+    #   occurs with the underlying DB client.
+    def text_index=(fields)
+      # We want to end up with a Hash of fields (Symbols) and their
+      # weights (Integers).
+      case fields
+      when Array # of Strings/Symbols.
+        fields = fields.map { |field| [field.to_sym, 1] }
+      when Hash  # of Strings/Symbols and Integers.
+        fields = fields.map { |field, weight| [field.to_sym, weight.to_i] }
+      else
+        raise "fields must be an Array or Hash, not a #{fields.class}"
+      end
+
+      fields  = fields.to_h
+      indexes = @client[DOCUMENTS_COLLECTION].indexes
+
+      indexes.drop_one(TEXT_INDEX) if indexes.get(TEXT_INDEX)
+      indexes.create_one(
+        fields.map { |field, _| [field, 'text'] }.to_h,
+        { name: TEXT_INDEX, weights: fields, background: true }
+      )
+
+      @text_index = fields
     end
 
     ### Create Data ###
@@ -242,14 +334,14 @@ module Wgit
     #
     # @return [Integer] The current number of URL records.
     def num_urls
-      @client[:urls].count
+      @client[URLS_COLLECTION].count
     end
 
     # Returns the total number of Document records in the DB.
     #
     # @return [Integer] The current number of Document records.
     def num_docs
-      @client[:documents].count
+      @client[DOCUMENTS_COLLECTION].count
     end
 
     # Returns the total number of records (urls + docs) in the DB.
@@ -267,7 +359,7 @@ module Wgit
     def url?(url)
       assert_type(url, String) # This includes Wgit::Url's.
       hash = { 'url' => url }
-      @client[:urls].find(hash).any?
+      @client[URLS_COLLECTION].find(hash).any?
     end
 
     # Returns whether or not a record with the given doc 'url.url' field
@@ -278,7 +370,7 @@ module Wgit
     def doc?(doc)
       assert_type(doc, Wgit::Document)
       hash = { 'url.url' => doc.url }
-      @client[:documents].find(hash).any?
+      @client[DOCUMENTS_COLLECTION].find(hash).any?
     end
 
     ### Update Data ###
@@ -306,14 +398,14 @@ module Wgit
     #
     # @return [Integer] The number of deleted records.
     def clear_urls
-      @client[:urls].delete_many({}).n
+      @client[URLS_COLLECTION].delete_many({}).n
     end
 
     # Deletes everything in the documents collection.
     #
     # @return [Integer] The number of deleted records.
     def clear_docs
-      @client[:documents].delete_many({}).n
+      @client[DOCUMENTS_COLLECTION].delete_many({}).n
     end
 
     # Deletes everything in the urls and documents collections. This will nuke

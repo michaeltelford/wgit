@@ -101,7 +101,7 @@ module Wgit
       xpath
     end
 
-    # Defines a content extractor, which is a way to serialise HTML elements
+    # Defines a content extractor, which extracts HTML elements/content
     # into instance variables upon Document initialization. See the default
     # extractors defined in 'document_extractors.rb' as examples. Defining an
     # extractor means that every subsequently crawled/initialized document

@@ -8,7 +8,7 @@
 
 ---
 
-Wgit is a HTML web crawler, written in Ruby, that allows you to extract the data you want from the web.
+Wgit is a HTML web crawler, written in Ruby, that allows you to programmatically extract the data you want from the web.
 
 Wgit was primarily designed to crawl static HTML websites to index and search their content - providing the basis of any search engine; but Wgit is suitable for many application domains including:
 
@@ -16,15 +16,15 @@ Wgit was primarily designed to crawl static HTML websites to index and search th
 - Document content extraction (data mining)
 - Crawling entire websites (statistical analysis)
 
-Wgit provides an easy-to-use API and DSL that you can use in your own applications and scripts.
+Wgit provides a high level easy-to-use API and DSL that you can use in your own applications and scripts.
 
 Check out this [demo search engine](https://search-engine-rb.herokuapp.com) - [built](https://github.com/michaeltelford/search_engine) using Wgit and Sinatra - deployed to [Heroku](https://www.heroku.com/). Heroku's free tier is used so the initial page load may be slow. Try searching for "Matz" or something else that's Ruby related.
 
 ## Table Of Contents
 
 1. [Usage](#Usage)
-2. [Why Wgit?](#Why-Wgit?)
-3. [Why Not Wgit?](#Why-Not-Wgit?)
+2. [Why Wgit?](#Why-Wgit)
+3. [Why Not Wgit?](#Why-Not-Wgit)
 4. [Installation](#Installation)
 5. [Documentation](#Documentation)
 6. [Executable](#Executable)
@@ -62,7 +62,7 @@ end
 puts JSON.generate(quotes)
 ```
 
-The DSL makes it easy to write scripts for experimenting with. Wgit's DSL is simply a wrapper around the underlying classes however. For comparison, here is the above example written using the Wgit API *instead of* the DSL:
+The [DSL](https://github.com/michaeltelford/wgit/wiki/How-To-Use-The-DSL) makes it easy to write scripts for experimenting with. Wgit's DSL is simply a wrapper around the underlying classes however. For comparison, here is the above example written using the Wgit API *instead of* the DSL:
 
 ```ruby
 require 'wgit'
@@ -152,7 +152,7 @@ indexer.index_site(wiki, **opts)
 So why might you not use Wgit, I hear you ask?
 
 - Wgit doesn't allow for webpage interaction e.g. signing in as a user. There are better gems out there for that.
-- Wgit can parse a crawled page's Javascript, but it doesn't do so by default. If your crawls are JS heavy then you should consider a browser based crawler instead.
+- Wgit can parse a crawled page's Javascript, but it doesn't do so by default. If your crawls are JS heavy then you might best consider a pure browser-based crawler instead.
 - Wgit while fast (using `libcurl` for HTTP etc.), isn't multi-threaded; so each URL gets crawled sequentially. You could hand each crawled document to a worker thread for processing - but if you need concurrent crawling then you should consider something else.
 
 ## Installation

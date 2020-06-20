@@ -518,7 +518,11 @@ module Wgit
       log_status     = (response.status || 0)
       log_total_time = duration.truncate(3)
 
-      Wgit.logger.debug("[#{client}] Request:  #{response.url}")
+      # The browsers request URL is the same so ignore it.
+      if client.to_sym == :http
+        Wgit.logger.debug("[#{client}] Request:  #{response.url}")
+      end
+
       Wgit.logger.debug(
         format(resp_template, log_status, response.size, log_total_time)
       )

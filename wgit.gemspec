@@ -12,7 +12,7 @@ Gem::Specification.new do |s|
   s.license  = 'MIT'
 
   s.summary = <<~TEXT
-    Wgit is a HTML web crawler, written in Ruby, that allows you to extract the data you want from the web.
+    Wgit is a HTML web crawler, written in Ruby, that allows you to programmatically extract the data you want from the web.
   TEXT
   s.description = <<~TEXT
     Wgit was primarily designed to crawl static HTML websites to index and search their content - providing the basis of any search engine; but Wgit is suitable for many application domains including: URL parsing, data mining and statistical analysis.
