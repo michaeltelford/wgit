@@ -152,8 +152,8 @@ indexer.index_site(wiki, **opts)
 So why might you not use Wgit, I hear you ask?
 
 - Wgit doesn't allow for webpage interaction e.g. signing in as a user. There are better gems out there for that.
-- Wgit (for now) doesn't render/process any Javascript it finds on a crawled document - meaning it may not play well with SPAs.
-- Wgit while fast (using `libcurl` for HTTP etc.), isn't multi-threaded; so each URL gets crawled sequentially. You could hand each crawled document to a worker thread for processing - but if you need concurrent crawling then you might want to consider something else.
+- Wgit can parse a crawled page's Javascript, but it doesn't do so by default. If your crawls are JS heavy then you should consider a browser based crawler instead.
+- Wgit while fast (using `libcurl` for HTTP etc.), isn't multi-threaded; so each URL gets crawled sequentially. You could hand each crawled document to a worker thread for processing - but if you need concurrent crawling then you should consider something else.
 
 ## Installation
 

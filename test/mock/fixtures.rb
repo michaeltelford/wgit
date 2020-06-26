@@ -5,7 +5,7 @@
 require_relative 'webmock' # DSL for mocking HTTP responses.
 
 # Custom mock responses, outside of serving a saved fixture from disk.
-stub_page 'https://duckduckgo.com'
+stub_page 'https://search.yahoo.com'
 stub_page 'https://www.google.co.uk'
 stub_page 'http://www.bing.com'
 stub_redirect 'http://twitter.com', 'https://twitter.com'

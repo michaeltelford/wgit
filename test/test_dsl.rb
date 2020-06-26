@@ -39,20 +39,20 @@ class TestDSL < TestHelper
 
   def test_start
     start 'http://example.com' do |crawler|
-      crawler.time_out = 10
+      crawler.timeout = 10
     end
 
     assert_equal ['http://example.com'], @dsl_start
-    assert_equal 10, crawler.time_out
+    assert_equal 10, crawler.timeout
   end
 
   def test_start__several_urls
     start 'http://example.com', 'http://txti.es/' do |crawler|
-      crawler.time_out = 10
+      crawler.timeout = 10
     end
 
     assert_equal ['http://example.com', 'http://txti.es/'], @dsl_start
-    assert_equal 10, crawler.time_out
+    assert_equal 10, crawler.timeout
   end
 
   def test_follow
@@ -68,10 +68,10 @@ class TestDSL < TestHelper
   end
 
   def test_crawl__start_url
-    start 'https://duckduckgo.com'
+    start 'https://search.yahoo.com'
     doc = crawl
 
-    assert_equal 'https://duckduckgo.com', doc.url
+    assert_equal 'https://search.yahoo.com', doc.url
   end
 
   def test_crawl__several_urls
@@ -79,20 +79,20 @@ class TestDSL < TestHelper
     start 'http://example.com/doesntexist'
 
     urls = []
-    crawl 'https://duckduckgo.com', 'http://twitter.com' do |doc|
+    crawl 'https://search.yahoo.com', 'http://twitter.com' do |doc|
       urls << doc.url
     end
 
-    assert_equal %w[https://duckduckgo.com https://twitter.com], urls
+    assert_equal %w[https://search.yahoo.com https://twitter.com], urls
   end
 
   def test_crawl__start__several_urls
-    start 'https://duckduckgo.com', 'http://twitter.com'
+    start 'https://search.yahoo.com', 'http://twitter.com'
 
     urls = []
     crawl { |doc| urls << doc.url }
 
-    assert_equal %w[https://duckduckgo.com https://twitter.com], urls
+    assert_equal %w[https://search.yahoo.com https://twitter.com], urls
   end
 
   def test_crawl__single_url__no_redirects
@@ -180,7 +180,7 @@ class TestDSL < TestHelper
   end
 
   def test_reset
-    start('http://example.com') { |c| c.time_out = 5 }
+    start('http://example.com') { |c| c.timeout = 5 }
     follow '//a'
     connection_string ENV['WGIT_CONNECTION_STRING']
 

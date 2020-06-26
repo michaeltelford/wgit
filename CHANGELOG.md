@@ -10,9 +10,10 @@
 ---
 
 ## v0.9.0
-This release is a big one with the introduction of a `Wgit::DSL`. The `README` has been revamped as a result with new usage examples. And all of the wiki articles have been updated to reflect the latest code base.
+This release is a big one with the introduction of a `Wgit::DSL` and Javascript parse support. The `README` has been revamped as a result with new usage examples. And all of the wiki articles have been updated to reflect the latest code base.
 ### Added
 - `Wgit::DSL` module providing a wrapper around the underlying classes and methods. Check out the `README` for example usage.
+- `Wgit::Crawler#parse_javascript` which when set to `true` uses Chrome to parse a page's Javascript before returning the fully rendered HTML. This feature is disabled by default.
 - `Wgit::Base` class to inherit from, acting as an alternative form of using the DSL.
 - `Wgit::Utils.sanitize` which calls `.sanitize_*` underneath.
 - `Wgit::Crawler#crawl_site` now has a `follow:` named param - if set, it's xpath value is used to retrieve the next urls to crawl. Otherwise the `:default` is used (as it was before). Use this to override how the site is crawled.
@@ -29,6 +30,7 @@ This release is a big one with the introduction of a `Wgit::DSL`. The `README` h
 - Breaking change: Renamed `Wgit::Utils.remove_non_bson_types` to be `Wgit::Model.select_bson_types`.
 - Breaking change: Changed `Wgit::Indexer.index*` named param default from `insert_externals: true` to `false`. Explicitly set it to `true` for the old behaviour.
 - Breaking change: Renamed `Wgit::Document.define_extension` to `define_extractor`. Same goes for `remove_extension -> remove_extractor` and `extensions -> extractors`. See the docs for more information.
+- Breaking change: Renamed `Wgit::Crawler#time_out` to `#timeout`. Same goes for the named param passed to `Wgit::Crawler.initialize`.
 - Updated `Utils.printf_search_results` to return the number of results.
 - Updated `Wgit::Indexer.new` which can now be called without parameters - the first param (for a database) now defaults to `Wgit::Database.new` which works if `ENV['WGIT_CONNECTION_STRING']` is set.
 - Updated `Wgit::Document.define_extractor` to define a setter method (as well as the usual getter method).

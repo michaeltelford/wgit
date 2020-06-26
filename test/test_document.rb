@@ -40,7 +40,7 @@ class TestDocument < TestHelper
         'http://www.mytestsite.com',
         'http://www.mytestsite.com/',
         'http://www.mytestsite.com/tests.html',
-        'https://duckduckgo.com/search?q=hello&page=2',
+        'https://search.yahoo.com/search?q=hello&page=2',
         '/blog#about-us',
         'https://example.com/blog#about-us',
         '/contents/',
@@ -77,7 +77,7 @@ class TestDocument < TestHelper
         'Index 2',
         'Index 3',
         'Tests',
-        'Duck Duck Go',
+        'Yahoo Search',
         'Blog',
         'Example.com Blog',
         'Contents',
@@ -88,7 +88,7 @@ class TestDocument < TestHelper
     }
     @stats = {
       url: 30,
-      html: 3041,
+      html: 3043,
       title: 15,
       description: 32,
       author: 15,
@@ -253,7 +253,7 @@ class TestDocument < TestHelper
       'http://www.google.co.uk',
       'http://www.yahoo.com',
       'http://www.bing.com',
-      'https://duckduckgo.com/search?q=hello&page=2',
+      'https://search.yahoo.com/search?q=hello&page=2',
       'https://example.com/blog#about-us',
       'http://ftp.mytestsite.com',
       'http://ftp.mytestsite.com/files'

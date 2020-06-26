@@ -6,7 +6,7 @@ require 'uri'
 include WebMock::API
 
 WebMock.enable!
-WebMock.disable_net_connect!(allow: 'vlang.io')
+WebMock.disable_net_connect!(allow: %w[127.0.0.1 vlang.io duckduckgo.com])
 
 # Any custom Typhoeus mocking (missing from Webmock) goes below.
 class Typhoeus::Response

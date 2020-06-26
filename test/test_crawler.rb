@@ -13,44 +13,49 @@ class TestCrawler < TestHelper
 
     assert_nil c.last_response
     assert_equal 5, c.redirect_limit
-    assert_equal 5, c.time_out
+    assert_equal 5, c.timeout
     assert c.encode
+    refute c.parse_javascript
+    assert_equal 1, c.parse_javascript_delay
   end
 
   def test_initialise__redirect_limit
     c = Wgit::Crawler.new redirect_limit: 3
 
-    assert_nil c.last_response
     assert_equal 3, c.redirect_limit
-    assert_equal 5, c.time_out
-    assert c.encode
   end
 
-  def test_initialise__time_out
-    c = Wgit::Crawler.new time_out: 3
+  def test_initialise__timeout
+    c = Wgit::Crawler.new timeout: 3
 
-    assert_nil c.last_response
-    assert_equal 5, c.redirect_limit
-    assert_equal 3, c.time_out
-    assert c.encode
+    assert_equal 3, c.timeout
   end
 
   def test_initialise__encode_html
     c = Wgit::Crawler.new encode: false
 
-    assert_nil c.last_response
-    assert_equal 5, c.redirect_limit
-    assert_equal 5, c.time_out
     refute c.encode
+  end
+
+  def test_initialise__parse_javascript
+    c = Wgit::Crawler.new parse_javascript: true
+
+    assert c.parse_javascript
+  end
+
+  def test_initialise__parse_javascript_delay
+    c = Wgit::Crawler.new parse_javascript_delay: 2
+
+    assert_equal c.parse_javascript_delay, 2
   end
 
   def test_crawl_url
     # Valid Url.
     c = Wgit::Crawler.new
-    url = 'https://duckduckgo.com'.to_url
+    url = 'https://search.yahoo.com'.to_url
     doc = c.crawl_url(url) { |d| assert_crawl(d) }
     assert c.last_response.ok?
-    assert_equal 'https://duckduckgo.com', url
+    assert_equal 'https://search.yahoo.com', url
     assert_equal url, doc.url
     assert_crawl doc
 
@@ -98,6 +103,30 @@ class TestCrawler < TestHelper
     refute_nil url.crawl_duration
   end
 
+  def test_crawl_url__parse_javascript__not_mocked
+    # The duckduckgo.com host is not mocked to test the HTTP crawl logic.
+    url = 'https://duckduckgo.com/?q=aid+workers'.to_url
+    crawler = Wgit::Crawler.new parse_javascript: true
+    doc = crawler.crawl_url(url)
+
+    # Basic crawl assertions.
+    assert crawler.last_response.ok?
+    refute_empty crawler.last_response.headers
+    assert_equal 'https://duckduckgo.com/?q=aid+workers', url
+    assert_equal url, doc.url
+    assert_instance_of(
+      Ferrum::Network::Response, crawler.last_response.adapter_response
+    )
+    assert_crawl doc
+    assert url.crawled
+    refute_nil url.date_crawled
+    refute_nil url.crawl_duration
+
+    # Assert the JS generated HTML is present.
+    xpath = '//div[contains(@class, "result__body")]'
+    assert_equal 10, doc.xpath(xpath).size
+  end
+
   def test_crawl_url__redirects
     # http://test-site.com/sneaky redirects to https://motherfuckingwebsite.com/.
 
@@ -123,7 +152,7 @@ class TestCrawler < TestHelper
     # Test several valid Urls.
     c = Wgit::Crawler.new
     urls = [
-      'https://duckduckgo.com',
+      'https://search.yahoo.com',
       'https://www.google.co.uk',
       'http://www.bing.com'
     ].to_urls
@@ -139,7 +168,7 @@ class TestCrawler < TestHelper
 
     # Test one valid Url.
     c = Wgit::Crawler.new
-    url = 'https://duckduckgo.com'.to_url
+    url = 'https://search.yahoo.com'.to_url
     i = 0
     doc = c.crawl_urls(url) do |d|
       assert c.last_response.ok?
@@ -166,7 +195,7 @@ class TestCrawler < TestHelper
     # Test a mixture of valid and invalid Urls.
     c = Wgit::Crawler.new
     urls = [
-      'https://duckduckgo.com',
+      'https://search.yahoo.com',
       'doesnt_exist',
       'http://www.bing.com'
     ].to_urls
@@ -515,9 +544,9 @@ class TestCrawler < TestHelper
     assert_equal 'http://redirect.com/5', url
   end
 
-  def test_resolve__time_out
+  def test_resolve__timeout
     # Unrealistically short time out causes an error.
-    c = Wgit::Crawler.new time_out: 0.001
+    c = Wgit::Crawler.new timeout: 0.001
     resp = Wgit::Response.new
 
     url = Wgit::Url.new 'http://doesnt_exist/' # Mocks a time out.
@@ -526,7 +555,7 @@ class TestCrawler < TestHelper
     assert resp.failure?
 
     # Disable time outs.
-    c = Wgit::Crawler.new time_out: 0
+    c = Wgit::Crawler.new timeout: 0
     resp = Wgit::Response.new
 
     url = Wgit::Url.new 'http://test-site.com'

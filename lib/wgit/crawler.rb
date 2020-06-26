@@ -6,7 +6,9 @@ require_relative 'utils'
 require_relative 'assertable'
 require_relative 'response'
 require 'set'
+require 'benchmark'
 require 'typhoeus'
+require 'ferrum'
 
 module Wgit
   # The Crawler class provides a means of crawling web based HTTP `Wgit::Url`s,
@@ -38,11 +40,20 @@ module Wgit
 
     # The maximum amount of time (in seconds) a crawl request has to complete
     # before raising an error. Set to 0 to disable time outs completely.
-    attr_accessor :time_out
+    attr_accessor :timeout
 
     # Whether or not to UTF-8 encode the response body once crawled. Set to
     # false if crawling more than just HTML e.g. images.
     attr_accessor :encode
+
+    # Whether or not to parse the Javascript of the crawled document.
+    # Parsing requires Chrome/Chromium to be installed and in $PATH.
+    attr_accessor :parse_javascript
+
+    # The delay between checks in a page's HTML size. When the page has stopped
+    # "growing", the Javascript has finished dynamically updating the DOM.
+    # The value should balance between a good UX and enough JS parse time.
+    attr_accessor :parse_javascript_delay
 
     # The Wgit::Response of the most recently crawled URL.
     attr_reader :last_response
@@ -51,15 +62,21 @@ module Wgit
     #
     # @param redirect_limit [Integer] The amount of allowed redirects before
     #   raising an error. Set to 0 to disable redirects completely.
-    # @param time_out [Integer, Float] The maximum amount of time (in seconds)
+    # @param timeout [Integer, Float] The maximum amount of time (in seconds)
     #   a crawl request has to complete before raising an error. Set to 0 to
     #   disable time outs completely.
     # @param encode [Boolean] Whether or not to UTF-8 encode the response body
     #   once crawled. Set to false if crawling more than just HTML e.g. images.
-    def initialize(redirect_limit: 5, time_out: 5, encode: true)
-      @redirect_limit = redirect_limit
-      @time_out       = time_out
-      @encode         = encode
+    # @param parse_javascript [Boolean] Whether or not to parse the Javascript
+    #   of the crawled document. Parsing requires Chrome/Chromium to be
+    #   installed and in $PATH.
+    def initialize(redirect_limit: 5, timeout: 5, encode: true,
+                   parse_javascript: false, parse_javascript_delay: 1)
+      @redirect_limit         = redirect_limit
+      @timeout                = timeout
+      @encode                 = encode
+      @parse_javascript       = parse_javascript
+      @parse_javascript_delay = parse_javascript_delay
     end
 
     # Crawls an entire website's HTML pages by recursively going through
@@ -189,9 +206,12 @@ module Wgit
 
     protected
 
-    # Returns the url HTML String or nil. Handles any errors that arise
+    # Returns the URL's HTML String or nil. Handles any errors that arise
     # and sets the @last_response. Errors or any HTTP response that doesn't
     # return a HTML body will be ignored, returning nil.
+    #
+    # If @parse_javascript is true, then the final resolved URL will be browsed
+    # to and Javascript parsed allowing for dynamic HTML generation.
     #
     # @param url [Wgit::Url] The URL to fetch. This Url object is passed by
     #   reference and gets modified as a result of the fetch/crawl.
@@ -207,6 +227,8 @@ module Wgit
       raise "Invalid url: #{url}" if url.invalid?
 
       resolve(url, response, follow_redirects: follow_redirects)
+      get_browser_response(url, response) if @parse_javascript
+
       response.body_or_nil
     rescue StandardError => e
       Wgit.logger.debug("Wgit::Crawler#fetch('#{url}') exception: #{e}")
@@ -235,7 +257,7 @@ module Wgit
       follow_redirects, within = redirect?(follow_redirects)
 
       loop do
-        get_response(url, response)
+        get_http_response(url, response)
         break unless response.redirect?
 
         # Handle response 'Location' header.
@@ -268,7 +290,7 @@ module Wgit
     #   reference.
     # @raise [StandardError] If a response can't be obtained.
     # @return [Wgit::Response] The enriched HTTP Wgit::Response object.
-    def get_response(url, response)
+    def get_http_response(url, response)
       # Perform a HTTP GET request.
       orig_url = url.to_s
       url      = url.normalize if url.respond_to?(:normalize)
@@ -285,10 +307,40 @@ module Wgit
       response.add_total_time(http_response.total_time)
 
       # Log the request/response details.
-      log_http(response)
+      log_net(:http, response, http_response.total_time)
 
       # Handle a failed response.
-      raise "No response (within timeout: #{@time_out} second(s))" \
+      raise "No response (within timeout: #{@timeout} second(s))" \
+      if response.failure?
+    end
+
+    # Makes a browser request and enriches the given Wgit::Response from it.
+    #
+    # @param url [String] The url to browse to. Will call url#normalize if
+    #   possible.
+    # @param response [Wgit::Response] The response to enrich. Modifies by
+    #   reference.
+    # @raise [StandardError] If a response can't be obtained.
+    # @return [Wgit::Response] The enriched HTTP Wgit::Response object.
+    def get_browser_response(url, response)
+      url     = url.normalize if url.respond_to?(:normalize)
+      browser = nil
+
+      crawl_time = Benchmark.measure { browser = browser_get(url) }.real
+      yield browser if block_given?
+
+      # Enrich the given Wgit::Response object (on top of Typhoeus response).
+      response.adapter_response = browser.network.response
+      response.status           = browser.network.response.status
+      response.headers          = browser.network.response.headers
+      response.body             = browser.body
+      response.add_total_time(crawl_time)
+
+      # Log the request/response details.
+      log_net(:browser, response, crawl_time)
+
+      # Handle a failed response.
+      raise "No browser response (within timeout: #{@timeout} second(s))" \
       if response.failure?
     end
 
@@ -299,7 +351,7 @@ module Wgit
     def http_get(url)
       opts = {
         followlocation: false,
-        timeout: @time_out,
+        timeout: @timeout,
         accept_encoding: 'gzip',
         headers: {
           'User-Agent' => "wgit/#{Wgit::VERSION}",
@@ -309,6 +361,27 @@ module Wgit
 
       # See https://rubydoc.info/gems/typhoeus for more info.
       Typhoeus.get(url, **opts)
+    end
+
+    # Performs a HTTP GET request in a web browser and parses the response JS
+    # before returning the HTML body of the fully rendered webpage. This allows
+    # Javascript (SPA apps etc.) to generate HTML dynamically.
+    #
+    # @param url [String] The url to browse to.
+    # @return [Ferrum::Browser] The browser response object.
+    def browser_get(url)
+      @browser ||= Ferrum::Browser.new(timeout: @timeout, process_timeout: 10)
+      @browser.goto(url)
+
+      # Wait for the page's JS to finish dynamically manipulating the DOM.
+      html = @browser.body
+      loop do
+        sleep @parse_javascript_delay
+        break if html.size == @browser.body.size
+        html = @browser.body
+      end
+
+      @browser
     end
 
     # Returns a doc's internal HTML page links in absolute form; used when
@@ -439,13 +512,13 @@ module Wgit
       [follow_redirects, nil]
     end
 
-    # Log (at debug level) the HTTP request/response details.
-    def log_http(response)
-      resp_template  = '[http] Response: %s (%s bytes in %s seconds)'
+    # Log (at debug level) the network request/response details.
+    def log_net(client, response, duration)
+      resp_template  = "[#{client}] Response: %s (%s bytes in %s seconds)"
       log_status     = (response.status || 0)
-      log_total_time = response.total_time.truncate(3)
+      log_total_time = duration.truncate(3)
 
-      Wgit.logger.debug("[http] Request:  #{response.url}")
+      Wgit.logger.debug("[#{client}] Request:  #{response.url}")
       Wgit.logger.debug(
         format(resp_template, log_status, response.size, log_total_time)
       )
