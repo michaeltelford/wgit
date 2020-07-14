@@ -50,7 +50,7 @@ module Wgit
     attr_reader :html
 
     # The Nokogiri::HTML document object initialized from @html.
-    attr_reader :doc
+    attr_reader :parser
 
     # The score is only used following a `Database#search` and records matches.
     attr_reader :score
@@ -276,7 +276,7 @@ be relative"
     def to_h(include_html: false, include_score: true)
       ignore = include_html ? [] : ['@html']
       ignore << '@score' unless include_score
-      ignore << '@doc' # Always ignore Nokogiri @doc.
+      ignore << '@parser' # Always ignore the Nokogiri object.
 
       Wgit::Utils.to_h(self, ignore: ignore)
     end
@@ -338,7 +338,7 @@ be relative"
     # @param xpath [String] The xpath to search the @html with.
     # @return [Nokogiri::XML::NodeSet] The result set of the xpath search.
     def xpath(xpath)
-      @doc.xpath(xpath)
+      @parser.xpath(xpath)
     end
 
     # Uses Nokogiri's `at_xpath` method to search the doc's html and return the
@@ -347,7 +347,7 @@ be relative"
     # @param xpath [String] The xpath to search the @html with.
     # @return [Nokogiri::XML::Element] The result of the xpath search.
     def at_xpath(xpath)
-      @doc.at_xpath(xpath)
+      @parser.at_xpath(xpath)
     end
 
     # Uses Nokogiri's `css` method to search the doc's html and return the
@@ -356,7 +356,7 @@ be relative"
     # @param selector [String] The CSS selector to search the @html with.
     # @return [Nokogiri::XML::NodeSet] The result set of the CSS search.
     def css(selector)
-      @doc.css(selector)
+      @parser.css(selector)
     end
 
     # Uses Nokogiri's `at_css` method to search the doc's html and return the
@@ -365,7 +365,7 @@ be relative"
     # @param selector [String] The CSS selector to search the @html with.
     # @return [Nokogiri::XML::Element] The result of the CSS search.
     def at_css(selector)
-      @doc.at_css(selector)
+      @parser.at_css(selector)
     end
 
     # Returns all unique internal links from this Document in relative form.
@@ -527,7 +527,7 @@ be relative"
     #   (singleton ? nil : []).
     def find_in_html(xpath, singleton: true, text_content_only: true)
       xpath  = xpath.call if xpath.respond_to?(:call)
-      result = singleton ? @doc.at_xpath(xpath) : @doc.xpath(xpath)
+      result = singleton ? @parser.at_xpath(xpath) : @parser.xpath(xpath)
 
       if text_content_only
         result = singleton ? result&.content : result.map(&:content)
@@ -575,10 +575,10 @@ be relative"
       url = Wgit::Url.parse(url)
       url.crawled = true unless url.crawled? # Avoid overriding date_crawled.
 
-      @url   = url
-      @html  = html || ''
-      @doc   = init_nokogiri
-      @score = 0.0
+      @url    = url
+      @html   = html || ''
+      @parser = init_nokogiri
+      @score  = 0.0
 
       Wgit::Utils.sanitize(@html, encode: encode)
 
@@ -596,10 +596,10 @@ be relative"
     def init_from_object(obj, encode: true)
       assert_respond_to(obj, :fetch)
 
-      @url   = Wgit::Url.new(obj.fetch('url')) # Should always be present.
-      @html  = obj.fetch('html', '')
-      @doc   = init_nokogiri
-      @score = obj.fetch('score', 0.0)
+      @url    = Wgit::Url.new(obj.fetch('url')) # Should always be present.
+      @html   = obj.fetch('html', '')
+      @parser = init_nokogiri
+      @score  = obj.fetch('score', 0.0)
 
       Wgit::Utils.sanitize(@html, encode: encode)
 

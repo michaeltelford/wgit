@@ -16,7 +16,7 @@ Wgit was primarily designed to crawl static HTML websites to index and search th
 - Document content extraction (data mining)
 - Crawling entire websites (statistical analysis)
 
-Wgit provides a high level easy-to-use API and DSL that you can use in your own applications and scripts.
+Wgit provides a high level, easy-to-use API and DSL that you can use in your own applications and scripts.
 
 Check out this [demo search engine](https://search-engine-rb.herokuapp.com) - [built](https://github.com/michaeltelford/search_engine) using Wgit and Sinatra - deployed to [Heroku](https://www.heroku.com/). Heroku's free tier is used so the initial page load may be slow. Try searching for "Matz" or something else that's Ruby related.
 

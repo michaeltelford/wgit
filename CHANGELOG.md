@@ -30,6 +30,7 @@ This release is a big one with the introduction of a `Wgit::DSL` and Javascript 
 - Breaking change: Renamed `Wgit::Utils.remove_non_bson_types` to be `Wgit::Model.select_bson_types`.
 - Breaking change: Changed `Wgit::Indexer.index*` named param default from `insert_externals: true` to `false`. Explicitly set it to `true` for the old behaviour.
 - Breaking change: Renamed `Wgit::Document.define_extension` to `define_extractor`. Same goes for `remove_extension -> remove_extractor` and `extensions -> extractors`. See the docs for more information.
+- Breaking change: Renamed `Wgit::Document#doc` to `#parser`.
 - Breaking change: Renamed `Wgit::Crawler#time_out` to `#timeout`. Same goes for the named param passed to `Wgit::Crawler.initialize`.
 - Updated `Utils.printf_search_results` to return the number of results.
 - Updated `Wgit::Indexer.new` which can now be called without parameters - the first param (for a database) now defaults to `Wgit::Database.new` which works if `ENV['WGIT_CONNECTION_STRING']` is set.
