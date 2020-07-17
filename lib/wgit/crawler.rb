@@ -424,7 +424,7 @@ module Wgit
     # absolute Wgit::Urls. Invalid URLs will be silently dropped. Any link not
     # pointing to the site domain will raise an error.
     def follow_xpath(doc, xpath)
-      links = doc.send(:find_in_html, xpath, singleton: false) do |urls|
+      links = doc.send(:extract_from_html, xpath, singleton: false) do |urls|
         urls
           .map { |url| Wgit::Url.parse?(url)&.prefix_base(doc) }
           .compact

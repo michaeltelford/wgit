@@ -550,6 +550,22 @@ Minitest framework."
     assert_equal @mongo_doc_dup['title'], result.content
   end
 
+  def test_extract__defaults
+    doc = Wgit::Document.new 'http://www.mytestsite.com/home'.to_url, @html
+    result = doc.extract '//a'
+
+    assert_instance_of String, result
+    refute_empty result
+  end
+
+  def test_extract__non_defaults
+    doc = Wgit::Document.new 'http://www.mytestsite.com/home'.to_url, @html
+    results = doc.extract '//a', singleton: false, text_content_only: false
+
+    assert_instance_of Nokogiri::XML::NodeSet, results
+    assert_equal 20, results.size
+  end
+
   private
 
   # Inserts a <base> element into @html.

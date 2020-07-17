@@ -20,6 +20,7 @@ This release is a big one with the introduction of a `Wgit::DSL` and Javascript 
 - `Wgit::Database` methods: `#clear_urls`, `#clear_docs`, `#clear_db`, `#text_index`, `#text_index=`, `#create_collections`, `#create_unique_indexes`.
 - `Wgit::Document` methods: `#at_xpath`, `#at_css` - which call nokogiri underneath.
 - `Wgit::Indexer#index_urls` method which can index several urls in one call.
+- `Wgit::Document#extract` method to perform one off content extractions.
 ### Changed/Removed
 - Breaking change: Moved all `Wgit.index*` convienence methods into `Wgit::DSL`.
 - Breaking change: Removed `Wgit::Url#normalise`, use `#normalize` instead.

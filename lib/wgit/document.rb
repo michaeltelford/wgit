@@ -163,7 +163,7 @@ module Wgit
       # Define the private init_*_from_html method for HTML.
       # Gets the HTML's xpath value and creates a var for it.
       func_name = Document.send(:define_method, "init_#{var}_from_html") do
-        result = find_in_html(xpath, **opts, &block)
+        result = extract_from_html(xpath, **opts, &block)
         init_var(var, result)
       end
       Document.send(:private, func_name)
@@ -171,7 +171,9 @@ module Wgit
       # Define the private init_*_from_object method for a Database object.
       # Gets the Object's 'key' value and creates a var for it.
       func_name = Document.send(:define_method, "init_#{var}_from_object") do |obj|
-        result = find_in_object(obj, var.to_s, singleton: opts[:singleton], &block)
+        result = extract_from_object(
+          obj, var.to_s, singleton: opts[:singleton], &block
+        )
         init_var(var, result)
       end
       Document.send(:private, func_name)
@@ -490,6 +492,23 @@ be relative"
       orig_text
     end
 
+    # Extracts a value/object from this Document's @html using the given xpath
+    # parameter.
+    #
+    # @param xpath [String, #call] Used to find the value/object in @html.
+    # @param singleton [Boolean] singleton ? results.first (single Nokogiri
+    #   Object) : results (Array).
+    # @param text_content_only [Boolean] text_content_only ? result.content
+    #   (String) : result (Nokogiri Object).
+    # @return [String, Object] The value found in the html or the default value
+    #   (singleton ? nil : []).
+    def extract(xpath, singleton: true, text_content_only: true)
+      send(
+        :extract_from_html, xpath,
+        singleton: singleton, text_content_only: text_content_only
+      )
+    end
+
     protected
 
     # Initializes the nokogiri object using @html, which cannot be nil.
@@ -525,7 +544,7 @@ be relative"
     #   the block's `value` param unchanged if you simply want to inspect it.
     # @return [String, Object] The value found in the html or the default value
     #   (singleton ? nil : []).
-    def find_in_html(xpath, singleton: true, text_content_only: true)
+    def extract_from_html(xpath, singleton: true, text_content_only: true)
       xpath  = xpath.call if xpath.respond_to?(:call)
       result = singleton ? @parser.at_xpath(xpath) : @parser.xpath(xpath)
 
@@ -554,7 +573,7 @@ be relative"
     #   the block's `value` param unchanged if you simply want to inspect it.
     # @return [String, Object] The value found in the obj or the default value
     #   (singleton ? nil : []).
-    def find_in_object(obj, key, singleton: true)
+    def extract_from_object(obj, key, singleton: true)
       assert_respond_to(obj, :fetch)
 
       default = singleton ? nil : []
