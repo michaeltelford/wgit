@@ -516,6 +516,12 @@ Minitest framework."
 
     # Test case_sensitive: true, whole_sentence: true with exact words.
     assert_empty doc.search('coDe usEd', case_sensitive: true, whole_sentence: true)
+
+    # Test Regexp query.
+    results = doc.search(/used|code/)
+    assert_equal([
+      ' page is primarily for testing the Ruby code used in Wgit with the Minitest fram'
+    ], results)
   end
 
   def test_search!

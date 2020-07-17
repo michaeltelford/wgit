@@ -170,7 +170,9 @@ module Wgit
 
       # Define the private init_*_from_object method for a Database object.
       # Gets the Object's 'key' value and creates a var for it.
-      func_name = Document.send(:define_method, "init_#{var}_from_object") do |obj|
+      func_name = Document.send(
+        :define_method, "init_#{var}_from_object"
+      ) do |obj|
         result = extract_from_object(
           obj, var.to_s, singleton: opts[:singleton], &block
         )
@@ -429,8 +431,8 @@ be relative"
     # original sentence, which ever is less. The algorithm obviously ensures
     # that the search query is visible somewhere in the sentence.
     #
-    # @param query [String, #to_s] The value to search the document's
-    #   @text for.
+    # @param query [Regexp, #to_s] The regex or text value to search the
+    #   document's @text for.
     # @param case_sensitive [Boolean] Whether character case must match.
     # @param whole_sentence [Boolean] Whether multiple words should be searched
     #   for separately.
@@ -440,12 +442,16 @@ be relative"
     def search(
       query, case_sensitive: false, whole_sentence: true, sentence_limit: 80
     )
-      query = query.to_s
-      raise 'A search query must be provided' if query.empty?
       raise 'The sentence_limit value must be even' if sentence_limit.odd?
 
-      query   = query.gsub(' ', '|') unless whole_sentence
-      regex   = Regexp.new(query, !case_sensitive)
+      if query.is_a?(Regexp)
+        regex = query
+      else # respond_to? #to_s == true
+        query = query.to_s
+        query = query.gsub(' ', '|') unless whole_sentence
+        regex = Regexp.new(query, !case_sensitive)
+      end
+
       results = {}
 
       @text.each do |sentence|
@@ -472,8 +478,8 @@ be relative"
     # functionality. The original text is returned; no other reference to it
     # is kept thereafter.
     #
-    # @param query [String, #to_s] The value to search the document's
-    #   @text for.
+    # @param query [Regexp, #to_s] The regex or text value to search the
+    #   document's @text for.
     # @param case_sensitive [Boolean] Whether character case must match.
     # @param whole_sentence [Boolean] Whether multiple words should be searched
     #   for separately.

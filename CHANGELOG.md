@@ -36,6 +36,7 @@ This release is a big one with the introduction of a `Wgit::DSL` and Javascript 
 - Updated `Utils.printf_search_results` to return the number of results.
 - Updated `Wgit::Indexer.new` which can now be called without parameters - the first param (for a database) now defaults to `Wgit::Database.new` which works if `ENV['WGIT_CONNECTION_STRING']` is set.
 - Updated `Wgit::Document.define_extractor` to define a setter method (as well as the usual getter method).
+- Updated `Wgit::Document#search` to support a `Regexp` query (in addition to a String).
 ### Fixed
 - ...
 ---
