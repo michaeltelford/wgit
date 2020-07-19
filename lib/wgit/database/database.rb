@@ -578,8 +578,6 @@ module Wgit
       result.n
     end
 
-    alias count       size
-    alias length      size
     alias document?   doc?
     alias insert_url  insert_urls
     alias insert_doc  insert_docs

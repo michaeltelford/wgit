@@ -25,6 +25,7 @@ This release is a big one with the introduction of a `Wgit::DSL` and Javascript 
 - Breaking change: Moved all `Wgit.index*` convienence methods into `Wgit::DSL`.
 - Breaking change: Removed `Wgit::Url#normalise`, use `#normalize` instead.
 - Breaking change: Removed `Wgit::Database#num_documents`, use `#num_docs` instead.
+- Breaking change: Removed `Wgit::Database#length` and `#count`, use `#size` instead.
 - Breaking change: Renamed `Wgit::Indexer#index_page` to `#index_url`.
 - Breaking change: Renamed `Wgit::Url.parse_or_nil` to be `.parse?`.
 - Breaking change: Renamed `Wgit::Utils.process_*` to be `.sanitize_*`.
