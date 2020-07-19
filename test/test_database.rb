@@ -149,6 +149,23 @@ class TestDatabase < TestHelper
     assert_equal db.num_docs, db.num_records
   end
 
+  def test_docs
+    db = Wgit::Database.new
+
+    # Test empty docs result.
+    assert_empty db.docs
+
+    seed { docs @docs }
+    docs = db.docs
+
+    # Test non empty docs results.
+    assert docs.all? { |doc| doc.instance_of? Wgit::Document }
+    assert_equal 3, docs.length
+
+    # Test limit and skip.
+    assert_equal @docs[1], db.docs(skip: 1, limit: 1).first
+  end
+
   def test_urls
     db = Wgit::Database.new
 
@@ -177,6 +194,9 @@ class TestDatabase < TestHelper
     # Test uncrawled_urls.
     assert uncrawled_urls.all? { |url| url.instance_of? Wgit::Url }
     assert_equal 1, uncrawled_urls.length
+
+    # Test limit and skip.
+    assert_equal @urls[1], db.urls(skip: 1, limit: 1).first
   end
 
   def test_search__case_sensitive__whole_sentence

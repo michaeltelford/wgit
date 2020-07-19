@@ -179,7 +179,31 @@ module Wgit
 
     ### Retrieve Data ###
 
-    # Returns Url records from the DB.
+    # Returns all Document records from the DB. Use #search to filter based on
+    # the text_index of the collection.
+    #
+    # All Documents are sorted by date_added ascending, in other words the
+    # first doc returned is the first one that was inserted into the DB.
+    #
+    # @param limit [Integer] The max number of returned records. 0 returns all.
+    # @param skip [Integer] Skip n records.
+    # @yield [doc] Given each Document object (Wgit::Document) returned from
+    #   the DB.
+    # @return [Array<Wgit::Document>] The Documents obtained from the DB.
+    def docs(limit: 0, skip: 0)
+      results = retrieve(DOCUMENTS_COLLECTION, {},
+                         sort: { date_added: 1 }, projection: {},
+                         limit: limit, skip: skip)
+      return [] if results.count < 1 # results#empty? doesn't exist.
+
+      # results.respond_to? :map! is false so we use map and overwrite the var.
+      results = results.map { |doc_hash| Wgit::Document.new(doc_hash) }
+      results.each { |doc| yield(doc) } if block_given?
+
+      results
+    end
+
+    # Returns all Url records from the DB.
     #
     # All Urls are sorted by date_added ascending, in other words the first url
     # returned is the first one that was inserted into the DB.
@@ -578,7 +602,6 @@ module Wgit
       result.n
     end
 
-    alias document?   doc?
     alias insert_url  insert_urls
     alias insert_doc  insert_docs
     alias num_objects num_records
