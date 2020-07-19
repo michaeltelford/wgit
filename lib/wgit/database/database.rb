@@ -14,16 +14,16 @@ module Wgit
   class Database
     include Assertable
 
-    # The name of the urls collection.
+    # The default name of the urls collection.
     URLS_COLLECTION = :urls.freeze
 
-    # The name of the documents collection.
+    # The default name of the documents collection.
     DOCUMENTS_COLLECTION = :documents.freeze
 
-    # The name of the documents collection text search index.
+    # The default name of the documents collection text search index.
     TEXT_INDEX = 'text_search'
 
-    # The name of the urls and documents collections unique index.
+    # The default name of the urls and documents collections unique index.
     UNIQUE_INDEX = 'unique_url'
 
     # The documents collection default text search index. Use
@@ -193,7 +193,7 @@ module Wgit
       query = crawled.nil? ? {} : { crawled: crawled }
       sort = { date_added: 1 }
 
-      results = retrieve(:urls, query,
+      results = retrieve(URLS_COLLECTION, query,
                          sort: sort, projection: {},
                          limit: limit, skip: skip)
       return [] if results.count < 1 # results#empty? doesn't exist.
@@ -259,7 +259,7 @@ module Wgit
         :$caseSensitive => case_sensitive
       } }
 
-      results = retrieve(:documents, query,
+      results = retrieve(DOCUMENTS_COLLECTION, query,
                          sort: sort_proj, projection: sort_proj,
                          limit: limit, skip: skip)
       return [] if results.count < 1 # respond_to? :empty? == false
@@ -432,7 +432,7 @@ module Wgit
         data = Wgit::Model.url(data)
       end
 
-      create(:urls, data)
+      create(URLS_COLLECTION, data)
     end
 
     # Insert one or more Document objects into the DB.
@@ -450,7 +450,7 @@ module Wgit
         data = Wgit::Model.document(data)
       end
 
-      create(:documents, data)
+      create(DOCUMENTS_COLLECTION, data)
     end
 
     # Update a Url record in the DB.
@@ -462,7 +462,7 @@ module Wgit
       selection = { url: url }
       url_hash = Wgit::Model.url(url).merge(Wgit::Model.common_update_data)
       update = { '$set' => url_hash }
-      mutate(true, :urls, selection, update)
+      mutate(true, URLS_COLLECTION, selection, update)
     end
 
     # Update a Document record in the DB.
@@ -474,7 +474,7 @@ module Wgit
       selection = { 'url.url' => doc.url }
       doc_hash = Wgit::Model.document(doc).merge(Wgit::Model.common_update_data)
       update = { '$set' => doc_hash }
-      mutate(true, :documents, selection, update)
+      mutate(true, DOCUMENTS_COLLECTION, selection, update)
     end
 
     private
