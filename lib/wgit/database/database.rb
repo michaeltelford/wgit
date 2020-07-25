@@ -437,6 +437,18 @@ module Wgit
 
     ### Delete Data ###
 
+    # Deletes a record from the database with the matching 'url' field.
+    # Pass either a Wgit::Url or Wgit::Document instance.
+    #
+    # @param obj [Wgit::Url, Wgit::Document] The record to search the DB for
+    #   and delete.
+    # @return [Integer] The number of records deleted - should always be
+    #   0 or 1 because urls are unique.
+    def delete(obj)
+      collection, query = get_type_info(obj)
+      @client[collection].delete_one(query).n
+    end
+
     # Deletes everything in the urls collection.
     #
     # @return [Integer] The number of deleted records.

@@ -17,7 +17,7 @@ This release is a big one with the introduction of a `Wgit::DSL` and Javascript 
 - `Wgit::Base` class to inherit from, acting as an alternative form of using the DSL.
 - `Wgit::Utils.sanitize` which calls `.sanitize_*` underneath.
 - `Wgit::Crawler#crawl_site` now has a `follow:` named param - if set, it's xpath value is used to retrieve the next urls to crawl. Otherwise the `:default` is used (as it was before). Use this to override how the site is crawled.
-- `Wgit::Database` methods: `#clear_urls`, `#clear_docs`, `#clear_db`, `#text_index`, `#text_index=`, `#create_collections`, `#create_unique_indexes`, `#docs`, `#get`, `#exists?`.
+- `Wgit::Database` methods: `#clear_urls`, `#clear_docs`, `#clear_db`, `#text_index`, `#text_index=`, `#create_collections`, `#create_unique_indexes`, `#docs`, `#get`, `#exists?`, `#delete`.
 - `Wgit::Database#clear_db!` alias.
 - `Wgit::Document` methods: `#at_xpath`, `#at_css` - which call nokogiri underneath.
 - `Wgit::Indexer#index_urls` method which can index several urls in one call.

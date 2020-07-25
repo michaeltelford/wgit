@@ -403,6 +403,20 @@ class TestDatabase < TestHelper
     refute doc? url: @doc.url, title: 'Altitude Junkies | Everest'
   end
 
+  def test_delete
+    db = Wgit::Database.new
+    assert_equal 0, db.delete(@url)
+
+    seed { url @url }
+    assert_equal 1, db.delete(@url)
+
+    seed { doc @doc }
+    assert_equal 1, db.delete(@doc)
+
+    ex = assert_raises(StandardError) { db.delete 1 }
+    assert_equal 'obj must be a Wgit::Url or Wgit::Document, not: Integer', ex.message
+  end
+
   def test_clear_urls
     seed { urls 3 }
     db = Wgit::Database.new
