@@ -178,6 +178,14 @@ module Wgit
       create(collection, data)
     end
 
+    # Inserts or updates the object in the database.
+    #
+    # @param obj [Wgit::Url, Wgit::Document] The record insert/update.
+    # @return [Integer] The number of updated records/objects, should be 1.
+    def upsert(obj)
+      exists?(obj) ? update(obj) : insert(obj)
+    end
+
     ### Retrieve Data ###
 
     # Returns all Document records from the DB. Use #search to filter based on
@@ -426,6 +434,7 @@ module Wgit
     #
     # @param data [Wgit::Url, Wgit::Document] The data to update.
     # @raise [StandardError] If the data is not valid.
+    # @return [Integer] The number of updated records/objects.
     def update(data)
       data = data.dup # Avoid modifying by reference.
 
@@ -532,7 +541,7 @@ module Wgit
 
     # Return if the write to the DB succeeded or not.
     #
-    # @param result [Mongo::Object] The operation result.
+    # @param result [Mongo::Collection::View] The write result.
     # @param num_writes [Integer] The number of records written to.
     # @raise [StandardError] If the result type isn't supported.
     # @return [Boolean] True if the write was successful, false otherwise.
@@ -559,7 +568,7 @@ module Wgit
     # @param limit [Integer] The limit to use.
     # @param skip [Integer] The skip to use.
     # @raise [StandardError] If query type isn't valid.
-    # @return [Mongo::Object] The Mongo client operation result.
+    # @return [Mongo::Collection::View] The retrieval viewset.
     def retrieve(collection, query,
                  sort: {}, projection: {},
                  limit: 0, skip: 0)
@@ -577,7 +586,7 @@ module Wgit
     # @param query [Hash] The query used for the retrieval before updating.
     # @param update [Hash] The updated/new object.
     # @raise [StandardError] If the update fails.
-    # @return [Mongo::Object] The number of updated records/objects.
+    # @return [Integer] The number of updated records/objects.
     def mutate(collection, query, update)
       assert_arr_type([query, update], Hash)
 

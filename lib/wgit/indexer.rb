@@ -131,7 +131,7 @@ the next iteration.")
         end
       end
 
-      @db.url?(url) ? @db.update(url) : @db.insert(url)
+      @db.upsert(url)
 
       if insert_externals && ext_urls
         num_inserted_urls = write_urls_to_db(ext_urls)
@@ -185,7 +185,7 @@ site: #{url}")
         end
       end
 
-      @db.url?(url) ? @db.update(url) : @db.insert(url)
+      @db.upsert(url)
 
       ext_urls = document&.external_links
       if insert_externals && ext_urls
@@ -248,6 +248,7 @@ site: #{url}")
 
         @db.insert(url)
         count += 1
+
         Wgit.logger.info("Inserted external url: #{url}")
       rescue Mongo::Error::OperationFailure
         Wgit.logger.info("External url already exists: #{url}")

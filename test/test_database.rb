@@ -111,7 +111,7 @@ class TestDatabase < TestHelper
     refute_empty db.search('bundle')
   end
 
-  def test_insert_urls
+  def test_insert__urls
     db = Wgit::Database.new
 
     # Insert 1 url.
@@ -132,7 +132,7 @@ class TestDatabase < TestHelper
     assert_equal 'obj must be a Wgit::Url or Wgit::Document, not: TrueClass', e.message
   end
 
-  def test_insert_docs
+  def test_insert__docs
     db = Wgit::Database.new
 
     # Insert 1 doc.
@@ -147,6 +147,21 @@ class TestDatabase < TestHelper
     @docs.each { |doc| assert doc?(Wgit::Model.document(doc)) }
     assert_equal @docs.length + 1, db.num_docs
     assert_equal db.num_docs, db.num_records
+  end
+
+  def test_upsert
+    db = Wgit::Database.new
+
+    assert_equal 1, db.upsert(@url)
+    assert_equal 1, db.num_records
+
+    assert_equal 1, db.upsert(@doc)
+    assert_equal 2, db.num_records
+
+    @url.crawled = false
+    assert_equal 1, db.upsert(@url)
+    assert_equal 2, db.num_records
+    refute db.get(@url).crawled
   end
 
   def test_docs
