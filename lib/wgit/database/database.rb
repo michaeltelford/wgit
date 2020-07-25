@@ -108,13 +108,11 @@ module Wgit
     # @return [nil] Always returns nil.
     def create_unique_indexes
       @client[URLS_COLLECTION].indexes.create_one(
-        { 'url' => 1 },
-        name: UNIQUE_INDEX, unique: true,
+        { url: 1 }, name: UNIQUE_INDEX, unique: true
       ) rescue nil
 
       @client[DOCUMENTS_COLLECTION].indexes.create_one(
-        { 'url.url' => 1 },
-        name: UNIQUE_INDEX, unique: true,
+        { 'url.url' => 1 }, name: UNIQUE_INDEX, unique: true
       ) rescue nil
 
       nil
@@ -195,8 +193,7 @@ module Wgit
     # @return [Array<Wgit::Document>] The Documents obtained from the DB.
     def docs(limit: 0, skip: 0)
       results = retrieve(DOCUMENTS_COLLECTION, {},
-                         sort: { date_added: 1 }, projection: {},
-                         limit: limit, skip: skip)
+                         sort: { date_added: 1 }, limit: limit, skip: skip)
       return [] if results.count < 1 # results#empty? doesn't exist.
 
       # results.respond_to? :map! is false so we use map and overwrite the var.
@@ -221,8 +218,7 @@ module Wgit
       sort = { date_added: 1 }
 
       results = retrieve(URLS_COLLECTION, query,
-                         sort: sort, projection: {},
-                         limit: limit, skip: skip)
+                         sort: sort, limit: limit, skip: skip)
       return [] if results.count < 1 # results#empty? doesn't exist.
 
       # results.respond_to? :map! is false so we use map and overwrite the var.
@@ -385,7 +381,8 @@ module Wgit
     # @return [Boolean] True if url exists, otherwise false.
     def url?(url)
       assert_type(url, String) # This includes Wgit::Url's.
-      query = { 'url' => url }
+
+      query = { url: url }
       @client[URLS_COLLECTION].find(query).any?
     end
 
@@ -396,6 +393,7 @@ module Wgit
     # @return [Boolean] True if doc exists, otherwise false.
     def doc?(doc)
       assert_type(doc, Wgit::Document)
+
       query = { 'url.url' => doc.url }
       @client[DOCUMENTS_COLLECTION].find(query).any?
     end
@@ -423,10 +421,11 @@ module Wgit
     # @raise [StandardError] If the data is not valid.
     def update(data)
       data = data.dup # Avoid modifying by reference.
-      collection, query, model = get_type_info(data)
 
+      collection, query, model = get_type_info(data)
       data_hash = model.merge(Wgit::Model.common_update_data)
-      mutate(true, collection, query, { '$set' => data_hash })
+
+      mutate(collection, query, { '$set' => data_hash })
     end
 
     ### Delete Data ###
@@ -555,26 +554,21 @@ module Wgit
     # This method expects Model.common_update_data to have been merged in
     # already by the calling method.
     #
-    # @param singleton [Boolean] Wether a single record is being updated.
     # @param collection [Symbol] Either :urls or :documents.
     # @param query [Hash] The query used for the retrieval before updating.
     # @param update [Hash] The updated/new object.
     # @raise [StandardError] If the update fails.
     # @return [Mongo::Object] The number of updated records/objects.
-    def mutate(singleton, collection, query, update)
+    def mutate(collection, query, update)
       assert_arr_type([query, update], Hash)
 
-      collection = collection.to_sym
-      result = if singleton
-                 @client[collection].update_one(query, update)
-               else
-                 @client[collection].update_many(query, update)
-               end
+      result = @client[collection.to_sym].update_one(query, update)
       raise 'DB write(s) (update) failed' unless write_succeeded?(result)
 
       result.n
     end
 
     alias num_objects num_records
+    alias clear_db! clear_db
   end
 end
