@@ -381,9 +381,8 @@ module Wgit
     # @return [Boolean] True if url exists, otherwise false.
     def url?(url)
       assert_type(url, String) # This includes Wgit::Url's.
-
       query = { url: url }
-      @client[URLS_COLLECTION].find(query).any?
+      retrieve(URLS_COLLECTION, query, limit: 1).any?
     end
 
     # Returns whether or not a record with the given doc 'url.url' field
@@ -393,9 +392,17 @@ module Wgit
     # @return [Boolean] True if doc exists, otherwise false.
     def doc?(doc)
       assert_type(doc, Wgit::Document)
-
       query = { 'url.url' => doc.url }
-      @client[DOCUMENTS_COLLECTION].find(query).any?
+      retrieve(DOCUMENTS_COLLECTION, query, limit: 1).any?
+    end
+
+    # Returns if a record exists with the given obj's url.
+    #
+    # @param obj [Wgit::Url, Wgit::Document] Object containing the url to
+    #   search for.
+    # @return [Boolean] True if a record exists with the url, false otherwise.
+    def exists?(obj)
+      obj.is_a?(String) ? url?(obj) : doc?(obj)
     end
 
     # Returns a record from the database with the matching 'url' field; or nil.

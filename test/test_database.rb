@@ -346,6 +346,14 @@ class TestDatabase < TestHelper
     assert db.doc? @doc
   end
 
+  def test_exists?
+    db = Wgit::Database.new
+    refute db.exists?(@url)
+
+    seed { url @url }
+    assert db.exists?(@url)
+  end
+
   def test_get
     db = Wgit::Database.new
 
