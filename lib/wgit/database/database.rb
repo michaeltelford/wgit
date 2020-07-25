@@ -165,16 +165,19 @@ module Wgit
     # @raise [StandardError] If data isn't valid.
     def insert(data)
       data = data.dup # Avoid modifying by reference.
-      type = data.is_a?(Enumerable) ? data.first : data
+      collection = nil
 
-      case type
-      when Wgit::Url
-        insert_urls(data)
-      when Wgit::Document
-        insert_docs(data)
+      if data.respond_to?(:map!)
+        data.map! do |obj|
+          collection, _, model = get_type_info(obj)
+          model
+        end
       else
-        raise "Unsupported type - #{data.class}: #{data}"
+        collection, _, model = get_type_info(data)
+        data = model
       end
+
+      create(collection, data)
     end
 
     ### Retrieve Data ###
@@ -404,18 +407,9 @@ module Wgit
     # @return [Wgit::Url, Wgit::Document, nil] The record with the matching
     #   'url' field or nil if no results can be found.
     def get(obj)
-      case obj
-      when Wgit::Url
-        collection = URLS_COLLECTION
-        query      = { url: obj.to_s }
-      when Wgit::Document
-        collection = DOCUMENTS_COLLECTION
-        query      = { 'url.url' => obj.url.to_s }
-      else
-        raise "obj must be a Wgit::Url or Wgit::Document, not: #{obj.class}"
-      end
+      collection, query = get_type_info(obj)
 
-      record = @client[collection].find(query).limit(1).first
+      record = retrieve(collection, query, limit: 1).first
       return nil unless record
 
       obj.class.new(record)
@@ -429,15 +423,10 @@ module Wgit
     # @raise [StandardError] If the data is not valid.
     def update(data)
       data = data.dup # Avoid modifying by reference.
+      collection, query, model = get_type_info(data)
 
-      case data
-      when Wgit::Url
-        update_url(data)
-      when Wgit::Document
-        update_doc(data)
-      else
-        raise "Unsupported type - #{data.class}: #{data}"
-      end
+      data_hash = model.merge(Wgit::Model.common_update_data)
+      mutate(true, collection, query, { '$set' => data_hash })
     end
 
     ### Delete Data ###
@@ -464,91 +453,33 @@ module Wgit
       clear_urls + clear_docs
     end
 
-    protected
-
-    # Insert one or more Url objects into the DB.
-    #
-    # @param data [Wgit::Url, Array<Wgit::Url>] One or more Urls to insert.
-    # @raise [StandardError] If data type isn't supported.
-    # @return [Integer] The number of inserted Urls.
-    def insert_urls(data)
-      if data.respond_to?(:map!)
-        assert_arr_type(data, Wgit::Url)
-        data.map! { |url| Wgit::Model.url(url) }
-      else
-        assert_type(data, Wgit::Url)
-        data = Wgit::Model.url(data)
-      end
-
-      create(URLS_COLLECTION, data)
-    end
-
-    # Insert one or more Document objects into the DB.
-    #
-    # @param data [Wgit::Document, Array<Wgit::Document>] One or more Documents
-    #   to insert.
-    # @raise [StandardError] If data type isn't supported.
-    # @return [Integer] The number of inserted Documents.
-    def insert_docs(data)
-      if data.respond_to?(:map!)
-        assert_arr_type(data, Wgit::Document)
-        data.map! { |doc| Wgit::Model.document(doc) }
-      else
-        assert_types(data, Wgit::Document)
-        data = Wgit::Model.document(data)
-      end
-
-      create(DOCUMENTS_COLLECTION, data)
-    end
-
-    # Update a Url record in the DB.
-    #
-    # @param url [Wgit::Url] The Url to update.
-    # @return [Integer] The number of updated records.
-    def update_url(url)
-      assert_type(url, Wgit::Url)
-      selection = { url: url }
-      url_hash = Wgit::Model.url(url).merge(Wgit::Model.common_update_data)
-      update = { '$set' => url_hash }
-      mutate(true, URLS_COLLECTION, selection, update)
-    end
-
-    # Update a Document record in the DB.
-    #
-    # @param doc [Wgit::Document] The Document to update.
-    # @return [Integer] The number of updated records.
-    def update_doc(doc)
-      assert_type(doc, Wgit::Document)
-      selection = { 'url.url' => doc.url }
-      doc_hash = Wgit::Model.document(doc).merge(Wgit::Model.common_update_data)
-      update = { '$set' => doc_hash }
-      mutate(true, DOCUMENTS_COLLECTION, selection, update)
-    end
-
     private
 
-    # Return if the write to the DB succeeded or not.
+    # Get the database's type info (collection type, query hash, model) for
+    #   obj.
     #
-    # @param result [Mongo::Object] The operation result.
-    # @param records [Integer] The number of records written to.
-    # @param multi [Boolean] Whether several records are being written to.
-    # @raise [StandardError] If the result type isn't supported.
-    # @return [Boolean] True if the write was successful, false otherwise.
-    def write_succeeded?(result, records: 1, multi: false)
-      case result
-      # Single create result.
-      when Mongo::Operation::Insert::Result
-        result.documents.first[:err].nil?
-      # Multiple create result.
-      when Mongo::BulkWrite::Result
-        result.inserted_count == records
-      # Single and multiple update result.
-      when Mongo::Operation::Update::Result
-        multi ? result.n == records : result.documents.first[:err].nil?
-      # Class no longer used, have you upgraded the 'mongo' gem?
+    # Raises an error if obj isn't a Wgit::Url or Wgit::Document.
+    # Note, that no database calls are made during this method call.
+    #
+    # @param obj [Wgit::Url, Wgit::Document] The obj to get semantics for.
+    # @raise [StandardError] If obj isn't a Wgit::Url or Wgit::Document.
+    # @return [Array<Symbol, Hash>] The collection type, query to get
+    #   the record/obj from the database (if it exists) and the model of obj.
+    def get_type_info(obj)
+      case obj
+      when Wgit::Url
+        collection = URLS_COLLECTION
+        query      = { url: obj.to_s }
+        model      = Wgit::Model.url(obj)
+      when Wgit::Document
+        collection = DOCUMENTS_COLLECTION
+        query      = { 'url.url' => obj.url.to_s }
+        model      = Wgit::Model.document(obj)
       else
-        raise "Result class not currently supported: #{result.class}"
+        raise "obj must be a Wgit::Url or Wgit::Document, not: #{obj.class}"
       end
+
+      [collection, query, model]
     end
 
     # Create/insert one or more Url or Document records into the DB.
@@ -560,26 +491,44 @@ module Wgit
     def create(collection, data)
       assert_types(data, [Hash, Array])
 
-      # Single doc.
       case data
-      when Hash
+      when Hash # Single record.
         data.merge!(Wgit::Model.common_insert_data)
         result = @client[collection.to_sym].insert_one(data)
         raise 'DB write (insert) failed' unless write_succeeded?(result)
 
         result.n
-      # Multiple docs.
-      when Array
+      when Array # Multiple records.
         assert_arr_type(data, Hash)
         data.map! { |hash| hash.merge(Wgit::Model.common_insert_data) }
         result = @client[collection.to_sym].insert_many(data)
-        raise 'DB write(s) (insert) failed' unless write_succeeded?(
-          result, records: data.length
-        )
+        unless write_succeeded?(result, num_writes: data.length)
+          raise 'DB write(s) (insert) failed'
+        end
 
         result.inserted_count
       else
         raise 'data must be a Hash or an Array of Hashes'
+      end
+    end
+
+    # Return if the write to the DB succeeded or not.
+    #
+    # @param result [Mongo::Object] The operation result.
+    # @param num_writes [Integer] The number of records written to.
+    # @raise [StandardError] If the result type isn't supported.
+    # @return [Boolean] True if the write was successful, false otherwise.
+    def write_succeeded?(result, num_writes: 1)
+      case result
+      when Mongo::Operation::Insert::Result # Single create result.
+        result.documents.first[:err].nil?
+      when Mongo::BulkWrite::Result # Multiple create result.
+        result.inserted_count == num_writes
+      when Mongo::Operation::Update::Result # Single/multiple update result.
+        singleton = (num_writes == 1)
+        singleton ? result.documents.first[:err].nil? : result.n == num_writes
+      else # Class no longer used, have you upgraded the 'mongo' gem?
+        raise "Result class not currently supported: #{result.class}"
       end
     end
 
@@ -606,28 +555,26 @@ module Wgit
     # This method expects Model.common_update_data to have been merged in
     # already by the calling method.
     #
-    # @param single [Boolean] Wether or not a single record is being updated.
+    # @param singleton [Boolean] Wether a single record is being updated.
     # @param collection [Symbol] Either :urls or :documents.
-    def mutate(single, collection, selection, update)
-      assert_arr_type([selection, update], Hash)
+    # @param query [Hash] The query used for the retrieval before updating.
+    # @param update [Hash] The updated/new object.
+    # @raise [StandardError] If the update fails.
+    # @return [Mongo::Object] The number of updated records/objects.
+    def mutate(singleton, collection, query, update)
+      assert_arr_type([query, update], Hash)
 
       collection = collection.to_sym
-      unless %i[urls documents].include?(collection)
-        raise "Invalid collection: #{collection}"
-      end
-
-      result = if single
-                 @client[collection].update_one(selection, update)
+      result = if singleton
+                 @client[collection].update_one(query, update)
                else
-                 @client[collection].update_many(selection, update)
+                 @client[collection].update_many(query, update)
                end
-      raise 'DB write (update) failed' unless write_succeeded?(result)
+      raise 'DB write(s) (update) failed' unless write_succeeded?(result)
 
       result.n
     end
 
-    alias insert_url  insert_urls
-    alias insert_doc  insert_docs
     alias num_objects num_records
   end
 end

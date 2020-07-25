@@ -129,7 +129,7 @@ class TestDatabase < TestHelper
     assert_equal db.num_urls, db.num_records
 
     e = assert_raises(StandardError) { db.insert true }
-    assert_equal 'Unsupported type - TrueClass: true', e.message
+    assert_equal 'obj must be a Wgit::Url or Wgit::Document, not: TrueClass', e.message
   end
 
   def test_insert_docs
