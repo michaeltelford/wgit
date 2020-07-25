@@ -346,6 +346,32 @@ class TestDatabase < TestHelper
     assert db.doc? @doc
   end
 
+  def test_get
+    db = Wgit::Database.new
+
+    seed do
+      url @url
+      doc @doc
+    end
+
+    result = db.get(@url)
+    assert_instance_of Wgit::Url, result
+    assert_equal @url.to_h, result.to_h
+
+    result = db.get(@doc)
+    assert_instance_of Wgit::Document, result
+    assert_equal @doc.to_h, result.to_h
+  end
+
+  def test_get__empty
+    db = Wgit::Database.new
+
+    ex = assert_raises(StandardError) { db.get 1 }
+    assert_equal 'obj must be a Wgit::Url or Wgit::Document, not: Integer', ex.message
+
+    assert_nil db.get(@url)
+  end
+
   def test_update__url
     seed { url @url }
     @url.crawled = false

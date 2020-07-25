@@ -382,8 +382,8 @@ module Wgit
     # @return [Boolean] True if url exists, otherwise false.
     def url?(url)
       assert_type(url, String) # This includes Wgit::Url's.
-      hash = { 'url' => url }
-      @client[URLS_COLLECTION].find(hash).any?
+      query = { 'url' => url }
+      @client[URLS_COLLECTION].find(query).any?
     end
 
     # Returns whether or not a record with the given doc 'url.url' field
@@ -393,8 +393,32 @@ module Wgit
     # @return [Boolean] True if doc exists, otherwise false.
     def doc?(doc)
       assert_type(doc, Wgit::Document)
-      hash = { 'url.url' => doc.url }
-      @client[DOCUMENTS_COLLECTION].find(hash).any?
+      query = { 'url.url' => doc.url }
+      @client[DOCUMENTS_COLLECTION].find(query).any?
+    end
+
+    # Returns a record from the database with the matching 'url' field; or nil.
+    # Pass either a Wgit::Url or Wgit::Document instance.
+    #
+    # @param obj [Wgit::Url, Wgit::Document] The record to search the DB for.
+    # @return [Wgit::Url, Wgit::Document, nil] The record with the matching
+    #   'url' field or nil if no results can be found.
+    def get(obj)
+      case obj
+      when Wgit::Url
+        collection = URLS_COLLECTION
+        query      = { url: obj.to_s }
+      when Wgit::Document
+        collection = DOCUMENTS_COLLECTION
+        query      = { 'url.url' => obj.url.to_s }
+      else
+        raise "obj must be a Wgit::Url or Wgit::Document, not: #{obj.class}"
+      end
+
+      record = @client[collection].find(query).limit(1).first
+      return nil unless record
+
+      obj.class.new(record)
     end
 
     ### Update Data ###
