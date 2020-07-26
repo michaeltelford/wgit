@@ -180,10 +180,12 @@ module Wgit
 
     # Inserts or updates the object in the database.
     #
-    # @param obj [Wgit::Url, Wgit::Document] The record insert/update.
-    # @return [Integer] The number of updated records/objects, should be 1.
+    # @param obj [Wgit::Url, Wgit::Document] The record to insert/update.
+    # @return [Boolean] True if inserted, false if updated.
     def upsert(obj)
-      exists?(obj) ? update(obj) : insert(obj)
+      exists = exists?(obj)
+      exists ? update(obj) : insert(obj)
+      !exists
     end
 
     ### Retrieve Data ###

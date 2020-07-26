@@ -152,14 +152,14 @@ class TestDatabase < TestHelper
   def test_upsert
     db = Wgit::Database.new
 
-    assert_equal 1, db.upsert(@url)
+    assert db.upsert(@url)
     assert_equal 1, db.num_records
 
-    assert_equal 1, db.upsert(@doc)
+    assert db.upsert(@doc)
     assert_equal 2, db.num_records
 
     @url.crawled = false
-    assert_equal 1, db.upsert(@url)
+    refute db.upsert(@url)
     assert_equal 2, db.num_records
     refute db.get(@url).crawled
   end
