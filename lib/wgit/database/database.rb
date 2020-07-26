@@ -158,8 +158,7 @@ module Wgit
     # Insert one or more Url or Document objects into the DB.
     #
     # @param data [Wgit::Url, Wgit::Document, Enumerable<Wgit::Url,
-    #   Wgit::Document>] Hash(es) returned from Wgit::Model.url or
-    #   Wgit::Model.document.
+    #   Wgit::Document>] The records to insert/create.
     # @raise [StandardError] If data isn't valid.
     def insert(data)
       data = data.dup # Avoid modifying by reference.
@@ -180,12 +179,14 @@ module Wgit
 
     # Inserts or updates the object in the database.
     #
-    # @param obj [Wgit::Url, Wgit::Document] The record to insert/update.
+    # @param obj [Wgit::Url, Wgit::Document] The obj/record to insert/update.
     # @return [Boolean] True if inserted, false if updated.
     def upsert(obj)
-      exists = exists?(obj)
-      exists ? update(obj) : insert(obj)
-      !exists
+      collection, query, model = get_type_info(obj.dup)
+      data_hash = model.merge(Wgit::Model.common_update_data)
+      result = @client[collection].replace_one(query, data_hash, upsert: true)
+
+      result.matched_count == 0
     end
 
     ### Retrieve Data ###
@@ -434,13 +435,11 @@ module Wgit
 
     # Update a Url or Document object in the DB.
     #
-    # @param data [Wgit::Url, Wgit::Document] The data to update.
-    # @raise [StandardError] If the data is not valid.
+    # @param obj [Wgit::Url, Wgit::Document] The obj/record to update.
+    # @raise [StandardError] If the obj is not valid.
     # @return [Integer] The number of updated records/objects.
-    def update(data)
-      data = data.dup # Avoid modifying by reference.
-
-      collection, query, model = get_type_info(data)
+    def update(obj)
+      collection, query, model = get_type_info(obj.dup)
       data_hash = model.merge(Wgit::Model.common_update_data)
 
       mutate(collection, query, { '$set' => data_hash })
@@ -485,7 +484,7 @@ module Wgit
     private
 
     # Get the database's type info (collection type, query hash, model) for
-    #   obj.
+    # obj.
     #
     # Raises an error if obj isn't a Wgit::Url or Wgit::Document.
     # Note, that no database calls are made during this method call.
