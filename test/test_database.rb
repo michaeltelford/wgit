@@ -409,7 +409,7 @@ class TestDatabase < TestHelper
   def test_update__doc
     title = 'Climb Everest!'
     seed { doc @doc }
-    @doc.instance_variable_set :@title, title
+    @doc.title = title
     db = Wgit::Database.new
     result = db.update @doc
 

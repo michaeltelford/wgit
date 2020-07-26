@@ -2,16 +2,18 @@
 
 require 'wgit'
 
-# Eval .wgit.rb file (if it exists).
-def eval_wgit
-  puts 'Searching for .wgit.rb in local and home directories...'
+# Eval .wgit.rb file (if it exists somewhere).
+def eval_wgit(filepath = nil)
+  puts 'Searching for .wgit.rb file in local and home directories...'
 
-  ['.', Dir.home].each do |dir|
+  [filepath, Dir.pwd, Dir.home].each do |dir|
     path = "#{dir}/.wgit.rb"
     next unless File.exist?(path)
 
-    puts "Eval'ing #{path} (call `eval_wgit` after changes)"
+    puts "Eval'ing #{path}"
+    puts 'Call `eval_wgit` after changes to re-eval the file'
     eval(File.read(path))
+
     break
   end
 end
