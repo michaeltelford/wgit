@@ -68,7 +68,8 @@ database capacity, exiting.")
 
           site_docs_count = 0
           ext_links = @crawler.crawl_site(url) do |doc|
-            if !doc.empty? && write_doc_to_db(doc)
+            unless doc.empty?
+              write_doc_to_db(doc)
               docs_count += 1
               site_docs_count += 1
             end
@@ -77,12 +78,9 @@ database capacity, exiting.")
           raise 'Error updating url' unless @db.update(url) == 1
 
           urls_count += write_urls_to_db(ext_links)
-
-          Wgit.logger.info("Crawled and saved #{site_docs_count} docs for the \
-site: #{url}")
         end
 
-        Wgit.logger.info("Crawled and saved docs for #{docs_count} url(s) \
+        Wgit.logger.info("Crawled and indexed docs for #{docs_count} url(s) \
 overall for this iteration.")
         Wgit.logger.info("Found and saved #{urls_count} external url(s) for \
 the next iteration.")
@@ -125,9 +123,9 @@ the next iteration.")
       ext_urls = @crawler.crawl_site(url, **crawl_opts) do |doc|
         result = block_given? ? yield(doc) : true
 
-        if result && !doc.empty? && write_doc_to_db(doc)
+        if result && !doc.empty?
+          write_doc_to_db(doc)
           total_pages_indexed += 1
-          Wgit.logger.info("Crawled and saved internal page: #{doc.url}")
         end
       end
 
@@ -138,8 +136,8 @@ the next iteration.")
         Wgit.logger.info("Found and saved #{num_inserted_urls} external url(s)")
       end
 
-      Wgit.logger.info("Crawled and saved #{total_pages_indexed} docs for the \
-site: #{url}")
+      Wgit.logger.info("Crawled and indexed #{total_pages_indexed} docs for \
+the site: #{url}")
 
       total_pages_indexed
     end
@@ -179,10 +177,7 @@ site: #{url}")
     def index_url(url, insert_externals: false)
       document = @crawler.crawl_url(url) do |doc|
         result = block_given? ? yield(doc) : true
-
-        if result && !doc.empty? && write_doc_to_db(doc)
-          Wgit.logger.info("Crawled and saved internal page: #{doc.url}")
-        end
+        write_doc_to_db(doc) if result && !doc.empty?
       end
 
       @db.upsert(url)
@@ -218,23 +213,19 @@ site: #{url}")
     # collection deliberately prevents duplicate inserts.
     #
     # @param doc [Wgit::Document] The document to write to the DB.
-    # @return [Boolean] True if the write was successful, false otherwise.
     def write_doc_to_db(doc)
-      @db.insert(doc)
-      Wgit.logger.info("Saved document for url: #{doc.url}")
-
-      true
-    rescue Mongo::Error::OperationFailure
-      Wgit.logger.info("Document already exists: #{doc.url}")
-
-      false
+      if @db.upsert(doc)
+        Wgit.logger.info("Saved document for url: #{doc.url}")
+      else
+        Wgit.logger.info("Updated document for url: #{doc.url}")
+      end
     end
 
     # Write the urls to the DB. Note that the unique url index on the urls
     # collection deliberately prevents duplicate inserts.
     #
     # @param urls [Array<Wgit::Url>] The urls to write to the DB.
-    # @return [Boolean] True if the write was successful, false otherwise.
+    # @return [Integer] The number of inserted urls.
     def write_urls_to_db(urls)
       count = 0
 

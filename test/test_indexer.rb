@@ -346,4 +346,20 @@ class TestIndexer < TestHelper
     assert_equal 1, database.num_urls
     assert_equal 1, database.num_docs
   end
+
+  # Test that re-indexing updates to the new content.
+  # All index methods use write_doc_to_db so there's no need to test them all.
+  def test_index_url__upsert
+    # 1st index returns 'Original content', 2nd: 'Updated content'.
+    url = 'http://www.content-updates.com'.to_url
+
+    @indexer.index_url url
+    assert_equal 1, @indexer.db.search('Original').size
+    assert_equal 0, @indexer.db.search('Updated').size
+
+    @indexer.index_url url
+    assert_equal 0, @indexer.db.search('Original').size
+    assert_equal 1, @indexer.db.search('Updated').size
+    assert_equal 1, @indexer.db.num_docs
+  end
 end

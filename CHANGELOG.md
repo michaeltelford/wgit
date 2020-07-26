@@ -41,7 +41,7 @@ This release is a big one with the introduction of a `Wgit::DSL` and Javascript 
 - Updated `Wgit::Document.define_extractor` to define a setter method (as well as the usual getter method).
 - Updated `Wgit::Document#search` to support a `Regexp` query (in addition to a String).
 ### Fixed
-- ...
+- [Re-indexing bug](https://github.com/michaeltelford/wgit/issues/8) so that indexing content a 2nd time will update it in the database - before it simply disgarded the document.
 ---
 
 ## v0.8.0

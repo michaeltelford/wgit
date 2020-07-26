@@ -34,6 +34,10 @@ stub_timeout 'http://doesnt_exist/'
 stub_timeout 'http://test-site.com/doesntexist'
 stub_page 'http://odd-extension.com/other.html5', body: '<p>Hello world</p>'
 
+# Mock a website whose's content gets updated (between indexes).
+stub_request(:get, 'http://www.content-updates.com').
+  to_return({ body: 'Original content' }, { body: 'Updated content' })
+
 # Match all *.jpg URL's for belfastpilates.co.uk.
 stub_request(:get, Regexp.new('http://www.belfastpilates.co.uk/(.*).(?:jpg|jpeg)'))
 
