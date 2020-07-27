@@ -16,6 +16,8 @@ def eval_wgit(filepath = nil)
 
     break
   end
+
+  nil
 end
 
 eval_wgit

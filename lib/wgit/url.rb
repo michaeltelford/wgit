@@ -423,6 +423,24 @@ protocol scheme and domain (e.g. http://example.com): #{url}"
       segs.length > 1 ? Wgit::Url.new(segs.last) : nil
     end
 
+    # Returns a new Wgit::Url containing just the username string of this URL
+    # e.g. Given http://me:pass1@example.com, me is returned.
+    #
+    # @return [Wgit::Url, nil] Containing just the user string or nil.
+    def to_user
+      user = @uri.user
+      user ? Wgit::Url.new(user) : nil
+    end
+
+    # Returns a new Wgit::Url containing just the password string of this URL
+    # e.g. Given http://me:pass1@example.com, pass1 is returned.
+    #
+    # @return [Wgit::Url, nil] Containing just the password string or nil.
+    def to_password
+      password = @uri.password
+      password ? Wgit::Url.new(password) : nil
+    end
+
     # Omits the given URL components from self and returns a new Wgit::Url.
     #
     # Calls Addressable::URI#omit underneath and creates a new Wgit::Url from
@@ -545,5 +563,7 @@ protocol scheme and domain (e.g. http://example.com): #{url}"
     alias query        to_query
     alias fragment     to_fragment
     alias extension    to_extension
+    alias user         to_user
+    alias password     to_password
   end
 end

@@ -763,6 +763,37 @@ class TestUrl < TestHelper
     assert_nil url.to_extension
   end
 
+  def test_to_user
+    url = Wgit::Url.new 'http://me:pass1@example.com/about?q=blah#bottom'
+    assert_equal 'me', url.to_user
+    assert_equal Wgit::Url, url.to_user.class
+
+    url = Wgit::Url.new 'http://me@example.com/about?q=blah#bottom'
+    assert_equal 'me', url.to_user
+    assert_equal Wgit::Url, url.to_user.class
+
+    url = Wgit::Url.new 'http://www.example.com/about?q=blah#bottom'
+    assert_nil url.to_user
+
+    url = Wgit::Url.new '/about'
+    assert_nil url.to_user
+  end
+
+  def test_to_password
+    url = Wgit::Url.new 'http://me:pass1@example.com/about?q=blah#bottom'
+    assert_equal 'pass1', url.to_password
+    assert_equal Wgit::Url, url.to_password.class
+
+    url = Wgit::Url.new 'http://me@example.com/about?q=blah#bottom'
+    assert_nil url.to_password
+
+    url = Wgit::Url.new 'http://www.example.com/about?q=blah#bottom'
+    assert_nil url.to_password
+
+    url = Wgit::Url.new '/about'
+    assert_nil url.to_password
+  end
+
   def test_omit_leading_slash
     url = Wgit::Url.new 'http://www.google.co.uk'
     assert_equal 'http://www.google.co.uk', url.omit_leading_slash
