@@ -336,6 +336,19 @@ protocol scheme and domain (e.g. http://example.com): #{url}"
       host ? Wgit::Url.new(host) : nil
     end
 
+    # Returns a new Wgit::Url containing just the port of this URL e.g.
+    # Given http://www.google.co.uk:443/about.html, '443' is returned.
+    #
+    # @return [Wgit::Url, nil] Containing just the port or nil.
+    def to_port
+      port = @uri.port
+
+      return nil unless port
+      return nil unless include?(":#{port}")
+
+      Wgit::Url.new(port.to_s)
+    end
+
     # Returns a new Wgit::Url containing just the domain of this URL e.g.
     # Given http://www.google.co.uk/about.html, google.co.uk is returned.
     #
@@ -565,6 +578,7 @@ protocol scheme and domain (e.g. http://example.com): #{url}"
     alias url          to_url
     alias scheme       to_scheme
     alias host         to_host
+    alias port         to_port
     alias domain       to_domain
     alias brand        to_brand
     alias base         to_base

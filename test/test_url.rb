@@ -593,6 +593,16 @@ class TestUrl < TestHelper
     assert_nil Wgit::Url.new('über').to_host
   end
 
+  def test_to_port
+    assert_equal '443', Wgit::Url.new('https://user:pass@www.example.com:443/about.html?q=blah&foo=bar#top').to_port
+    assert_equal Wgit::Url, Wgit::Url.new('https://user:pass@www.example.com:443/about.html?q=blah&foo=bar#top').to_port.class
+    assert_nil Wgit::Url.new('https://user:pass@www.example.com/about.html?q=blah&foo=bar#top').to_port
+
+    assert_equal '3000', Wgit::Url.new('https://www.über.com:3000/about#top').to_port
+    assert_equal Wgit::Url, Wgit::Url.new('https://www.über.com:3000/about#top').to_port.class
+    assert_nil Wgit::Url.new('über').to_port
+  end
+
   def test_to_domain
     assert_equal 'google.co.uk', Wgit::Url.new('http://www.google.co.uk/about.html').to_domain
     assert_equal Wgit::Url, Wgit::Url.new('http://www.google.co.uk/about.html').to_domain.class
@@ -616,7 +626,7 @@ class TestUrl < TestHelper
     assert_equal Wgit::Url, Wgit::Url.new('http://user:pass@search.dev.scripts.example.com/about.html').to_sub_domain.class
 
     assert_equal 'search.über.scripts', Wgit::Url.new('http://user:pass@search.über.scripts.example.com/about.html').to_sub_domain
-    assert_equal Wgit::Url, Wgit::Url.new('http://user:pass@search.über.scripts.example.com/about.html').to_sub_domain.class
+    assert_equal Wgit::Url, Wgit::Url.new('http://user:pass@search.über.scripts.example.com/about.html?q=blah#top').to_sub_domain.class
 
     assert_nil Wgit::Url.new('/about.html').to_sub_domain
     assert_nil Wgit::Url.new('http://example.com').to_sub_domain
