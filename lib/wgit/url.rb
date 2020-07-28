@@ -345,6 +345,16 @@ protocol scheme and domain (e.g. http://example.com): #{url}"
       domain ? Wgit::Url.new(domain) : nil
     end
 
+    def to_sub_domain
+      return nil unless to_host
+
+      dot_domain = ".#{to_domain}"
+      return nil unless include?(dot_domain)
+
+      sub_domain = to_host.sub(dot_domain, '')
+      Wgit::Url.new(sub_domain)
+    end
+
     # Returns a new Wgit::Url containing just the brand of this URL e.g.
     # Given http://www.google.co.uk/about.html, google is returned.
     #
@@ -565,5 +575,6 @@ protocol scheme and domain (e.g. http://example.com): #{url}"
     alias extension    to_extension
     alias user         to_user
     alias password     to_password
+    alias sub_domain   to_sub_domain
   end
 end

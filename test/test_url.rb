@@ -608,6 +608,20 @@ class TestUrl < TestHelper
     assert_nil Wgit::Url.new('#top').to_domain
   end
 
+  def test_to_sub_domain
+    assert_equal 'search.dev.scripts', Wgit::Url.new('https://search.dev.scripts.example.com/about.html').to_sub_domain
+    assert_equal Wgit::Url, Wgit::Url.new('https://search.dev.scripts.example.com/about.html').to_sub_domain.class
+
+    assert_equal 'search.dev.scripts', Wgit::Url.new('http://user:pass@search.dev.scripts.example.com/about.html').to_sub_domain
+    assert_equal Wgit::Url, Wgit::Url.new('http://user:pass@search.dev.scripts.example.com/about.html').to_sub_domain.class
+
+    assert_equal 'search.über.scripts', Wgit::Url.new('http://user:pass@search.über.scripts.example.com/about.html').to_sub_domain
+    assert_equal Wgit::Url, Wgit::Url.new('http://user:pass@search.über.scripts.example.com/about.html').to_sub_domain.class
+
+    assert_nil Wgit::Url.new('/about.html').to_sub_domain
+    assert_nil Wgit::Url.new('http://example.com').to_sub_domain
+  end
+
   def test_to_brand
     assert_equal 'google', Wgit::Url.new('http://www.google.co.uk/about.html').to_brand
     assert_equal Wgit::Url, Wgit::Url.new('http://www.google.co.uk/about.html').to_brand.class
@@ -768,6 +782,10 @@ class TestUrl < TestHelper
     assert_equal 'me', url.to_user
     assert_equal Wgit::Url, url.to_user.class
 
+    url = Wgit::Url.new 'http://üser:pass1@example.com/about?q=blah#bottom'
+    assert_equal 'üser', url.to_user
+    assert_equal Wgit::Url, url.to_user.class
+
     url = Wgit::Url.new 'http://me@example.com/about?q=blah#bottom'
     assert_equal 'me', url.to_user
     assert_equal Wgit::Url, url.to_user.class
@@ -782,6 +800,10 @@ class TestUrl < TestHelper
   def test_to_password
     url = Wgit::Url.new 'http://me:pass1@example.com/about?q=blah#bottom'
     assert_equal 'pass1', url.to_password
+    assert_equal Wgit::Url, url.to_password.class
+
+    url = Wgit::Url.new 'http://üser:passü@example.com/about?q=blah#bottom'
+    assert_equal 'passü', url.to_password
     assert_equal Wgit::Url, url.to_password.class
 
     url = Wgit::Url.new 'http://me@example.com/about?q=blah#bottom'
