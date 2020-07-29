@@ -144,10 +144,10 @@ Addressable::URI::InvalidURIError")
     # @param opts [Hash] The options with which to check relativity. Only one
     #   opts param should be provided. The provided opts param Url must be
     #   absolute and be prefixed with a scheme. Consider using the output of
-    #   Wgit::Url#to_base which should work (unless it's nil).
-    # @option opts [Wgit::Url, String] :base The Url base e.g.
-    #   http://www.google.com/how which gives a base of
-    #   'http://www.google.com'.
+    #   Wgit::Url#to_origin which should work (unless it's nil).
+    # @option opts [Wgit::Url, String] :origin The Url origin e.g.
+    #   http://www.google.com:81/how which gives a origin of
+    #   'http://www.google.com:81'.
     # @option opts [Wgit::Url, String] :host The Url host e.g.
     #   http://www.google.com/how which gives a host of 'www.google.com'.
     # @option opts [Wgit::Url, String] :domain The Url domain e.g.
@@ -158,7 +158,7 @@ Addressable::URI::InvalidURIError")
     #   param has been provided.
     # @return [Boolean] True if relative, false if absolute.
     def relative?(opts = {})
-      defaults = { base: nil, host: nil, domain: nil, brand: nil }
+      defaults = { origin: nil, host: nil, domain: nil, brand: nil }
       opts = defaults.merge(opts)
       raise 'Url (self) cannot be empty' if empty?
 
@@ -178,8 +178,8 @@ protocol scheme and domain (e.g. http://example.com): #{url}"
       end
 
       case type
-      when :base   # http://www.google.com
-        to_base   == url.to_base
+      when :origin # http://www.google.com:81
+        to_origin == url.to_origin
       when :host   # www.google.com
         to_host   == url.to_host
       when :domain # google.com
@@ -204,8 +204,8 @@ protocol scheme and domain (e.g. http://example.com): #{url}"
     # @return [Boolean] True if valid, absolute and crawable, otherwise false.
     def valid?
       return false if relative?
-      return false unless to_base && to_domain
-      return false if URI::DEFAULT_PARSER.make_regexp.match(normalize).nil?
+      return false unless to_origin && to_domain
+      return false unless URI::DEFAULT_PARSER.make_regexp.match(normalize)
 
       true
     end

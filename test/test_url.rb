@@ -266,12 +266,12 @@ class TestUrl < TestHelper
     e = assert_raises(StandardError) do
       Wgit::Url.new('http://example.com').relative?(host: '1', brand: '2')
     end
-    assert_equal 'Provide only one of: [:base, :host, :domain, :brand]', e.message
+    assert_equal 'Provide only one of: [:origin, :host, :domain, :brand]', e.message
 
     e = assert_raises(StandardError) do
       Wgit::Url.new('http://example.com').relative?(foo: 'http://example.com')
     end
-    assert_equal 'Unknown opts param: :foo, use one of: [:base, :host, :domain, :brand]', e.message
+    assert_equal 'Unknown opts param: :foo, use one of: [:origin, :host, :domain, :brand]', e.message
 
     e = assert_raises(StandardError) do
       Wgit::Url.new('http://example.com').relative?(foo: '/')
@@ -284,47 +284,47 @@ class TestUrl < TestHelper
     assert_equal 'Invalid opts param value, it must be absolute, containing a protocol scheme and domain (e.g. http://example.com): http://example', e.message
   end
 
-  def test_relative__with_base
+  def test_relative__with_origin
     # IRI's.
-    assert Wgit::Url.new('https://www.über.com/about#top').relative? base: 'https://www.über.com'
-    refute Wgit::Url.new('https://www.über.com/about#top').relative? base: 'https://www.überon.com'
+    assert Wgit::Url.new('https://www.über.com/about#top').relative? origin: 'https://www.über.com'
+    refute Wgit::Url.new('https://www.über.com/about#top').relative? origin: 'https://www.überon.com'
 
     # URL's with paths (including slashes).
-    assert Wgit::Url.new('http://www.google.co.uk/about.html').relative? base: 'http://www.google.co.uk'
-    refute Wgit::Url.new('https://www.google.co.uk').relative? base: 'http://www.google.co.uk' # Diff protocol.
-    refute Wgit::Url.new('http://www.google.co.uk/about.html').relative? base: 'http://bing.com'
-    assert Wgit::Url.new('http://www.google.co.uk').relative? base: 'http://www.google.co.uk'
-    assert Wgit::Url.new('http://www.google.co.uk/').relative? base: 'http://www.google.co.uk'
-    assert Wgit::Url.new('http://www.google.co.uk/').relative? base: 'http://www.google.co.uk/'
+    assert Wgit::Url.new('http://www.google.co.uk/about.html').relative? origin: 'http://www.google.co.uk'
+    refute Wgit::Url.new('https://www.google.co.uk').relative? origin: 'http://www.google.co.uk' # Diff protocol.
+    refute Wgit::Url.new('http://www.google.co.uk/about.html').relative? origin: 'http://bing.com'
+    assert Wgit::Url.new('http://www.google.co.uk').relative? origin: 'http://www.google.co.uk'
+    assert Wgit::Url.new('http://www.google.co.uk/').relative? origin: 'http://www.google.co.uk'
+    assert Wgit::Url.new('http://www.google.co.uk/').relative? origin: 'http://www.google.co.uk/'
 
     # Single slash URL's.
-    assert Wgit::Url.new('/').relative? base: 'http://www.google.co.uk'
+    assert Wgit::Url.new('/').relative? origin: 'http://www.google.co.uk'
 
     # Anchors/fragments.
-    assert Wgit::Url.new('#about-us').relative? base: 'http://www.google.co.uk'
-    assert Wgit::Url.new('http://www.google.co.uk/about.html#about-us').relative? base: 'http://www.google.co.uk'
+    assert Wgit::Url.new('#about-us').relative? origin: 'http://www.google.co.uk'
+    assert Wgit::Url.new('http://www.google.co.uk/about.html#about-us').relative? origin: 'http://www.google.co.uk'
 
     # Query string params.
-    assert Wgit::Url.new('?foo=bar').relative? base: 'http://www.google.co.uk'
-    assert Wgit::Url.new('http://www.google.co.uk/about.html?foo=bar').relative? base: 'http://www.google.co.uk'
+    assert Wgit::Url.new('?foo=bar').relative? origin: 'http://www.google.co.uk'
+    assert Wgit::Url.new('http://www.google.co.uk/about.html?foo=bar').relative? origin: 'http://www.google.co.uk'
 
     # URL specific.
     refute(
-      Wgit::Url.new('http://www.example.com/search').relative?(base: 'https://ftp.example.com')
+      Wgit::Url.new('http://www.example.com/search').relative?(origin: 'https://ftp.example.com')
     )
     refute(
-      'http://www.example.com/search'.to_url.relative?(base: 'https://ftp.example.com'.to_url)
+      'http://www.example.com/search'.to_url.relative?(origin: 'https://ftp.example.com'.to_url)
     )
     refute(
-      'http://www.example.com/search'.to_url.relative?(base: 'https://ftp.example.co.uk'.to_url)
+      'http://www.example.com/search'.to_url.relative?(origin: 'https://ftp.example.co.uk'.to_url)
     )
     refute(
-      'https://server.example.com'.to_url.relative?(base: 'https://example.com/en'.to_url)
+      'https://server.example.com'.to_url.relative?(origin: 'https://example.com/en'.to_url)
     )
 
     # Valid error scenarios.
     e = assert_raises(StandardError) do
-      Wgit::Url.new('http://www.google.co.uk/about.html').relative? base: 'bing.com'
+      Wgit::Url.new('http://www.google.co.uk/about.html').relative? origin: 'bing.com'
     end
     assert_equal(
       'Invalid opts param value, it must be absolute, containing a protocol scheme and domain (e.g. http://example.com): bing.com',

@@ -89,7 +89,7 @@ the 'start' function".freeze
     # @param follow_redirects [Boolean, Symbol] Whether or not to follow
     #   redirects. Pass a Symbol to limit where the redirect is allowed to go
     #   e.g. :host only allows redirects within the same host. Choose from
-    #   :base, :host, :domain or :brand. See Wgit::Url#relative? opts param.
+    #   :origin, :host, :domain or :brand. See Wgit::Url#relative? opts param.
     #   This value will be used for all urls crawled.
     # @yield [doc] Given each crawled page (Wgit::Document); this is the only
     #   way to interact with them.

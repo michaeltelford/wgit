@@ -159,7 +159,7 @@ module Wgit
     # @param follow_redirects [Boolean, Symbol] Whether or not to follow
     #   redirects. Pass a Symbol to limit where the redirect is allowed to go
     #   e.g. :host only allows redirects within the same host. Choose from
-    #   :base, :host, :domain or :brand. See Wgit::Url#relative? opts param.
+    #   :origin, :host, :domain or :brand. See Wgit::Url#relative? opts param.
     #   This value will be used for all urls crawled.
     # @yield [doc] Given each crawled page (Wgit::Document); this is the only
     #   way to interact with them. Use `doc.empty?` to determine if the page
@@ -185,7 +185,7 @@ module Wgit
     # @param follow_redirects [Boolean, Symbol] Whether or not to follow
     #   redirects. Pass a Symbol to limit where the redirect is allowed to go
     #   e.g. :host only allows redirects within the same host. Choose from
-    #   :base, :host, :domain or :brand. See Wgit::Url#relative? opts param.
+    #   :origin, :host, :domain or :brand. See Wgit::Url#relative? opts param.
     # @yield [doc] The crawled HTML page (Wgit::Document) regardless if the
     #   crawl was successful or not. Therefore, Document#url etc. can be used.
     #   Use `doc.empty?` to determine if the page is valid.
@@ -218,7 +218,7 @@ module Wgit
     # @param follow_redirects [Boolean, Symbol] Whether or not to follow
     #   redirects. Pass a Symbol to limit where the redirect is allowed to go
     #   e.g. :host only allows redirects within the same host. Choose from
-    #   :base, :host, :domain or :brand. See Wgit::Url#relative? opts param.
+    #   :origin, :host, :domain or :brand. See Wgit::Url#relative? opts param.
     # @raise [StandardError] If url isn't valid and absolute.
     # @return [String, nil] The crawled HTML or nil if the crawl was
     #   unsuccessful.
@@ -250,10 +250,10 @@ module Wgit
     # @param follow_redirects [Boolean, Symbol] Whether or not to follow
     #   redirects. Pass a Symbol to limit where the redirect is allowed to go
     #   e.g. :host only allows redirects within the same host. Choose from
-    #   :base, :host, :domain or :brand. See Wgit::Url#relative? opts param.
+    #   :origin, :host, :domain or :brand. See Wgit::Url#relative? opts param.
     # @raise [StandardError] If a redirect isn't allowed etc.
     def resolve(url, response, follow_redirects: true)
-      orig_url_base = url.to_url.to_base # Recorded before any redirects.
+      origin = url.to_url.to_origin # Recorded before any redirects.
       follow_redirects, within = redirect?(follow_redirects)
 
       loop do
@@ -269,7 +269,7 @@ module Wgit
         # Validate if the redirect is allowed.
         raise "Redirect not allowed: #{location}" unless follow_redirects
 
-        if within && !location.relative?(within => orig_url_base)
+        if within && !location.relative?(within => origin)
           raise "Redirect (outside of #{within}) is not allowed: '#{location}'"
         end
 
@@ -277,7 +277,7 @@ module Wgit
         if response.redirect_count >= @redirect_limit
 
         # Process the location to be crawled next.
-        location = url.to_base.concat(location) if location.relative?
+        location = url.to_origin.concat(location) if location.relative?
         response.redirections[url.to_s] = location.to_s
         url.replace(location) # Update the url on redirect.
       end

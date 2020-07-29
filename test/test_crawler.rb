@@ -667,7 +667,7 @@ class TestCrawler < TestHelper
       # Error for :foo opts param.
       c.send :resolve, url, resp, follow_redirects: :foo
     end
-    assert_equal 'Unknown opts param: :foo, use one of: [:base, :host, :domain, :brand]', e.message
+    assert_equal 'Unknown opts param: :foo, use one of: [:origin, :host, :domain, :brand]', e.message
     assert_equal 'http://twitter.com', url
     assert resp.redirect?
   end

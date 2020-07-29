@@ -224,9 +224,9 @@ module Wgit
 
     # Returns the base URL of this Wgit::Document. The base URL is either the
     # <base> element's href value or @url (if @base is nil). If @base is
-    # present and relative, then @url.to_base + @base is returned. This method
-    # should be used instead of `doc.url.to_base` etc. when manually building
-    # absolute links from relative links; or use `link.prefix_base(doc)`.
+    # present and relative, then @url.to_origin + @base is returned. This method
+    # should be used instead of `doc.url.to_origin` etc. when manually building
+    # absolute links from relative links; or use `link.make_absolute(doc)`.
     #
     # Provide the `link:` parameter to get the correct base URL for that type
     # of link. For example, a link of `#top` would always return @url because
@@ -254,7 +254,7 @@ module Wgit
 be relative"
       end
 
-      get_base = -> { @base.relative? ? @url.to_base.concat(@base) : @base }
+      get_base = -> { @base.relative? ? @url.to_origin.concat(@base) : @base }
 
       if link
         link = Wgit::Url.new(link)
@@ -266,7 +266,7 @@ be relative"
         end
       end
 
-      base_url = @base ? get_base.call : @url.to_base
+      base_url = @base ? get_base.call : @url.to_origin
       base_url.omit_fragment.omit_query
     end
 
@@ -387,7 +387,7 @@ be relative"
       return [] if @links.empty?
 
       links = @links
-              .select { |link| link.relative?(host: @url.to_base) }
+              .select { |link| link.relative?(host: @url.to_origin) }
               .map(&:omit_base)
               .map do |link| # Map @url.to_host into / as it's a duplicate.
         link.to_host == @url.to_host ? Wgit::Url.new('/') : link
@@ -413,7 +413,7 @@ be relative"
       return [] if @links.empty?
 
       links = @links
-              .reject { |link| link.relative?(host: @url.to_base) }
+              .reject { |link| link.relative?(host: @url.to_origin) }
               .map(&:omit_trailing_slash)
 
       Wgit::Utils.sanitize(links)
