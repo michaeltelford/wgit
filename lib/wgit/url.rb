@@ -417,12 +417,31 @@ protocol scheme and domain (e.g. http://example.com): #{url}"
     end
 
     # Returns a new Wgit::Url containing just the query string of this URL
-    # e.g. Given http://google.com?q=ruby, '?q=ruby' is returned.
+    # e.g. Given http://google.com?q=foo&bar=1, 'q=ruby&bar=1' is returned.
     #
     # @return [Wgit::Url, nil] Containing just the query string or nil.
     def to_query
       query = @uri.query
       query ? Wgit::Url.new(query) : nil
+    end
+
+    # Returns a Hash containing just the query string parameters of this URL
+    # e.g. Given http://google.com?q=ruby, "{ 'q' => 'ruby' }" is returned.
+    #
+    # @param symbolize_keys [Boolean] The returned Hash keys will be Symbols if
+    #   true, Strings otherwise.
+    # @return [Hash<String | Symbol, String>] Containing the query string
+    #   params or empty if the URL doesn't contain any query parameters.
+    def to_query_hash(symbolize_keys: false)
+      query_str = to_query
+      return {} unless query_str
+
+      query_str.split('&').reduce({}) do |hash, param|
+        k, v = param.split('=')
+        k = k.to_sym if symbolize_keys
+        hash[k] = v
+        hash
+      end
     end
 
     # Returns a new Wgit::Url containing just the fragment string of this URL
@@ -585,6 +604,7 @@ protocol scheme and domain (e.g. http://example.com): #{url}"
     alias path         to_path
     alias endpoint     to_endpoint
     alias query        to_query
+    alias query_hash   to_query_hash
     alias fragment     to_fragment
     alias extension    to_extension
     alias user         to_user

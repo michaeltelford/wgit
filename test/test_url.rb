@@ -741,12 +741,21 @@ class TestUrl < TestHelper
     assert_equal 'q=ruby&page=2', url.to_query
     assert_equal Wgit::Url, url.to_query.class
 
-    url = Wgit::Url.new 'https://www.über.com/about?q=ruby&page=2'
+    url = Wgit::Url.new 'https://www.über.com/about?q=ruby&page=2#top'
     assert_equal 'q=ruby&page=2', url.to_query
     assert_equal Wgit::Url, url.to_query.class
 
     url = Wgit::Url.new 'http://www.google.co.uk'
     assert_nil url.to_query
+  end
+
+  def test_to_query_hash
+    url = Wgit::Url.new 'http://www.google.co.uk/about.html?q=ruby&page=2&limit=ten'
+    assert_equal({ 'q' => 'ruby', 'page' => '2', 'limit' => 'ten' }, url.to_query_hash)
+    assert_equal({ q: 'ruby', page: '2', limit: 'ten' }, url.to_query_hash(symbolize_keys: true))
+
+    url = Wgit::Url.new 'http://www.google.co.uk'
+    assert_empty url.to_query_hash
   end
 
   def test_to_fragment
