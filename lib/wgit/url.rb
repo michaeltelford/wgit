@@ -383,10 +383,22 @@ protocol scheme and domain (e.g. http://example.com): #{url}"
     # @return [Wgit::Url, nil] The base of self e.g. http://www.google.co.uk or
     #   nil.
     def to_base
-      return nil if @uri.scheme.nil? || @uri.host.nil?
+      return nil unless @uri.scheme && @uri.host
 
       base = "#{@uri.scheme}://#{@uri.host}"
       Wgit::Url.new(base)
+    end
+
+    # Returns only the origin of this URL e.g. the protocol scheme, host and
+    # port combined. For http://localhost:3000/api, http://localhost:3000 gets
+    # returned. If there's no port present, then to_base is returned.
+    #
+    # @return [Wgit::Url, nil] The origin of self or nil.
+    def to_origin
+      return nil unless to_base
+      return to_base unless to_port
+
+      Wgit::Url.new("#{to_base}:#{to_port}")
     end
 
     # Returns the path of this URL e.g. the bit after the host without slashes.
@@ -601,6 +613,7 @@ protocol scheme and domain (e.g. http://example.com): #{url}"
     alias domain       to_domain
     alias brand        to_brand
     alias base         to_base
+    alias origin       to_origin
     alias path         to_path
     alias endpoint     to_endpoint
     alias query        to_query
