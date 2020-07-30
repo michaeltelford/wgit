@@ -929,6 +929,52 @@ class TestUrl < TestHelper
     assert_equal Wgit::Url, url.omit_base.class
   end
 
+  def test_omit_origin
+    url = Wgit::Url.new 'http://google.com:81/search?q=foo#bar'
+    assert_equal 'search?q=foo#bar', url.omit_origin
+    assert_equal Wgit::Url, url.omit_origin.class
+
+    url = Wgit::Url.new 'http://google.com/search?q=foo#bar'
+    assert_equal 'search?q=foo#bar', url.omit_origin
+    assert_equal Wgit::Url, url.omit_origin.class
+
+    url = Wgit::Url.new '/about.html'
+    assert_equal 'about.html', url.omit_origin
+    assert_equal Wgit::Url, url.omit_origin.class
+
+    url = Wgit::Url.new '/about.html#hello/'
+    assert_equal 'about.html#hello', url.omit_origin
+    assert_equal Wgit::Url, url.omit_origin.class
+
+    url = Wgit::Url.new '/about.html/hello?a=b&b=c#about'
+    assert_equal 'about.html/hello?a=b&b=c#about', url.omit_origin
+    assert_equal Wgit::Url, url.omit_origin.class
+
+    url = Wgit::Url.new '/'
+    assert_equal url, url.omit_origin
+    assert_equal Wgit::Url, url.omit_origin.class
+
+    url = Wgit::Url.new 'https://google.com/'
+    assert_equal url, url.omit_origin
+    assert_equal Wgit::Url, url.omit_origin.class
+
+    url = Wgit::Url.new 'https://google.com'
+    assert_equal url, url.omit_origin
+    assert_equal Wgit::Url, url.omit_origin.class
+
+    url = Wgit::Url.new 'https://google.com:81/'
+    assert_equal url, url.omit_origin
+    assert_equal Wgit::Url, url.omit_origin.class
+
+    url = Wgit::Url.new 'https://google.com:81'
+    assert_equal url, url.omit_origin
+    assert_equal Wgit::Url, url.omit_origin.class
+
+    url = Wgit::Url.new 'https://www.über.com/about#top'
+    assert_equal 'about#top', url.omit_origin
+    assert_equal Wgit::Url, url.omit_origin.class
+  end
+
   def test_omit_query
     url = Wgit::Url.new 'http://google.com/search?q=hello&foo=bar'
     assert_equal 'http://google.com/search', url.omit_query

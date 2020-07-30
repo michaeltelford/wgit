@@ -538,7 +538,7 @@ protocol scheme and domain (e.g. http://example.com): #{url}"
         .omit_trailing_slash
     end
 
-    # Returns a new Wgit::Url with the base (proto and host) removed e.g. Given
+    # Returns a new Wgit::Url with the base (scheme and host) removed e.g. Given
     # http://google.com/search?q=something#about, search?q=something#about is
     # returned. If relative and base isn't present then self is returned.
     # Leading and trailing slashes are always stripped from the return value.
@@ -551,6 +551,21 @@ protocol scheme and domain (e.g. http://example.com): #{url}"
       return self if ['', '/'].include?(omit_base)
 
       Wgit::Url.new(omit_base).omit_slashes
+    end
+
+    # Returns a new Wgit::Url with the origin (base + port) removed e.g. Given
+    # http://google.com:81/search?q=something#about, search?q=something#about is
+    # returned. If relative and base isn't present then self is returned.
+    # Leading and trailing slashes are always stripped from the return value.
+    #
+    # @return [Wgit::Url] Self containing everything after the origin.
+    def omit_origin
+      origin = to_origin
+      omit_origin = origin ? gsub(origin, '') : self
+
+      return self if ['', '/'].include?(omit_origin)
+
+      Wgit::Url.new(omit_origin).omit_slashes
     end
 
     # Returns a new Wgit::Url with the query string portion removed e.g. Given
