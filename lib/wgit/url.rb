@@ -236,7 +236,8 @@ protocol scheme and domain (e.g. http://example.com): #{url}"
       Wgit::Url.new(concatted)
     end
 
-    # Normalises/escapes self and returns a new Wgit::Url. Self isn't modified.
+    # Normalizes/escapes self and returns a new Wgit::Url. Self isn't modified.
+    # This should be used before GET'ing the url, in case it has IRI chars.
     #
     # @return [Wgit::Url] An escaped version of self.
     def normalize
@@ -256,14 +257,14 @@ protocol scheme and domain (e.g. http://example.com): #{url}"
     #   link = Wgit::Url.new('/favicon.png')
     #   doc  = Wgit::Document.new('http://example.com')
     #
-    #   link.prefix_base(doc) # => "http://example.com/favicon.png"
+    #   link.make_absolute(doc) # => "http://example.com/favicon.png"
     #
     # @param doc [Wgit::Document] The doc whose base Url is concatted with
     #   self.
     # @raise [StandardError] If doc isn't a Wgit::Document or if `doc.base_url`
     #   raises an Exception.
     # @return [Wgit::Url] Self in absolute form.
-    def prefix_base(doc)
+    def make_absolute(doc)
       assert_type(doc, Wgit::Document)
 
       absolute? ? self : doc.base_url(link: self).concat(self)
@@ -292,8 +293,7 @@ protocol scheme and domain (e.g. http://example.com): #{url}"
     #
     # @return [Hash] self's instance vars as a Hash.
     def to_h
-      ignore = ['@uri']
-      h = Wgit::Utils.to_h(self, ignore: ignore)
+      h = Wgit::Utils.to_h(self, ignore: ['@uri'])
       Hash[h.to_a.insert(0, ['url', self])] # Insert url at position 0.
     end
 
@@ -343,6 +343,7 @@ protocol scheme and domain (e.g. http://example.com): #{url}"
     def to_port
       port = @uri.port
 
+      # @uri.port defaults port to 80/443 if missing, so we check for :#{port}.
       return nil unless port
       return nil unless include?(":#{port}")
 
@@ -358,6 +359,10 @@ protocol scheme and domain (e.g. http://example.com): #{url}"
       domain ? Wgit::Url.new(domain) : nil
     end
 
+    # Returns a new Wgit::Url containing just the sub domain of this URL e.g.
+    # Given http://scripts.dev.google.com, scripts.dev is returned.
+    #
+    # @return [Wgit::Url, nil] Containing just the sub domain or nil.
     def to_sub_domain
       return nil unless to_host
 

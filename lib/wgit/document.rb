@@ -402,7 +402,7 @@ be relative"
     #
     # @return [Array<Wgit::Url>] Self's unique internal Url's in absolute form.
     def internal_absolute_links
-      internal_links.map { |link| link.prefix_base(self) }
+      internal_links.map { |link| link.make_absolute(self) }
     end
 
     # Returns all unique external links from this Document in absolute form.

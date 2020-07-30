@@ -157,6 +157,7 @@ class TestUrl < TestHelper
     assert Wgit::Url.new('https://www.über.com/about#top').valid?
     refute Wgit::Url.new('/über').valid?
     assert Wgit::Url.new('https://über.com').valid?
+    assert Wgit::Url.new('http://example.com:5000').valid?
   end
 
   def test_invalid?
@@ -170,44 +171,45 @@ class TestUrl < TestHelper
     refute Wgit::Url.new('https://www.über.com/about#top').invalid?
     assert Wgit::Url.new('/über').invalid?
     refute Wgit::Url.new('https://über.com').invalid?
+    refute Wgit::Url.new('http://example.com:5000').invalid?
   end
 
-  def test_prefix_base
+  def test_make_absolute
     doc = Wgit::Document.new 'http://example.com'
 
     url = Wgit::Url.new 'http://www.google.co.uk/about.html'
-    assert_equal 'http://www.google.co.uk/about.html', url.prefix_base(doc)
-    assert_equal Wgit::Url, url.prefix_base(doc).class
+    assert_equal 'http://www.google.co.uk/about.html', url.make_absolute(doc)
+    assert_equal Wgit::Url, url.make_absolute(doc).class
 
     url = Wgit::Url.new '/about.html'
-    assert_equal 'http://example.com/about.html', url.prefix_base(doc)
-    assert_equal Wgit::Url, url.prefix_base(doc).class
+    assert_equal 'http://example.com/about.html', url.make_absolute(doc)
+    assert_equal Wgit::Url, url.make_absolute(doc).class
 
     url = Wgit::Url.new '/about.html/'
-    assert_equal 'http://example.com/about.html/', url.prefix_base(doc)
-    assert_equal Wgit::Url, url.prefix_base(doc).class
+    assert_equal 'http://example.com/about.html/', url.make_absolute(doc)
+    assert_equal Wgit::Url, url.make_absolute(doc).class
 
     url = Wgit::Url.new '/'
-    assert_equal 'http://example.com/', url.prefix_base(doc)
-    assert_equal Wgit::Url, url.prefix_base(doc).class
+    assert_equal 'http://example.com/', url.make_absolute(doc)
+    assert_equal Wgit::Url, url.make_absolute(doc).class
 
     url = Wgit::Url.new 'about.html'
-    assert_equal 'http://example.com/about.html', url.prefix_base(doc)
-    assert_equal Wgit::Url, url.prefix_base(doc).class
+    assert_equal 'http://example.com/about.html', url.make_absolute(doc)
+    assert_equal Wgit::Url, url.make_absolute(doc).class
 
     url = Wgit::Url.new '#about-us'
-    assert_equal 'http://example.com#about-us', url.prefix_base(doc)
-    assert_equal Wgit::Url, url.prefix_base(doc).class
+    assert_equal 'http://example.com#about-us', url.make_absolute(doc)
+    assert_equal Wgit::Url, url.make_absolute(doc).class
 
     url = Wgit::Url.new '?foo=bar'
-    assert_equal 'http://example.com?foo=bar', url.prefix_base(doc)
-    assert_equal Wgit::Url, url.prefix_base(doc).class
+    assert_equal 'http://example.com?foo=bar', url.make_absolute(doc)
+    assert_equal Wgit::Url, url.make_absolute(doc).class
 
     url = Wgit::Url.new 'https://www.über.com/about#top'
-    assert_equal 'https://www.über.com/about#top', url.prefix_base(doc)
-    assert_equal Wgit::Url, url.prefix_base(doc).class
+    assert_equal 'https://www.über.com/about#top', url.make_absolute(doc)
+    assert_equal Wgit::Url, url.make_absolute(doc).class
 
-    ex = assert_raises(StandardError) { 'blah'.to_url.prefix_base(true) }
+    ex = assert_raises(StandardError) { 'blah'.to_url.make_absolute(true) }
     assert_equal 'Expected: Wgit::Document, Actual: TrueClass', ex.message
   end
 

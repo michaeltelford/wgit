@@ -426,7 +426,7 @@ module Wgit
     def follow_xpath(doc, xpath)
       links = doc.send(:extract_from_html, xpath, singleton: false) do |urls|
         urls
-          .map { |url| Wgit::Url.parse?(url)&.prefix_base(doc) }
+          .map { |url| Wgit::Url.parse?(url)&.make_absolute(doc) }
           .compact
       end
 

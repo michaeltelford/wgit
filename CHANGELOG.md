@@ -38,6 +38,7 @@ This release is a big one with the introduction of a `Wgit::DSL` and Javascript 
 - Breaking change: Renamed `Wgit::Document#doc` to `#parser`.
 - Breaking change: Renamed `Wgit::Crawler#time_out` to `#timeout`. Same goes for the named param passed to `Wgit::Crawler.initialize`.
 - Breaking change: Refactored `Wgit::Url#relative?` now takes `:origin` instead of `:base` which takes the port into account. This has a knock on effect for some other methods too - check the docs if you're getting parameter errors.
+- Breaking change: Renamed `Wgit::Url#prefix_base` to `#make_absolute`.
 - Updated `Utils.printf_search_results` to return the number of results.
 - Updated `Wgit::Indexer.new` which can now be called without parameters - the first param (for a database) now defaults to `Wgit::Database.new` which works if `ENV['WGIT_CONNECTION_STRING']` is set.
 - Updated `Wgit::Document.define_extractor` to define a setter method (as well as the usual getter method).
