@@ -15,10 +15,10 @@ module Wgit
     include Assertable
 
     # The default name of the urls collection.
-    URLS_COLLECTION = :urls.freeze
+    URLS_COLLECTION = :urls
 
     # The default name of the documents collection.
-    DOCUMENTS_COLLECTION = :documents.freeze
+    DOCUMENTS_COLLECTION = :documents
 
     # The default name of the documents collection text search index.
     TEXT_INDEX = 'text_search'

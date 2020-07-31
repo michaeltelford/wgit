@@ -2,10 +2,11 @@
 
 # Wgit is a WWW indexer/scraper which crawls URL's and retrieves their page
 # contents for later use.
+#
 # @author Michael Telford
 module Wgit
   # The current gem version of Wgit.
-  VERSION = '0.8.0'
+  VERSION = '0.9.0'
 
   # Returns the current gem version of Wgit as a String.
   def self.version

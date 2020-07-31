@@ -453,11 +453,10 @@ protocol scheme and domain (e.g. http://example.com): #{url}"
       query_str = to_query
       return {} unless query_str
 
-      query_str.split('&').reduce({}) do |hash, param|
+      query_str.split('&').each_with_object({}) do |param, hash|
         k, v = param.split('=')
         k = k.to_sym if symbolize_keys
         hash[k] = v
-        hash
       end
     end
 

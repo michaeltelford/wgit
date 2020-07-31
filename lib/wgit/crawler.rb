@@ -378,6 +378,7 @@ module Wgit
       loop do
         sleep @parse_javascript_delay
         break if html.size == @browser.body.size
+
         html = @browser.body
       end
 
@@ -519,7 +520,7 @@ module Wgit
     def log_net(client, response, duration)
       resp_template  = "[#{client}] Response: %s (%s bytes in %s seconds)"
       log_status     = (response.status || 0)
-      log_total_time = duration.truncate(3)
+      log_total_time = (duration || 0.0).truncate(3)
 
       # The browsers request URL is the same so ignore it.
       if client.to_sym == :http
