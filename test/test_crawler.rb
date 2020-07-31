@@ -332,7 +332,7 @@ class TestCrawler < TestHelper
       'http://www.belfastpilates.co.uk/pilates/pilates-classes/pilates-classes-timetable'
     ], allow_paths: [
       'about-us/*',
-      'pilates/pilates-classes*'
+      '/pilates/pilates-classes*'
     ])
   end
 
@@ -354,7 +354,7 @@ class TestCrawler < TestHelper
       'http://www.belfastpilates.co.uk/category/uncategorized'
     ], disallow_paths: [
       'about-us*',
-      'pilates/pilates-classes',
+      '/pilates/pilates-classes/',
       'author/*',
       '/'
     ])

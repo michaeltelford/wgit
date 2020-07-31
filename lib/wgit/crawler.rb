@@ -479,7 +479,10 @@ module Wgit
       Wgit::Utils.sanitize(paths, encode: false)
       raise 'The provided paths cannot be empty' if paths.empty?
 
-      paths
+      paths.map do |path|
+        path = Wgit::Url.parse(path)
+        path == '/' ? path : path.omit_slashes
+      end
     end
 
     # Filters links by selecting/rejecting them based on their path.
