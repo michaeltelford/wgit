@@ -481,7 +481,7 @@ module Wgit
 
       paths.map do |path|
         path = Wgit::Url.parse(path)
-        path == '/' ? path : path.omit_slashes
+        path.index? ? path : path.omit_slashes
       end
     end
 
@@ -490,7 +490,7 @@ module Wgit
     def filter_links(links, filter_method, paths)
       links.send(filter_method) do |link|
         # Turn http://example.com into / meaning index.
-        link = link.to_endpoint == '/' ? '/' : link.omit_base
+        link = link.to_endpoint.index? ? '/' : link.omit_base
 
         match = false
         paths.each do |pattern|

@@ -1100,6 +1100,20 @@ class TestUrl < TestHelper
     refute url.fragment?
   end
 
+  def test_index?
+    url = Wgit::Url.new '/'
+    assert url.index?
+
+    url = Wgit::Url.new '/hello'
+    refute url.index?
+
+    url = Wgit::Url.new '/hello/'
+    refute url.index?
+
+    url = Wgit::Url.new 'http://example.com/'
+    refute url.index?
+  end
+
   def test_to_h
     mongo_doc = {
       'url' => 'http://www.google.co.uk',

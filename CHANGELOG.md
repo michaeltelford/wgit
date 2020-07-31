@@ -22,7 +22,7 @@ This release is a big one with the introduction of a `Wgit::DSL` and Javascript 
 - `Wgit::Document` methods: `#at_xpath`, `#at_css` - which call nokogiri underneath.
 - `Wgit::Document#extract` method to perform one off content extractions.
 - `Wgit::Indexer#index_urls` method which can index several urls in one call.
-- `Wgit::Url` methods: `#to_user`, `#to_password`, `#to_sub_domain`, `#to_port`, `#omit_origin`.
+- `Wgit::Url` methods: `#to_user`, `#to_password`, `#to_sub_domain`, `#to_port`, `#omit_origin`, `#index?`.
 ### Changed/Removed
 - Breaking change: Moved all `Wgit.index*` convienence methods into `Wgit::DSL`.
 - Breaking change: Removed `Wgit::Url#normalise`, use `#normalize` instead.
@@ -45,6 +45,7 @@ This release is a big one with the introduction of a `Wgit::DSL` and Javascript 
 - Updated `Wgit::Document#search` to support a `Regexp` query (in addition to a String).
 ### Fixed
 - [Re-indexing bug](https://github.com/michaeltelford/wgit/issues/8) so that indexing content a 2nd time will update it in the database - before it simply disgarded the document.
+- `Wgit::Crawler#crawl_site` params `allow/disallow_paths` values can now start with a `/`.
 ---
 
 ## v0.8.0

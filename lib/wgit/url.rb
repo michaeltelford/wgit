@@ -618,6 +618,13 @@ protocol scheme and domain (e.g. http://example.com): #{url}"
       start_with?('#')
     end
 
+    # Returns true if self equals '/' a.k.a. index.
+    #
+    # @return [Boolean] True if self equals '/', false otherwise.
+    def index?
+      self == '/'
+    end
+
     alias +            concat
     alias crawled?     crawled
     alias is_relative? relative?
@@ -625,6 +632,7 @@ protocol scheme and domain (e.g. http://example.com): #{url}"
     alias is_valid?    valid?
     alias is_query?    query?
     alias is_fragment? fragment?
+    alias is_index?    index?
     alias uri          to_uri
     alias url          to_url
     alias scheme       to_scheme
