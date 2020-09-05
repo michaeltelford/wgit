@@ -44,6 +44,36 @@ class TestReadme < TestHelper
     Wgit::Document.remove_extractor :authors
   end
 
+  def test_quotes__dsl_index
+    ### PUT README CODE BELOW ###
+
+    # require 'wgit'
+
+    # include Wgit::DSL
+
+    # Wgit.logger.level = Logger::WARN
+
+    # connection_string 'mongodb://user:password@localhost/crawler'
+
+    start  'http://quotes.toscrape.com/tag/humor/'
+    follow "//li[@class='next']/a/@href"
+
+    extract :quotes,  "//div[@class='quote']/span[@class='text']", singleton: false
+    extract :authors, "//div[@class='quote']/span/small",          singleton: false
+
+    index_site
+    results = search 'prejudice', stream: nil
+
+    ### PUT README CODE ABOVE ###
+
+    assert_equal 1, results.size
+    assert_equal 'http://quotes.toscrape.com/tag/humor/page/2/', results.first.url
+
+    # Clean up the extractors for other tests.
+    Wgit::Document.remove_extractor :quotes
+    Wgit::Document.remove_extractor :authors
+  end
+
   def test_quotes__classes
     ### PUT README CODE BELOW ###
 
@@ -71,39 +101,6 @@ class TestReadme < TestHelper
     ### PUT README CODE ABOVE ###
 
     assert_equal 12, quotes.size
-
-    # Clean up the extractors for other tests.
-    Wgit::Document.remove_extractor :quotes
-    Wgit::Document.remove_extractor :authors
-  end
-
-  def test_quotes__dsl_index
-    ### PUT README CODE BELOW ###
-
-    # require 'wgit'
-
-    # include Wgit::DSL
-
-    # Wgit.logger.level = Logger::WARN
-
-    # connection_string 'mongodb://user:password@localhost/crawler'
-    clear_db!
-
-    extract :quotes,  "//div[@class='quote']/span[@class='text']", singleton: false
-    extract :authors, "//div[@class='quote']/span/small",          singleton: false
-
-    start  'http://quotes.toscrape.com/tag/humor/'
-    follow "//li[@class='next']/a/@href"
-
-    index_site
-    # search 'prejudice'
-
-    results = search 'prejudice', stream: nil
-
-    ### PUT README CODE ABOVE ###
-
-    assert_equal 1, results.size
-    assert_equal 'http://quotes.toscrape.com/tag/humor/page/2/', results.first.url
 
     # Clean up the extractors for other tests.
     Wgit::Document.remove_extractor :quotes

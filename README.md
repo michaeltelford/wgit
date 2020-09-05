@@ -10,7 +10,7 @@
 
 Wgit is a HTML web crawler, written in Ruby, that allows you to programmatically extract the data you want from the web.
 
-Wgit was primarily designed to crawl static HTML websites to index and search their content - providing the basis of any search engine; but Wgit is suitable for many application domains including:
+Wgit was primarily designed to crawl static HTML websites to index and  search their content - providing the basis of any search engine; but Wgit is suitable for many application domains including:
 
 - URL parsing
 - Document content extraction (data mining)
@@ -62,6 +62,39 @@ end
 puts JSON.generate(quotes)
 ```
 
+But what if we want to crawl and store the content in a database, so that it can be searched? Wgit makes it easy to index and search HTML using [MongoDB](https://www.mongodb.com/):
+
+```ruby
+require 'wgit'
+
+include Wgit::DSL
+
+Wgit.logger.level = Logger::WARN
+
+connection_string 'mongodb://user:password@localhost/crawler'
+
+start  'http://quotes.toscrape.com/tag/humor/'
+follow "//li[@class='next']/a/@href"
+
+extract :quotes,  "//div[@class='quote']/span[@class='text']", singleton: false
+extract :authors, "//div[@class='quote']/span/small",          singleton: false
+
+index_site
+search 'prejudice'
+```
+
+The `search` call (on the last line) will return and output the results:
+
+```text
+Quotes to Scrape
+“I am free of all prejudice. I hate everyone equally. ”
+http://quotes.toscrape.com/tag/humor/page/2/
+```
+
+Using a MongoDB [client](https://robomongo.org/), we can see that the two web pages have been indexed, along with their extracted *quotes* and *authors*:
+
+![MongoDBClient](https://raw.githubusercontent.com/michaeltelford/wgit/assets/assets/wgit_mongo_index.png)
+
 The [DSL](https://github.com/michaeltelford/wgit/wiki/How-To-Use-The-DSL) makes it easy to write scripts for experimenting with. Wgit's DSL is simply a wrapper around the underlying classes however. For comparison, here is the above example written using the Wgit API *instead of* the DSL:
 
 ```ruby
@@ -86,40 +119,6 @@ end
 
 puts JSON.generate(quotes)
 ```
-
-But what if we want to crawl and store the content in a database, so that it can be searched? Wgit makes it easy to index and search HTML using [MongoDB](https://www.mongodb.com/):
-
-```ruby
-require 'wgit'
-
-include Wgit::DSL
-
-Wgit.logger.level = Logger::WARN
-
-connection_string 'mongodb://user:password@localhost/crawler'
-clear_db!
-
-extract :quotes,  "//div[@class='quote']/span[@class='text']", singleton: false
-extract :authors, "//div[@class='quote']/span/small",          singleton: false
-
-start  'http://quotes.toscrape.com/tag/humor/'
-follow "//li[@class='next']/a/@href"
-
-index_site
-search 'prejudice'
-```
-
-The `search` call (on the last line) will return and output the results:
-
-```text
-Quotes to Scrape
-“I am free of all prejudice. I hate everyone equally. ”
-http://quotes.toscrape.com/tag/humor/page/2/
-```
-
-Using a Mongo DB [client](https://robomongo.org/), we can see that the two webpages have been indexed, along with their extracted *quotes* and *authors*:
-
-![MongoDBClient](https://raw.githubusercontent.com/michaeltelford/wgit/assets/assets/wgit_mongo_index.png)
 
 ## Why Wgit?
 
@@ -161,33 +160,27 @@ Only MRI Ruby is tested and supported, but Wgit may work with other Ruby impleme
 
 Currently, the required MRI Ruby version is:
 
-`~> 2.5` a.k.a. `>= 2.5 && < 3`
+`~> 2.5` (a.k.a.) `>= 2.5 && < 3`
 
 ### Using Bundler
 
-Add this line to your application's `Gemfile`:
-
-```ruby
-gem 'wgit'
-```
-
-And then execute:
-
-    $ bundle
+    $ bundle add wgit
 
 ### Using RubyGems
 
     $ gem install wgit
 
-Verify the install by using the executable (to start an REPL session):
+### Verify
 
     $ wgit
+
+Calling the installed executable will start an REPL session.
 
 ## Documentation
 
 - [Getting Started](https://github.com/michaeltelford/wgit/wiki/Getting-Started)
 - [Wiki](https://github.com/michaeltelford/wgit/wiki)
-- [Yardocs](https://www.rubydoc.info/github/michaeltelford/wgit/master)
+- [API Yardocs](https://www.rubydoc.info/github/michaeltelford/wgit/master)
 - [CHANGELOG](https://github.com/michaeltelford/wgit/blob/master/CHANGELOG.md)
 
 ## Executable
