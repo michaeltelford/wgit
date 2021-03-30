@@ -413,6 +413,13 @@ be relative"
       return [] if @links.empty?
 
       links = @links
+              .map do |link|
+                if link.scheme_relative?
+                  link.prefix_scheme(@url.to_scheme.to_sym)
+                else
+                  link
+                end
+              end
               .reject { |link| link.relative?(host: @url.to_origin) }
               .map(&:omit_trailing_slash)
 

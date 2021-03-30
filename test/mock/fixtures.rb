@@ -33,6 +33,7 @@ stub_redirect 'http://www.myserver.com', 'http://test-site.com'
 stub_timeout 'http://doesnt_exist/'
 stub_timeout 'http://test-site.com/doesntexist'
 stub_page 'http://odd-extension.com/other.html5', body: '<p>Hello world</p>'
+stub_page 'http://fonts.googleapis.com'
 
 # Mock a website whose's content gets updated (between indexes).
 stub_request(:get, 'http://www.content-updates.com').

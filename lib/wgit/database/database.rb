@@ -186,7 +186,7 @@ module Wgit
       data_hash = model.merge(Wgit::Model.common_update_data)
       result = @client[collection].replace_one(query, data_hash, upsert: true)
 
-      result.matched_count == 0
+      result.matched_count.zero?
     end
 
     ### Retrieve Data ###

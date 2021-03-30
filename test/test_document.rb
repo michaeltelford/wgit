@@ -30,6 +30,7 @@ class TestDocument < TestHelper
         '#welcome',
         '?foo=bar',
         'http://www.google.co.uk',
+        '//fonts.googleapis.com',
         'http://www.mytestsite.com/security.html',
         '/about.html',
         'about.html/',
@@ -53,6 +54,7 @@ class TestDocument < TestHelper
         'Welcome',
         'Foo Bar',
         'Google',
+        'Scheme-relative URL',
         'Security',
         'Welcome to my site, I hope you like what you see and enjoy browsing the various randomness.',
         'About',
@@ -88,14 +90,14 @@ class TestDocument < TestHelper
     }
     @stats = {
       url: 30,
-      html: 3043,
+      html: 3180,
       title: 15,
       description: 32,
       author: 15,
       keywords: 3,
-      links: 20,
-      text: 35,
-      text_bytes: 563
+      links: 21,
+      text: 36,
+      text_bytes: 582
     }
   end
 
@@ -251,6 +253,7 @@ class TestDocument < TestHelper
     doc = Wgit::Document.new 'http://www.mytestsite.com/home'.to_url, @html
     assert_equal [
       'http://www.google.co.uk',
+      'http://fonts.googleapis.com',
       'http://www.yahoo.com',
       'http://www.bing.com',
       'https://search.yahoo.com/search?q=hello&page=2',
@@ -569,7 +572,7 @@ Minitest framework."
     results = doc.extract '//a', singleton: false, text_content_only: false
 
     assert_instance_of Nokogiri::XML::NodeSet, results
-    assert_equal 20, results.size
+    assert_equal 21, results.size
   end
 
   private

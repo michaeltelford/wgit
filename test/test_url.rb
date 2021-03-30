@@ -215,10 +215,13 @@ class TestUrl < TestHelper
 
   def test_prefix_scheme
     assert_equal 'http://my_server', Wgit::Url.new('my_server').prefix_scheme
-    assert_equal 'https://my_server', Wgit::Url.new('my_server').prefix_scheme(protocol: :https)
+    assert_instance_of Wgit::Url, Wgit::Url.new('my_server').prefix_scheme
+    assert_equal 'https://my_server', Wgit::Url.new('my_server').prefix_scheme(:https)
+    assert_equal 'http://my_server', Wgit::Url.new('//my_server').prefix_scheme(:http)
+    assert_equal 'https://my_server', Wgit::Url.new('//my_server').prefix_scheme(:https)
     assert_equal 'http://my_server', Wgit::Url.new('http://my_server').prefix_scheme
-    ex = assert_raises(StandardError) { Wgit::Url.new('my_server').prefix_scheme(protocol: :ftp) }
-    assert_equal 'protocol must be :http or :https, not :ftp', ex.message
+    ex = assert_raises(StandardError) { Wgit::Url.new('my_server').prefix_scheme(:ftp) }
+    assert_equal 'scheme must be :http or :https, not :ftp', ex.message
   end
 
   def test_replace__from_string
@@ -243,7 +246,7 @@ class TestUrl < TestHelper
     # Common type URL's.
     assert Wgit::Url.new('/about.html').relative?
     refute Wgit::Url.new('http://www.google.co.uk').relative?
-    assert Wgit::Url.new('//fonts.googleapis.com').relative?
+    refute Wgit::Url.new('//fonts.googleapis.com').relative?
     assert Wgit::Url.new('doesntexist').relative?
 
     # IRI's.
@@ -1112,6 +1115,23 @@ class TestUrl < TestHelper
 
     url = Wgit::Url.new 'http://example.com/'
     refute url.index?
+  end
+
+  def test_scheme_relative?
+    url = Wgit::Url.new '//'
+    assert url.scheme_relative?
+
+    url = Wgit::Url.new '/'
+    refute url.scheme_relative?
+
+    url = Wgit::Url.new '/hello'
+    refute url.scheme_relative?
+
+    url = Wgit::Url.new '/hello/'
+    refute url.scheme_relative?
+
+    url = Wgit::Url.new 'http://example.com/'
+    refute url.scheme_relative?
   end
 
   def test_to_h

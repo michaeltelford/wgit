@@ -162,6 +162,7 @@ Addressable::URI::InvalidURIError")
       opts = defaults.merge(opts)
       raise 'Url (self) cannot be empty' if empty?
 
+      return false if scheme_relative?
       return true if @uri.relative?
 
       # Self is absolute but may be relative to the opts param e.g. host.
@@ -270,22 +271,20 @@ protocol scheme and domain (e.g. http://example.com): #{url}"
       absolute? ? self : doc.base_url(link: self).concat(self)
     end
 
-    # Returns self having prefixed a protocol scheme. Doesn't modify receiver.
+    # Returns self having prefixed a scheme/protocol. Doesn't modify receiver.
     # Returns self even if absolute (with scheme); therefore is idempotent.
     #
-    # @param protocol [Symbol] Either :http or :https.
-    # @return [Wgit::Url] Self with a protocol scheme prefix.
-    def prefix_scheme(protocol: :http)
-      return self if absolute?
-
-      case protocol
-      when :http
-        Wgit::Url.new("http://#{url}")
-      when :https
-        Wgit::Url.new("https://#{url}")
-      else
-        raise "protocol must be :http or :https, not :#{protocol}"
+    # @param scheme [Symbol] Either :http or :https.
+    # @return [Wgit::Url] Self with a scheme prefix.
+    def prefix_scheme(scheme = :http)
+      unless %i[http https].include?(scheme)
+        raise "scheme must be :http or :https, not :#{scheme}"
       end
+
+      return self if absolute? && !scheme_relative?
+
+      separator = scheme_relative? ? '' : '//'
+      Wgit::Url.new("#{scheme}:#{separator}#{self}")
     end
 
     # Returns a Hash containing this Url's instance vars excluding @uri.
@@ -624,31 +623,40 @@ protocol scheme and domain (e.g. http://example.com): #{url}"
       self == '/'
     end
 
-    alias +            concat
-    alias crawled?     crawled
-    alias is_relative? relative?
-    alias is_absolute? absolute?
-    alias is_valid?    valid?
-    alias is_query?    query?
-    alias is_fragment? fragment?
-    alias is_index?    index?
-    alias uri          to_uri
-    alias url          to_url
-    alias scheme       to_scheme
-    alias host         to_host
-    alias port         to_port
-    alias domain       to_domain
-    alias brand        to_brand
-    alias base         to_base
-    alias origin       to_origin
-    alias path         to_path
-    alias endpoint     to_endpoint
-    alias query        to_query
-    alias query_hash   to_query_hash
-    alias fragment     to_fragment
-    alias extension    to_extension
-    alias user         to_user
-    alias password     to_password
-    alias sub_domain   to_sub_domain
+    # Returns true if self starts with '//' a.k.a a scheme/protocol relative
+    # path.
+    #
+    # @return [Boolean] True if self starts with '//', false otherwise.
+    def scheme_relative?
+      start_with?('//')
+    end
+
+    alias +                   concat
+    alias crawled?            crawled
+    alias is_relative?        relative?
+    alias is_absolute?        absolute?
+    alias is_valid?           valid?
+    alias is_query?           query?
+    alias is_fragment?        fragment?
+    alias is_index?           index?
+    alias is_scheme_relative? scheme_relative?
+    alias uri                 to_uri
+    alias url                 to_url
+    alias scheme              to_scheme
+    alias host                to_host
+    alias port                to_port
+    alias domain              to_domain
+    alias brand               to_brand
+    alias base                to_base
+    alias origin              to_origin
+    alias path                to_path
+    alias endpoint            to_endpoint
+    alias query               to_query
+    alias query_hash          to_query_hash
+    alias fragment            to_fragment
+    alias extension           to_extension
+    alias user                to_user
+    alias password            to_password
+    alias sub_domain          to_sub_domain
   end
 end

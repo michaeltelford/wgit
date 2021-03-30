@@ -1,5 +1,6 @@
 <!DOCTYPE html><!-- http://www.mytestsite.com/home -->
 <html>
+
 <head>
   <meta http-equiv="Content-type" content="text/html; charset=utf-8">
   <title>My Test Webpage</title>
@@ -11,12 +12,14 @@
   <script type="text/javascript" src="http://www.external-scripts.com/code.js"></script>
   <script type="text/javascript">var msg = "Hello from html head";</script>
 </head>
+
 <body id="main-body" onload="">
   <script type="text/javascript">var msg = "Hello from html body";</script>
   <h1>Howdy!</h1>
   <a href="#welcome">Welcome</a>
   <a href="?foo=bar">Foo Bar</a>
   <a href="http://www.google.co.uk">Google</a>
+  <a href="//fonts.googleapis.com">Scheme-relative URL</a>
   <a href="http://www.mytestsite.com/security.html">Security</a>
   <h2 id="welcome">Welcome to my site, I hope you like what you see and enjoy browsing the various randomness.</h2>
   <a href="/about.html">About</a>
@@ -29,9 +32,18 @@
   <span>
     Here is a table:
     <table>
-      <tr><th>Country</th><th>Capital</th></tr>
-      <tr><td>England</td><td>London</td></tr>
-      <tr><td>Ireland</td><td>Dublin</td></tr>
+      <tr>
+        <th>Country</th>
+        <th>Capital</th>
+      </tr>
+      <tr>
+        <td>England</td>
+        <td>London</td>
+      </tr>
+      <tr>
+        <td>Ireland</td>
+        <td>Dublin</td>
+      </tr>
     </table>
   </span>
   <br />
@@ -70,4 +82,5 @@
   <a href="http://ftp.mytestsite.com/">Same Domain FTP Server 2</a><!-- Duplicate of ftp.mytestsite.com -->
   <a href="http://ftp.mytestsite.com/files">Same Domain FTP Server Files</a>
 </body>
+
 </html>

@@ -106,7 +106,7 @@ class TestCrawler < TestHelper
   def test_crawl_url__parse_javascript__not_mocked
     # The duckduckgo.com host is not mocked to test the HTTP crawl logic.
     url = 'https://duckduckgo.com/?q=aid+workers'.to_url
-    crawler = Wgit::Crawler.new parse_javascript: true, parse_javascript_delay: 5
+    crawler = Wgit::Crawler.new parse_javascript: true
     doc = crawler.crawl_url(url)
 
     # Basic crawl assertions.
