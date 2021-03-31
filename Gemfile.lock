@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    wgit (0.9.0)
+    wgit (0.10.0)
       addressable (~> 2.6)
       ferrum (~> 0.8)
       mongo (~> 2.9)

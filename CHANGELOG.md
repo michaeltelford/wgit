@@ -9,6 +9,15 @@
 - ...
 ---
 
+## v0.10.0
+### Added
+- `Wgit::Url#scheme_relative?` method.
+### Changed/Removed
+- Breaking change: Changed method signature of `Wgit::Url#prefix_scheme` by making the previously named parameter a defaulted positional parameter. Remove the `protocol` named parameter for the old behaviour.
+### Fixed
+- [Scheme-relative bug](https://github.com/michaeltelford/wgit/issues/10) by adding support for scheme-relative URL's.
+---
+
 ## v0.9.0
 This release is a big one with the introduction of a `Wgit::DSL` and Javascript parse support. The `README` has been revamped as a result with new usage examples. And all of the wiki articles have been updated to reflect the latest code base.
 ### Added
