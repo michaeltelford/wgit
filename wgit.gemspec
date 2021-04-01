@@ -34,7 +34,7 @@ Gem::Specification.new do |s|
     'source_code_uri' => 'https://github.com/michaeltelford/wgit',
     'changelog_uri' => 'https://github.com/michaeltelford/wgit/blob/master/CHANGELOG.md',
     'bug_tracker_uri' => 'https://github.com/michaeltelford/wgit/issues',
-    'documentation_uri' => 'https://www.rubydoc.info/github/michaeltelford/wgit/master'
+    'documentation_uri' => 'https://www.rubydoc.info/gems/wgit'
   }
 
   s.platform              = Gem::Platform::RUBY

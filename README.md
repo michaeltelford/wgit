@@ -180,7 +180,7 @@ Calling the installed executable will start an REPL session.
 
 - [Getting Started](https://github.com/michaeltelford/wgit/wiki/Getting-Started)
 - [Wiki](https://github.com/michaeltelford/wgit/wiki)
-- [API Yardocs](https://www.rubydoc.info/github/michaeltelford/wgit/master)
+- [API Yardocs](https://www.rubydoc.info/gems/wgit)
 - [CHANGELOG](https://github.com/michaeltelford/wgit/blob/master/CHANGELOG.md)
 
 ## Executable

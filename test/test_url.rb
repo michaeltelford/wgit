@@ -296,7 +296,7 @@ class TestUrl < TestHelper
 
     # URL's with paths (including slashes).
     assert Wgit::Url.new('http://www.google.co.uk/about.html').relative? origin: 'http://www.google.co.uk'
-    refute Wgit::Url.new('https://www.google.co.uk').relative? origin: 'http://www.google.co.uk' # Diff protocol.
+    refute Wgit::Url.new('https://www.google.co.uk').relative? origin: 'http://www.google.co.uk' # Diff scheme.
     refute Wgit::Url.new('http://www.google.co.uk/about.html').relative? origin: 'http://bing.com'
     assert Wgit::Url.new('http://www.google.co.uk').relative? origin: 'http://www.google.co.uk'
     assert Wgit::Url.new('http://www.google.co.uk/').relative? origin: 'http://www.google.co.uk'
@@ -344,7 +344,7 @@ class TestUrl < TestHelper
 
     # URL's with paths (including slashes).
     assert Wgit::Url.new('http://www.google.co.uk/about.html').relative? host: 'http://www.google.co.uk'
-    assert Wgit::Url.new('https://www.google.co.uk').relative? host: 'http://www.google.co.uk' # Diff protocol.
+    assert Wgit::Url.new('https://www.google.co.uk').relative? host: 'http://www.google.co.uk' # Diff scheme.
     refute Wgit::Url.new('http://www.google.co.uk/about.html').relative? host: 'http://bing.com'
     assert Wgit::Url.new('http://www.google.co.uk').relative? host: 'http://www.google.co.uk'
     assert Wgit::Url.new('http://www.google.co.uk/').relative? host: 'http://www.google.co.uk'
@@ -392,7 +392,7 @@ class TestUrl < TestHelper
 
     # URL's with paths (including slashes).
     assert Wgit::Url.new('http://www.google.co.uk/about.html').relative? domain: 'http://www.google.co.uk'
-    assert Wgit::Url.new('https://www.google.co.uk').relative? domain: 'http://www.google.co.uk' # Diff protocol.
+    assert Wgit::Url.new('https://www.google.co.uk').relative? domain: 'http://www.google.co.uk' # Diff scheme.
     refute Wgit::Url.new('http://www.google.co.uk/about.html').relative? domain: 'http://bing.com'
     assert Wgit::Url.new('http://www.google.co.uk').relative? domain: 'http://www.google.co.uk'
     assert Wgit::Url.new('http://www.google.co.uk/').relative? domain: 'http://www.google.co.uk'
@@ -440,7 +440,7 @@ class TestUrl < TestHelper
 
     # URL's with paths (including slashes).
     assert Wgit::Url.new('http://www.google.co.uk/about.html').relative? brand: 'http://www.google.co.uk'
-    assert Wgit::Url.new('https://www.google.co.uk').relative? brand: 'http://www.google.co.uk' # Diff protocol.
+    assert Wgit::Url.new('https://www.google.co.uk').relative? brand: 'http://www.google.co.uk' # Diff scheme.
     assert Wgit::Url.new('http://www.google.co.uk/about.html').relative? brand: 'https://www.google.com'
     refute Wgit::Url.new('http://www.google.co.uk/about.html').relative? brand: 'http://bing.com'
     assert Wgit::Url.new('http://www.google.co.uk').relative? brand: 'http://www.google.co.uk'
