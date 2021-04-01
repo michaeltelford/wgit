@@ -151,6 +151,7 @@ class TestUrl < TestHelper
     assert Wgit::Url.new('http://google.com').valid?
     refute Wgit::Url.new('http://google').valid?
     refute Wgit::Url.new('http://google/').valid?
+    refute Wgit::Url.new('//fonts.google.com').valid?
     refute Wgit::Url.new('my_server').valid?
     refute Wgit::Url.new('my_server.com').valid?
     assert Wgit::Url.new('http://www.google.co.uk/about.html#about-us').valid?
@@ -165,6 +166,7 @@ class TestUrl < TestHelper
     refute Wgit::Url.new('http://google.com').invalid?
     assert Wgit::Url.new('http://google').invalid?
     assert Wgit::Url.new('http://google/').invalid?
+    assert Wgit::Url.new('//fonts.google.com').invalid?
     assert Wgit::Url.new('my_server').invalid?
     assert Wgit::Url.new('my_server.com').invalid?
     refute Wgit::Url.new('http://www.google.co.uk/about.html#about-us').invalid?
@@ -179,6 +181,10 @@ class TestUrl < TestHelper
 
     url = Wgit::Url.new 'http://www.google.co.uk/about.html'
     assert_equal 'http://www.google.co.uk/about.html', url.make_absolute(doc)
+    assert_equal Wgit::Url, url.make_absolute(doc).class
+
+    url = Wgit::Url.new '//www.google.co.uk'
+    assert_equal 'http://www.google.co.uk', url.make_absolute(doc)
     assert_equal Wgit::Url, url.make_absolute(doc).class
 
     url = Wgit::Url.new '/about.html'
@@ -211,6 +217,10 @@ class TestUrl < TestHelper
 
     ex = assert_raises(StandardError) { 'blah'.to_url.make_absolute(true) }
     assert_equal 'Expected: Wgit::Document, Actual: TrueClass', ex.message
+
+    doc = Wgit::Document.new '/about'
+    ex = assert_raises(StandardError) { 'blah'.to_url.make_absolute(doc) }
+    assert_equal 'Cannot make absolute when Document @url is not valid', ex.message
   end
 
   def test_prefix_scheme

@@ -267,6 +267,10 @@ protocol scheme and domain (e.g. http://example.com): #{url}"
     # @return [Wgit::Url] Self in absolute form.
     def make_absolute(doc)
       assert_type(doc, Wgit::Document)
+      raise 'Cannot make absolute when Document @url is not valid' \
+      unless doc.url.valid?
+
+      return prefix_scheme(doc.url.to_scheme&.to_sym) if scheme_relative?
 
       absolute? ? self : doc.base_url(link: self).concat(self)
     end
