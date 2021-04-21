@@ -1,2 +1,2 @@
-test/mock/fixtures/* linguist-vendored
+test/mock/fixtures/**/*.html linguist-vendored
 docker/* linguist-vendored
