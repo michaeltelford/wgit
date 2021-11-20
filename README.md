@@ -160,7 +160,7 @@ Only MRI Ruby is tested and supported, but Wgit may work with other Ruby impleme
 
 Currently, the required MRI Ruby version is:
 
-`~> 2.5` (a.k.a.) `>= 2.5 && < 3`
+`ruby '>= 2.6', '< 4'`
 
 ### Using Bundler
 

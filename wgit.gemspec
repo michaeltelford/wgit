@@ -38,7 +38,7 @@ Gem::Specification.new do |s|
   }
 
   s.platform              = Gem::Platform::RUBY
-  s.required_ruby_version = '~> 2.5'
+  s.required_ruby_version = '>= 2.6', '< 4'
 
   s.add_runtime_dependency 'addressable', '~> 2.6'
   s.add_runtime_dependency 'mongo', '~> 2.9'
