@@ -9,6 +9,15 @@
 - ...
 ---
 
+## v0.10.1
+### Added
+- Support for Ruby 3.
+### Changed/Removed
+- Removed support for Ruby 2.5 (as it's too old).
+### Fixed
+- ...
+---
+
 ## v0.10.0
 ### Added
 - `Wgit::Url#scheme_relative?` method.

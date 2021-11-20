@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    wgit (0.10.0)
+    wgit (0.10.1)
       addressable (~> 2.6)
       ferrum (~> 0.8)
       mongo (~> 2.9)
@@ -34,10 +34,12 @@ GEM
     maxitest (3.7.0)
       minitest (>= 5.0.0, < 5.15.0)
     method_source (1.0.0)
+    mini_portile2 (2.6.1)
     minitest (5.14.4)
     mongo (2.17.0)
       bson (>= 4.8.2, < 5.0.0)
     nokogiri (1.12.5)
+      mini_portile2 (~> 2.6.1)
       racc (~> 1.4)
     parallel (1.21.0)
     parser (3.0.2.0)
