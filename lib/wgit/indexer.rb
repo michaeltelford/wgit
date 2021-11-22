@@ -80,8 +80,8 @@ database capacity, exiting.")
           urls_count += write_urls_to_db(ext_links)
         end
 
-        Wgit.logger.info("Crawled and indexed docs for #{docs_count} url(s) \
-overall for this iteration.")
+        Wgit.logger.info("Crawled and indexed documents for #{docs_count} \
+url(s) overall for this iteration.")
         Wgit.logger.info("Found and saved #{urls_count} external url(s) for \
 the next iteration.")
 
@@ -136,8 +136,8 @@ the next iteration.")
         Wgit.logger.info("Found and saved #{num_inserted_urls} external url(s)")
       end
 
-      Wgit.logger.info("Crawled and indexed #{total_pages_indexed} docs for \
-the site: #{url}")
+      Wgit.logger.info("Crawled and indexed #{total_pages_indexed} documents \
+for the site: #{url}")
 
       total_pages_indexed
     end

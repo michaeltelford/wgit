@@ -35,6 +35,28 @@ class DefaultModeCrawler < Wgit::Base
   end
 end
 
+class SetupTeardownCrawler < Wgit::Base
+  attr_reader :count
+
+  start 'http://quotes.toscrape.com/tag/humor/'
+
+  def initialize
+    @count = 0
+  end
+
+  def setup
+    @count += 1
+  end
+
+  def parse(doc)
+    @count += 1
+  end
+
+  def teardown
+    @count += 1
+  end
+end
+
 # Test class for the Base class logic.
 class TestBase < TestHelper
   # Runs before every test.
@@ -64,5 +86,10 @@ class TestBase < TestHelper
     DefaultModeCrawler.run do |url|
       assert_equal 'http://quotes.toscrape.com/tag/humor/', url
     end
+  end
+
+  def test_setup_teardown_crawler
+    crawler = SetupTeardownCrawler.run
+    assert_equal 3, crawler.count
   end
 end

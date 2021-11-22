@@ -9,6 +9,15 @@
 - ...
 ---
 
+## v0.10.2
+### Added
+- `Wgit::Base#setup` and `#teardown` methods (lifecycle hooks) that can be overridden by subclasses.
+### Changed/Removed
+- ...
+### Fixed
+- ...
+---
+
 ## v0.10.1
 ### Added
 - Support for Ruby 3.
