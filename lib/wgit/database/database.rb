@@ -91,29 +91,27 @@ module Wgit
 
     ### DDL ###
 
-    # Creates the urls and documents collections if they don't already exist.
-    # This method is therefore idempotent.
+    # Creates the 'urls' and 'documents' collections.
     #
     # @return [nil] Always returns nil.
     def create_collections
-      db.client[URLS_COLLECTION].create rescue nil
-      db.client[DOCUMENTS_COLLECTION].create rescue nil
+      @client[URLS_COLLECTION].create
+      @client[DOCUMENTS_COLLECTION].create
 
       nil
     end
 
-    # Creates the urls and documents unique 'url' indexes if they don't already
-    # exist. This method is therefore idempotent.
+    # Creates the urls and documents unique 'url' indexes.
     #
     # @return [nil] Always returns nil.
     def create_unique_indexes
       @client[URLS_COLLECTION].indexes.create_one(
         { url: 1 }, name: UNIQUE_INDEX, unique: true
-      ) rescue nil
+      )
 
       @client[DOCUMENTS_COLLECTION].indexes.create_one(
         { 'url.url' => 1 }, name: UNIQUE_INDEX, unique: true
-      ) rescue nil
+      )
 
       nil
     end

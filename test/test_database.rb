@@ -58,7 +58,7 @@ class TestDatabase < TestHelper
     db = Wgit::Database.new
 
     urls = db.client[Wgit::Database::URLS_COLLECTION]
-    docs = db.client[Wgit::Database::URLS_COLLECTION]
+    docs = db.client[Wgit::Database::DOCUMENTS_COLLECTION]
 
     urls.drop
     docs.drop
