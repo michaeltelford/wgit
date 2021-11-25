@@ -9,6 +9,15 @@
 - ...
 ---
 
+## v0.10.3
+### Added
+- ...
+### Changed/Removed
+- Changed `Database#create_collections` and `#create_unique_indexes` by removing `rescue nil` from their database operations. Now any underlying errors with the database client are not masked.
+### Fixed
+- ...
+---
+
 ## v0.10.2
 ### Added
 - `Wgit::Base#setup` and `#teardown` methods (lifecycle hooks) that can be overridden by subclasses.
