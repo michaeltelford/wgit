@@ -9,6 +9,15 @@
 - ...
 ---
 
+## v0.10.4
+### Added
+- `Database#search_text` method which returns a Hash of `url => text_results` instead of `Wgit::Documents` (like `#search`).
+### Changed/Removed
+- ...
+### Fixed
+- ...
+---
+
 ## v0.10.3
 ### Added
 - ...
