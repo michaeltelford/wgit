@@ -307,6 +307,36 @@ class TestDatabase < TestHelper
     assert_equal ['Foo Bar'], match.text
   end
 
+  def test_search_text
+    # All dev data @docs contain the word 'peak' in the text.
+    # But doc only has 'peak' in the title and shouldn't be returned.
+    html = '<html><head><title>peak</title></head></html>'
+    doc = Wgit::Document.new 'http://example.com'.to_url, html
+    test_docs = @docs + [doc]
+    seed { docs test_docs }
+
+    query = 'peak'
+    expected_url = 'http://altitudejunkies.com/everest.html'
+    expected_matches = [
+      '· Expedition permit, peak fee and conservation fees',
+      ' a 7,000-meter or 8,000-meter Himalayan peak to qualify for our expedition. We d',
+      '8,000-meter peaks are a serious undertaking and climbers need to be aware there ',
+      'All climbers need to have climbed on a 7,000-8,000-meter peak previously'
+    ]
+
+    db = Wgit::Database.new
+    results =     db.search_text(query)
+    top_results = db.search_text(query, top_result_only: true)
+
+    assert_equal 3, results.size
+    assert_instance_of Hash, results
+    assert_instance_of Hash, top_results
+    assert results.keys.all? { |url| url.start_with? expected_url }
+    assert top_results.keys.all? { |url| url.start_with? expected_url }
+    assert_equal expected_matches, results.values.first
+    assert top_results.values.all? { |text| text == expected_matches.first }
+  end
+
   def test_stats
     db = Wgit::Database.new
     stats = db.stats

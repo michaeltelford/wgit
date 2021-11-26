@@ -453,7 +453,7 @@ be relative"
 
       if query.is_a?(Regexp)
         regex = query
-      else # respond_to? #to_s == true
+      else # query.respond_to? :to_s == true
         query = query.to_s
         query = query.gsub(' ', '|') unless whole_sentence
         regex = Regexp.new(query, !case_sensitive)

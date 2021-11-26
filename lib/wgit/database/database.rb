@@ -348,6 +348,58 @@ module Wgit
       results
     end
 
+    # Searches the database's Documents for the given query and then searches
+    # each result in turn using `doc.search`. Instead of an Array of Documents,
+    # this method returns a Hash of the docs url => search_results creating a
+    # search engine like result set for quick access to text matches.
+    #
+    # @param query [String] The text query to search with.
+    # @param case_sensitive [Boolean] Whether character case must match.
+    # @param whole_sentence [Boolean] Whether multiple words should be searched
+    #   for separately.
+    # @param limit [Integer] The max number of results to return.
+    # @param skip [Integer] The number of results to skip.
+    # @param sentence_limit [Integer] The max length of each search result
+    #   sentence.
+    # @param top_result_only [Boolean] Whether to return all of the documents
+    #   search results or just the top (most relavent) result.
+    # @yield [doc] Given each search result (Wgit::Document) returned from the
+    #   DB.
+    # @return [Hash<String, String | Array<String>>] The search results obtained
+    #   from the DB having mapped the docs url => search_results. The format of
+    #   search_results depends on the value of `top_result_only`.
+    def search_text(
+      query, case_sensitive: false, whole_sentence: true,
+      limit: 10, skip: 0, sentence_limit: 80, top_result_only: false
+    )
+      results = search(
+        query,
+        case_sensitive: case_sensitive,
+        whole_sentence: whole_sentence,
+        limit: limit,
+        skip: skip
+      )
+
+      results
+        .map do |doc|
+          yield(doc) if block_given?
+
+          results = doc.search(
+            query,
+            case_sensitive: case_sensitive,
+            whole_sentence: whole_sentence,
+            sentence_limit: sentence_limit
+          )
+
+          # Only return result if its text has a match - compact is called below.
+          next nil if results.empty?
+
+          [doc.url, (top_result_only ? results.first : results)]
+        end
+        .compact
+        .to_h
+    end
+
     # Returns statistics about the database.
     #
     # @return [BSON::Document#[]#fetch] Similar to a Hash instance.
