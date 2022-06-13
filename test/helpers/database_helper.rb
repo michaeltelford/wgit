@@ -35,7 +35,7 @@ module DatabaseHelper
   #   seed do
   #     url(Wgit::Url | Hash)
   #     doc(Wgit::Document | Hash)
-  #     url 3   # Seeds 3 of the default dev url records.
+  #     urls 3  # Seeds 3 of the default dev url records.
   #     doc     # Seeds 1 of the default dev doc records.
   #   end
   def seed(&block)

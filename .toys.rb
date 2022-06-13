@@ -43,7 +43,7 @@ tool :compile do
   include :terminal
 
   def run
-    Dir['**/*.rb', '**/*.gemspec', 'bin/console'].each do |file|
+    Dir['**/*.rb', '**/*.gemspec', 'bin/wgit'].each do |file|
       puts "\nCompiling #{file}...", :cyan
       exec "ruby -cw #{file}"
     end

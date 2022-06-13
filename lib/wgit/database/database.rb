@@ -44,6 +44,9 @@ module Wgit
     # The documents collection text index, used to search the DB.
     # A custom setter method is also provided for changing the search logic.
     attr_reader :text_index
+    
+    # The raw MongoDB result of the most recent operation.
+    attr_reader :last_result
 
     # Initializes a connected database client using the provided
     # connection_string or ENV['WGIT_CONNECTION_STRING'].
@@ -185,6 +188,8 @@ module Wgit
       result = @client[collection].replace_one(query, data_hash, upsert: true)
 
       result.matched_count.zero?
+    ensure
+      @last_result = result
     end
 
     ### Retrieve Data ###
@@ -294,16 +299,12 @@ module Wgit
       results = retrieve(DOCUMENTS_COLLECTION, query,
                          sort: sort_proj, projection: sort_proj,
                          limit: limit, skip: skip)
-      return [] if results.count < 1 # respond_to? :empty? == false
 
-      # results.respond_to? :map! is false so we use map and overwrite the var.
-      results = results.map do |mongo_doc|
+      results.map do |mongo_doc|
         doc = Wgit::Document.new(mongo_doc)
         yield(doc) if block_given?
         doc
       end
-
-      results
     end
 
     # Searches the database's Documents for the given query and then searches
@@ -506,21 +507,30 @@ module Wgit
     #   0 or 1 because urls are unique.
     def delete(obj)
       collection, query = get_type_info(obj)
-      @client[collection].delete_one(query).n
+      result = @client[collection].delete_one(query)
+      result.n
+    ensure
+      @last_result = result
     end
 
     # Deletes everything in the urls collection.
     #
     # @return [Integer] The number of deleted records.
     def clear_urls
-      @client[URLS_COLLECTION].delete_many({}).n
+      result = @client[URLS_COLLECTION].delete_many({})
+      result.n
+    ensure
+      @last_result = result
     end
 
     # Deletes everything in the documents collection.
     #
     # @return [Integer] The number of deleted records.
     def clear_docs
-      @client[DOCUMENTS_COLLECTION].delete_many({}).n
+      result = @client[DOCUMENTS_COLLECTION].delete_many({})
+      result.n
+    ensure
+      @last_result = result
     end
 
     # Deletes everything in the urls and documents collections. This will nuke
@@ -588,6 +598,8 @@ module Wgit
       else
         raise 'data must be a Hash or an Array of Hashes'
       end
+    ensure
+      @last_result = result
     end
 
     # Return if the write to the DB succeeded or not.
@@ -624,8 +636,8 @@ module Wgit
                  sort: {}, projection: {},
                  limit: 0, skip: 0)
       assert_type(query, Hash)
-      @client[collection.to_sym].find(query).projection(projection)
-                                .skip(skip).limit(limit).sort(sort)
+      @last_result = @client[collection.to_sym].find(query).projection(projection)
+                                               .skip(skip).limit(limit).sort(sort)
     end
 
     # Mutate/update one or more Url or Document records in the DB.
@@ -645,6 +657,8 @@ module Wgit
       raise 'DB write(s) (update) failed' unless write_succeeded?(result)
 
       result.n
+    ensure
+      @last_result = result
     end
 
     alias num_objects num_records

@@ -123,7 +123,7 @@ class TestCrawler < TestHelper
     refute_nil url.crawl_duration
 
     # Assert the JS generated HTML is present.
-    xpath = '//div[contains(@class, "result__body")]'
+    xpath = '//article[contains(@data-testid, "result")]'
     assert_equal 10, doc.xpath(xpath).size
   end
 

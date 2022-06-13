@@ -27,10 +27,14 @@ class TestDatabase < TestHelper
     db = Wgit::Database.new
     refute_nil db.connection_string
     refute_nil db.client
+    assert_equal db.text_index, Wgit::Database::DEFAULT_TEXT_INDEX
+    assert_nil db.last_result
 
     db = Wgit::Database.new ENV['WGIT_CONNECTION_STRING']
     refute_nil db.connection_string
     refute_nil db.client
+    assert_equal db.text_index, Wgit::Database::DEFAULT_TEXT_INDEX
+    assert_nil db.last_result
 
     reset_connection_string do
       e = assert_raises(StandardError) { Wgit::Database.new }
@@ -42,10 +46,14 @@ class TestDatabase < TestHelper
     db = Wgit::Database.connect
     refute_nil db.connection_string
     refute_nil db.client
+    assert_equal db.text_index, Wgit::Database::DEFAULT_TEXT_INDEX
+    assert_nil db.last_result
 
     db = Wgit::Database.connect ENV['WGIT_CONNECTION_STRING']
     refute_nil db.connection_string
     refute_nil db.client
+    assert_equal db.text_index, Wgit::Database::DEFAULT_TEXT_INDEX
+    assert_nil db.last_result
 
     reset_connection_string do
       e = assert_raises(StandardError) { Wgit::Database.connect }
@@ -117,6 +125,7 @@ class TestDatabase < TestHelper
     # Insert 1 url.
     num_inserted = db.insert @url
     assert_equal 1, num_inserted
+    refute_nil db.last_result
     assert url?(@url.to_h)
     assert_equal 1, db.num_urls
 
@@ -138,6 +147,7 @@ class TestDatabase < TestHelper
     # Insert 1 doc.
     num_inserted = db.insert @doc
     assert_equal 1, num_inserted
+    refute_nil db.last_result
     assert doc?(Wgit::Model.document(@doc))
     assert_equal 1, db.num_docs
 
@@ -154,9 +164,11 @@ class TestDatabase < TestHelper
 
     assert db.upsert(@url)
     assert_equal 1, db.num_records
+    refute_nil db.last_result
 
     assert db.upsert(@doc)
     assert_equal 2, db.num_records
+    refute_nil db.last_result
 
     @url.crawled = false
     refute db.upsert(@url)
@@ -176,6 +188,7 @@ class TestDatabase < TestHelper
     # Test non empty docs results.
     assert docs.all? { |doc| doc.instance_of? Wgit::Document }
     assert_equal 3, docs.length
+    refute_nil db.last_result
 
     # Test limit and skip.
     assert_equal @docs[1], db.docs(skip: 1, limit: 1).first
@@ -188,6 +201,8 @@ class TestDatabase < TestHelper
     assert_empty db.urls
     assert_empty db.crawled_urls
     assert_empty db.uncrawled_urls
+    
+    refute_nil db.last_result
 
     # Seed url data to the DB.
     # Url 1 crawled == false, Url 2 & 3 crawled == true.
@@ -223,6 +238,7 @@ class TestDatabase < TestHelper
 
     # Test no results.
     assert_empty db.search('doesnt_exist_123')
+    refute_nil db.last_result
 
     # Test case_sensitive: false and block.
     count = 0
@@ -258,10 +274,13 @@ class TestDatabase < TestHelper
     db = Wgit::Database.new
 
     assert_equal 3, db.search('everest').length
+    assert_equal 3, db.last_result&.count
 
     # Test limit.
     results = db.search('everest', limit: 2)
     assert_equal 2, results.length
+    assert_equal 3, db.last_result&.count
+    
     results.each_with_index do |doc, i|
       doc.instance_of? Wgit::Document
       assert_equal @docs[i], doc
@@ -271,6 +290,8 @@ class TestDatabase < TestHelper
     # Test skip.
     results = db.search('everest', skip: 1)
     assert_equal 2, results.length
+    assert_equal 3, db.last_result&.count
+    
     results.each_with_index do |doc, i|
       doc.instance_of? Wgit::Document
       assert_equal @docs[i + 1], doc
@@ -280,6 +301,8 @@ class TestDatabase < TestHelper
     # Test limit and skip.
     results = db.search('everest', limit: 1, skip: 1)
     assert_equal 1, results.length
+    assert_equal 3, db.last_result&.count
+    
     results.each do |doc|
       doc.instance_of? Wgit::Document
       assert_equal @docs[1], doc
@@ -302,6 +325,7 @@ class TestDatabase < TestHelper
     end
 
     assert_equal 1, results.length
+    assert_equal 1, db.last_result&.count
     assert results.all? { |doc| doc.instance_of? Wgit::Document }
     assert results.first.object_id, match.object_id
     assert_equal ['Foo Bar'], match.text
@@ -329,6 +353,7 @@ class TestDatabase < TestHelper
     top_results = db.search_text(query, top_result_only: true)
 
     assert_equal 3, results.size
+    assert_equal 4, db.last_result&.count
     assert_instance_of Hash, results
     assert_instance_of Hash, top_results
     assert results.keys.all? { |url| url.start_with? expected_url }
@@ -408,10 +433,12 @@ class TestDatabase < TestHelper
     end
 
     result = db.get(@url)
+    refute_nil db.last_result
     assert_instance_of Wgit::Url, result
     assert_equal @url.to_h, result.to_h
 
     result = db.get(@doc)
+    refute_nil db.last_result
     assert_instance_of Wgit::Document, result
     assert_equal @doc.to_h, result.to_h
   end
@@ -423,6 +450,7 @@ class TestDatabase < TestHelper
     assert_equal 'obj must be a Wgit::Url or Wgit::Document, not: Integer', ex.message
 
     assert_nil db.get(@url)
+    refute_nil db.last_result
   end
 
   def test_update__url
@@ -432,6 +460,7 @@ class TestDatabase < TestHelper
     result = db.update @url
 
     assert_equal 1, result
+    refute_nil db.last_result
     assert url? @url.to_h
     refute url? url: @url, crawled: true
   end
@@ -444,6 +473,7 @@ class TestDatabase < TestHelper
     result = db.update @doc
 
     assert_equal 1, result
+    refute_nil db.last_result
     assert doc?(Wgit::Model.document(@doc))
     refute doc? url: @doc.url, title: 'Altitude Junkies | Everest'
   end
@@ -451,6 +481,7 @@ class TestDatabase < TestHelper
   def test_delete
     db = Wgit::Database.new
     assert_equal 0, db.delete(@url)
+    refute_nil db.last_result
 
     seed { url @url }
     assert_equal 1, db.delete(@url)
