@@ -44,7 +44,7 @@ module Wgit
     # The documents collection text index, used to search the DB.
     # A custom setter method is also provided for changing the search logic.
     attr_reader :text_index
-    
+
     # The raw MongoDB result of the most recent operation.
     attr_reader :last_result
 
