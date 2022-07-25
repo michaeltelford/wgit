@@ -89,16 +89,10 @@ module Wgit
     #
     # @return [String] An xpath String to obtain a webpage's text elements.
     def self.text_elements_xpath
-      xpath = ''
-      return xpath if Wgit::Document.text_elements.empty?
-
-      el_xpath = '//%s/text()'
-      Wgit::Document.text_elements.each_with_index do |el, i|
-        xpath += ' | ' unless i.zero?
-        xpath += format(el_xpath, el)
+      Wgit::Document.text_elements.each_with_index.reduce("") do |xpath, (el, i)|
+        xpath += " | " unless i.zero?
+        xpath += format("//%s/text()", el)
       end
-
-      xpath
     end
 
     # Defines a content extractor, which extracts HTML elements/content
