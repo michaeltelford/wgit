@@ -9,6 +9,15 @@
 - ...
 ---
 
+## v0.10.6
+### Added
+- `Wgit::DSL` method `#crawl_url` (aliased to `#crawl`).
+### Changed/Removed
+- Added a `&block` param to `Wgit::Document#extract`, which gets passed to `#extract_from_html`.
+### Fixed
+- ...
+---
+
 ## v0.10.5
 ### Added
 - `Database#last_result` getter method to return the most recent raw mongo result.
