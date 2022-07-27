@@ -10,11 +10,23 @@ class TestDocumentExtractors < TestHelper
   include DatabaseHelper
 
   # Runs before every test.
-  def setup; end
+  def setup
+    @html = <<~HTML
+    <html>
+      <p>Paragraph 1</p>
+      <p>Paragraph 2</p>
+      <p>Paragraph 3</p>
+    </html>
+    HTML
+  end
 
   # Runs after every test and should remove all defined extractors
   # to avoid affecting other tests.
   def teardown
+    if Wgit::Document.text_elements.include?(:table)
+      Wgit::Document.text_elements.delete(:table)
+    end
+    
     if Wgit::Document.remove_extractor(:table_text)
       Wgit::Document.send(:remove_method, :table_text)
     end
@@ -75,9 +87,9 @@ class TestDocumentExtractors < TestHelper
 
     assert_equal ['Hello world!', 'My table'], doc.text
     assert Wgit::Document.text_elements.include?(:table)
-
-    Wgit::Document.text_elements.delete(:table)
   end
+  
+  ### DEFINE EXTRACTOR TESTS ###
 
   def test_document_extractor__with_defaults
     # Test default scenario - singleton: true and text_content_only: true.
@@ -104,7 +116,6 @@ class TestDocumentExtractors < TestHelper
 
   def test_document_extractor__with_non_defaults
     # Test singleton: false and text_content_only: false
-    # NOTE: test_readme_code_examples defines :tables so we use :tables.
     name = Wgit::Document.define_extractor(:tables, '//table',
                                            singleton: false, text_content_only: false)
 
@@ -507,6 +518,8 @@ class TestDocumentExtractors < TestHelper
 
     Wgit::Document.new extended_mongo_doc
   end
+  
+  ### REMOVE EXTRACTOR TESTS ###
 
   def test_remove_extractor__success
     assert %i[base title author keywords links text], Wgit::Document.extractors
@@ -520,5 +533,77 @@ class TestDocumentExtractors < TestHelper
   def test_remove_extractor__failure
     # blah2 doesn't exist so false should be returned.
     refute Wgit::Document.remove_extractor(:blah2)
+  end
+  
+  ### EXTRACT TESTS ###
+  
+  def test_extract__xpath_el__true_and_true
+    doc = Wgit::Document.new 'http://www.mytestsite.com/home'.to_url, @html
+    result = doc.extract '//p', singleton: true, text_content_only: true
+
+    assert_instance_of String, result
+    assert_equal "Paragraph 1", result
+  end
+
+  def test_extract__xpath_el__false_and_false
+    doc = Wgit::Document.new 'http://www.mytestsite.com/home'.to_url, @html
+    result = doc.extract '//p', singleton: false, text_content_only: false
+
+    assert_instance_of Nokogiri::XML::NodeSet, result
+    assert result.all? { |el| el.instance_of?(Nokogiri::XML::Element) }
+    assert_equal 3, result.size
+    assert_equal ["Paragraph 1", "Paragraph 2", "Paragraph 3"], result.map(&:content)
+  end
+  
+  def test_extract__xpath_el__true_and_false
+    doc = Wgit::Document.new 'http://www.mytestsite.com/home'.to_url, @html
+    result = doc.extract '//p', singleton: true, text_content_only: false
+
+    assert_instance_of Nokogiri::XML::Element, result
+    assert_equal "Paragraph 1", result.content
+  end
+  
+  def test_extract__xpath_el__false_and_true
+    doc = Wgit::Document.new 'http://www.mytestsite.com/home'.to_url, @html
+    result = doc.extract '//p', singleton: false, text_content_only: true
+
+    assert_instance_of Array, result
+    assert result.all? { |el| el.instance_of?(String) }
+    assert_equal ["Paragraph 1", "Paragraph 2", "Paragraph 3"], result
+  end
+  
+  def test_extract__xpath_text__true_and_true
+    doc = Wgit::Document.new 'http://www.mytestsite.com/home'.to_url, @html
+    result = doc.extract '//p/text()', singleton: true, text_content_only: true
+
+    assert_instance_of String, result
+    assert_equal "Paragraph 1", result
+  end
+
+  def test_extract__xpath_text__false_and_false
+    doc = Wgit::Document.new 'http://www.mytestsite.com/home'.to_url, @html
+    result = doc.extract '//p/text()', singleton: false, text_content_only: false
+
+    assert_instance_of Nokogiri::XML::NodeSet, result
+    assert result.all? { |el| el.instance_of?(Nokogiri::XML::Text) }
+    assert_equal 3, result.size
+    assert_equal ["Paragraph 1", "Paragraph 2", "Paragraph 3"], result.map(&:content)
+  end
+  
+  def test_extract__xpath_text__true_and_false
+    doc = Wgit::Document.new 'http://www.mytestsite.com/home'.to_url, @html
+    result = doc.extract '//p/text()', singleton: true, text_content_only: false
+
+    assert_instance_of Nokogiri::XML::Text, result
+    assert_equal "Paragraph 1", result.content
+  end
+  
+  def test_extract__xpath_text__false_and_true
+    doc = Wgit::Document.new 'http://www.mytestsite.com/home'.to_url, @html
+    result = doc.extract '//p/text()', singleton: false, text_content_only: true
+
+    assert_instance_of Array, result
+    assert result.all? { |el| el.instance_of?(String) }
+    assert_equal ["Paragraph 1", "Paragraph 2", "Paragraph 3"], result
   end
 end

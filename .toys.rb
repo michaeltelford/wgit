@@ -296,9 +296,9 @@ tool :test do
     t.files = [
       'test/test_url.rb',
       'test/test_document.rb',
+      'test/test_document_extractors.rb',
       'test/test_response.rb',
-      'test/test_crawler.rb',
-      'test/test_readme_code_examples.rb'
+      'test/test_crawler.rb'
     ]
   end
 end
