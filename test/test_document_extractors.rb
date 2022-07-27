@@ -606,4 +606,19 @@ class TestDocumentExtractors < TestHelper
     assert result.all? { |el| el.instance_of?(String) }
     assert_equal ["Paragraph 1", "Paragraph 2", "Paragraph 3"], result
   end
+  
+  def test_extract__block
+    doc = Wgit::Document.new 'http://www.mytestsite.com/home'.to_url, @html
+    result = doc.extract '//p/text()' do |value, source, type|
+      assert_instance_of String, value
+      assert_instance_of Wgit::Document, source
+      assert_equal doc, source
+      assert_equal :document, type
+      
+      nil # Is returned as the result.
+    end
+    
+    assert_nil result
+    assert_instance_of String, doc.extract('//p/text()') { |value| value }
+  end
 end

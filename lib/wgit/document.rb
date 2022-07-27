@@ -99,8 +99,8 @@ module Wgit
     # into instance variables upon Document initialization. See the default
     # extractors defined in 'document_extractors.rb' as examples. Defining an
     # extractor means that every subsequently crawled/initialized document
-    # will attempt to extract the xpath's content. Use `#xpath` for a one off
-    # content extraction.
+    # will attempt to extract the xpath's content. Use `#extract` for a one off
+    # content extraction on any document.
     #
     # Note that defined extractors work for both Documents initialized from
     # HTML (via Wgit::Crawler methods) and from database objects.
@@ -109,9 +109,9 @@ module Wgit
     #
     # When initialising from HTML, a singleton value of true will only
     # ever return the first result found; otherwise all the results are
-    # returned in an Array. When initialising from a database object, the value
-    # is taken as is and singleton is only used to define the default empty
-    # value. If a value cannot be found (in either the HTML or database
+    # returned in an Enumerable. When initialising from a database object, the
+    # value is taken as is and singleton is only used to define the default
+    # empty value. If a value cannot be found (in either the HTML or database
     # object), then a default will be used. The default value is:
     # `singleton ? nil : []`.
     #
@@ -128,12 +128,14 @@ module Wgit
     # @param opts [Hash] The options to define an extractor with. The
     #   options are only used when intializing from HTML, not the database.
     # @option opts [Boolean] :singleton The singleton option determines
-    #   whether or not the result(s) should be in an Array. If multiple
+    #   whether or not the result(s) should be in an Enumerable. If multiple
     #   results are found and singleton is true then the first result will be
     #   used. Defaults to true.
     # @option opts [Boolean] :text_content_only The text_content_only option
-    #   if true will use the text content of the Nokogiri result object,
-    #   otherwise the Nokogiri object itself is returned. Defaults to true.
+    #   if true will use the text #content of the Nokogiri result object,
+    #   otherwise the Nokogiri object itself is returned. The type of Nokogiri
+    #   object returned depends on the given xpath query. See the Nokogiri
+    #   documentation for more information. Defaults to true.
     # @yield The block is executed when a Wgit::Document is initialized,
     #   regardless of the source. Use it (optionally) to process the result
     #   value.
@@ -503,16 +505,24 @@ be relative"
     # parameter.
     #
     # @param xpath [String, #call] Used to find the value/object in @html.
-    # @param singleton [Boolean] singleton ? results.first (single Nokogiri
-    #   Object) : results (Array).
+    # @param singleton [Boolean] singleton ? results.first (single Object) : 
+    #   results (Enumerable).
     # @param text_content_only [Boolean] text_content_only ? result.content
     #   (String) : result (Nokogiri Object).
+    # @yield (Optionally) Pass a block to read/write the result value before
+    #   it's returned.
+    # @yieldparam value [Object] The result value to be returned.
+    # @yieldparam source [Wgit::Document, Object] This Document instance.
+    # @yieldparam type [Symbol] The `source` type, which is `:document`.
+    # @yieldreturn [Object] The return value of the block gets returned. Return
+    #   the block's `value` param unchanged if you simply want to inspect it.
     # @return [String, Object] The value found in the html or the default value
     #   (singleton ? nil : []).
-    def extract(xpath, singleton: true, text_content_only: true)
+    def extract(xpath, singleton: true, text_content_only: true, &block)
       send(
         :extract_from_html, xpath,
-        singleton: singleton, text_content_only: text_content_only
+        singleton: singleton, text_content_only: text_content_only,
+        &block
       )
     end
 
@@ -536,27 +546,25 @@ be relative"
     # parameter.
     #
     # @param xpath [String, #call] Used to find the value/object in @html.
-    # @param singleton [Boolean] singleton ? results.first (single Nokogiri
-    #   Object) : results (Array).
+    # @param singleton [Boolean] singleton ? results.first (single Object) : 
+    #   results (Enumerable).
     # @param text_content_only [Boolean] text_content_only ? result.content
     #   (String) : result (Nokogiri Object).
-    # @yield The block is executed when a Wgit::Document is initialized,
-    #   regardless of the source. Use it (optionally) to process the result
-    #   value.
+    # @yield (Optionally) Pass a block to read/write the result value before
+    #   it's returned.
     # @yieldparam value [Object] The result value to be returned.
-    # @yieldparam source [Wgit::Document, Object] The source of the `value`.
-    # @yieldparam type [Symbol] The `source` type, either `:document` or (DB)
-    #   `:object`.
+    # @yieldparam source [Wgit::Document, Object] This Document instance.
+    # @yieldparam type [Symbol] The `source` type, which is `:document`.
     # @yieldreturn [Object] The return value of the block gets returned. Return
     #   the block's `value` param unchanged if you simply want to inspect it.
     # @return [String, Object] The value found in the html or the default value
     #   (singleton ? nil : []).
     def extract_from_html(xpath, singleton: true, text_content_only: true)
       xpath  = xpath.call if xpath.respond_to?(:call)
-      result = singleton ? @parser.at_xpath(xpath) : @parser.xpath(xpath)
+      result = singleton ? at_xpath(xpath) : xpath(xpath)
 
-      if text_content_only
-        result = singleton ? result&.content : result.map(&:content)
+      if result && text_content_only
+        result = singleton ? result.content : result.map(&:content)
       end
 
       Wgit::Utils.sanitize(result)
