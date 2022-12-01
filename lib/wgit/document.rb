@@ -89,9 +89,9 @@ module Wgit
     #
     # @return [String] An xpath String to obtain a webpage's text elements.
     def self.text_elements_xpath
-      Wgit::Document.text_elements.each_with_index.reduce("") do |xpath, (el, i)|
-        xpath += " | " unless i.zero?
-        xpath += format("//%s/text()", el)
+      Wgit::Document.text_elements.each_with_index.reduce('') do |xpath, (el, i)|
+        xpath += ' | ' unless i.zero?
+        xpath += format('//%s/text()', el)
       end
     end
 
@@ -505,7 +505,7 @@ be relative"
     # parameter.
     #
     # @param xpath [String, #call] Used to find the value/object in @html.
-    # @param singleton [Boolean] singleton ? results.first (single Object) : 
+    # @param singleton [Boolean] singleton ? results.first (single Object) :
     #   results (Enumerable).
     # @param text_content_only [Boolean] text_content_only ? result.content
     #   (String) : result (Nokogiri Object).
@@ -546,7 +546,7 @@ be relative"
     # parameter.
     #
     # @param xpath [String, #call] Used to find the value/object in @html.
-    # @param singleton [Boolean] singleton ? results.first (single Object) : 
+    # @param singleton [Boolean] singleton ? results.first (single Object) :
     #   results (Enumerable).
     # @param text_content_only [Boolean] text_content_only ? result.content
     #   (String) : result (Nokogiri Object).

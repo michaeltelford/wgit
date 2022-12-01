@@ -9,6 +9,15 @@
 - ...
 ---
 
+## v0.10.7
+### Added
+- ...
+### Changed/Removed
+- ...
+### Fixed
+- Security vulnerabilities by updating gem dependencies.
+---
+
 ## v0.10.6
 ### Added
 - `Wgit::DSL` method `#crawl_url` (aliased to `#crawl`).
