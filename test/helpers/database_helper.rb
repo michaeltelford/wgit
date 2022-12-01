@@ -48,8 +48,8 @@ module DatabaseHelper
     instance_eval(&block)
 
     begin
-      @@db.client[:urls].insert_many(@@urls)
-      @@db.client[:documents].insert_many(@@docs)
+      @@db.client[:urls].insert_many(@@urls) unless @@urls.empty?
+      @@db.client[:documents].insert_many(@@docs) unless @@docs.empty?
 
       @@urls.count + @@docs.count
     rescue StandardError => e
