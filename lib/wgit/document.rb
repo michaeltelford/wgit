@@ -192,9 +192,16 @@ module Wgit
       Document.send(:remove_method, "init_#{var}_from_object")
 
       @extractors.delete(var.to_sym)
+
       true
     rescue NameError
       false
+    end
+
+    # Removes all default and defined extractors by calling
+    # `Document.remove_extractor` underneath. See its documentation.
+    def self.remove_extractors
+        @extractors.each { |var| remove_extractor(var) }
     end
 
     ### Document Instance Methods ###

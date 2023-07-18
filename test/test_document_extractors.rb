@@ -534,7 +534,20 @@ class TestDocumentExtractors < TestHelper
     # blah2 doesn't exist so false should be returned.
     refute Wgit::Document.remove_extractor(:blah2)
   end
-  
+
+  def test_remove_extractors
+    refute Wgit::Document.extractors.empty?
+
+    Wgit::Document.remove_extractors
+    assert Wgit::Document.extractors.empty?
+
+    # Assert func is idempotent.
+    Wgit::Document.remove_extractors
+    assert Wgit::Document.extractors.empty?
+  ensure
+    load './lib/wgit/document_extractors.rb'
+  end
+
   ### EXTRACT TESTS ###
   
   def test_extract__xpath_el__true_and_true
