@@ -206,6 +206,13 @@ module Wgit
 
     ### Document Instance Methods ###
 
+    # Overrides String#inspect to shorten the printed output of a Document.
+    #
+    # @return [String] A short textual representation of this Document.
+    def inspect
+      "#<Wgit::Document url=\"#{@url}\" html=#{size} bytes>"
+    end
+
     # Determines if both the url and html match. Use
     # doc.object_id == other.object_id for exact object comparison.
     #

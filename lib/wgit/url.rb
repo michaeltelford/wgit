@@ -117,6 +117,13 @@ Addressable::URI::InvalidURIError")
       @date_crawled = bool ? Wgit::Utils.time_stamp : nil
     end
 
+    # Overrides String#inspect to distingiush this Url from a String.
+    #
+    # @return [String] A short textual representation of this Url.
+    def inspect
+      "#<Wgit::Url url=\"#{to_s}\" crawled=#{@crawled}>"
+    end
+
     # Overrides String#replace setting the new_url @uri and String value.
     #
     # @param new_url [Wgit::Url, String] The new URL value.
