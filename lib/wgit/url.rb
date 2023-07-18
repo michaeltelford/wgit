@@ -121,7 +121,7 @@ Addressable::URI::InvalidURIError")
     #
     # @return [String] A short textual representation of this Url.
     def inspect
-      "#<Wgit::Url url=\"#{to_s}\" crawled=#{@crawled}>"
+      "#<Wgit::Url url=\"#{self}\" crawled=#{@crawled}>"
     end
 
     # Overrides String#replace setting the new_url @uri and String value.

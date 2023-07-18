@@ -201,7 +201,7 @@ module Wgit
     # Removes all default and defined extractors by calling
     # `Document.remove_extractor` underneath. See its documentation.
     def self.remove_extractors
-        @extractors.each { |var| remove_extractor(var) }
+      @extractors.each { |var| remove_extractor(var) }
     end
 
     ### Document Instance Methods ###
