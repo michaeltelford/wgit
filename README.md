@@ -62,7 +62,23 @@ end
 puts JSON.generate(quotes)
 ```
 
-But what if we want to crawl and store the content in a database, so that it can be searched? Wgit makes it easy to index and search HTML using [MongoDB](https://www.mongodb.com/):
+Which outputs:
+
+```text
+[
+    {
+        "quote": "“The person, be it gentleman or lady, who has not pleasure in a good novel, must be intolerably stupid.”",
+        "author": "Jane Austen"
+    },
+    {
+        "quote": "“A day without sunshine is like, you know, night.”",
+        "author": "Steve Martin"
+    },
+    ...
+]
+```
+
+Great! But what if we want to crawl and store the content in a database, so that it can be searched? Wgit makes it easy to index and search HTML using [MongoDB](https://www.mongodb.com/):
 
 ```ruby
 require 'wgit'
@@ -89,6 +105,8 @@ The `search` call (on the last line) will return and output the results:
 Quotes to Scrape
 “I am free of all prejudice. I hate everyone equally. ”
 http://quotes.toscrape.com/tag/humor/page/2/
+
+...
 ```
 
 Using a MongoDB [client](https://robomongo.org/), we can see that the two web pages have been indexed, along with their extracted *quotes* and *authors*:
