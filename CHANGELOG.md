@@ -9,6 +9,17 @@
 - ...
 ---
 
+## v0.10.8
+### Added
+- Custom `#inspect` methods to `Wgit::Url` and `Wgit::Document` classes.
+- `Document.remove_extractors` method, which removes all default and defined extractors.
+
+### Changed/Removed
+- ...
+### Fixed
+- ...
+---
+
 ## v0.10.7
 ### Added
 - ...
