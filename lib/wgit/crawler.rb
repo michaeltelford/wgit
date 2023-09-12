@@ -86,8 +86,6 @@ module Wgit
     #
     # Use the allow and disallow paths params to partially and selectively
     # crawl a site; the glob syntax is fully supported e.g. `'wiki/\*'` etc.
-    # Note that each path must NOT start with a slash; the only exception being
-    # a `/` on its own with no other characters, referring to the index page.
     #
     # Only redirects to the same host are followed. For example, the Url
     # 'http://www.example.co.uk/how' has a host of 'www.example.co.uk' meaning
@@ -458,12 +456,12 @@ module Wgit
 
     # Validate and filter by the given URL paths.
     def process_paths(links, allow_paths, disallow_paths)
-      if allow_paths
+      if allow_paths && !allow_paths.empty?
         paths = validate_paths(allow_paths)
         filter_links(links, :select!, paths)
       end
 
-      if disallow_paths
+      if disallow_paths && !disallow_paths.empty?
         paths = validate_paths(disallow_paths)
         filter_links(links, :reject!, paths)
       end

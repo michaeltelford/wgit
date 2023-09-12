@@ -717,7 +717,7 @@ class TestCrawler < TestHelper
     assert_empty resp.redirections
   end
 
-  def test_get_internal_links
+  def test_next_internal_links
     url = Wgit::Url.new('http://www.mytestsite.com/home')
     html = File.read('test/mock/fixtures/test_doc.html')
     doc = Wgit::Document.new(url, html)
@@ -747,7 +747,7 @@ class TestCrawler < TestHelper
     assert_equal 'The provided paths cannot be empty', ex.message
   end
 
-  def test_get_internal_links__with_url_extensions
+  def test_next_internal_links__with_url_extensions
     url = Wgit::Url.new('http://www.php.com/index.php')
     html = File.read('test/mock/fixtures/php.html')
     doc = Wgit::Document.new(url, html)
@@ -767,7 +767,7 @@ class TestCrawler < TestHelper
     )
   end
 
-  def test_get_internal_links__allow_paths
+  def test_next_internal_links__allow_paths
     url = Wgit::Url.new('http://www.belfastpilates.co.uk/')
     html = File.read('test/mock/fixtures/www.belfastpilates.co.uk/index.html')
     doc = Wgit::Document.new(url, html)
@@ -787,7 +787,7 @@ class TestCrawler < TestHelper
     ])
   end
 
-  def test_get_internal_links__allow_path
+  def test_next_internal_links__allow_path
     url = Wgit::Url.new('http://www.belfastpilates.co.uk/')
     html = File.read('test/mock/fixtures/www.belfastpilates.co.uk/index.html')
     doc = Wgit::Document.new(url, html)
@@ -799,7 +799,7 @@ class TestCrawler < TestHelper
     ], crawler.send(:next_internal_links, doc, allow_paths: '*/pilates-classes*')
   end
 
-  def test_get_internal_links__disallow_paths
+  def test_next_internal_links__disallow_paths
     url = Wgit::Url.new('http://www.belfastpilates.co.uk/')
     html = File.read('test/mock/fixtures/www.belfastpilates.co.uk/index.html')
     doc = Wgit::Document.new(url, html)
@@ -825,7 +825,7 @@ class TestCrawler < TestHelper
     ])
   end
 
-  def test_get_internal_links__disallow_path
+  def test_next_internal_links__disallow_path
     url = Wgit::Url.new('http://www.belfastpilates.co.uk/')
     html = File.read('test/mock/fixtures/www.belfastpilates.co.uk/index.html')
     doc = Wgit::Document.new(url, html)
@@ -851,7 +851,7 @@ class TestCrawler < TestHelper
     ], crawler.send(:next_internal_links, doc, disallow_paths: '*/pilates-classes*')
   end
 
-  def test_get_internal_links__combined_paths
+  def test_next_internal_links__combined_paths
     url = Wgit::Url.new('http://www.belfastpilates.co.uk/')
     html = File.read('test/mock/fixtures/www.belfastpilates.co.uk/index.html')
     doc = Wgit::Document.new(url, html)
@@ -868,6 +868,27 @@ class TestCrawler < TestHelper
       'pilates/*',
       '/'
     ])
+  end
+
+  def test_process_paths
+    crawler = Wgit::Crawler.new
+    links = [
+      'http://www.belfastpilates.co.uk/',
+      'http://www.belfastpilates.co.uk/about-us/the-team',
+      'http://www.belfastpilates.co.uk/about-us/our-facilities',
+      'http://www.belfastpilates.co.uk/about-us/testimonials',
+      'http://www.belfastpilates.co.uk/pilates/what-is-pilates'
+    ].to_urls
+
+    assert_equal links, crawler.send(:process_paths, links, "*", nil)
+    assert_equal links, crawler.send(:process_paths, links, "", nil)
+    assert_equal links, crawler.send(:process_paths, links, ["*"], nil)
+    assert_equal links, crawler.send(:process_paths, links, [], nil)
+
+    assert_equal [],    crawler.send(:process_paths, links, nil, "*")
+    assert_equal links, crawler.send(:process_paths, links, nil, "")
+    assert_equal [],    crawler.send(:process_paths, links, nil, ["*"])
+    assert_equal links, crawler.send(:process_paths, links, nil, [])
   end
 
   private
