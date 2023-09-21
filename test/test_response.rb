@@ -133,4 +133,15 @@ class TestResponse < TestHelper
     r.status = 0
     refute r.success?
   end
+
+  def test_no_index?
+    r = Wgit::Response.new
+    refute r.no_index?
+
+    r.headers = {'X-Robots-Tag' => 'index'}
+    refute r.no_index?
+
+    r.headers = {'X-Robots-Tag' => 'noindex'}
+    assert r.no_index?
+  end
 end

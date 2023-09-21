@@ -134,6 +134,14 @@ module Wgit
       @status.positive?
     end
 
+    # Returns whether or not Wgit is banned from indexing this site.
+    #
+    # @return [Boolean] True if Wgit should not index this site, false
+    #   otherwise.
+    def no_index?
+      headers.fetch(:x_robots_tag, '').downcase.strip == 'noindex'
+    end
+
     alias code           status
     alias content        body
     alias crawl_duration total_time
