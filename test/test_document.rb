@@ -559,6 +559,24 @@ Minitest framework."
     assert_equal @mongo_doc_dup['title'], result.content
   end
 
+  def test_initialize__no_index?
+    html = html_with_meta 'robots', 'noindex'
+    doc = Wgit::Document.new 'http://www.mytestsite.com/home'.to_url, html
+    assert doc.no_index?
+
+    html = html_with_meta 'robots', 'index'
+    doc = Wgit::Document.new 'http://www.mytestsite.com/home'.to_url, html
+    refute doc.no_index?
+
+    html = html_with_meta 'wgit', 'noindex'
+    doc = Wgit::Document.new 'http://www.mytestsite.com/home'.to_url, html
+    assert doc.no_index?
+
+    html = html_with_meta 'wgit', 'index'
+    doc = Wgit::Document.new 'http://www.mytestsite.com/home'.to_url, html
+    refute doc.no_index?
+  end
+
   private
 
   # Inserts a <base> element into @html.
@@ -566,6 +584,14 @@ Minitest framework."
     noko_doc = Nokogiri::HTML @html
     title_el = noko_doc.at_xpath '//title'
     title_el.add_next_sibling "<base href='#{href}'>"
+    noko_doc.to_html
+  end
+
+  # Inserts a <meta name="x" content="y"> element into @html.
+  def html_with_meta(name, content)
+    noko_doc = Nokogiri::HTML @html
+    title_el = noko_doc.at_xpath '//title'
+    title_el.add_next_sibling "<meta name='#{name}' content='#{content}'>"
     noko_doc.to_html
   end
 

@@ -291,6 +291,8 @@ be relative"
       ignore = include_html ? [] : ['@html']
       ignore << '@score' unless include_score
       ignore << '@parser' # Always ignore the Nokogiri object.
+      ignore << '@meta_robots'
+      ignore << '@meta_wgit'
 
       Wgit::Utils.to_h(self, ignore: ignore)
     end

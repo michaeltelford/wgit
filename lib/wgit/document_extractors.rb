@@ -2,6 +2,25 @@
 
 ### Default Document Extractors ###
 
+# No index.
+Wgit::Document.define_extractor(
+  :meta_robots,
+  '//meta[@name="robots"]/@content',
+  singleton: true,
+  text_content_only: true
+)
+Wgit::Document.define_extractor(
+  :meta_wgit,
+  '//meta[@name="wgit"]/@content',
+  singleton: true,
+  text_content_only: true
+)
+class Wgit::Document
+  def no_index?
+    [@meta_robots, @meta_wgit].include?('noindex')
+  end
+end
+
 # Base.
 Wgit::Document.define_extractor(
   :base,
