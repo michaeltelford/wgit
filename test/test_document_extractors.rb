@@ -26,7 +26,19 @@ class TestDocumentExtractors < TestHelper
     if Wgit::Document.text_elements.include?(:table)
       Wgit::Document.text_elements.delete(:table)
     end
-    
+
+    unless Wgit::Document.text_elements.include?(:p)
+      Wgit::Document.text_elements << :p
+    end
+
+    if Wgit::Document.to_h_ignore_vars.include?('@data')
+      Wgit::Document.to_h_ignore_vars.delete('@data')
+    end
+
+    unless Wgit::Document.to_h_ignore_vars.include?('@parser')
+      Wgit::Document.to_h_ignore_vars << '@parser'
+    end
+
     if Wgit::Document.remove_extractor(:table_text)
       Wgit::Document.send(:remove_method, :table_text)
     end
@@ -88,7 +100,58 @@ class TestDocumentExtractors < TestHelper
     assert_equal ['Hello world!', 'My table'], doc.text
     assert Wgit::Document.text_elements.include?(:table)
   end
-  
+
+  def test_text_elements__deletion
+    Wgit::Document.text_elements.delete(:p)
+
+    doc = Wgit::Document.new(
+      'http://some_url.com',
+      <<~HTML
+      <html>
+        <p>Hello world!</p>
+        <code>obj.method()</code>
+      </html>
+      HTML
+    )
+
+    assert_equal ['obj.method()'], doc.text
+    refute Wgit::Document.text_elements.include?(:p)
+  end
+
+  def test_to_h_ignore_vars__addition
+    Wgit::Document.to_h_ignore_vars << '@data'
+
+    doc = Wgit::Document.new(
+      'http://some_url.com',
+      <<~HTML
+      <html>
+        <p>Hello world!</p>
+      </html>
+      HTML
+    )
+    doc.instance_variable_set(:@data, "my data")
+
+    assert_equal "my data", doc.instance_variable_get(:@data)
+    refute doc.to_h.keys.include?('data')
+  end
+
+  def test_to_h_ignore_vars__deletion
+    Wgit::Document.to_h_ignore_vars.delete('@parser')
+
+    doc = Wgit::Document.new(
+      'http://some_url.com',
+      <<~HTML
+      <html>
+        <p>Hello world!</p>
+      </html>
+      HTML
+    )
+
+    refute Wgit::Document.to_h_ignore_vars.include?('@parser')
+    refute_nil doc.parser
+    assert doc.to_h.keys.include?('parser')
+  end
+
   ### DEFINE EXTRACTOR TESTS ###
 
   def test_document_extractor__with_defaults
@@ -518,7 +581,7 @@ class TestDocumentExtractors < TestHelper
 
     Wgit::Document.new extended_mongo_doc
   end
-  
+
   ### REMOVE EXTRACTOR TESTS ###
 
   def test_remove_extractor__success
@@ -549,7 +612,7 @@ class TestDocumentExtractors < TestHelper
   end
 
   ### EXTRACT TESTS ###
-  
+
   def test_extract__xpath_el__true_and_true
     doc = Wgit::Document.new 'http://www.mytestsite.com/home'.to_url, @html
     result = doc.extract '//p', singleton: true, text_content_only: true
@@ -567,7 +630,7 @@ class TestDocumentExtractors < TestHelper
     assert_equal 3, result.size
     assert_equal ["Paragraph 1", "Paragraph 2", "Paragraph 3"], result.map(&:content)
   end
-  
+
   def test_extract__xpath_el__true_and_false
     doc = Wgit::Document.new 'http://www.mytestsite.com/home'.to_url, @html
     result = doc.extract '//p', singleton: true, text_content_only: false
@@ -575,7 +638,7 @@ class TestDocumentExtractors < TestHelper
     assert_instance_of Nokogiri::XML::Element, result
     assert_equal "Paragraph 1", result.content
   end
-  
+
   def test_extract__xpath_el__false_and_true
     doc = Wgit::Document.new 'http://www.mytestsite.com/home'.to_url, @html
     result = doc.extract '//p', singleton: false, text_content_only: true
@@ -584,7 +647,7 @@ class TestDocumentExtractors < TestHelper
     assert result.all? { |el| el.instance_of?(String) }
     assert_equal ["Paragraph 1", "Paragraph 2", "Paragraph 3"], result
   end
-  
+
   def test_extract__xpath_text__true_and_true
     doc = Wgit::Document.new 'http://www.mytestsite.com/home'.to_url, @html
     result = doc.extract '//p/text()', singleton: true, text_content_only: true
@@ -602,7 +665,7 @@ class TestDocumentExtractors < TestHelper
     assert_equal 3, result.size
     assert_equal ["Paragraph 1", "Paragraph 2", "Paragraph 3"], result.map(&:content)
   end
-  
+
   def test_extract__xpath_text__true_and_false
     doc = Wgit::Document.new 'http://www.mytestsite.com/home'.to_url, @html
     result = doc.extract '//p/text()', singleton: true, text_content_only: false
@@ -610,7 +673,7 @@ class TestDocumentExtractors < TestHelper
     assert_instance_of Nokogiri::XML::Text, result
     assert_equal "Paragraph 1", result.content
   end
-  
+
   def test_extract__xpath_text__false_and_true
     doc = Wgit::Document.new 'http://www.mytestsite.com/home'.to_url, @html
     result = doc.extract '//p/text()', singleton: false, text_content_only: true
@@ -619,7 +682,7 @@ class TestDocumentExtractors < TestHelper
     assert result.all? { |el| el.instance_of?(String) }
     assert_equal ["Paragraph 1", "Paragraph 2", "Paragraph 3"], result
   end
-  
+
   def test_extract__block
     doc = Wgit::Document.new 'http://www.mytestsite.com/home'.to_url, @html
     result = doc.extract '//p/text()' do |value, source, type|
@@ -627,10 +690,10 @@ class TestDocumentExtractors < TestHelper
       assert_instance_of Wgit::Document, source
       assert_equal doc, source
       assert_equal :document, type
-      
+
       nil # Is returned as the result.
     end
-    
+
     assert_nil result
     assert_instance_of String, doc.extract('//p/text()') { |value| value }
   end

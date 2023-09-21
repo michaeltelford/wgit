@@ -20,7 +20,7 @@ module Wgit
     # Regex for the allowed var names when defining an extractor.
     REGEX_EXTRACTOR_NAME = /[a-z0-9_]+/.freeze
 
-    # Set of text elements used to build Document#text.
+    # Set of text elements used to build the xpath for Document#text.
     @text_elements = Set.new(%i[
       a abbr address article aside b bdi bdo blockquote button caption cite
       code data dd del details dfn div dl dt em figcaption figure footer h1 h2
@@ -28,6 +28,13 @@ module Wgit
       option output p pre q rb rt ruby s samp section small span strong sub
       summary sup td textarea th time u ul var wbr
     ])
+
+    # Instance vars to be ignored by Document#to_h and in turn Model.document.
+    @to_h_ignore_vars = [
+      '@parser',      # Always ignore the Nokogiri object.
+      '@meta_robots', # Used by #no_index?, ignore.
+      '@meta_wgit'    # Used by #no_index?, ignore.
+    ]
 
     # Set of Symbols representing the defined Document extractors.
     @extractors = Set.new
@@ -37,6 +44,12 @@ module Wgit
       # elements are used to initialize the Wgit::Document#text. See the
       # README.md for how to add to this Set dynamically.
       attr_reader :text_elements
+
+      # Array of instance vars to ignore when Document#to_h and in turn
+      # Model.document methods are called. Append your own defined extractor
+      # vars to omit them from the model (database object) when indexing.
+      # Each var should be a String starting with an '@' char e.g. "@data" etc.
+      attr_reader :to_h_ignore_vars
 
       # Set of Symbols representing the defined Document extractors. Is
       # read-only. Use Wgit::Document.define_extractor for a new extractor.
@@ -89,7 +102,7 @@ module Wgit
     #
     # @return [String] An xpath String to obtain a webpage's text elements.
     def self.text_elements_xpath
-      Wgit::Document.text_elements.each_with_index.reduce('') do |xpath, (el, i)|
+      @text_elements.each_with_index.reduce('') do |xpath, (el, i)|
         xpath += ' | ' unless i.zero?
         xpath += format('//%s/text()', el)
       end
@@ -288,11 +301,9 @@ be relative"
     #   returned Hash.
     # @return [Hash] Containing self's instance vars.
     def to_h(include_html: false, include_score: true)
-      ignore = include_html ? [] : ['@html']
+      ignore = Wgit::Document.to_h_ignore_vars.dup
+      ignore << '@html' unless include_html
       ignore << '@score' unless include_score
-      ignore << '@parser' # Always ignore the Nokogiri object.
-      ignore << '@meta_robots'
-      ignore << '@meta_wgit'
 
       Wgit::Utils.to_h(self, ignore: ignore)
     end
