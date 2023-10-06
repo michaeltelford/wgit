@@ -166,6 +166,26 @@ class TestUtils < TestHelper
     assert Wgit::Utils.sanitize(true)
   end
 
+  def test_pprint
+    buffer = StringIO.new
+    Wgit::Utils.pprint(100, stream: buffer, name: 'michael', age: 34)
+    assert_equal "\nDEBUG100 - name: michael | age: 34\n\n", buffer.string
+  end
+
+  def test_pprint__new_line
+    buffer = StringIO.new
+    Wgit::Utils.pprint(1, stream: buffer, new_line: true, html: true, xml: false)
+
+    expected = <<~TEXT
+
+      DEBUG1
+      html: true
+      xml: false
+
+    TEXT
+    assert_equal expected, buffer.string
+  end
+
   private
 
   def printf_output__results
