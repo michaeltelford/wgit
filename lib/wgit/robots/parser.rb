@@ -49,10 +49,26 @@ module Wgit::Robots
 
     # Returns whether or not there are rules applying to Wgit.
     #
-    # @return [Boolean] True if there are fules for Wgit to follow, false
+    # @return [Boolean] True if there are rules for Wgit to follow, false
     #   otherwise.
     def rules?
-      @rules[:allow_paths].any? || @rules[:disallow_paths].any?
+      allow_rules? || disallow_rules?
+    end
+
+    # Returns whether or not there are allow rules applying to Wgit.
+    #
+    # @return [Boolean] True if there are allow rules for Wgit to follow,
+    #   false otherwise.
+    def allow_rules?
+      @rules[:allow_paths].any?
+    end
+
+    # Returns whether or not there are disallow rules applying to Wgit.
+    #
+    # @return [Boolean] True if there are disallow rules for Wgit to follow,
+    #   false otherwise.
+    def disallow_rules?
+      @rules[:disallow_paths].any?
     end
 
     # Returns whether or not Wgit is banned from indexing this site.

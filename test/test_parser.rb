@@ -12,6 +12,8 @@ class TestParser < TestHelper
     p = Wgit::Robots::Parser.new robots_txt__default
 
     assert p.rules?
+    assert p.allow_rules?
+    assert p.disallow_rules?
     assert p.no_index?
     assert_equal({
       allow_paths:    Set.new(['/michaeltelford/wgit/wiki/*']),
@@ -38,6 +40,8 @@ class TestParser < TestHelper
     TEXT
 
     assert p.rules?
+    refute p.allow_rules?
+    assert p.disallow_rules?
     assert p.no_index?
     assert_equal({
       allow_paths:    Set.new,
@@ -52,6 +56,8 @@ class TestParser < TestHelper
     TEXT
 
     assert p.rules?
+    refute p.allow_rules?
+    assert p.disallow_rules?
     assert p.no_index?
     assert_equal({
       allow_paths:    Set.new,
@@ -66,6 +72,8 @@ class TestParser < TestHelper
     TEXT
 
     assert p.rules?
+    assert p.allow_rules?
+    refute p.disallow_rules?
     refute p.no_index?
     assert_equal({
       allow_paths:    Set.new(['/']),
@@ -80,6 +88,8 @@ class TestParser < TestHelper
     TEXT
 
     assert p.rules?
+    assert p.allow_rules?
+    refute p.disallow_rules?
     refute p.no_index?
     assert_equal({
       allow_paths:    Set.new(['*']),
@@ -94,6 +104,8 @@ class TestParser < TestHelper
     TEXT
 
     refute p.rules?
+    refute p.allow_rules?
+    refute p.disallow_rules?
     refute p.no_index?
     assert_equal({
       allow_paths:    Set.new,
