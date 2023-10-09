@@ -219,19 +219,24 @@ module Wgit
       arr
     end
 
-    # Pretty prints a log statement, used for debugging purposes. Similar to:
-    # DEBUG1 - include_html: true | ignore: ['@html', '@parser']
+    # Pretty prints a log statement, used for debugging purposes.
+    #
+    # Use like:
+    #   Wgit::Utils.pprint 1, include_html: include_html, ignore: ignore_vars
+    # Which produces a log like:
+    #   DEBUG1 - include_html: true | ignore: ['@html', '@parser']
     #
     # @param i [Integer] A numbered log identifier e.g. the expected log order.
     # @param stream [#puts] Any object that respond_to? :puts and :print. It is used
     #   to output the log text somewhere e.g. a file or STDERR.
+    # @param prefix [String] The log prefix, useful for visibility/greping.
     # @param new_line [Boolean] Wether or not to use a new line (\n) as the separator.
     # @param vars [Hash<#inspect, #inspect>] The vars to inspect in the log.
-    def self.pprint(i, stream: STDOUT, new_line: false, **vars)
+    def self.pprint(i, stream: STDOUT, prefix: 'DEBUG', new_line: false, **vars)
       sep1 = new_line ? "\n" : ' - '
       sep2 = new_line ? "\n" : ' | '
 
-      stream.print "\nDEBUG#{i}#{sep1}"
+      stream.print "\n#{prefix}#{i}#{sep1}"
 
       vars.each_with_index do |arr, i|
         last_item = (i+1) == vars.size
