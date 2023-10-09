@@ -136,6 +136,6 @@ accept duplicate urls. Exception details: #{err_msg}"
     @@docs << model_hash.merge(Wgit::Model.common_insert_data)
   end
 
-  alias urls url
-  alias docs doc
+  alias_method :urls, :url
+  alias_method :docs, :doc
 end

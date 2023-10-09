@@ -47,6 +47,20 @@ module Wgit::Robots
       "#<Wgit::Robots::Parser rules=#{rules?} no_index=#{no_index?}>"
     end
 
+    # Returns the allow paths/rules for this parser's robots.txt contents.
+    #
+    # @return [Array<String>] The allow paths/rules to follow.
+    def allow_paths
+      @rules[:allow_paths].to_a
+    end
+
+    # Returns the disallow paths/rules for this parser's robots.txt contents.
+    #
+    # @return [Array<String>] The disallow paths/rules to follow.
+    def disallow_paths
+      @rules[:disallow_paths].to_a
+    end
+
     # Returns whether or not there are rules applying to Wgit.
     #
     # @return [Boolean] True if there are rules for Wgit to follow, false
@@ -127,6 +141,7 @@ module Wgit::Robots
       [USER_AGENT_ANY, USER_AGENT_WGIT].include?(user_agent)
     end
 
-    alias banned? no_index?
+    alias_method :paths, :rules
+    alias_method :banned?, :no_index?
   end
 end

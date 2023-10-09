@@ -31,6 +31,20 @@ class TestParser < TestHelper
         '*'
       ])
     }, p.rules)
+    assert_equal ['/michaeltelford/wgit/wiki/*'], p.allow_paths
+    assert_equal([
+      '/buzz/*.xml$',
+      '/category/*.xml$',
+      '/mobile/',
+      '*?s=bpage-next',
+      '*?s=lightbox',
+      '*?s=feedpager',
+      '/fabordrab/',
+      '/bfmp/',
+      '/buzzfeed/',
+      '/michaeltelford/wgit/wiki/*/_history',
+      '*'
+    ], p.disallow_paths)
   end
 
   def test_initialize__disallow_slash
@@ -47,6 +61,8 @@ class TestParser < TestHelper
       allow_paths:    Set.new,
       disallow_paths: Set.new(['/'])
     }, p.rules)
+    assert_empty p.allow_paths
+    assert_equal ['/'], p.disallow_paths
   end
 
   def test_initialize__disallow_asterisk
@@ -63,6 +79,8 @@ class TestParser < TestHelper
       allow_paths:    Set.new,
       disallow_paths: Set.new(['*'])
     }, p.rules)
+    assert_empty p.allow_paths
+    assert_equal ['*'], p.disallow_paths
   end
 
   def test_initialize__allow_slash
@@ -79,6 +97,8 @@ class TestParser < TestHelper
       allow_paths:    Set.new(['/']),
       disallow_paths: Set.new
     }, p.rules)
+    assert_equal ['/'], p.allow_paths
+    assert_empty p.disallow_paths
   end
 
   def test_initialize__allow_asterisk
@@ -95,6 +115,8 @@ class TestParser < TestHelper
       allow_paths:    Set.new(['*']),
       disallow_paths: Set.new
     }, p.rules)
+    assert_equal ['*'], p.allow_paths
+    assert_empty p.disallow_paths
   end
 
   def test_initialize__no_rules
@@ -111,6 +133,8 @@ class TestParser < TestHelper
       allow_paths:    Set.new,
       disallow_paths: Set.new
     }, p.rules)
+    assert_empty p.allow_paths
+    assert_empty p.disallow_paths
   end
 
   private
