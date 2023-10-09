@@ -35,6 +35,12 @@ stub_timeout 'http://test-site.com/doesntexist'
 stub_page 'http://odd-extension.com/other.html5', body: '<p>Hello world</p>'
 stub_page 'http://fonts.googleapis.com'
 
+# Mock robots.txt requests.
+stub_not_found 'http://txti.es/robots.txt'
+stub_not_found 'http://quotes.toscrape.com/robots.txt'
+stub_not_found 'http://test-site.com/robots.txt'
+stub_not_found 'https://motherfuckingwebsite.com/robots.txt'
+
 # Mock a website whose's content gets updated (between indexes).
 stub_request(:get, 'http://www.content-updates.com').
   to_return({ body: 'Original content' }, { body: 'Updated content' })

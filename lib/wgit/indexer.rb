@@ -66,13 +66,18 @@ database capacity, exiting.")
           end
           site_count += 1
 
+          parser = parse_robots_txt(url)
+          next if parser && parser.no_index?
+
           site_docs_count = 0
-          ext_links = @crawler.crawl_site(url) do |doc|
-            unless doc.empty?
-              write_doc_to_db(doc)
-              docs_count += 1
-              site_docs_count += 1
-            end
+          ext_links = @crawler.crawl_site(
+            url, allow_paths: parser.allow_paths, disallow_paths: parser.disallow_paths
+          ) do |doc|
+            next if doc.empty? || no_index?(@crawler.last_response, doc)
+
+            write_doc_to_db(doc)
+            docs_count += 1
+            site_docs_count += 1
           end
 
           raise 'Error updating url' unless @db.update(url) == 1
@@ -113,6 +118,10 @@ the next iteration.")
       url, insert_externals: false, follow: :default,
       allow_paths: nil, disallow_paths: nil
     )
+      parser = parse_robots_txt(url)
+      return 0 if parser && parser.no_index?
+
+      allow_paths, disallow_paths = merge_paths(parser, allow_paths, disallow_paths)
       crawl_opts = {
         follow: follow,
         allow_paths: allow_paths,
@@ -121,6 +130,8 @@ the next iteration.")
       total_pages_indexed = 0
 
       ext_urls = @crawler.crawl_site(url, **crawl_opts) do |doc|
+        next if no_index?(@crawler.last_response, doc)
+
         result = block_given? ? yield(doc) : true
 
         if result && !doc.empty?
@@ -246,6 +257,37 @@ for the site: #{url}")
       end
 
       count
+    end
+
+    private
+
+    # Crawls robots.txt file (if present) and parses it. Returns the parser or nil.
+    def parse_robots_txt(url)
+      url = url.to_url.to_origin + '/robots.txt'
+      doc = crawler.crawl_url(url)
+      doc && !doc.empty? ? Robots::Parser.new(doc.content) : nil
+    end
+
+    # Takes the user defined allow/disallow_paths and merges robots paths into them.
+    # The allow/disallow_paths vars each can be of type nil, String, Enumerable<String>.
+    def merge_paths(parser, allow_paths, disallow_paths)
+      return allow_paths, disallow_paths unless parser&.rules?
+
+      allow = allow_paths || []
+      allow = [allow] unless allow.is_a?(Enumerable)
+
+      disallow = disallow_paths || []
+      disallow = [disallow] unless disallow.is_a?(Enumerable)
+
+      allow = allow.concat(parser.allow_paths)
+      disallow = disallow.concat(parser.disallow_paths)
+
+      return allow, disallow
+    end
+
+    # Returns if the last_response or doc #no_index? is true or not.
+    def no_index?(last_response, doc)
+      last_response.no_index? || doc.no_index?
     end
 
     alias database db
