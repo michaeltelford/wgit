@@ -362,4 +362,46 @@ class TestIndexer < TestHelper
     assert_equal 1, @indexer.db.search('Updated').size
     assert_equal 1, @indexer.db.num_docs
   end
+
+  def test_merge_paths__no_parser_rules
+    allow, disallow = @indexer.send(:merge_paths, nil, nil, nil)
+    assert_nil allow
+    assert_nil disallow
+
+    parser = Wgit::Robots::Parser.new ""
+    allow, disallow = @indexer.send(:merge_paths, parser, nil, nil)
+    assert_nil allow
+    assert_nil disallow
+
+    allow, disallow = @indexer.send(:merge_paths, nil, [], [])
+    assert_empty allow
+    assert_empty disallow
+  end
+
+  def test_merge_paths__paths_array
+    parser = Wgit::Robots::Parser.new <<~TEXT
+      User-agent: wgit
+      Allow: /about
+      Allow: /about2
+      Disallow: /login
+      Disallow: /login2
+    TEXT
+    allow, disallow = @indexer.send(
+      :merge_paths, parser, %w(/contact /contact2), %w(/passreset /passreset2))
+
+    assert_equal %w(/contact /contact2 /about /about2), allow
+    assert_equal %w(/passreset /passreset2 /login /login2), disallow
+  end
+
+  def test_merge_paths__single_path_string
+    parser = Wgit::Robots::Parser.new <<~TEXT
+      User-agent: wgit
+      Allow: /about
+      Disallow: /login
+    TEXT
+    allow, disallow = @indexer.send(:merge_paths, parser, '/contact', '/passreset')
+
+    assert_equal %w(/contact /about), allow
+    assert_equal %w(/passreset /login), disallow
+  end
 end
