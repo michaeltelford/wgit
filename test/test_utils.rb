@@ -139,6 +139,16 @@ class TestUtils < TestHelper
     assert_raises(ArgumentError) { Wgit::Utils.sanitize(s, encode: false) }
   end
 
+  def test_sanitize__str__url
+    s  = Wgit::Url.new(' /about ')
+    s2 = Wgit::Utils.sanitize s
+
+    assert_equal '/about', s
+    assert_instance_of Wgit::Url, s
+    assert_equal '/about', s2
+    assert_instance_of Wgit::Url, s2
+  end
+
   def test_sanitize__arr
     a = ['', true, nil, true, false, ' hello world ', " hello world \xFE "]
     a2 = Wgit::Utils.sanitize a
@@ -156,6 +166,14 @@ class TestUtils < TestHelper
 
     a = ['', true, nil, true, false, ' hello world ', " hello world \xFE "]
     assert_raises(ArgumentError) { Wgit::Utils.sanitize(a, encode: false) }
+  end
+
+  def test_sanitize__arr__urls
+    a = ['', true, nil, true, false, Wgit::Url.new(' /about ')]
+    a2 = Wgit::Utils.sanitize a
+
+    assert_equal [true, false, '/about'], a2
+    assert_instance_of Wgit::Url, a2.last
   end
 
   def test_sanitize__random_type

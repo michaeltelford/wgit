@@ -280,7 +280,9 @@ class TestDocument < TestHelper
   def test_to_h
     expected = @mongo_doc_dup.dup
     expected['score'] = 0.0 # A new Document score is always 0.0.
-    expected['url'] = 'http://www.mytestsite.com/home' # The to_h url is just a string.
+    expected['url']   = 'http://www.mytestsite.com/home' # The to_h url is just a string.
+    expected['html']  = expected['html'].strip
+    expected['links'] = expected['links'].map(&:to_url)
 
     # Test new Document from Strings with included html.
     doc = Wgit::Document.new 'http://www.mytestsite.com/home'.to_url, @html
@@ -603,7 +605,7 @@ Minitest framework."
     refute_nil doc.url.date_crawled
 
     if html && !html.empty?
-      assert_equal html, doc.html
+      assert_equal html.strip, doc.html
       assert_equal @mongo_doc_dup['title'], doc.title
       assert_equal @mongo_doc_dup['description'], doc.description
       assert_equal @mongo_doc_dup['author'], doc.author

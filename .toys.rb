@@ -294,6 +294,7 @@ tool :test do
     t.name = :smoke
     t.libs = ['lib']
     t.files = [
+      'test/test_utils.rb',
       'test/test_url.rb',
       'test/test_document.rb',
       'test/test_document_extractors.rb',

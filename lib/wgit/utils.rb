@@ -167,8 +167,9 @@ module Wgit
     end
 
     # Sanitises the obj to make it uniform by calling the correct sanitize_*
-    # method for its type e.g. if obj.is_a? String then sanitize(obj). Any type
-    # not in the case statement will be ignored and returned as is.
+    # method for its type e.g. if obj.is_a? String then sanitize_str(obj) is called.
+    # Any type not in the case statement will be ignored and returned as is.
+    # Call this method if unsure what obj's type is.
     #
     # @param obj [Object] The object to be sanitized.
     # @param encode [Boolean] Whether or not to encode to UTF-8 replacing
@@ -176,6 +177,8 @@ module Wgit
     # @return [Object] The sanitized obj.
     def self.sanitize(obj, encode: true)
       case obj
+      when Wgit::Url
+        sanitize_url(obj, encode: encode)
       when String
         sanitize_str(obj, encode: encode)
       when Array
@@ -183,6 +186,19 @@ module Wgit
       else
         obj
       end
+    end
+
+    # Sanitises a Wgit::Url to make it uniform. First sanitizes the Url as a
+    # String before replacing the Url value with the sanitized version. This
+    # method therefore modifies the given url param and also returns it.
+    #
+    # @param url [Wgit::Url] The Wgit::Url to sanitize. url is modified.
+    # @param encode [Boolean] Whether or not to encode to UTF-8 replacing
+    #   invalid characters.
+    # @return [Wgit::Url] The sanitized url, which is also modified.
+    def self.sanitize_url(url, encode: true)
+      str = sanitize_str(url.to_s, encode: encode)
+      url.replace(str)
     end
 
     # Sanitises a String to make it uniform. Strips any leading/trailing white
@@ -211,7 +227,7 @@ module Wgit
 
       arr.
         map { |str| sanitize(str, encode: encode) }.
-        reject { |str| str.is_a?(String) ? str.empty? : false }.
+        reject { |str| str.is_a?(String) && str.empty? }.
         compact.
         uniq
     end
