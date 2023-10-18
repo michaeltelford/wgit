@@ -109,6 +109,46 @@ class TestIndexer < TestHelper
     assert_equal 1, database.num_records
   end
 
+  def test_index_www__robots_txt
+    # Links to http://robots.txt.com which has no externals, so crawl 2 sites.
+    url = Wgit::Url.new 'http://link-to-robots-txt.com'
+    seed { url(url) }
+
+    @indexer.index_www
+
+    # Assert that url.crawled gets updated.
+    refute url? url: url, crawled: false
+    assert url? url: url, crawled: true
+
+    # Assert that some indexed docs were inserted into the DB.
+    # The orig url and its doc plus an external url and pages.
+    assert_equal 2, database.num_urls
+    assert_equal 4, database.num_docs
+    assert_equal(
+      [
+        "http://link-to-robots-txt.com", "http://robots.txt.com",
+        "http://robots.txt.com/about", "http://robots.txt.com/contact"
+      ],
+      database.docs.map(&:url).map(&:to_s))
+  end
+
+  def test_index_www__robots_txt__no_index
+    url = Wgit::Url.new 'http://no-index.com'
+    seed { url(url) }
+
+    # Try to index the site which is illegal via robots.txt file.
+    @indexer.index_www
+
+    # Assert that url.crawled gets updated; we must set url.crawled = true to
+    # avoid crawling it again in the future.
+    refute url? url: url, crawled: false
+    assert url? url: url, crawled: true
+
+    # Assert that no indexed docs were inserted into the DB.
+    assert_equal 1, database.num_urls
+    assert_equal 0, database.num_docs
+  end
+
   def test_index_site__without_externals
     url = Wgit::Url.new 'https://motherfuckingwebsite.com/'
 
@@ -220,9 +260,30 @@ class TestIndexer < TestHelper
     # Assert that url.crawled gets updated.
     assert url? url: url, crawled: true
 
-    # The site has one doc plus its url.
-    assert_equal 3, database.num_urls
+    # The site has 3 indexable docs plus its url.
+    assert_equal 1, database.num_urls
     assert_equal 3, database.num_docs
+    assert_equal(
+      ["http://robots.txt.com", "http://robots.txt.com/about", "http://robots.txt.com/contact"],
+      database.docs.map(&:url).map(&:to_s))
+  end
+
+  def test_index_site__robots_txt__no_index
+    url = Wgit::Url.new 'http://no-index.com'
+
+    refute url? url: url
+
+    # Try to index the site which is illegal via robots.txt file.
+    @indexer.index_site url
+
+    # Assert that url.crawled gets updated; we must set url.crawled = true to
+    # avoid crawling it again in the future.
+    refute url? url: url, crawled: false
+    assert url? url: url, crawled: true
+
+    # The site has 2 docs plus its url but only the url is indexed/saved to the DB.
+    assert_equal 1, database.num_urls
+    assert_equal 0, database.num_docs
   end
 
   def test_index_urls__one_url

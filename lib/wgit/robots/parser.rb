@@ -20,6 +20,9 @@ module Wgit::Robots
     # Value representing any user agent including Wgit.
     USER_AGENT_ANY  = :*.freeze
 
+    # Value representing any and all paths.
+    PATHS_ALL = %w(/ *).freeze
+
     # Hash containing the user-agent allow/disallow URL rules. Looks like:
     #   allow_paths:    ["/"]
     #   disallow_paths: ["/accounts", ...]
@@ -90,7 +93,7 @@ module Wgit::Robots
     # @return [Boolean] True if Wgit should not index this site, false
     #   otherwise.
     def no_index?
-      @rules[:disallow_paths].any? { |path| ['*', '/'].include?(path) }
+      @rules[:disallow_paths].any? { |path| PATHS_ALL.include?(path) }
     end
 
     private
@@ -128,7 +131,7 @@ module Wgit::Robots
       return unless wgit_user_agent?(user_agent)
 
       path = remove_key(line, KEY_ALLOW)
-      return if %w(/ *).include?(path)
+      return if PATHS_ALL.include?(path)
 
       @rules[:allow_paths] << path
     end

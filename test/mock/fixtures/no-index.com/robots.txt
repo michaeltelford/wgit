@@ -1,0 +1,6 @@
+User-agent: googlebot
+Crawl-delay: 4
+Allow: *
+
+User-agent: wgit
+Disallow: /

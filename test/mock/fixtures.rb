@@ -40,6 +40,7 @@ stub_not_found 'http://txti.es/robots.txt'
 stub_not_found 'http://quotes.toscrape.com/robots.txt'
 stub_not_found 'http://test-site.com/robots.txt'
 stub_not_found 'https://motherfuckingwebsite.com/robots.txt'
+stub_not_found 'http://link-to-robots-txt.com/robots.txt'
 stub_request(:get, 'http://robots.txt.com/account').
   to_return(status: 200, headers: { 'X-Robots-Tag': 'noindex' }, body: '<p>Robots account</p>')
 
@@ -60,7 +61,8 @@ pages = [
   'http://altitudejunkies.com',
   'http://www.mountainmadness.com',
   'http://www.adventureconsultants.com',
-  'http://odd-extension.com'
+  'http://odd-extension.com',
+  'http://link-to-robots-txt.com'
 ]
 
 # Mock sites based on a collection of files saved in a directory.
@@ -70,7 +72,8 @@ sites = [
   'http://www.belfastpilates.co.uk/',
   'http://test-site.com',
   'http://quotes.toscrape.com/',
-  'http://robots.txt.com'
+  'http://robots.txt.com',
+  'http://no-index.com'
 ]
 
 stub_fixtures pages, sites

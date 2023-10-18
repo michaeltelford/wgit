@@ -52,7 +52,7 @@ runs out of urls to crawl (which might be never).")
 
           return
         end
-        Wgit.logger.info("Starting crawl loop for: #{uncrawled_urls}")
+        Wgit.logger.info("Starting crawl loop for: #{uncrawled_urls.map(&:to_s)}")
 
         docs_count = 0
         urls_count = 0
@@ -67,7 +67,11 @@ database capacity, exiting.")
           site_count += 1
 
           parser = parse_robots_txt(url)
-          next if parser && parser.no_index?
+          if parser && parser.no_index?
+            url.crawled = true # To avoid future crawls.
+            raise 'Error updating url' unless @db.update(url) == 1
+            next
+          end
 
           site_docs_count = 0
           ext_links = @crawler.crawl_site(
@@ -119,7 +123,11 @@ the next iteration.")
       allow_paths: nil, disallow_paths: nil
     )
       parser = parse_robots_txt(url)
-      return 0 if parser && parser.no_index?
+      if parser && parser.no_index?
+        url.crawled = true # To avoid future crawls.
+        @db.upsert(url)
+        return 0
+      end
 
       allow_paths, disallow_paths = merge_paths(parser, allow_paths, disallow_paths)
       crawl_opts = {
