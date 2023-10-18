@@ -89,15 +89,15 @@ class TestParser < TestHelper
       Allow: /
     TEXT
 
-    assert p.rules?
-    assert p.allow_rules?
+    refute p.rules?
+    refute p.allow_rules?
     refute p.disallow_rules?
     refute p.no_index?
     assert_equal({
-      allow_paths:    Set.new(['/']),
+      allow_paths:    Set.new,
       disallow_paths: Set.new
     }, p.rules)
-    assert_equal ['/'], p.allow_paths
+    assert_empty p.allow_paths
     assert_empty p.disallow_paths
   end
 
@@ -107,15 +107,15 @@ class TestParser < TestHelper
       Allow: *
     TEXT
 
-    assert p.rules?
-    assert p.allow_rules?
+    refute p.rules?
+    refute p.allow_rules?
     refute p.disallow_rules?
     refute p.no_index?
     assert_equal({
-      allow_paths:    Set.new(['*']),
+      allow_paths:    Set.new,
       disallow_paths: Set.new
     }, p.rules)
-    assert_equal ['*'], p.allow_paths
+    assert_empty p.allow_paths
     assert_empty p.disallow_paths
   end
 

@@ -123,10 +123,13 @@ module Wgit::Robots
       value.strip
     end
 
+    # Don't append * or /, as this means all paths, which is the same as no allow_paths.
     def append_allow_rule(user_agent, line)
       return unless wgit_user_agent?(user_agent)
 
       path = remove_key(line, KEY_ALLOW)
+      return if %w(/ *).include?(path)
+
       @rules[:allow_paths] << path
     end
 
