@@ -209,6 +209,22 @@ class TestIndexer < TestHelper
     assert_equal 1, database.num_docs
   end
 
+  def test_index_site__robots_txt
+    url = Wgit::Url.new 'http://robots.txt.com'
+
+    refute url? url: url
+
+    # Index the site and don't insert the external urls.
+    @indexer.index_site url
+
+    # Assert that url.crawled gets updated.
+    assert url? url: url, crawled: true
+
+    # The site has one doc plus its url.
+    assert_equal 3, database.num_urls
+    assert_equal 3, database.num_docs
+  end
+
   def test_index_urls__one_url
     url = Wgit::Url.new 'https://motherfuckingwebsite.com/'
 

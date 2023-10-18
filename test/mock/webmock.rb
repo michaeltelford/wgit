@@ -25,7 +25,7 @@ end
 
 # Return the contents of a HTML fixture file.
 def fixture(file)
-  file = "#{file}.html" unless file.end_with?('.html')
+  file = "#{file}.html" if %w(.html robots.txt).none? { |ext| file.end_with?(ext) }
   file_path = file.start_with?(fixtures_dir) ? file : "#{fixtures_dir}/#{file}"
   File.read(file_path)
 end

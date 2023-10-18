@@ -40,6 +40,8 @@ stub_not_found 'http://txti.es/robots.txt'
 stub_not_found 'http://quotes.toscrape.com/robots.txt'
 stub_not_found 'http://test-site.com/robots.txt'
 stub_not_found 'https://motherfuckingwebsite.com/robots.txt'
+stub_request(:get, 'http://robots.txt.com/account').
+  to_return(status: 200, headers: { 'X-Robots-Tag': 'noindex' }, body: '<p>Robots account</p>')
 
 # Mock a website whose's content gets updated (between indexes).
 stub_request(:get, 'http://www.content-updates.com').
@@ -67,7 +69,8 @@ sites = [
   'http://txti.es/',
   'http://www.belfastpilates.co.uk/',
   'http://test-site.com',
-  'http://quotes.toscrape.com/'
+  'http://quotes.toscrape.com/',
+  'http://robots.txt.com'
 ]
 
 stub_fixtures pages, sites

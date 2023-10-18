@@ -1,0 +1,9 @@
+User-agent: Slurp
+Crawl-delay: 4
+
+User-agent: wgit
+Allow: /
+Disallow: /login
+
+User-agent: yacybot
+Disallow: *
