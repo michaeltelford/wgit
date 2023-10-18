@@ -125,7 +125,6 @@ class TestUtils < TestHelper
     s2 = Wgit::Utils.sanitize s
     expected = 'hello world �'
 
-    assert_equal expected, s
     assert_equal expected, s2
   end
 
@@ -134,7 +133,6 @@ class TestUtils < TestHelper
     s2 = Wgit::Utils.sanitize s, encode: false
     expected = 'hello world'
 
-    assert_equal expected, s
     assert_equal expected, s2
 
     s = " hello world \xFE "
@@ -146,7 +144,6 @@ class TestUtils < TestHelper
     a2 = Wgit::Utils.sanitize a
     expected = [true, false, 'hello world', 'hello world �']
 
-    assert_equal expected, a
     assert_equal expected, a2
   end
 
@@ -155,7 +152,6 @@ class TestUtils < TestHelper
     a2 = Wgit::Utils.sanitize a, encode: false
     expected = [true, false, 'hello world']
 
-    assert_equal expected, a
     assert_equal expected, a2
 
     a = ['', true, nil, true, false, ' hello world ', " hello world \xFE "]

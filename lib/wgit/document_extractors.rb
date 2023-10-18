@@ -64,7 +64,7 @@ Wgit::Document.define_extractor(
 ) do |keywords, _source, type|
   if keywords && (type == :document)
     keywords = keywords.split(',')
-    Wgit::Utils.sanitize(keywords)
+    keywords = Wgit::Utils.sanitize(keywords)
   end
   keywords
 end

@@ -475,7 +475,7 @@ module Wgit
       raise 'The provided paths must all be Strings' \
       unless paths.all? { |path| path.is_a?(String) }
 
-      Wgit::Utils.sanitize(paths, encode: false)
+      paths = Wgit::Utils.sanitize(paths, encode: false)
       raise 'The provided paths cannot be empty' if paths.empty?
 
       paths.map do |path|

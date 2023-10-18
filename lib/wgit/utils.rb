@@ -173,7 +173,7 @@ module Wgit
     # @param obj [Object] The object to be sanitized.
     # @param encode [Boolean] Whether or not to encode to UTF-8 replacing
     #   invalid characters.
-    # @return [Object] The sanitized obj is both modified and then returned.
+    # @return [Object] The sanitized obj.
     def self.sanitize(obj, encode: true)
       case obj
       when String
@@ -189,34 +189,31 @@ module Wgit
     # space. Also applies UTF-8 encoding (replacing invalid characters) if
     # `encode: true`.
     #
-    # @param str [String] The String to sanitize. str is modified.
+    # @param str [String] The String to sanitize. str is not modified.
     # @param encode [Boolean] Whether or not to encode to UTF-8 replacing
     #   invalid characters.
-    # @return [String] The sanitized str is both modified and then returned.
+    # @return [String] The sanitized str.
     def self.sanitize_str(str, encode: true)
-      if str.is_a?(String)
-        str.encode!('UTF-8', undef: :replace, invalid: :replace) if encode
-        str.strip!
-      end
+      return str unless str.is_a?(String)
 
-      str
+      str = str.encode('UTF-8', undef: :replace, invalid: :replace) if encode
+      str.strip
     end
 
     # Sanitises an Array to make it uniform. Removes empty Strings and nils,
     # processes non empty Strings using Wgit::Utils.sanitize and removes
     # duplicates.
     #
-    # @param arr [Enumerable] The Array to sanitize. arr is modified.
-    # @return [Enumerable] The sanitized arr is both modified and then returned.
+    # @param arr [Enumerable] The Array to sanitize. arr is not modified.
+    # @return [Enumerable] The sanitized arr.
     def self.sanitize_arr(arr, encode: true)
-      if arr.is_a?(Array)
-        arr.map! { |str| sanitize(str, encode: encode) }
-        arr.reject! { |str| str.is_a?(String) ? str.empty? : false }
-        arr.compact!
-        arr.uniq!
-      end
+      return arr unless arr.is_a?(Array)
 
-      arr
+      arr.
+        map { |str| sanitize(str, encode: encode) }.
+        reject { |str| str.is_a?(String) ? str.empty? : false }.
+        compact.
+        uniq
     end
 
     # Pretty prints a log statement, used for debugging purposes.

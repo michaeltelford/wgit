@@ -594,7 +594,7 @@ be relative"
         result = singleton ? result.content : result.map(&:content)
       end
 
-      Wgit::Utils.sanitize(result)
+      result = Wgit::Utils.sanitize(result)
       result = yield(result, self, :document) if block_given?
       result
     end
@@ -621,7 +621,7 @@ be relative"
       default = singleton ? nil : []
       result  = obj.fetch(key.to_s, default)
 
-      Wgit::Utils.sanitize(result)
+      result = Wgit::Utils.sanitize(result)
       result = yield(result, obj, :object) if block_given?
       result
     end
@@ -641,7 +641,7 @@ be relative"
       @parser = init_nokogiri
       @score  = 0.0
 
-      Wgit::Utils.sanitize(@html, encode: encode)
+      @html = Wgit::Utils.sanitize(@html, encode: encode)
 
       # Dynamically run the init_*_from_html methods.
       Document.private_instance_methods(false).each do |method|
@@ -662,7 +662,7 @@ be relative"
       @parser = init_nokogiri
       @score  = obj.fetch('score', 0.0)
 
-      Wgit::Utils.sanitize(@html, encode: encode)
+      @html = Wgit::Utils.sanitize(@html, encode: encode)
 
       # Dynamically run the init_*_from_object methods.
       Document.private_instance_methods(false).each do |method|
