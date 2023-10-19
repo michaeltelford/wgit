@@ -38,7 +38,7 @@ module Wgit
     def index_www(max_sites: -1, max_data: 1_048_576_000)
       if max_sites.negative?
         Wgit.logger.info("Indexing until the database has been filled or it \
-runs out of urls to crawl (which might be never).")
+runs out of urls to crawl (which might be never)")
       end
       site_count = 0
 
@@ -48,11 +48,11 @@ runs out of urls to crawl (which might be never).")
         uncrawled_urls = @db.uncrawled_urls(limit: 100)
 
         if uncrawled_urls.empty?
-          Wgit.logger.info('No urls to crawl, exiting.')
+          Wgit.logger.info('No urls to crawl, exiting')
 
           return
         end
-        Wgit.logger.info("Starting crawl loop for: #{uncrawled_urls.map(&:to_s)}")
+        Wgit.logger.info("Starting indexing loop for: #{uncrawled_urls.map(&:to_s)}")
 
         docs_count = 0
         urls_count = 0
@@ -60,7 +60,7 @@ runs out of urls to crawl (which might be never).")
         uncrawled_urls.each do |url|
           unless keep_crawling?(site_count, max_sites, max_data)
             Wgit.logger.info("Reached max number of sites to crawl or \
-database capacity, exiting.")
+database capacity, exiting")
 
             return
           end
@@ -90,9 +90,9 @@ database capacity, exiting.")
         end
 
         Wgit.logger.info("Crawled and indexed documents for #{docs_count} \
-url(s) overall for this iteration.")
+url(s) overall for this iteration")
         Wgit.logger.info("Found and saved #{urls_count} external url(s) for \
-the next iteration.")
+the next iteration")
 
         nil
       end
@@ -273,7 +273,15 @@ for the site: #{url}")
     def parse_robots_txt(url)
       url = url.to_url.to_origin + '/robots.txt'
       doc = crawler.crawl_url(url)
-      doc && !doc.empty? ? Robots::Parser.new(doc.content) : nil
+      return nil if doc.nil? || doc.empty?
+
+      parser = Robots::Parser.new(doc.content)
+
+      Wgit.logger.info("robots.txt allow paths: #{parser.allow_paths}")
+      Wgit.logger.info("robots.txt disallow paths: #{parser.disallow_paths}")
+      Wgit.logger.info('robots.txt has banned wgit indexing, skipping') if parser.no_index?
+
+      parser
     end
 
     # Takes the user defined allow/disallow_paths and merges robots paths into them.
@@ -295,7 +303,18 @@ for the site: #{url}")
 
     # Returns if the last_response or doc #no_index? is true or not.
     def no_index?(last_response, doc)
-      last_response.no_index? || doc.no_index?
+      url = doc.url.to_s
+      if last_response.no_index?
+        Wgit.logger.info("Skipping page due to no-index response header: #{url}")
+        return true
+      end
+
+      if doc.no_index?
+        Wgit.logger.info("Skipping page due to no-index HTML meta tag: #{url}")
+        return true
+      end
+
+      false
     end
 
     alias database db
