@@ -26,7 +26,8 @@ module Wgit
     # Retrieves uncrawled url's from the database and recursively crawls each
     # site storing their internal pages into the database and adding their
     # external url's to be crawled later on. Logs info on the crawl using
-    # Wgit.logger as it goes along.
+    # Wgit.logger as it goes along. This method will request and abide by the
+    # site's robots.txt file if present.
     #
     # @param max_sites [Integer] The number of separate and whole
     #   websites to be crawled before the method exits. Defaults to -1 which
@@ -102,7 +103,8 @@ the next iteration")
 
     # Crawls a single website's pages and stores them into the database.
     # There is no max download limit so be careful which sites you index.
-    # Logs info on the crawl using Wgit.logger as it goes along.
+    # Logs info on the crawl using Wgit.logger as it goes along. This method
+    # will request and abide by the site's robots.txt file if present.
     #
     # @param url [Wgit::Url] The base Url of the website to crawl.
     # @param insert_externals [Boolean] Whether or not to insert the website's
