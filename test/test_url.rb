@@ -18,6 +18,7 @@ class TestUrl < TestHelper
     refute url.crawled
     assert_nil url.date_crawled
     assert_nil url.crawl_duration
+    assert_empty url.redirects
     refute_nil url.instance_variable_get :@uri
 
     url = Wgit::Url.new(
@@ -31,6 +32,7 @@ class TestUrl < TestHelper
     assert url.crawled
     assert_equal time, url.date_crawled
     assert_equal 1.5, url.crawl_duration
+    assert_empty url.redirects
     refute_nil url.instance_variable_get :@uri
   end
 
@@ -42,6 +44,7 @@ class TestUrl < TestHelper
     refute url.crawled
     assert_nil url.date_crawled
     assert_nil url.crawl_duration
+    assert_empty url.redirects
     refute_nil url.instance_variable_get :@uri
   end
 
@@ -52,6 +55,7 @@ class TestUrl < TestHelper
     refute url.crawled
     assert_nil url.date_crawled
     assert_nil url.crawl_duration
+    assert_empty url.redirects
     refute_nil url.instance_variable_get :@uri
   end
 
@@ -68,6 +72,7 @@ class TestUrl < TestHelper
     assert url.crawled
     assert_equal time, url.date_crawled
     assert_equal 1.5, url.crawl_duration
+    assert_empty url.redirects
     refute_nil url.instance_variable_get :@uri
   end
 
@@ -78,6 +83,7 @@ class TestUrl < TestHelper
     refute url.crawled
     assert_nil url.date_crawled
     assert_nil url.crawl_duration
+    assert_empty url.redirects
     refute_nil url.instance_variable_get :@uri
   end
 
@@ -95,6 +101,7 @@ class TestUrl < TestHelper
     assert url.crawled
     assert_equal time, url.date_crawled
     assert_equal 1.5, url.crawl_duration
+    assert_empty url.redirects
     refute_nil url.instance_variable_get :@uri
   end
 
@@ -113,6 +120,7 @@ class TestUrl < TestHelper
     refute url.crawled
     assert_nil url.date_crawled
     assert_nil url.crawl_duration
+    assert_empty url.redirects
     refute_nil url.instance_variable_get :@uri
   end
 
@@ -130,6 +138,7 @@ class TestUrl < TestHelper
     assert url.crawled
     assert_equal time, url.date_crawled
     assert_equal 1.5, url.crawl_duration
+    assert_empty url.redirects
     refute_nil url.instance_variable_get :@uri
   end
 
@@ -1149,7 +1158,10 @@ class TestUrl < TestHelper
       'url' => 'http://www.google.co.uk',
       'crawled' => true,
       'date_crawled' => Time.now,
-      'crawl_duration' => 1.5
+      'crawl_duration' => 1.5,
+      'redirects' => {
+        'http://www.google.co.uk' => 'https://www.google.co.uk'
+      }
     }
     assert_equal mongo_doc, Wgit::Url.new(mongo_doc).to_h
   end

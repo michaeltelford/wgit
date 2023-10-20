@@ -435,7 +435,8 @@ class TestDocumentExtractors < TestHelper
         url: 'http://some_url.com',
         crawled: true,
         date_crawled: time,
-        crawl_duration: 0.8
+        crawl_duration: 0.8,
+        redirects: {}
       },
       base: nil,
       title: nil,

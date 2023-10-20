@@ -52,7 +52,6 @@ class TestIndexer < TestHelper
     @indexer.index_www max_sites: 1
 
     # Assert that url.crawled gets updated.
-    refute url? url: url, crawled: false
     assert url? url: url, crawled: true
 
     # Assert that some indexed docs were inserted into the DB.
@@ -88,7 +87,6 @@ class TestIndexer < TestHelper
     @indexer.index_www max_sites: 2
 
     # Assert that url.crawled gets updated.
-    refute url? url: url, crawled: false
     assert url? url: url, crawled: true
 
     # Assert that some indexed docs were inserted into the DB.
@@ -107,8 +105,27 @@ class TestIndexer < TestHelper
     assert url? url: url, crawled: true
 
     # Assert that some indexed docs were inserted into the DB.
-    assert_equal 6, database.num_urls
+    # 7 urls == orig_url + 6 blank page urls + 1 redirect url from http -> https.
+    assert_equal 7, database.num_urls
     assert_equal 6, database.num_docs
+  end
+
+  def test_index_www__redirects
+    url = Wgit::Url.new 'http://redirect.com/4'
+    seed { url(url) }
+
+    # Index http://redirect.com/4 which redirects through to 7 and yields a single page.
+    @indexer.index_www max_sites: 1
+
+    # Assert that url and its redirects all get indexed as crawled.
+    assert url? url: 'http://redirect.com/4', crawled: true
+    assert url? url: 'http://redirect.com/5', crawled: true
+    assert url? url: 'http://redirect.com/6', crawled: true
+    assert url? url: 'http://redirect.com/7', crawled: true
+
+    # Assert that some indexed docs were inserted into the DB.
+    assert_equal 4, database.num_urls
+    assert_equal 1, database.num_docs
   end
 
   def test_index_www__max_data
@@ -119,7 +136,6 @@ class TestIndexer < TestHelper
     @indexer.index_www(max_sites: -1, max_data: 0)
 
     # Assert nothing was indexed. The only DB record is the original url.
-    refute url? url: url, crawled: true
     assert url? url: url, crawled: false
     assert_equal 1, database.num_records
   end
@@ -132,7 +148,6 @@ class TestIndexer < TestHelper
     @indexer.index_www
 
     # Assert that url.crawled gets updated.
-    refute url? url: url, crawled: false
     assert url? url: url, crawled: true
 
     # Assert that some indexed docs were inserted into the DB.
@@ -156,7 +171,6 @@ class TestIndexer < TestHelper
 
     # Assert that url.crawled gets updated; we must set url.crawled = true to
     # avoid crawling it again in the future.
-    refute url? url: url, crawled: false
     assert url? url: url, crawled: true
 
     # Assert that no indexed docs were inserted into the DB.
@@ -264,6 +278,26 @@ class TestIndexer < TestHelper
     assert_equal 1, database.num_docs
   end
 
+  def test_index_site__redirects
+    url = Wgit::Url.new 'http://redirect.com/4'
+
+    refute url? url: url
+
+    # Index the site and don't insert the external urls.
+    @indexer.index_site url, insert_externals: false
+
+    # Assert that url and its redirects all get indexed as crawled.
+    assert_equal 'http://redirect.com/7', url.to_s
+    assert url? url: 'http://redirect.com/4', crawled: true
+    assert url? url: 'http://redirect.com/5', crawled: true
+    assert url? url: 'http://redirect.com/6', crawled: true
+    assert url? url: 'http://redirect.com/7', crawled: true
+
+    # Assert that some indexed docs were inserted into the DB.
+    assert_equal 4, database.num_urls
+    assert_equal 1, database.num_docs
+  end
+
   def test_index_site__robots_txt
     url = Wgit::Url.new 'http://robots.txt.com'
 
@@ -293,7 +327,6 @@ class TestIndexer < TestHelper
 
     # Assert that url.crawled gets updated; we must set url.crawled = true to
     # avoid crawling it again in the future.
-    refute url? url: url, crawled: false
     assert url? url: url, crawled: true
 
     # The site has 2 docs plus its url but only the url is indexed/saved to the DB.
@@ -321,6 +354,27 @@ class TestIndexer < TestHelper
 
     # url points to url2 and url2 has no externals, totalling 2 urls and docs.
     assert_equal 2, database.num_urls
+    assert_equal 2, database.num_docs
+    assert_empty database.uncrawled_urls
+  end
+
+  def test_index_urls__redirects
+    url  = Wgit::Url.new 'http://redirect.com/4'
+    url2 = Wgit::Url.new 'https://motherfuckingwebsite.com/'
+
+    # Index the site and don't insert the external urls.
+    @indexer.index_urls url, url2
+
+    # Assert that url and its redirects all get indexed as crawled.
+    assert_equal 'http://redirect.com/7', url.to_s
+    assert url? url: 'http://redirect.com/4', crawled: true
+    assert url? url: 'http://redirect.com/5', crawled: true
+    assert url? url: 'http://redirect.com/6', crawled: true
+    assert url? url: 'http://redirect.com/7', crawled: true
+    assert url? url: 'https://motherfuckingwebsite.com/', crawled: true
+
+    # Assert that some indexed docs were inserted into the DB.
+    assert_equal 5, database.num_urls
     assert_equal 2, database.num_docs
     assert_empty database.uncrawled_urls
   end
@@ -453,6 +507,48 @@ class TestIndexer < TestHelper
     assert_equal 0, @indexer.db.search('Original').size
     assert_equal 1, @indexer.db.search('Updated').size
     assert_equal 1, @indexer.db.num_docs
+  end
+
+  def test_index_url__single_redirect
+    url = Wgit::Url.new 'http://redirect.com/6'
+
+    refute url? url: url
+
+    # Index the page and don't insert the external urls.
+    @indexer.index_url url
+
+    # Assert that url and its single redirect get indexed as crawled.
+    assert_equal 'http://redirect.com/7', url.to_s
+
+    assert url? url: 'http://redirect.com/6', crawled: true
+    assert url? url: 'http://redirect.com/7', crawled: true
+
+    # Assert that some indexed docs were inserted into the DB.
+    assert_equal 2, database.num_urls
+    assert_equal 1, database.num_docs
+    assert_empty database.uncrawled_urls
+  end
+
+  def test_index_url__several_redirects
+    url = Wgit::Url.new 'http://redirect.com/4'
+
+    refute url? url: url
+
+    # Index the page and don't insert the external urls.
+    @indexer.index_url url
+
+    # Assert that url and its redirects all get indexed as crawled.
+    assert_equal 'http://redirect.com/7', url.to_s
+
+    assert url? url: 'http://redirect.com/4', crawled: true
+    assert url? url: 'http://redirect.com/5', crawled: true
+    assert url? url: 'http://redirect.com/6', crawled: true
+    assert url? url: 'http://redirect.com/7', crawled: true
+
+    # Assert that some indexed docs were inserted into the DB.
+    assert_equal 4, database.num_urls
+    assert_equal 1, database.num_docs
+    assert_empty database.uncrawled_urls
   end
 
   def test_merge_paths__no_parser_rules

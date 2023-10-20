@@ -66,10 +66,11 @@ database capacity, exiting")
           end
           site_count += 1
 
+          resolve_redirects(url)
+
           parser = parse_robots_txt(url)
           if parser && parser.no_index?
-            url.crawled = true # To avoid future crawls.
-            raise 'Error updating url' unless @db.update(url) == 1
+            upsert_url_and_redirects(url)
 
             next
           end
@@ -80,14 +81,14 @@ database capacity, exiting")
           ) do |doc|
             next if doc.empty? || no_index?(@crawler.last_response, doc)
 
-            write_doc_to_db(doc)
+            upsert_doc(doc)
             docs_count += 1
             site_docs_count += 1
           end
 
-          raise 'Error updating url' unless @db.update(url) == 1
+          upsert_url_and_redirects(url)
 
-          urls_count += write_urls_to_db(ext_links)
+          urls_count += insert_external_urls(ext_links)
         end
 
         Wgit.logger.info("Crawled and indexed documents for #{docs_count} \
@@ -123,10 +124,11 @@ the next iteration")
       url, insert_externals: false, follow: :default,
       allow_paths: nil, disallow_paths: nil
     )
+      resolve_redirects(url)
+
       parser = parse_robots_txt(url)
       if parser && parser.no_index?
-        url.crawled = true # To avoid future crawls.
-        @db.upsert(url)
+        upsert_url_and_redirects(url)
 
         return 0
       end
@@ -145,16 +147,16 @@ the next iteration")
         result = block_given? ? yield(doc) : true
 
         if result && !doc.empty?
-          write_doc_to_db(doc)
+          upsert_doc(doc)
           total_pages_indexed += 1
         end
       end
 
-      @db.upsert(url)
+      upsert_url_and_redirects(url)
 
       if insert_externals && ext_urls
-        num_inserted_urls = write_urls_to_db(ext_urls)
-        Wgit.logger.info("Found and saved #{num_inserted_urls} external url(s)")
+        num_external_urls = insert_external_urls(ext_urls)
+        Wgit.logger.info("Found and saved #{num_external_urls} external url(s)")
       end
 
       Wgit.logger.info("Crawled and indexed #{total_pages_indexed} documents \
@@ -198,15 +200,15 @@ for the site: #{url}")
     def index_url(url, insert_externals: false)
       document = @crawler.crawl_url(url) do |doc|
         result = block_given? ? yield(doc) : true
-        write_doc_to_db(doc) if result && !doc.empty?
+        upsert_doc(doc) if result && !doc.empty?
       end
 
-      @db.upsert(url)
+      upsert_url_and_redirects(url)
 
       ext_urls = document&.external_links
       if insert_externals && ext_urls
-        num_inserted_urls = write_urls_to_db(ext_urls)
-        Wgit.logger.info("Found and saved #{num_inserted_urls} external url(s)")
+        num_external_urls = insert_external_urls(ext_urls)
+        Wgit.logger.info("Found and saved #{num_external_urls} external url(s)")
       end
 
       nil
@@ -230,11 +232,28 @@ for the site: #{url}")
       site_count < max_sites
     end
 
+    def upsert_url_and_redirects(url)
+      redirects = url.redirects
+      if redirects.empty?
+        @db.upsert(url)
+        return 1
+      end
+
+      redirects.keys.each do |from|
+        redirect_url = Wgit::Url.new(from, crawled: true, date_crawled: url.date_crawled)
+        @db.upsert(redirect_url)
+      end
+
+      @db.upsert(url)
+
+      redirects.size + 1 # return total upserts: url + redirects.size
+    end
+
     # Write the doc to the DB. Note that the unique url index on the documents
     # collection deliberately prevents duplicate inserts.
     #
     # @param doc [Wgit::Document] The document to write to the DB.
-    def write_doc_to_db(doc)
+    def upsert_doc(doc)
       if @db.upsert(doc)
         Wgit.logger.info("Saved document for url: #{doc.url}")
       else
@@ -247,7 +266,7 @@ for the site: #{url}")
     #
     # @param urls [Array<Wgit::Url>] The urls to write to the DB.
     # @return [Integer] The number of inserted urls.
-    def write_urls_to_db(urls)
+    def insert_external_urls(urls)
       count = 0
 
       return count unless urls.respond_to?(:each)
@@ -270,6 +289,12 @@ for the site: #{url}")
     end
 
     private
+
+    # Crawl the url to allow it to fully redirect before using it. The url's
+    # value and url.redirects will be set by reference.
+    def resolve_redirects(url)
+      @crawler.crawl_url(url)
+    end
 
     # Crawls robots.txt file (if present) and parses it. Returns the parser or nil.
     def parse_robots_txt(url)

@@ -236,6 +236,9 @@ module Wgit
       url.crawled        = true # Sets date_crawled underneath.
       url.crawl_duration = response.total_time
 
+      # Don't override previous url.redirects if response is fully resolved.
+      url.redirects      = response.redirects unless response.redirects.empty?
+
       @last_response = response
     end
 

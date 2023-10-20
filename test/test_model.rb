@@ -18,7 +18,7 @@ class TestModel < TestHelper
 
     model = Wgit::Model.url(url)
 
-    assert_equal %w[crawl_duration crawled date_crawled url], model.keys.sort
+    assert_equal %w[crawl_duration crawled date_crawled redirects url], model.keys.sort
     refute model.values.any?(&:nil?)
   end
 
@@ -33,7 +33,7 @@ class TestModel < TestHelper
     model = Wgit::Model.document(doc)
 
     assert_equal %w[author base description keywords links text title url], model.keys.sort
-    assert_equal %w[crawl_duration crawled date_crawled url], model['url'].keys.sort
+    assert_equal %w[crawl_duration crawled date_crawled redirects url], model['url'].keys.sort
     refute model['url'].values.any?(&:nil?)
   end
 end

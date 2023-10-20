@@ -28,6 +28,9 @@ module Wgit
     # The duration of the crawl for this Url (in seconds).
     attr_accessor :crawl_duration
 
+    # Record the redirects from the initial Url to the final Url.
+    attr_accessor :redirects
+
     # Initializes a new instance of Wgit::Url which models a web based
     # HTTP URL.
     #
@@ -57,12 +60,14 @@ module Wgit
         crawled        = obj.fetch('crawled', false)
         date_crawled   = obj.fetch('date_crawled', nil)
         crawl_duration = obj.fetch('crawl_duration', nil)
+        redirects      = obj.fetch('redirects', {})
       end
 
       @uri            = Addressable::URI.parse(url)
       @crawled        = crawled
       @date_crawled   = date_crawled
       @crawl_duration = crawl_duration
+      @redirects      = redirects || {}
 
       super(url)
     end

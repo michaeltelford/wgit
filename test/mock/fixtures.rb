@@ -19,7 +19,7 @@ stub_redirect 'http://redirect.com/3', 'http://redirect.com/4' # Third redirect.
 stub_redirect 'http://redirect.com/4', 'http://redirect.com/5' # Fourth redirect.
 stub_redirect 'http://redirect.com/5', 'http://redirect.com/6' # Fifth redirect.
 stub_redirect 'http://redirect.com/6', 'http://redirect.com/7' # Sixth redirect.
-stub_page 'http://redirect.com/7'
+stub_page 'http://redirect.com/7', fixture: 'blank'
 stub_page 'https://www.xn--ber-goa.com/about'
 stub_redirect 'http://test-site.com/sneaky', 'https://motherfuckingwebsite.com/'
 stub_page 'http://test-site.com/public/records?q=username', fixture: 'test-site.com/public/records'
@@ -63,7 +63,8 @@ stub_robot_txt_not_found [
   'https://blank-site-2.com',
   'https://blank-site-3.com',
   'http://blank-site-4.com',
-  'https://blank-site-5.com'
+  'https://blank-site-5.com',
+  'http://redirect.com'
 ]
 
 # Mock responses based on individual files saved to disk. The URL should match

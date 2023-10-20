@@ -137,8 +137,15 @@ class TestDatabase < TestHelper
     assert_equal @urls.length + 1, db.num_urls
     assert_equal db.num_urls, db.num_records
 
+    # Insert an invalid type.
     e = assert_raises(StandardError) { db.insert true }
     assert_equal 'obj must be a Wgit::Url or Wgit::Document, not: TrueClass', e.message
+
+    # Insert a url with redirects.
+    url_with_redirects = Wgit::Url.new('http://example.com')
+    url_with_redirects.redirects = {'http://example.com' => 'https://example.com'}
+    assert_equal 1, db.insert(url_with_redirects)
+    assert url?(url_with_redirects.to_h)
   end
 
   def test_insert__docs
@@ -201,7 +208,7 @@ class TestDatabase < TestHelper
     assert_empty db.urls
     assert_empty db.crawled_urls
     assert_empty db.uncrawled_urls
-    
+
     refute_nil db.last_result
 
     # Seed url data to the DB.
@@ -227,6 +234,23 @@ class TestDatabase < TestHelper
 
     # Test limit and skip.
     assert_equal @urls[1], db.urls(skip: 1, limit: 1).first
+  end
+
+  def test_urls__with_redirects
+    db = Wgit::Database.new
+
+    # Seed url data to the DB.
+    # Url with redirects populated.
+    redirects_hash = {'http://example.com' => 'https://example.com'}
+    @urls.first.redirects = redirects_hash
+    seed { urls @urls }
+
+    urls = db.urls
+
+    # Test urls.
+    assert urls.all? { |url| url.instance_of? Wgit::Url }
+    assert_equal 3, urls.length
+    assert_equal redirects_hash, urls.first.redirects
   end
 
   def test_search__case_sensitive__whole_sentence
@@ -280,7 +304,7 @@ class TestDatabase < TestHelper
     results = db.search('everest', limit: 2)
     assert_equal 2, results.length
     assert_equal 3, db.last_result&.count
-    
+
     results.each_with_index do |doc, i|
       doc.instance_of? Wgit::Document
       assert_equal @docs[i], doc
@@ -291,7 +315,7 @@ class TestDatabase < TestHelper
     results = db.search('everest', skip: 1)
     assert_equal 2, results.length
     assert_equal 3, db.last_result&.count
-    
+
     results.each_with_index do |doc, i|
       doc.instance_of? Wgit::Document
       assert_equal @docs[i + 1], doc
@@ -302,7 +326,7 @@ class TestDatabase < TestHelper
     results = db.search('everest', limit: 1, skip: 1)
     assert_equal 1, results.length
     assert_equal 3, db.last_result&.count
-    
+
     results.each do |doc|
       doc.instance_of? Wgit::Document
       assert_equal @docs[1], doc
