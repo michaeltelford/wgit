@@ -96,6 +96,21 @@ class TestIndexer < TestHelper
     assert_equal 8, database.num_docs
   end
 
+  def test_index_www__several_sites
+    url = Wgit::Url.new 'https://external-link-portal.com'
+    seed { url(url) }
+
+    # Index https://external-link-portal.com plus it's 5 externally linked sites.
+    @indexer.index_www max_urls_per_iteration: 2
+
+    # Assert that url.crawled gets updated.
+    assert url? url: url, crawled: true
+
+    # Assert that some indexed docs were inserted into the DB.
+    assert_equal 6, database.num_urls
+    assert_equal 6, database.num_docs
+  end
+
   def test_index_www__max_data
     url = Wgit::Url.new 'https://motherfuckingwebsite.com/'
     seed { url(url) }

@@ -34,15 +34,12 @@ stub_timeout 'http://doesnt_exist/'
 stub_timeout 'http://test-site.com/doesntexist'
 stub_page 'http://odd-extension.com/other.html5', body: '<p>Hello world</p>'
 stub_page 'http://fonts.googleapis.com'
-
-# Mock robots.txt requests.
-stub_not_found 'http://txti.es/robots.txt'
-stub_not_found 'http://quotes.toscrape.com/robots.txt'
-stub_not_found 'http://test-site.com/robots.txt'
-stub_not_found 'https://motherfuckingwebsite.com/robots.txt'
-stub_not_found 'http://link-to-robots-txt.com/robots.txt'
-stub_request(:get, 'http://robots.txt.com/account').
-  to_return(status: 200, headers: { 'X-Robots-Tag': 'noindex' }, body: '<p>Robots account</p>')
+stub_page 'https://blank-site-1.com', fixture: 'blank'
+stub_page 'https://blank-site-2.com',  fixture: 'blank'
+stub_page 'https://blank-site-3.com', fixture: 'blank'
+stub_page 'http://blank-site-4.com',  fixture: 'blank'
+stub_page 'https://blank-site-5.com', fixture: 'blank'
+stub_redirect 'http://blank-site-2.com', 'https://blank-site-2.com'
 
 # Mock a website whose's content gets updated (between indexes).
 stub_request(:get, 'http://www.content-updates.com').
@@ -50,6 +47,24 @@ stub_request(:get, 'http://www.content-updates.com').
 
 # Match all *.jpg URL's for belfastpilates.co.uk.
 stub_request(:get, Regexp.new('http://www.belfastpilates.co.uk/(.*).(?:jpg|jpeg)'))
+
+# Mock robots.txt requests.
+stub_request(:get, 'http://robots.txt.com/account').
+  to_return(status: 200, headers: { 'X-Robots-Tag': 'noindex' }, body: '<p>Robots account</p>')
+
+stub_robot_txt_not_found [
+  'http://txti.es',
+  'http://quotes.toscrape.com',
+  'http://test-site.com',
+  'https://motherfuckingwebsite.com',
+  'http://link-to-robots-txt.com',
+  'https://external-link-portal.com',
+  'https://blank-site-1.com',
+  'https://blank-site-2.com',
+  'https://blank-site-3.com',
+  'http://blank-site-4.com',
+  'https://blank-site-5.com'
+]
 
 # Mock responses based on individual files saved to disk. The URL should match
 # the file name (minus the scheme prefix and .html extension suffix).
@@ -62,7 +77,8 @@ pages = [
   'http://www.mountainmadness.com',
   'http://www.adventureconsultants.com',
   'http://odd-extension.com',
-  'http://link-to-robots-txt.com'
+  'http://link-to-robots-txt.com',
+  'https://external-link-portal.com/'
 ]
 
 # Mock sites based on a collection of files saved in a directory.

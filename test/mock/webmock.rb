@@ -54,6 +54,14 @@ def stub_not_found(url)
   stub_page(url, status: 404, fixture: 'not_found')
 end
 
+# Stub a 404 not found for /robots.txt.
+def stub_robot_txt_not_found(urls)
+  urls.each do |url|
+    suffix = url.end_with?('/robots.txt') ? '' : '/robots.txt'
+    stub_not_found(url + suffix)
+  end
+end
+
 # Stub a single page 301 redirect.
 def stub_redirect(from, to)
   stub_request(:get, from).to_return(status: 301, headers: { 'Location': to })

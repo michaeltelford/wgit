@@ -35,7 +35,7 @@ module Wgit
     #   scraped from the web (default is 1GB). Note, that this value is used to
     #   determine when to stop crawling; it's not a guarantee of the max data
     #   that will be obtained.
-    def index_www(max_sites: -1, max_data: 1_048_576_000)
+    def index_www(max_sites: -1, max_data: 1_048_576_000, max_urls_per_iteration: 10)
       if max_sites.negative?
         Wgit.logger.info("Indexing until the database has been filled or it \
 runs out of urls to crawl (which might be never)")
@@ -45,7 +45,7 @@ runs out of urls to crawl (which might be never)")
       while keep_crawling?(site_count, max_sites, max_data)
         Wgit.logger.info("Current database size: #{@db.size}")
 
-        uncrawled_urls = @db.uncrawled_urls(limit: 100)
+        uncrawled_urls = @db.uncrawled_urls(limit: max_urls_per_iteration)
 
         if uncrawled_urls.empty?
           Wgit.logger.info('No urls to crawl, exiting')
@@ -70,12 +70,13 @@ database capacity, exiting")
           if parser && parser.no_index?
             url.crawled = true # To avoid future crawls.
             raise 'Error updating url' unless @db.update(url) == 1
+
             next
           end
 
           site_docs_count = 0
           ext_links = @crawler.crawl_site(
-            url, allow_paths: parser.allow_paths, disallow_paths: parser.disallow_paths
+            url, allow_paths: parser&.allow_paths, disallow_paths: parser&.disallow_paths
           ) do |doc|
             next if doc.empty? || no_index?(@crawler.last_response, doc)
 
@@ -126,6 +127,7 @@ the next iteration")
       if parser && parser.no_index?
         url.crawled = true # To avoid future crawls.
         @db.upsert(url)
+
         return 0
       end
 
@@ -271,9 +273,12 @@ for the site: #{url}")
 
     # Crawls robots.txt file (if present) and parses it. Returns the parser or nil.
     def parse_robots_txt(url)
-      url = url.to_url.to_origin + '/robots.txt'
-      doc = crawler.crawl_url(url)
-      return nil if doc.nil? || doc.empty?
+      url = url.to_origin + '/robots.txt'
+
+      Wgit.logger.info("Crawling for robots.txt: #{url}")
+
+      doc = @crawler.crawl_url(url)
+      return nil if !@crawler.last_response.ok? || doc.nil? || doc.empty?
 
       parser = Robots::Parser.new(doc.content)
 
