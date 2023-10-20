@@ -164,6 +164,8 @@ indexer = Wgit::Indexer.new
 indexer.index_site(wiki, **opts)
 ```
 
+- Wgit's built in indexing methods will (by default), honour a site's `robots.txt` rules. There's also a handy robots parser that you can use in your own code.
+
 ## Why Not Wgit?
 
 So why might you not use Wgit, I hear you ask?
