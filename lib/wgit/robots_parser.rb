@@ -2,10 +2,9 @@
 
 require 'set'
 
-# The Robots module handles parsing and processing of a web servers robots.txt file.
-module Wgit::Robots
-  # The Robots::Parser class handles parsing and processing of a web servers robots.txt file.
-  class Parser
+module Wgit
+  # The RobotsParser class handles parsing and processing of a web servers robots.txt file.
+  class RobotsParser
     include Wgit::Assertable
 
     # Key representing a user agent.
@@ -28,7 +27,7 @@ module Wgit::Robots
     #   disallow_paths: ["/accounts", ...]
     attr_reader :rules
 
-    # Initializes and returns a Wgit::Robots::Parser instance having parsed the
+    # Initializes and returns a Wgit::RobotsParser instance having parsed the
     # robot.txt contents.
     #
     # @param contents [String, #to_s] The contents of the robots.txt file to be
@@ -47,7 +46,7 @@ module Wgit::Robots
     #
     # @return [String] A short textual representation of this Parser.
     def inspect
-      "#<Wgit::Robots::Parser rules=#{rules?} no_index=#{no_index?}>"
+      "#<Wgit::RobotsParser rules=#{rules?} no_index=#{no_index?}>"
     end
 
     # Returns the allow paths/rules for this parser's robots.txt contents.

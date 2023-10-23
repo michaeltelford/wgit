@@ -1,7 +1,7 @@
 require_relative 'helpers/test_helper'
 
-# Test class for the Robots::Parser methods.
-class TestParser < TestHelper
+# Test class for the RobotsParser methods.
+class TestRobotsParser < TestHelper
   # Run non DB tests in parallel for speed.
   parallelize_me!
 
@@ -9,7 +9,7 @@ class TestParser < TestHelper
   def setup; end
 
   def test_initialize
-    p = Wgit::Robots::Parser.new robots_txt__default
+    p = Wgit::RobotsParser.new robots_txt__default
 
     assert p.rules?
     assert p.allow_rules?
@@ -48,7 +48,7 @@ class TestParser < TestHelper
   end
 
   def test_initialize__disallow_slash
-    p = Wgit::Robots::Parser.new <<~TEXT
+    p = Wgit::RobotsParser.new <<~TEXT
       User-agent: wgit
       Disallow: /
     TEXT
@@ -66,7 +66,7 @@ class TestParser < TestHelper
   end
 
   def test_initialize__disallow_asterisk
-    p = Wgit::Robots::Parser.new <<~TEXT
+    p = Wgit::RobotsParser.new <<~TEXT
       User-agent: wgit
       Disallow: *
     TEXT
@@ -84,7 +84,7 @@ class TestParser < TestHelper
   end
 
   def test_initialize__allow_slash
-    p = Wgit::Robots::Parser.new <<~TEXT
+    p = Wgit::RobotsParser.new <<~TEXT
       User-agent: wgit
       Allow: /
     TEXT
@@ -102,7 +102,7 @@ class TestParser < TestHelper
   end
 
   def test_initialize__allow_asterisk
-    p = Wgit::Robots::Parser.new <<~TEXT
+    p = Wgit::RobotsParser.new <<~TEXT
       User-agent: wgit
       Allow: *
     TEXT
@@ -120,7 +120,7 @@ class TestParser < TestHelper
   end
 
   def test_initialize__no_rules
-    p = Wgit::Robots::Parser.new <<~TEXT
+    p = Wgit::RobotsParser.new <<~TEXT
       User-agent: slurp
       Disallow: *
     TEXT

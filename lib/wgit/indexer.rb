@@ -310,7 +310,7 @@ for the site: #{url}")
       doc = @crawler.crawl_url(url)
       return nil if !@crawler.last_response.ok? || doc.nil? || doc.empty?
 
-      parser = Robots::Parser.new(doc.content)
+      parser = Wgit::RobotsParser.new(doc.content)
 
       Wgit.logger.info("robots.txt allow paths: #{parser.allow_paths}")
       Wgit.logger.info("robots.txt disallow paths: #{parser.disallow_paths}")

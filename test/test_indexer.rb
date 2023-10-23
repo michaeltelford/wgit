@@ -556,7 +556,7 @@ class TestIndexer < TestHelper
     assert_nil allow
     assert_nil disallow
 
-    parser = Wgit::Robots::Parser.new ""
+    parser = Wgit::RobotsParser.new ""
     allow, disallow = @indexer.send(:merge_paths, parser, nil, nil)
     assert_nil allow
     assert_nil disallow
@@ -567,7 +567,7 @@ class TestIndexer < TestHelper
   end
 
   def test_merge_paths__paths_array
-    parser = Wgit::Robots::Parser.new <<~TEXT
+    parser = Wgit::RobotsParser.new <<~TEXT
       User-agent: wgit
       Allow: /about
       Allow: /about2
@@ -582,7 +582,7 @@ class TestIndexer < TestHelper
   end
 
   def test_merge_paths__single_path_string
-    parser = Wgit::Robots::Parser.new <<~TEXT
+    parser = Wgit::RobotsParser.new <<~TEXT
       User-agent: wgit
       Allow: /about
       Disallow: /login
