@@ -690,10 +690,10 @@ be relative"
       var_name
     end
 
-    alias content                html
-    alias statistics             stats
-    alias internal_urls          internal_links
-    alias internal_absolute_urls internal_absolute_links
-    alias external_urls          external_links
+    alias_method :content,                :html
+    alias_method :statistics,             :stats
+    alias_method :internal_urls,          :internal_links
+    alias_method :internal_absolute_urls, :internal_absolute_links
+    alias_method :external_urls,          :external_links
   end
 end

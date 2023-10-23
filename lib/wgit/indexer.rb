@@ -352,8 +352,8 @@ for the site: #{url}")
       false
     end
 
-    alias database db
-    alias index    index_urls
-    alias index_r  index_site
+    alias_method :database, :db
+    alias_method :index,    :index_urls
+    alias_method :index_r,  :index_site
   end
 end

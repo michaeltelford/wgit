@@ -317,9 +317,9 @@ the 'start' function".freeze
       db.clear_db
     end
 
-    alias crawl_url  crawl
-    alias crawl_r    crawl_site
-    alias index_r    index_site
-    alias start_urls start
+    alias_method :crawl_url,  :crawl
+    alias_method :crawl_r,    :crawl_site
+    alias_method :index_r,    :index_site
+    alias_method :start_urls, :start
   end
 end

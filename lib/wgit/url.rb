@@ -647,32 +647,32 @@ protocol scheme and domain (e.g. http://example.com): #{url}"
       start_with?('//')
     end
 
-    alias +                   concat
-    alias crawled?            crawled
-    alias is_relative?        relative?
-    alias is_absolute?        absolute?
-    alias is_valid?           valid?
-    alias is_query?           query?
-    alias is_fragment?        fragment?
-    alias is_index?           index?
-    alias is_scheme_relative? scheme_relative?
-    alias uri                 to_uri
-    alias url                 to_url
-    alias scheme              to_scheme
-    alias host                to_host
-    alias port                to_port
-    alias domain              to_domain
-    alias brand               to_brand
-    alias base                to_base
-    alias origin              to_origin
-    alias path                to_path
-    alias endpoint            to_endpoint
-    alias query               to_query
-    alias query_hash          to_query_hash
-    alias fragment            to_fragment
-    alias extension           to_extension
-    alias user                to_user
-    alias password            to_password
-    alias sub_domain          to_sub_domain
+    alias_method :+,                   :concat
+    alias_method :crawled?,            :crawled
+    alias_method :is_relative?,        :relative?
+    alias_method :is_absolute?,        :absolute?
+    alias_method :is_valid?,           :valid?
+    alias_method :is_query?,           :query?
+    alias_method :is_fragment?,        :fragment?
+    alias_method :is_index?,           :index?
+    alias_method :is_scheme_relative?, :scheme_relative?
+    alias_method :uri,                 :to_uri
+    alias_method :url,                 :to_url
+    alias_method :scheme,              :to_scheme
+    alias_method :host,                :to_host
+    alias_method :port,                :to_port
+    alias_method :domain,              :to_domain
+    alias_method :brand,               :to_brand
+    alias_method :base,                :to_base
+    alias_method :origin,              :to_origin
+    alias_method :path,                :to_path
+    alias_method :endpoint,            :to_endpoint
+    alias_method :query,               :to_query
+    alias_method :query_hash,          :to_query_hash
+    alias_method :fragment,            :to_fragment
+    alias_method :extension,           :to_extension
+    alias_method :user,                :to_user
+    alias_method :password,            :to_password
+    alias_method :sub_domain,          :to_sub_domain
   end
 end

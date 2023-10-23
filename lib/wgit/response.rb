@@ -149,11 +149,11 @@ module Wgit
       headers.fetch(:x_robots_tag, '').downcase.strip == 'noindex'
     end
 
-    alias code           status
-    alias content        body
-    alias crawl_duration total_time
-    alias to_s           body
-    alias redirects      redirections
-    alias length         size
+    alias_method :code,           :status
+    alias_method :content,        :body
+    alias_method :crawl_duration, :total_time
+    alias_method :to_s,           :body
+    alias_method :redirects,      :redirections
+    alias_method :length,         :size
   end
 end

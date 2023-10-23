@@ -95,7 +95,7 @@ present: %s"
       obj
     end
 
-    alias assert_type     assert_types
-    alias assert_arr_type assert_arr_types
+    alias_method :assert_type,     :assert_types
+    alias_method :assert_arr_type, :assert_arr_types
   end
 end

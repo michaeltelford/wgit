@@ -661,7 +661,7 @@ module Wgit
       @last_result = result
     end
 
-    alias num_objects num_records
-    alias clear_db! clear_db
+    alias_method :num_objects, :num_records
+    alias_method :clear_db!,   :clear_db
   end
 end

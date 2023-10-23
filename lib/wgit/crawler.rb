@@ -533,9 +533,9 @@ module Wgit
       )
     end
 
-    alias crawl       crawl_urls
-    alias crawl_pages crawl_urls
-    alias crawl_page  crawl_url
-    alias crawl_r     crawl_site
+    alias_method :crawl,       :crawl_urls
+    alias_method :crawl_pages, :crawl_urls
+    alias_method :crawl_page,  :crawl_url
+    alias_method :crawl_r,     :crawl_site
   end
 end
