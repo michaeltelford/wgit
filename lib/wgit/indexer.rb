@@ -36,6 +36,9 @@ module Wgit
     #   scraped from the web (default is 1GB). Note, that this value is used to
     #   determine when to stop crawling; it's not a guarantee of the max data
     #   that will be obtained.
+    # @param max_urls_per_iteration [Integer] The maximum number of uncrawled
+    #   urls to index for each iteration, before checking max_sites and
+    #   max_data, possibly ending the crawl.
     def index_www(max_sites: -1, max_data: 1_048_576_000, max_urls_per_iteration: 10)
       if max_sites.negative?
         Wgit.logger.info("Indexing until the database has been filled or it \
