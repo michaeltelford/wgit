@@ -302,7 +302,7 @@ the 'start' function".freeze
         &block
       )
 
-      Wgit::Utils.printf_search_results(results, stream: stream)
+      Wgit::Utils.pprint_search_results(results, stream: stream)
 
       results
     end

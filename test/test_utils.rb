@@ -85,7 +85,7 @@ class TestUtils < TestHelper
     assert_equal sentence, result
   end
 
-  def test_printf_search_results
+  def test_pprint_search_results
     # Setup the test results data.
     query   = 'Everest'
     results = []
@@ -102,19 +102,19 @@ class TestUtils < TestHelper
 
     # Setup a buffer to record the output.
     buffer = StringIO.new
-    num_results = Wgit::Utils.printf_search_results(results, stream: buffer)
+    num_results = Wgit::Utils.pprint_search_results(results, stream: buffer)
 
     assert_equal 5, num_results
     assert_equal printf_output__results, buffer.string
   end
 
-  def test_printf_search_results__empty
+  def test_pprint_search_results__empty
     # Setup the test results data.
     results = []
 
     # Setup a buffer to record the output.
     buffer = StringIO.new
-    num_results = Wgit::Utils.printf_search_results(results, stream: buffer)
+    num_results = Wgit::Utils.pprint_search_results(results, stream: buffer)
 
     assert_equal 0, num_results
     assert_equal '', buffer.string
