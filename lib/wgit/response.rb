@@ -33,6 +33,13 @@ module Wgit
       @total_time   = 0.0
     end
 
+    # Overrides String#inspect to shorten the printed output of a Response.
+    #
+    # @return [String] A short textual representation of this Response.
+    def inspect
+      "#<Wgit::Response url=\"#{@url}\" status=#{status}>"
+    end
+
     # Adds time to @total_time (incrementally).
     #
     # @param time [Float] The time to add to @total_time.

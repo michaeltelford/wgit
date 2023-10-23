@@ -944,16 +944,16 @@ class TestCrawler < TestHelper
   end
 
   def assert_resolve(crawler, start_url, end_url, follow_redirects: true)
-    response = Wgit::Response.new
-    crawler.send :resolve, start_url, response, follow_redirects: follow_redirects
+    resp = Wgit::Response.new
+    crawler.send :resolve, start_url, resp, follow_redirects: follow_redirects
 
-    assert response.ok?
-    assert response.total_time > 0.0
-    refute_nil response.body_or_nil
-    refute_nil response.ip_address
-    assert_equal end_url, response.url
+    assert resp.ok?
+    assert resp.total_time > 0.0
+    refute_nil resp.body_or_nil
+    refute_nil resp.ip_address
+    assert_equal end_url, resp.url
     assert_equal end_url, start_url
-    assert_instance_of Typhoeus::Response, response.adapter_response
+    assert_instance_of Typhoeus::Response, resp.adapter_response
   end
 
   def assert_empty_doc(doc)

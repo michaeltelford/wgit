@@ -223,7 +223,7 @@ module Wgit
     #
     # @return [String] A short textual representation of this Document.
     def inspect
-      "#<Wgit::Document url=\"#{@url}\" html=#{size} bytes>"
+      "#<Wgit::Document url=\"#{@url}\" html_size=#{size}>"
     end
 
     # Determines if both the url and html match. Use

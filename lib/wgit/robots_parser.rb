@@ -46,7 +46,7 @@ module Wgit
     #
     # @return [String] A short textual representation of this Parser.
     def inspect
-      "#<Wgit::RobotsParser rules=#{rules?} no_index=#{no_index?}>"
+      "#<Wgit::RobotsParser has_rules=#{rules?} no_index=#{no_index?}>"
     end
 
     # Returns the allow paths/rules for this parser's robots.txt contents.
