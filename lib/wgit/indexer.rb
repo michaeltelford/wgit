@@ -238,18 +238,16 @@ for the site: #{url}")
     end
 
     def upsert_url_and_redirects(url)
+      url.crawled = true unless url.crawled?
+      @db.upsert(url)
+
       redirects = url.redirects
-      if redirects.empty?
-        @db.upsert(url)
-        return 1
-      end
+      return 1 if redirects.empty?
 
       redirects.keys.each do |from|
         redirect_url = Wgit::Url.new(from, crawled: true, date_crawled: url.date_crawled)
         @db.upsert(redirect_url)
       end
-
-      @db.upsert(url)
 
       redirects.size + 1 # return total upserts: url + redirects.size
     end
@@ -299,15 +297,16 @@ for the site: #{url}")
     # value and url.redirects will be set by reference.
     def resolve_redirects(url)
       @crawler.crawl_url(url)
+      url.crawled = false
     end
 
     # Crawls robots.txt file (if present) and parses it. Returns the parser or nil.
     def parse_robots_txt(url)
-      url = url.to_origin + '/robots.txt'
+      robots_url = url.to_origin.join('/robots.txt')
 
-      Wgit.logger.info("Crawling for robots.txt: #{url}")
+      Wgit.logger.info("Crawling for robots.txt: #{robots_url}")
 
-      doc = @crawler.crawl_url(url)
+      doc = @crawler.crawl_url(robots_url)
       return nil if !@crawler.last_response.ok? || doc.nil? || doc.empty?
 
       parser = Wgit::RobotsParser.new(doc.content)

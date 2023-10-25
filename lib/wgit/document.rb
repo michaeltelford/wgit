@@ -254,10 +254,10 @@ module Wgit
     # Provide the `link:` parameter to get the correct base URL for that type
     # of link. For example, a link of `#top` would always return @url because
     # it applies to that page, not a different one. Query strings work in the
-    # same way. Use this parameter if manually concatting Url's e.g.
+    # same way. Use this parameter if manually joining Url's e.g.
     #
     #   relative_link = Wgit::Url.new('?q=hello')
-    #   absolute_link = doc.base_url(link: relative_link).concat(relative_link)
+    #   absolute_link = doc.base_url(link: relative_link).join(relative_link)
     #
     # This is similar to how Wgit::Document#internal_absolute_links works.
     #
@@ -277,7 +277,7 @@ module Wgit
 be relative"
       end
 
-      get_base = -> { @base.relative? ? @url.to_origin.concat(@base) : @base }
+      get_base = -> { @base.relative? ? @url.to_origin.join(@base) : @base }
 
       if link
         link = Wgit::Url.new(link)

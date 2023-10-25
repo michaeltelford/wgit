@@ -253,12 +253,20 @@ class TestUrl < TestHelper
   end
 
   def test_replace__from_url
+    redirects = { 'http://twitter.com' => 'https://twitter.com' }
+
     url = Wgit::Url.new 'http://www.google.co.uk'
+    url.crawled = true
+    url.redirects = redirects
+
     new_url = url.replace Wgit::Url.new('/about')
 
     assert_equal '/about', url
     assert_equal '/about', new_url
     assert_equal '/about', url.to_uri.to_s
+    assert url.crawled
+    refute_nil url.date_crawled
+    assert_equal redirects, url.redirects
   end
 
   def test_relative?
@@ -509,31 +517,42 @@ class TestUrl < TestHelper
     refute Wgit::Url.new('/about.html').absolute?
   end
 
-  def test_concat
-    assert_equal 'http://www.google.co.uk/about.html', Wgit::Url.new('http://www.google.co.uk').concat('/about.html')
-    assert_equal 'http://www.google.co.uk/about.html', Wgit::Url.new('http://www.google.co.uk').concat('about.html')
-    assert_equal 'http://www.google.co.uk/about.html#about-us', Wgit::Url.new('http://www.google.co.uk/about.html').concat('#about-us')
-    assert_equal 'http://www.google.co.uk/about.html?foo=bar', Wgit::Url.new('http://www.google.co.uk/about.html').concat('?foo=bar')
-    assert_equal 'http://www.google.co.uk/about.html', Wgit::Url.new('http://www.google.co.uk/about').concat('.html')
-    assert_equal 'http://example.com/', Wgit::Url.new('http://example.com').concat('/')
-    assert_equal 'http://example.com/', Wgit::Url.new('http://example.com/').concat('/')
-    assert_equal 'http://google.com/about/help', Wgit::Url.new('http://google.com/about').concat('help')
-    assert_equal 'https://www.über?foo=bar', Wgit::Url.new('https://www.über').concat('?foo=bar')
-    assert_instance_of Wgit::Url, Wgit::Url.new('https://www.über').concat('?foo=bar')
+  def test_join
+    assert_equal 'http://www.google.co.uk/about.html', Wgit::Url.new('http://www.google.co.uk').join('/about.html')
+    assert_equal 'http://www.google.co.uk/about.html', Wgit::Url.new('http://www.google.co.uk').join('about.html')
+    assert_equal 'http://www.google.co.uk/about.html#top', Wgit::Url.new('http://www.google.co.uk').join('about.html').join('#top')
+    assert_equal 'http://www.google.co.uk/about.html#about-us', Wgit::Url.new('http://www.google.co.uk/about.html').join('#about-us')
+    assert_equal 'http://www.google.co.uk/about.html?foo=bar', Wgit::Url.new('http://www.google.co.uk/about.html').join('?foo=bar')
+    assert_equal 'http://www.google.co.uk/about.html', Wgit::Url.new('http://www.google.co.uk/about').join('.html')
+    assert_equal 'http://example.com/', Wgit::Url.new('http://example.com').join('/')
+    assert_equal 'http://example.com/', Wgit::Url.new('http://example.com/').join('/')
+    assert_equal 'http://google.com/about/help', Wgit::Url.new('http://google.com/about').join('help')
+    assert_equal 'http://google.com/about/help', Wgit::Url.new('http://google.com/about').join('/help')
+    assert_equal 'https://www.über?foo=bar', Wgit::Url.new('https://www.über').join('?foo=bar')
+    assert_instance_of Wgit::Url, Wgit::Url.new('https://www.über').join('?foo=bar')
 
     e = assert_raises(StandardError) do
-      Wgit::Url.new('https://www.über').concat('https://example.com')
+      Wgit::Url.new('https://www.über').join('https://example.com')
     end
     assert_equal 'other must be relative', e.message
   end
 
-  # Wgit::Url#+ is an alias for #concat but can result in an infinite loop so we test it.
+  # Test that Wgit::Url#+ is actually String#+ underneath.
   def test_plus
     url = 'http://twitter.com'.to_url
-    concatted = url + 'about' + '#top'
+    joined = url + '/about' + '#top'
 
-    assert_equal 'http://twitter.com/about#top', concatted
-    assert_instance_of Wgit::Url, concatted
+    assert_equal 'http://twitter.com/about#top', joined
+    assert_instance_of String, joined
+  end
+
+  # Test that Wgit::Url#concat is actually String#concat underneath.
+  def test_concat
+    url = 'http://twitter.com'.to_url
+    joined = url.concat('/about').concat('#top')
+
+    assert_equal 'http://twitter.com/about#top', joined
+    assert_instance_of String, joined
   end
 
   def test_crawled=

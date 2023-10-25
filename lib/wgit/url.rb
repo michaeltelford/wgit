@@ -139,6 +139,17 @@ Addressable::URI::InvalidURIError")
       super(new_url)
     end
 
+    # Overrides String#concat which oddly returns a Wgit::Url object, and
+    # instead returns a String. Therefore this method works the same as if
+    # you call String#concat, or its alias String#+, which is desired for
+    # this method. If you want to join two Urls, use Wgit::Url#join method.
+    #
+    # @param other [String] The String to concat onto this one.
+    # @return [String] The new concatted String, not a Wgit::Url.
+    def concat(other)
+      to_s.concat(other.to_s)
+    end
+
     # Returns true if self is a relative Url; false if absolute.
     #
     # An absolute URL must have a scheme prefix e.g.
@@ -175,7 +186,7 @@ Addressable::URI::InvalidURIError")
       raise 'Url (self) cannot be empty' if empty?
 
       return false if scheme_relative?
-      return true if @uri.relative?
+      return true  if @uri.relative?
 
       # Self is absolute but may be relative to the opts param e.g. host.
       opts.select! { |_k, v| v }
@@ -231,22 +242,21 @@ protocol scheme and domain (e.g. http://example.com): #{url}"
       !valid?
     end
 
-    # Concats self and other together before returning a new Url. Self is not
+    # Joins self and other together before returning a new Url. Self is not
     # modified.
     #
-    # @param other [Wgit::Url, String] The other to concat to the end of self.
+    # @param other [Wgit::Url, String] The other (relative) Url to join to the
+    #   end of self.
     # @return [Wgit::Url] self + separator + other, separator depends on other.
-    def concat(other)
+    def join(other)
       other = Wgit::Url.new(other)
       raise 'other must be relative' unless other.relative?
 
       other = other.omit_leading_slash
       separator = %w[# ? .].include?(other[0]) ? '' : '/'
+      joined = omit_trailing_slash + separator + other
 
-      # We use to_s below to call String#+, not Wgit::Url#+ (alias for concat).
-      concatted = omit_trailing_slash.to_s + separator.to_s + other.to_s
-
-      Wgit::Url.new(concatted)
+      Wgit::Url.new(joined)
     end
 
     # Normalizes/escapes self and returns a new Wgit::Url. Self isn't modified.
@@ -262,7 +272,7 @@ protocol scheme and domain (e.g. http://example.com): #{url}"
     #
     # If self is absolute then it's returned as is, making this method
     # idempotent. The doc's `<base>` element is used if present, otherwise
-    # `doc.url` is used as the base; which is concatted with self.
+    # `doc.url` is used as the base; which is joined with self.
     #
     # Typically used to build an absolute link obtained from a document.
     #
@@ -272,7 +282,7 @@ protocol scheme and domain (e.g. http://example.com): #{url}"
     #
     #   link.make_absolute(doc) # => "http://example.com/favicon.png"
     #
-    # @param doc [Wgit::Document] The doc whose base Url is concatted with
+    # @param doc [Wgit::Document] The doc whose base Url is joined with
     #   self.
     # @raise [StandardError] If doc isn't a Wgit::Document or if `doc.base_url`
     #   raises an Exception.
@@ -284,7 +294,7 @@ protocol scheme and domain (e.g. http://example.com): #{url}"
 
       return prefix_scheme(doc.url.to_scheme&.to_sym) if scheme_relative?
 
-      absolute? ? self : doc.base_url(link: self).concat(self)
+      absolute? ? self : doc.base_url(link: self).join(self)
     end
 
     # Returns self having prefixed a scheme/protocol. Doesn't modify receiver.
@@ -647,7 +657,6 @@ protocol scheme and domain (e.g. http://example.com): #{url}"
       start_with?('//')
     end
 
-    alias_method :+,                   :concat
     alias_method :crawled?,            :crawled
     alias_method :is_relative?,        :relative?
     alias_method :is_absolute?,        :absolute?

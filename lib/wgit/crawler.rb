@@ -278,7 +278,7 @@ module Wgit
         if response.redirect_count >= @redirect_limit
 
         # Process the location to be crawled next.
-        location = url.to_origin.concat(location) if location.relative?
+        location = url.to_origin.join(location) if location.relative?
         response.redirections[url.to_s] = location.to_s
         url.replace(location) # Update the url on redirect.
       end
