@@ -4,11 +4,12 @@ require 'securerandom'
 # UUID in order to be unique.
 module DatabaseTestData
   # Returns a Hash representing a Url record in the DB.
-  def self.url(url: 'http://www.example.co.uk', timestamps: true)
+  def self.url(url: 'http://www.example.co.uk', append_suffix: true, timestamps: true)
     url.chop! if url.end_with?('/')
+    url = "#{url}/#{SecureRandom.uuid.split('-').last}" if append_suffix
 
     hash = {
-      'url' => "#{url}/#{SecureRandom.uuid.split('-').last}",
+      'url' => url,
       'crawled' => true,
       'date_crawled' => '2016-04-20 14:33:16 +0100',
       'crawl_duration' => 0.6
@@ -23,10 +24,11 @@ module DatabaseTestData
   end
 
   # Returns a Hash representing a Document record in the DB.
-  def self.doc
+  def self.doc(url: 'http://altitudejunkies.com/everest.html', append_suffix: true)
     {
       'url' => url(
-        url: 'http://altitudejunkies.com/everest.html',
+        url: url,
+        append_suffix: append_suffix,
         timestamps: false
       ),
       'title' => 'Altitude Junkies | Everest',

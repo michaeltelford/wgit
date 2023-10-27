@@ -162,20 +162,20 @@ module Wgit
     #   Wgit::Document>] The records to insert/create.
     # @raise [StandardError] If data isn't valid.
     def insert(data)
-      data = data.dup # Avoid modifying by reference.
       collection = nil
+      request_obj = nil
 
-      if data.respond_to?(:map!)
-        data.map! do |obj|
+      if data.respond_to?(:map)
+        request_obj = data.map do |obj|
           collection, _, model = get_type_info(obj)
           model
         end
       else
         collection, _, model = get_type_info(data)
-        data = model
+        request_obj = model
       end
 
-      create(collection, data)
+      create(collection, request_obj)
     end
 
     # Inserts or updates the object in the database.
@@ -183,11 +183,41 @@ module Wgit
     # @param obj [Wgit::Url, Wgit::Document] The obj/record to insert/update.
     # @return [Boolean] True if inserted, false if updated.
     def upsert(obj)
-      collection, query, model = get_type_info(obj.dup)
+      collection, query, model = get_type_info(obj)
       data_hash = model.merge(Wgit::Model.common_update_data)
       result = @client[collection].replace_one(query, data_hash, upsert: true)
 
       result.matched_count.zero?
+    ensure
+      @last_result = result
+    end
+
+    # Bulk upserts the objects in the database collection.
+    # You cannot mix collection objs types, all must be Urls or Documents.
+    #
+    # @param objs [Array<Wgit::Url>, Array<Wgit::Document>] The objs to be
+    #   inserted/updated.
+    # @return [Integer] The total number of upserted objects.
+    def bulk_upsert(objs)
+      assert_arr_types(objs, [Wgit::Url, Wgit::Document])
+      raise 'objs is empty' if objs.empty?
+
+      collection = nil
+      request_objs = objs.map do |obj|
+        collection, query, model = get_type_info(obj)
+        data_hash = model.merge(Wgit::Model.common_update_data)
+
+        {
+          update_many: {
+            filter: query,
+            update: { '$set' =>  data_hash },
+            upsert: true,
+          }
+        }
+      end
+
+      result = @client[collection].bulk_write(request_objs)
+      result.upserted_count + result.modified_count
     ensure
       @last_result = result
     end
@@ -490,7 +520,7 @@ module Wgit
     # @raise [StandardError] If the obj is not valid.
     # @return [Integer] The number of updated records/objects.
     def update(obj)
-      collection, query, model = get_type_info(obj.dup)
+      collection, query, model = get_type_info(obj)
       data_hash = model.merge(Wgit::Model.common_update_data)
 
       mutate(collection, query, { '$set' => data_hash })
@@ -554,6 +584,8 @@ module Wgit
     # @return [Array<Symbol, Hash>] The collection type, query to get
     #   the record/obj from the database (if it exists) and the model of obj.
     def get_type_info(obj)
+      obj = obj.dup
+
       case obj
       when Wgit::Url
         collection = URLS_COLLECTION

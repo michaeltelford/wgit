@@ -183,6 +183,56 @@ class TestDatabase < TestHelper
     refute db.get(@url).crawled
   end
 
+  def test_bulk_upsert__urls
+    db = Wgit::Database.new
+
+    urls = [
+      'http://example.com',   # Gets inserted.
+      'http://example.com/2', # Gets inserted.
+      'http://example.com',   # Dup of 1, will be updated.
+      'http://example.com/3'  # Gets inserted.
+    ].to_urls
+    count = db.bulk_upsert(urls)
+
+    assert_equal 3, count
+    assert_equal 3, db.num_urls
+    assert_equal 0, db.num_docs
+    assert_equal [
+      'http://example.com',
+      'http://example.com/2',
+      'http://example.com/3'
+    ], db.urls.map(&:to_s)
+    refute_nil db.last_result
+  end
+
+  def test_bulk_upsert__docs
+    db = Wgit::Database.new
+
+    urls = [
+      'http://example.com',   # Gets inserted.
+      'http://example.com/2', # Gets inserted.
+      'http://example.com',   # Dup of 1, will be updated.
+      'http://example.com/3'  # Gets inserted.
+    ].to_urls
+    # Map each of the urls above into a document.
+    docs = urls.map do |url|
+      doc_hash = DatabaseTestData.doc(url: url, append_suffix: false)
+      Wgit::Document.new(doc_hash)
+    end
+
+    count = db.bulk_upsert(docs)
+
+    assert_equal 3, count
+    assert_equal 3, db.num_docs
+    assert_equal 0, db.num_urls
+    assert_equal [
+      'http://example.com',
+      'http://example.com/2',
+      'http://example.com/3'
+    ], db.docs.map(&:url)
+    refute_nil db.last_result
+  end
+
   def test_docs
     db = Wgit::Database.new
 

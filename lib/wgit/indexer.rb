@@ -244,16 +244,18 @@ for the site: #{url}")
       redirects = url.redirects
       return 1 if redirects.empty?
 
-      redirects.keys.each do |from|
-        redirect_url = Wgit::Url.new(from, crawled: true, date_crawled: url.date_crawled)
-        @db.upsert(redirect_url)
+      redirect_urls = redirects.keys.map do |from|
+        Wgit::Url.new(from, crawled: true, date_crawled: url.date_crawled)
       end
 
-      redirects.size + 1 # return total upserts: url + redirects.size
+      count = @db.bulk_upsert(redirect_urls)
+
+      count + 1 # return total upserts: url + redirects.size
     end
 
     # Write the doc to the DB. Note that the unique url index on the documents
-    # collection deliberately prevents duplicate inserts.
+    # collection deliberately prevents duplicate inserts. If the document
+    # already exists, then it will be updated in the DB.
     #
     # @param doc [Wgit::Document] The document to write to the DB.
     def upsert_doc(doc)
@@ -270,23 +272,11 @@ for the site: #{url}")
     # @param urls [Array<Wgit::Url>] The urls to write to the DB.
     # @return [Integer] The number of inserted urls.
     def insert_external_urls(urls)
-      count = 0
+      urls = urls.reject(&:invalid?)
+      return 0 if urls.empty?
 
-      return count unless urls.respond_to?(:each)
-
-      urls.each do |url|
-        if url.invalid?
-          Wgit.logger.info("Ignoring invalid external url: #{url}")
-          next
-        end
-
-        @db.insert(url)
-        count += 1
-
-        Wgit.logger.info("Inserted external url: #{url}")
-      rescue Mongo::Error::OperationFailure
-        Wgit.logger.info("External url already exists: #{url}")
-      end
+      count = @db.bulk_upsert(urls)
+      Wgit.logger.info("Inserted external urls: #{urls}")
 
       count
     end
