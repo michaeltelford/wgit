@@ -241,7 +241,7 @@ class TestDSL < TestHelper
 
     assert doc?('url.url' => 'http://txti.es/')
     assert_equal 7, database.num_docs
-    assert_equal 8, database.num_urls
+    assert_equal 6, database.num_urls
   end
 
   def test_index_site__url_param

@@ -92,7 +92,7 @@ database capacity, exiting")
 
           upsert_url_and_redirects(url)
 
-          urls_count += insert_external_urls(ext_links)
+          urls_count += upsert_external_urls(ext_links)
         end
 
         Wgit.logger.info("Crawled and indexed documents for #{docs_count} \
@@ -160,7 +160,7 @@ the next iteration")
       upsert_url_and_redirects(url)
 
       if insert_externals && ext_urls
-        num_external_urls = insert_external_urls(ext_urls)
+        num_external_urls = upsert_external_urls(ext_urls)
         Wgit.logger.info("Found and saved #{num_external_urls} external url(s)")
       end
 
@@ -212,7 +212,7 @@ for the site: #{url}")
 
       ext_urls = document&.external_links
       if insert_externals && ext_urls
-        num_external_urls = insert_external_urls(ext_urls)
+        num_external_urls = upsert_external_urls(ext_urls)
         Wgit.logger.info("Found and saved #{num_external_urls} external url(s)")
       end
 
@@ -237,22 +237,6 @@ for the site: #{url}")
       site_count < max_sites
     end
 
-    def upsert_url_and_redirects(url)
-      url.crawled = true unless url.crawled?
-      @db.upsert(url)
-
-      redirects = url.redirects
-      return 1 if redirects.empty?
-
-      redirect_urls = redirects.keys.map do |from|
-        Wgit::Url.new(from, crawled: true, date_crawled: url.date_crawled)
-      end
-
-      count = @db.bulk_upsert(redirect_urls)
-
-      count + 1 # return total upserts: url + redirects.size
-    end
-
     # Write the doc to the DB. Note that the unique url index on the documents
     # collection deliberately prevents duplicate inserts. If the document
     # already exists, then it will be updated in the DB.
@@ -266,13 +250,36 @@ for the site: #{url}")
       end
     end
 
-    # Write the urls to the DB. Note that the unique url index on the urls
-    # collection deliberately prevents duplicate inserts.
+    # Upsert the url and its redirects, setting all to crawled = true.
     #
-    # @param urls [Array<Wgit::Url>] The urls to write to the DB.
-    # @return [Integer] The number of inserted urls.
-    def insert_external_urls(urls)
-      urls = urls.reject(&:invalid?)
+    # @param url [Wgit::Url] The url to write to the DB.
+    # @return [Integer] The number of upserted urls (url + redirect urls).
+    def upsert_url_and_redirects(url)
+      url.crawled = true unless url.crawled?
+
+      # Handle any url redirects, updating them as crawled also.
+      redirect_urls = url.redirects.keys.map do |from|
+        Wgit::Url.new(from, crawled: true, date_crawled: url.date_crawled)
+      end
+
+      urls = [url] + redirect_urls
+
+      @db.bulk_upsert(urls)
+    end
+
+    # Write the external urls to the DB. For any external url, its origin will
+    # be inserted e.g. if the external url is http://example.com/contact then
+    # http://example.com will be inserted into the database. Note that the
+    # unique url index on the urls collection deliberately prevents duplicate
+    # inserts.
+    #
+    # @param urls [Array<Wgit::Url>] The external urls to write to the DB.
+    # @return [Integer] The number of upserted urls.
+    def upsert_external_urls(urls)
+      urls = urls.
+        reject(&:invalid?).
+        map(&:to_origin).
+        uniq
       return 0 if urls.empty?
 
       count = @db.bulk_upsert(urls)
