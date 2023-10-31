@@ -31,7 +31,8 @@ module Wgit
     #
     # @param max_sites [Integer] The number of separate and whole
     #   websites to be crawled before the method exits. Defaults to -1 which
-    #   means the crawl will occur until manually stopped (Ctrl+C etc).
+    #   means the crawl will occur until manually stopped (Ctrl+C), the
+    #   database is filled or it runs out of external urls to index.
     # @param max_data [Integer] The maximum amount of bytes that will be
     #   scraped from the web (default is 1GB). Note, that this value is used to
     #   determine when to stop crawling; it's not a guarantee of the max data
@@ -96,9 +97,9 @@ database capacity, exiting")
         end
 
         Wgit.logger.info("Crawled and indexed documents for #{docs_count} \
-url(s) overall for this iteration")
+url(s) during this iteration")
         Wgit.logger.info("Found and saved #{urls_count} external url(s) for \
-the next iteration")
+future iterations")
 
         nil
       end
@@ -158,11 +159,7 @@ the next iteration")
       end
 
       upsert_url_and_redirects(url)
-
-      if insert_externals && ext_urls
-        num_external_urls = upsert_external_urls(ext_urls)
-        Wgit.logger.info("Found and saved #{num_external_urls} external url(s)")
-      end
+      upsert_external_urls(ext_urls) if insert_externals && ext_urls
 
       Wgit.logger.info("Crawled and indexed #{total_pages_indexed} documents \
 for the site: #{url}")
@@ -211,10 +208,7 @@ for the site: #{url}")
       upsert_url_and_redirects(url)
 
       ext_urls = document&.external_links
-      if insert_externals && ext_urls
-        num_external_urls = upsert_external_urls(ext_urls)
-        Wgit.logger.info("Found and saved #{num_external_urls} external url(s)")
-      end
+      upsert_external_urls(ext_urls) if insert_externals && ext_urls
 
       nil
     end
@@ -276,14 +270,14 @@ for the site: #{url}")
     # @param urls [Array<Wgit::Url>] The external urls to write to the DB.
     # @return [Integer] The number of upserted urls.
     def upsert_external_urls(urls)
-      urls = urls.
-        reject(&:invalid?).
-        map(&:to_origin).
-        uniq
+      urls = urls
+        .reject(&:invalid?)
+        .map(&:to_origin)
+        .uniq
       return 0 if urls.empty?
 
       count = @db.bulk_upsert(urls)
-      Wgit.logger.info("Inserted external urls: #{urls}")
+      Wgit.logger.info("Inserted #{count} external urls: #{urls.map(&:to_s)}")
 
       count
     end
