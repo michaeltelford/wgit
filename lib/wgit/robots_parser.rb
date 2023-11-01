@@ -99,18 +99,21 @@ module Wgit
 
     # Parses the file contents and sets @rules.
     def parse(contents)
-      user_agent = USER_AGENT_ANY
+      user_agents = []
 
       contents.split("\n").each do |line|
         line.strip!
-        next if line == ""
+        if line.empty?
+          user_agents = [] # New block, clear any previous user agents.
+          next
+        end
 
         if line.start_with?(KEY_USER_AGENT)
-          user_agent = remove_key(line, KEY_USER_AGENT).downcase.to_sym
+          user_agents << remove_key(line, KEY_USER_AGENT).downcase.to_sym
         elsif line.start_with?(KEY_ALLOW)
-          append_allow_rule(user_agent, line)
+          append_allow_rule(user_agents, line)
         elsif line.start_with?(KEY_DISALLOW)
-          append_disallow_rule(user_agent, line)
+          append_disallow_rule(user_agents, line)
         else
           Wgit.logger.debug("Skipping unsupported robots.txt line: #{line}")
         end
@@ -126,8 +129,8 @@ module Wgit
     end
 
     # Don't append * or /, as this means all paths, which is the same as no allow_paths.
-    def append_allow_rule(user_agent, line)
-      return unless wgit_user_agent?(user_agent)
+    def append_allow_rule(user_agents, line)
+      return unless wgit_user_agent?(user_agents)
 
       path = remove_key(line, KEY_ALLOW)
       return if PATHS_ALL.include?(path)
@@ -135,15 +138,15 @@ module Wgit
       @rules[:allow_paths] << path
     end
 
-    def append_disallow_rule(user_agent, line)
-      return unless wgit_user_agent?(user_agent)
+    def append_disallow_rule(user_agents, line)
+      return unless wgit_user_agent?(user_agents)
 
       path = remove_key(line, KEY_DISALLOW)
       @rules[:disallow_paths] << path
     end
 
-    def wgit_user_agent?(user_agent)
-      [USER_AGENT_ANY, USER_AGENT_WGIT].include?(user_agent)
+    def wgit_user_agent?(user_agents)
+      user_agents.any? { |agent| [USER_AGENT_ANY, USER_AGENT_WGIT].include?(agent) }
     end
 
     alias_method :paths, :rules

@@ -137,6 +137,21 @@ class TestRobotsParser < TestHelper
     assert_empty p.disallow_paths
   end
 
+  def test_initialize__user_agent_grouping
+    p = Wgit::RobotsParser.new robots_txt__user_agent_grouping
+
+    assert p.rules?
+    assert p.allow_rules?
+    assert p.disallow_rules?
+    refute p.no_index?
+    assert_equal({
+      allow_paths:    Set.new(['/about']),
+      disallow_paths: Set.new(['/*.xml'])
+    }, p.rules)
+    assert_equal ['/about'], p.allow_paths
+    assert_equal ['/*.xml'], p.disallow_paths
+  end
+
   private
 
   def robots_txt__default
@@ -179,6 +194,23 @@ class TestRobotsParser < TestHelper
 
       User-agent: wgit
       Disallow: *
+    TEXT
+  end
+
+  def robots_txt__user_agent_grouping
+    <<~TEXT
+      User-agent: blah
+      Disallow: /
+
+      User-agent: msnbot
+      User-agent: wgit
+      User-agent: googlebot
+      Crawl-delay: 120
+      Allow: /about
+      Disallow: /*.xml
+
+      User-agent: blah2
+      Crawl-delay: 2
     TEXT
   end
 end
