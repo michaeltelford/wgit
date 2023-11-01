@@ -3,16 +3,19 @@
 require 'set'
 
 module Wgit
-  # The RobotsParser class handles parsing and processing of a web servers robots.txt file.
+  # The RobotsParser class handles parsing and processing of a web servers
+  # robots.txt file.
   class RobotsParser
     include Wgit::Assertable
 
+    # Key value separator used in robots.txt files.
+    KEY_SEPARATOR  = ':'
     # Key representing a user agent.
-    KEY_USER_AGENT = "User-agent".freeze
+    KEY_USER_AGENT = 'User-agent'.freeze
     # Key representing an allow URL rule.
-    KEY_ALLOW      = "Allow".freeze
+    KEY_ALLOW      = 'Allow'.freeze
     # Key representing a disallow URL rule.
-    KEY_DISALLOW   = "Disallow".freeze
+    KEY_DISALLOW   = 'Disallow'.freeze
 
     # Value representing the Wgit user agent.
     USER_AGENT_WGIT = :wgit.freeze
@@ -108,11 +111,11 @@ module Wgit
           next
         end
 
-        if line.start_with?(KEY_USER_AGENT)
+        if start_with_any_case?(line, KEY_USER_AGENT)
           user_agents << remove_key(line, KEY_USER_AGENT).downcase.to_sym
-        elsif line.start_with?(KEY_ALLOW)
+        elsif start_with_any_case?(line, KEY_ALLOW)
           append_allow_rule(user_agents, line)
-        elsif line.start_with?(KEY_DISALLOW)
+        elsif start_with_any_case?(line, KEY_DISALLOW)
           append_disallow_rule(user_agents, line)
         else
           Wgit.logger.debug("Skipping unsupported robots.txt line: #{line}")
@@ -120,15 +123,22 @@ module Wgit
       end
     end
 
-    # Returns line with key removed (if present). Otherwise line is returned as given.
-    def remove_key(line, key)
-      prefix = "#{key}:"
-      segs = line.split(prefix)
-      value = segs.size <= 1 ? line : segs[1]
-      value.strip
+    # Implements start_with? but case insensitive.
+    def start_with_any_case?(str, prefix)
+      str.downcase.start_with?(prefix.downcase)
     end
 
-    # Don't append * or /, as this means all paths, which is the same as no allow_paths.
+    # Returns line with key removed (if present). Otherwise line is returned
+    # as given.
+    def remove_key(line, key)
+      return line unless start_with_any_case?(line, key)
+      return line unless line.count(KEY_SEPARATOR) == 1
+
+      line.split(KEY_SEPARATOR).last.strip
+    end
+
+    # Don't append * or /, as this means all paths, which is the same as no
+    # allow_paths when passed to Wgit::Crawler.
     def append_allow_rule(user_agents, line)
       return unless wgit_user_agent?(user_agents)
 
@@ -146,7 +156,9 @@ module Wgit
     end
 
     def wgit_user_agent?(user_agents)
-      user_agents.any? { |agent| [USER_AGENT_ANY, USER_AGENT_WGIT].include?(agent) }
+      user_agents.any? do |agent|
+        [USER_AGENT_ANY, USER_AGENT_WGIT].include?(agent.downcase)
+      end
     end
 
     alias_method :paths, :rules
