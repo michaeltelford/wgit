@@ -105,21 +105,29 @@ module Wgit
     # Parses the file contents and sets @rules.
     def parse(contents)
       user_agents = []
+      new_block = false
 
       contents.split("\n").each do |line|
         line.strip!
-        if line.empty? || line.start_with?(KEY_COMMENT)
-          user_agents = [] # New block, clear any previous user agents.
-          next
+        next if line.empty? || line.start_with?(KEY_COMMENT)
+
+        # A user agent block is denoted by N User-agent's followed by N
+        # Allow/Disallow's. After which a new block is formed from scratch.
+        if start_with_any_case?(line, KEY_USER_AGENT)
+          if new_block
+            user_agents = []
+            new_block = false
+          end
+          user_agents << remove_key(line, KEY_USER_AGENT).downcase.to_sym
+        else
+          new_block = true
         end
 
-        if start_with_any_case?(line, KEY_USER_AGENT)
-          user_agents << remove_key(line, KEY_USER_AGENT).downcase.to_sym
-        elsif start_with_any_case?(line, KEY_ALLOW)
+        if start_with_any_case?(line, KEY_ALLOW)
           append_allow_rule(user_agents, line)
         elsif start_with_any_case?(line, KEY_DISALLOW)
           append_disallow_rule(user_agents, line)
-        else
+        elsif !start_with_any_case?(line, KEY_USER_AGENT)
           Wgit.logger.debug("Skipping unsupported robots.txt line: #{line}")
         end
       end

@@ -152,6 +152,21 @@ class TestRobotsParser < TestHelper
     assert_equal ['/*.xml'], p.disallow_paths
   end
 
+  def test_initialize__no_white_space
+    p = Wgit::RobotsParser.new robots_txt__no_white_space
+
+    assert p.rules?
+    assert p.allow_rules?
+    assert p.disallow_rules?
+    refute p.no_index?
+    assert_equal({
+      allow_paths:    Set.new(['/about']),
+      disallow_paths: Set.new(['/*.xml'])
+    }, p.rules)
+    assert_equal ['/about'], p.allow_paths
+    assert_equal ['/*.xml'], p.disallow_paths
+  end
+
   def test_initialize__case_insensitive
     p = Wgit::RobotsParser.new <<~TEXT
       User-agENt: wGIt
@@ -170,6 +185,21 @@ class TestRobotsParser < TestHelper
     }, p.rules)
     assert_equal ['/about'], p.allow_paths
     assert_equal ['/*.xml'], p.disallow_paths
+  end
+
+  def test_initialize__cloudflare
+    p = Wgit::RobotsParser.new robots_txt__cloudflare
+
+    assert p.rules?
+    refute p.allow_rules?
+    assert p.disallow_rules?
+    refute p.no_index?
+    assert_equal({
+      allow_paths:    Set.new,
+      disallow_paths: Set.new(expected_disallow_paths__cloudflare)
+    }, p.rules)
+    assert_empty p.allow_paths
+    assert_equal expected_disallow_paths__cloudflare, p.disallow_paths
   end
 
   private
@@ -233,5 +263,183 @@ class TestRobotsParser < TestHelper
       User-agent: blah2
       Crawl-delay: 2
     TEXT
+  end
+
+  def robots_txt__no_white_space
+    <<~TEXT
+      User-agent: blah
+      Disallow: /
+      User-agent: msnbot
+      User-agent: wgit
+      User-agent: googlebot
+      Crawl-delay: 120
+      Allow: /about
+      Disallow: /*.xml
+      User-agent: blah2
+      Crawl-delay: 2
+    TEXT
+  end
+
+  def robots_txt__cloudflare
+    <<~TEXT
+      #    .__________________________.
+      #    | .___________________. |==|
+      #    | | ................. | |  |
+      #    | | ::[ Dear robot ]: | |  |
+      #    | | ::::[ be nice ]:: | |  |
+      #    | | ::::::::::::::::: | |  |
+      #    | | ::::::::::::::::: | |  |
+      #    | | ::::::::::::::::: | |  |
+      #    | | ::::::::::::::::: | | ,|
+      #    | !___________________! |(c|
+      #    !_______________________!__!
+      #   /                            \
+      #  /  [][][][][][][][][][][][][]  \
+      # /  [][][][][][][][][][][][][][]  \
+      #(  [][][][][____________][][][][]  )
+      # \ ------------------------------ /
+      #  \______________________________/
+
+
+      #       _-_
+      #    /~~   ~~\
+      # /~~         ~~\
+      #{               }
+      # \  _-     -_  /
+      #   ~  \\ //  ~
+      #_- -   | | _- _
+      #  _ -  | |   -_
+      #      // \\
+      # OUR TREE IS A REDWOOD
+
+
+      # allow TwitterBot to crawl lp
+      User-agent: Twitterbot
+
+      Allow: /lp
+      Allow: /de-de/lp
+      Allow: /en-au/lp
+      Allow: /en-ca/lp
+      Allow: /en-gb/lp
+      Allow: /en-in/lp
+      Allow: /es-es/lp
+      Allow: /es-la/lp
+      Allow: /fr-fr/lp
+      Allow: /it-it/lp
+      Allow: /ja-jp/lp
+      Allow: /ko-kr/lp
+      Allow: /pt-br/lp
+      Allow: /zh-cn/lp
+      Allow: /zh-tw/lp
+
+      User-agent: *
+
+      # pages testing
+      Disallow: pages.www.cloudflare.com/
+      Disallow: en-us.www.cloudflare.com/
+
+      # lp
+      Disallow: /lp
+      Disallow: /de-de/lp
+      Disallow: /en-au/lp
+      Disallow: /en-ca/lp
+      Disallow: /en-gb/lp
+      Disallow: /en-in/lp
+      Disallow: /es-es/lp
+      Disallow: /es-la/lp
+      Disallow: /fr-fr/lp
+      Disallow: /it-it/lp
+      Disallow: /ja-jp/lp
+      Disallow: /ko-kr/lp
+      Disallow: /pt-br/lp
+      Disallow: /zh-cn/lp
+      Disallow: /zh-tw/lp
+
+      # feedback
+      Disallow: /feedback
+      Disallow: /de-de/feedback
+      Disallow: /en-au/feedback
+      Disallow: /en-ca/feedback
+      Disallow: /en-gb/feedback
+      Disallow: /en-in/feedback
+      Disallow: /es-es/feedback
+      Disallow: /es-la/feedback
+      Disallow: /fr-fr/feedback
+      Disallow: /it-it/feedback
+      Disallow: /ja-jp/feedback
+      Disallow: /ko-kr/feedback
+      Disallow: /pt-br/feedback
+      Disallow: /zh-cn/feedback
+      Disallow: /zh-tw/feedback
+
+      Sitemap: https://www.cloudflare.com/sitemap.xml
+      Sitemap: https://www.cloudflare.com/de-de/sitemap.xml
+      Sitemap: https://www.cloudflare.com/en-au/sitemap.xml
+      Sitemap: https://www.cloudflare.com/en-ca/sitemap.xml
+      Sitemap: https://www.cloudflare.com/en-gb/sitemap.xml
+      Sitemap: https://www.cloudflare.com/en-in/sitemap.xml
+      Sitemap: https://www.cloudflare.com/es-es/sitemap.xml
+      Sitemap: https://www.cloudflare.com/es-la/sitemap.xml
+      Sitemap: https://www.cloudflare.com/fr-fr/sitemap.xml
+      Sitemap: https://www.cloudflare.com/it-it/sitemap.xml
+      Sitemap: https://www.cloudflare.com/ja-jp/sitemap.xml
+      Sitemap: https://www.cloudflare.com/ko-kr/sitemap.xml
+      Sitemap: https://www.cloudflare.com/pt-br/sitemap.xml
+      Sitemap: https://www.cloudflare.com/zh-cn/sitemap.xml
+      Sitemap: https://www.cloudflare.com/zh-tw/sitemap.xml
+
+
+
+      #              ________
+      #   __,_,     |        |
+      #  [_|_/      |   OK   |
+      #   //        |________|
+      # _//    __  /
+      #(_|)   |@@|
+      # \ \__ \--/ __
+      #  \o__|----|  |   __
+      #      \ }{ /\ )_ / _\
+      #      /\__/\ \__O (__
+      #     (--/\--)    \__/
+      #     _)(  )(_
+      #    `---''---`
+    TEXT
+  end
+
+  def expected_disallow_paths__cloudflare
+    [
+      'pages.www.cloudflare.com/',
+      'en-us.www.cloudflare.com/',
+      '/lp',
+      '/de-de/lp',
+      '/en-au/lp',
+      '/en-ca/lp',
+      '/en-gb/lp',
+      '/en-in/lp',
+      '/es-es/lp',
+      '/es-la/lp',
+      '/fr-fr/lp',
+      '/it-it/lp',
+      '/ja-jp/lp',
+      '/ko-kr/lp',
+      '/pt-br/lp',
+      '/zh-cn/lp',
+      '/zh-tw/lp',
+      '/feedback',
+      '/de-de/feedback',
+      '/en-au/feedback',
+      '/en-ca/feedback',
+      '/en-gb/feedback',
+      '/en-in/feedback',
+      '/es-es/feedback',
+      '/es-la/feedback',
+      '/fr-fr/feedback',
+      '/it-it/feedback',
+      '/ja-jp/feedback',
+      '/ko-kr/feedback',
+      '/pt-br/feedback',
+      '/zh-cn/feedback',
+      '/zh-tw/feedback'
+    ]
   end
 end
