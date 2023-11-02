@@ -8,6 +8,8 @@ module Wgit
   class RobotsParser
     include Wgit::Assertable
 
+    # Key representing the start of a comment.
+    KEY_COMMENT    = '#'
     # Key value separator used in robots.txt files.
     KEY_SEPARATOR  = ':'
     # Key representing a user agent.
@@ -106,7 +108,7 @@ module Wgit
 
       contents.split("\n").each do |line|
         line.strip!
-        if line.empty?
+        if line.empty? || line.start_with?(KEY_COMMENT)
           user_agents = [] # New block, clear any previous user agents.
           next
         end

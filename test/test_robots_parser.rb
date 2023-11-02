@@ -181,6 +181,7 @@ class TestRobotsParser < TestHelper
       Disallow: /*.xml$
       Disallow: /buzz/*.xml$
 
+      # All user agents
       User-agent: *
       Disallow: /buzz/*.xml$
       Disallow: /category/*.xml$
