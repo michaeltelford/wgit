@@ -333,9 +333,7 @@ for the site: #{url}")
 
     # Returns true if url is included in the given paths.
     def contains_path?(paths, url)
-      paths
-        .map  { |path| Wgit::Url.new(path) }
-        .any? { |path| path.to_path == url.to_path }
+      paths.any? { |path| Wgit::Url.new(path).to_path == url.to_path }
     end
 
     # Returns if the last_response or doc #no_index? is true or not.
