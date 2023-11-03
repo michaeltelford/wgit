@@ -71,8 +71,6 @@ database capacity, exiting")
           end
           site_count += 1
 
-          resolve_redirects(url)
-
           parser = parse_robots_txt(url)
           if parser && parser.no_index?
             upsert_url_and_redirects(url)
@@ -130,8 +128,6 @@ future iterations")
       url, insert_externals: false, follow: :default,
       allow_paths: nil, disallow_paths: nil
     )
-      resolve_redirects(url)
-
       parser = parse_robots_txt(url)
       if parser && parser.no_index?
         upsert_url_and_redirects(url)
@@ -204,23 +200,27 @@ for the site: #{url}")
     #   manipulation. Return nil or false from the block to prevent the
     #   document from being saved into the database.
     def index_url(url, insert_externals: false)
-      doc = @crawler.crawl_url(url)
-      crawl_resp = @crawler.last_response
-      upsert_url_and_redirects(url)
-
-      return if doc.nil?
-      return if no_index?(crawl_resp, doc)
-
       parser = parse_robots_txt(url)
       if parser && (parser.no_index? || contains_path?(parser.disallow_paths, url))
+        upsert_url_and_redirects(url)
+
         return
       end
 
-      result = block_given? ? yield(doc) : true
-      upsert_doc(doc) if result && doc && !doc.empty?
+      document = @crawler.crawl_url(url) do |doc|
+        break if no_index?(@crawler.last_response, doc)
 
-      ext_urls = doc&.external_links
-      upsert_external_urls(ext_urls) if insert_externals && ext_urls
+        result = block_given? ? yield(doc) : true
+        upsert_doc(doc) if result && !doc.empty?
+      end
+
+      upsert_url_and_redirects(url)
+
+      ext_urls = document&.external_links
+      if insert_externals && ext_urls
+        num_external_urls = upsert_external_urls(ext_urls)
+        Wgit.logger.info("Found and saved #{num_external_urls} external url(s)")
+      end
 
       nil
     end
@@ -296,13 +296,6 @@ for the site: #{url}")
 
     private
 
-    # Crawl the url to allow it to fully redirect before using it. The url's
-    # value and url.redirects will be set by reference.
-    def resolve_redirects(url)
-      @crawler.crawl_url(url)
-      url.crawled = false
-    end
-
     # Crawls robots.txt file (if present) and parses it. Returns the parser or nil.
     def parse_robots_txt(url)
       robots_url = url.to_origin.join('/robots.txt')
@@ -347,13 +340,13 @@ for the site: #{url}")
 
     # Returns if the last_response or doc #no_index? is true or not.
     def no_index?(last_response, doc)
-      url = doc.url.to_s
+      url = last_response.url.to_s
       if last_response.no_index?
         Wgit.logger.info("Skipping page due to no-index response header: #{url}")
         return true
       end
 
-      if doc.no_index?
+      if doc&.no_index?
         Wgit.logger.info("Skipping page due to no-index HTML meta tag: #{url}")
         return true
       end
