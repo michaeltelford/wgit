@@ -98,9 +98,9 @@ database capacity, exiting")
 url(s) during this iteration")
         Wgit.logger.info("Found and saved #{urls_count} external url(s) for \
 future iterations")
-
-        nil
       end
+
+      nil
     end
 
     # Crawls a single website's pages and stores them into the database.
