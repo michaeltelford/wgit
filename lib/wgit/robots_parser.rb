@@ -153,7 +153,7 @@ module Wgit
       return unless wgit_user_agent?(user_agents)
 
       path = remove_key(line, KEY_ALLOW)
-      path = remove_illegal_chars(path)
+      path = parse_special_syntax(path)
       return if PATHS_ALL.include?(path)
 
       @rules[:allow_paths] << path
@@ -163,7 +163,7 @@ module Wgit
       return unless wgit_user_agent?(user_agents)
 
       path = remove_key(line, KEY_DISALLOW)
-      path = remove_illegal_chars(path)
+      path = parse_special_syntax(path)
       @rules[:disallow_paths] << path
     end
 
@@ -173,8 +173,14 @@ module Wgit
       end
     end
 
-    def remove_illegal_chars(path)
-      path.gsub('$', '')
+    def parse_special_syntax(path)
+      # Remove $ e.g. "/blah$" becomes "/blah"
+      path = path.gsub('$', '')
+
+      # Remove any inline comments e.g. "/blah # comment" becomes "/blah"
+      path = path.split(" #{KEY_COMMENT}").first if path.include?(" #{KEY_COMMENT}")
+
+      path
     end
 
     alias_method :paths, :rules

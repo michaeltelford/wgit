@@ -220,6 +220,25 @@ class TestRobotsParser < TestHelper
     assert_empty p.disallow_paths
   end
 
+  def test_initialize__inline_comment
+    p = Wgit::RobotsParser.new <<~TEXT
+      User-agent: *
+      Allow: /about # Allow about page to all.
+      Disallow: /contact#support
+    TEXT
+
+    assert p.rules?
+    assert p.allow_rules?
+    assert p.disallow_rules?
+    refute p.no_index?
+    assert_equal({
+      allow_paths:    Set.new(['/about']),
+      disallow_paths: Set.new(['/contact#support'])
+    }, p.rules)
+    assert_equal ['/about'], p.allow_paths
+    assert_equal ['/contact#support'], p.disallow_paths
+  end
+
   private
 
   def robots_txt__default
