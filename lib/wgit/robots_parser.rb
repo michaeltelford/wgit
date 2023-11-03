@@ -144,7 +144,10 @@ module Wgit
       return line unless start_with_any_case?(line, key)
       return line unless line.count(KEY_SEPARATOR) == 1
 
-      line.split(KEY_SEPARATOR).last.strip
+      segs = line.split(KEY_SEPARATOR)
+      return "" if segs.size == 1
+
+      segs.last.strip
     end
 
     # Don't append * or /, as this means all paths, which is the same as no
@@ -179,6 +182,9 @@ module Wgit
 
       # Remove any inline comments e.g. "/blah # comment" becomes "/blah"
       path = path.split(" #{KEY_COMMENT}").first if path.include?(" #{KEY_COMMENT}")
+
+      # Replace an empty path with * e.g. "Allow: " becomes "Allow: *"
+      path = '*' if path.empty?
 
       path
     end

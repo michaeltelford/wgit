@@ -239,6 +239,42 @@ class TestRobotsParser < TestHelper
     assert_equal ['/contact#support'], p.disallow_paths
   end
 
+  def test_initialize__blank_path__allow
+    p = Wgit::RobotsParser.new <<~TEXT
+      User-agent: wgit
+      Allow:
+    TEXT
+
+    refute p.rules?
+    refute p.allow_rules?
+    refute p.disallow_rules?
+    refute p.no_index?
+    assert_equal({
+      allow_paths:    Set.new(),
+      disallow_paths: Set.new()
+    }, p.rules)
+    assert_empty p.allow_paths
+    assert_empty p.disallow_paths
+  end
+
+  def test_initialize__blank_path__disallow
+    p = Wgit::RobotsParser.new <<~TEXT
+      User-agent: *
+      Disallow:
+    TEXT
+
+    assert p.rules?
+    refute p.allow_rules?
+    assert p.disallow_rules?
+    assert p.no_index?
+    assert_equal({
+      allow_paths:    Set.new(),
+      disallow_paths: Set.new(['*'])
+    }, p.rules)
+    assert_empty p.allow_paths
+    assert_equal ['*'], p.disallow_paths
+  end
+
   private
 
   def robots_txt__default
