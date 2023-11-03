@@ -162,8 +162,8 @@ class TestIndexer < TestHelper
       database.docs.map(&:url).map(&:to_s))
   end
 
-  def test_index_www__robots_txt__no_index
-    url = Wgit::Url.new 'http://no-index.com'
+  def test_index_www__robots_txt__disallow_all
+    url = Wgit::Url.new 'http://disallow-all.com'
     seed { url(url) }
 
     # Try to index the site which is illegal via robots.txt file.
@@ -317,8 +317,8 @@ class TestIndexer < TestHelper
       database.docs.map(&:url).map(&:to_s))
   end
 
-  def test_index_site__robots_txt__no_index
-    url = Wgit::Url.new 'http://no-index.com'
+  def test_index_site__robots_txt__disallow_all
+    url = Wgit::Url.new 'http://disallow-all.com'
 
     refute url? url: url
 
@@ -397,6 +397,21 @@ class TestIndexer < TestHelper
     # The site has one doc plus its url.
     assert_equal 1, database.num_urls
     assert_equal 1, database.num_docs
+  end
+
+  def test_index_urls__robots_txt_and_no_index
+    urls = %w(
+      http://robots.txt.com/login
+      http://disallow-all.com
+      http://robots.txt.com/pwreset
+      http://robots.txt.com/account
+    ).to_urls
+
+    # Index several URLs, not inserting the external urls found.
+    @indexer.index_urls *urls
+
+    assert_equal urls.size, database.num_urls
+    assert_equal 0, database.num_docs
   end
 
   def test_index_url__without_externals
@@ -493,9 +508,10 @@ class TestIndexer < TestHelper
     assert_equal 1, database.num_docs
   end
 
-  # Test that re-indexing updates to the new content.
-  # All index methods use write_doc_to_db so there's no need to test them all.
   def test_index_url__upsert
+    # Test that re-indexing updates to the new content.
+    # All index_* methods use #upsert_doc so there's no need to test them all.
+
     # 1st index returns 'Original content', 2nd: 'Updated content'.
     url = 'http://www.content-updates.com'.to_url
 
@@ -549,6 +565,69 @@ class TestIndexer < TestHelper
     assert_equal 4, database.num_urls
     assert_equal 1, database.num_docs
     assert_empty database.uncrawled_urls
+  end
+
+  def test_index_url__robots_txt
+    # /login is disallowed by robots.txt file.
+    url = Wgit::Url.new 'http://robots.txt.com/login'
+
+    refute url? url: url
+
+    # Index the url and don't insert the external urls.
+    @indexer.index_url url
+
+    # Assert that url.crawled gets updated.
+    assert url? url: url, crawled: true
+
+    assert_equal 1, database.num_urls
+    assert_equal 0, database.num_docs
+  end
+
+  def test_index_url__robots_txt__disallow_all
+    url = Wgit::Url.new 'http://disallow-all.com'
+
+    refute url? url: url
+
+    # Index the url and don't insert the external urls.
+    @indexer.index_url url
+
+    # Assert that url.crawled gets updated.
+    assert url? url: url, crawled: true
+
+    assert_equal 1, database.num_urls
+    assert_equal 0, database.num_docs
+  end
+
+  def test_index_url__no_index__html
+    # /pwreset is disallowed by HTML meta tag.
+    url = Wgit::Url.new 'http://robots.txt.com/pwreset'
+
+    refute url? url: url
+
+    # Index the url and don't insert the external urls.
+    @indexer.index_url url
+
+    # Assert that url.crawled gets updated.
+    assert url? url: url, crawled: true
+
+    assert_equal 1, database.num_urls
+    assert_equal 0, database.num_docs
+  end
+
+  def test_index_url__no_index__resp
+    # /account is disallowed by HTTP response header.
+    url = Wgit::Url.new 'http://robots.txt.com/account'
+
+    refute url? url: url
+
+    # Index the url and don't insert the external urls.
+    @indexer.index_url url
+
+    # Assert that url.crawled gets updated.
+    assert url? url: url, crawled: true
+
+    assert_equal 1, database.num_urls
+    assert_equal 0, database.num_docs
   end
 
   def test_merge_paths__no_parser_rules

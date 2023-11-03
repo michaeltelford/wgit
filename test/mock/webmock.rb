@@ -55,7 +55,7 @@ def stub_not_found(url)
 end
 
 # Stub a 404 not found for /robots.txt.
-def stub_robot_txt_not_found(urls)
+def stub_robots_txt_not_found(urls)
   urls.each do |url|
     suffix = url.end_with?('/robots.txt') ? '' : '/robots.txt'
     stub_not_found(url + suffix)

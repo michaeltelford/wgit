@@ -26,8 +26,8 @@ module Wgit
     # Retrieves uncrawled url's from the database and recursively crawls each
     # site storing their internal pages into the database and adding their
     # external url's to be crawled later on. Logs info on the crawl using
-    # Wgit.logger as it goes along. This method will request and abide by the
-    # site's robots.txt file if present.
+    # Wgit.logger as it goes along. This method will honour all site's
+    # robots.txt and 'noindex' requests.
     #
     # @param max_sites [Integer] The number of separate and whole
     #   websites to be crawled before the method exits. Defaults to -1 which
@@ -108,7 +108,7 @@ future iterations")
     # Crawls a single website's pages and stores them into the database.
     # There is no max download limit so be careful which sites you index.
     # Logs info on the crawl using Wgit.logger as it goes along. This method
-    # will request and abide by the site's robots.txt file if present.
+    # will honour the site's robots.txt and 'noindex' requests.
     #
     # @param url [Wgit::Url] The base Url of the website to crawl.
     # @param insert_externals [Boolean] Whether or not to insert the website's
@@ -170,6 +170,8 @@ for the site: #{url}")
     # Crawls one or more webpages and stores them into the database.
     # There is no max download limit so be careful of large pages.
     # Logs info on the crawl using Wgit.logger as it goes along.
+    # This method will honour the site's robots.txt and 'noindex' requests
+    # in relation to the given urls.
     #
     # @param urls [*Wgit::Url] The webpage Url's to crawl.
     # @param insert_externals [Boolean] Whether or not to insert the webpages
@@ -191,6 +193,8 @@ for the site: #{url}")
     # Crawls a single webpage and stores it into the database.
     # There is no max download limit so be careful of large pages.
     # Logs info on the crawl using Wgit.logger as it goes along.
+    # This method will honour the site's robots.txt and 'noindex' requests
+    # in relation to the given url.
     #
     # @param url [Wgit::Url] The webpage Url to crawl.
     # @param insert_externals [Boolean] Whether or not to insert the webpages
@@ -200,14 +204,22 @@ for the site: #{url}")
     #   manipulation. Return nil or false from the block to prevent the
     #   document from being saved into the database.
     def index_url(url, insert_externals: false)
-      document = @crawler.crawl_url(url) do |doc|
-        result = block_given? ? yield(doc) : true
-        upsert_doc(doc) if result && !doc.empty?
-      end
-
+      doc = @crawler.crawl_url(url)
+      crawl_resp = @crawler.last_response
       upsert_url_and_redirects(url)
 
-      ext_urls = document&.external_links
+      return if doc.nil?
+      return if no_index?(crawl_resp, doc)
+
+      parser = parse_robots_txt(url)
+      if parser && (parser.no_index? || contains_path?(parser.disallow_paths, url))
+        return
+      end
+
+      result = block_given? ? yield(doc) : true
+      upsert_doc(doc) if result && doc && !doc.empty?
+
+      ext_urls = doc&.external_links
       upsert_external_urls(ext_urls) if insert_externals && ext_urls
 
       nil
@@ -324,6 +336,13 @@ for the site: #{url}")
       disallow = disallow.concat(parser.disallow_paths)
 
       return allow, disallow
+    end
+
+    # Returns true if url is included in the given paths.
+    def contains_path?(paths, url)
+      paths
+        .map  { |path| Wgit::Url.new(path) }
+        .any? { |path| path.to_path == url.to_path }
     end
 
     # Returns if the last_response or doc #no_index? is true or not.

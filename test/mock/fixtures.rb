@@ -52,7 +52,7 @@ stub_request(:get, Regexp.new('http://www.belfastpilates.co.uk/(.*).(?:jpg|jpeg)
 stub_request(:get, 'http://robots.txt.com/account').
   to_return(status: 200, headers: { 'X-Robots-Tag': 'noindex' }, body: '<p>Robots account</p>')
 
-stub_robot_txt_not_found [
+stub_robots_txt_not_found [
   'http://txti.es',
   'http://quotes.toscrape.com',
   'http://test-site.com',
@@ -64,7 +64,8 @@ stub_robot_txt_not_found [
   'https://blank-site-3.com',
   'http://blank-site-4.com',
   'https://blank-site-5.com',
-  'http://redirect.com'
+  'http://redirect.com',
+  'http://www.content-updates.com'
 ]
 
 # Mock responses based on individual files saved to disk. The URL should match
@@ -90,7 +91,7 @@ sites = [
   'http://test-site.com',
   'http://quotes.toscrape.com/',
   'http://robots.txt.com',
-  'http://no-index.com'
+  'http://disallow-all.com'
 ]
 
 stub_fixtures pages, sites
