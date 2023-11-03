@@ -553,6 +553,16 @@ be relative"
       )
     end
 
+    # Works with the default extractors to extract and check the HTML meta tags
+    # instructing Wgit not to index this document (save it to a Database). If
+    # the default extractors are removed, this method will always return false.
+    #
+    # @return [Boolean] True if this document shouldn't be saved to a Database,
+    #   false otherwise.
+    def no_index?
+      [@meta_robots, @meta_wgit].include?('noindex')
+    end
+
     protected
 
     # Initializes the nokogiri object using @html, which cannot be nil.
