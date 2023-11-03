@@ -428,7 +428,7 @@ class TestDocumentExtractors < TestHelper
     assert doc.respond_to? :table_text
     assert_equal 'BoomskHeader TextAnother Header', doc.table_text
 
-    database.insert doc # Uses Document#to_h and Model.document.
+    db.insert doc # Uses Document#to_h and Model.document.
 
     assert doc?(
       url: {
@@ -447,7 +447,7 @@ class TestDocumentExtractors < TestHelper
       table_text: 'BoomskHeader TextAnother Header'
     )
 
-    results = database.search 'Hello world'
+    results = db.search 'Hello world'
     assert_equal 1, results.length
 
     db_doc = results.first

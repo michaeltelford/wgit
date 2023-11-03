@@ -240,8 +240,8 @@ class TestDSL < TestHelper
     index_site connection_string: ENV['WGIT_CONNECTION_STRING'], insert_externals: true
 
     assert doc?('url.url' => 'http://txti.es/')
-    assert_equal 7, database.num_docs
-    assert_equal 6, database.num_urls
+    assert_equal 7, db.num_docs
+    assert_equal 6, db.num_urls
   end
 
   def test_index_site__url_param
@@ -256,8 +256,8 @@ class TestDSL < TestHelper
     end
 
     refute doc?('url.url' => 'http://txti.es/')
-    assert_equal 6, database.num_docs
-    assert_equal 1, database.num_urls
+    assert_equal 6, db.num_docs
+    assert_equal 1, db.num_urls
   end
 
   def test_index_site__allow_paths
@@ -266,7 +266,7 @@ class TestDSL < TestHelper
     index_site 'http://txti.es/', allow_paths: 'about'
 
     assert doc?('url.url' => 'http://txti.es/')
-    assert_equal 2, database.num_docs
+    assert_equal 2, db.num_docs
   end
 
   def test_index_site__disallow_paths
@@ -275,7 +275,7 @@ class TestDSL < TestHelper
     index_site 'http://txti.es/', disallow_paths: 'images'
 
     assert doc?('url.url' => 'http://txti.es/')
-    assert_equal 5, database.num_docs
+    assert_equal 5, db.num_docs
   end
 
   def test_index__no_url
@@ -291,8 +291,8 @@ class TestDSL < TestHelper
     index connection_string: ENV['WGIT_CONNECTION_STRING']
 
     assert doc?('url.url' => 'http://txti.es/')
-    assert_equal 1, database.num_docs
-    assert_equal 1, database.num_urls
+    assert_equal 1, db.num_docs
+    assert_equal 1, db.num_urls
   end
 
   def test_index__single_url
@@ -302,8 +302,8 @@ class TestDSL < TestHelper
     index('http://txti.es/') { false }
 
     refute doc?('url.url' => 'http://txti.es/')
-    assert_equal 0, database.num_docs
-    assert_equal 1, database.num_urls
+    assert_equal 0, db.num_docs
+    assert_equal 1, db.num_urls
   end
 
   def test_index__several_urls
@@ -321,8 +321,8 @@ class TestDSL < TestHelper
     assert_equal ['http://txti.es/', 'http://test-site.com'], urls
     assert doc?('url.url' => 'http://txti.es/')
     assert doc?('url.url' => 'http://test-site.com')
-    assert_equal 2, database.num_docs
-    assert_equal 4, database.num_urls
+    assert_equal 2, db.num_docs
+    assert_equal 4, db.num_urls
   end
 
   def test_index_site__several_urls
@@ -394,6 +394,6 @@ class TestDSL < TestHelper
 
     clear_db!
 
-    assert_equal 0, database.size
+    assert_equal 0, db.size
   end
 end

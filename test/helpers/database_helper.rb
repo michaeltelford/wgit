@@ -14,7 +14,7 @@ module DatabaseHelper
   end
 
   # Returns the connected Wgit::Database instance.
-  def database
+  def db
     @@db
   end
 

@@ -9,7 +9,7 @@ class TestIndexer < TestHelper
   def setup
     clear_db
 
-    @indexer = Wgit::Indexer.new(database)
+    @indexer = Wgit::Indexer.new(db)
   end
 
   def test_initialize
@@ -19,29 +19,29 @@ class TestIndexer < TestHelper
     assert_instance_of Wgit::Crawler,  indexer.crawler
     assert_instance_of Wgit::Database, indexer.db
 
-    refute_equal database, indexer.db
+    refute_equal db, indexer.db
   end
 
   def test_initialize__with_database
-    indexer = Wgit::Indexer.new database
+    indexer = Wgit::Indexer.new db
 
     assert_instance_of Wgit::Indexer,  indexer
     assert_instance_of Wgit::Crawler,  indexer.crawler
     assert_instance_of Wgit::Database, indexer.db
 
-    assert_equal database, indexer.db
+    assert_equal db, indexer.db
   end
 
   def test_initialize__with_database_and_crawler
     crawler = Wgit::Crawler.new
-    indexer = Wgit::Indexer.new database, crawler
+    indexer = Wgit::Indexer.new db, crawler
 
     assert_instance_of Wgit::Indexer,  indexer
     assert_instance_of Wgit::Crawler,  indexer.crawler
     assert_instance_of Wgit::Database, indexer.db
 
     assert_equal crawler,  indexer.crawler
-    assert_equal database, indexer.db
+    assert_equal db, indexer.db
   end
 
   def test_index_www__one_site
@@ -56,8 +56,8 @@ class TestIndexer < TestHelper
 
     # Assert that some indexed docs were inserted into the DB.
     # The orig url and its doc plus an external url.
-    assert_equal 2, database.num_urls
-    assert_equal 1, database.num_docs
+    assert_equal 2, db.num_urls
+    assert_equal 1, db.num_docs
   end
 
   def test_index_www__one_site__define_extractor
@@ -90,8 +90,8 @@ class TestIndexer < TestHelper
     assert url? url: url, crawled: true
 
     # Assert that some indexed docs were inserted into the DB.
-    assert_equal 7, database.num_urls
-    assert_equal 8, database.num_docs
+    assert_equal 7, db.num_urls
+    assert_equal 8, db.num_docs
   end
 
   def test_index_www__several_sites
@@ -106,8 +106,8 @@ class TestIndexer < TestHelper
 
     # Assert that some indexed docs were inserted into the DB.
     # 7 urls == orig_url + 6 blank page urls + 1 redirect url from http -> https.
-    assert_equal 7, database.num_urls
-    assert_equal 6, database.num_docs
+    assert_equal 7, db.num_urls
+    assert_equal 6, db.num_docs
   end
 
   def test_index_www__redirects
@@ -124,8 +124,8 @@ class TestIndexer < TestHelper
     assert url? url: 'http://redirect.com/7', crawled: true
 
     # Assert that some indexed docs were inserted into the DB.
-    assert_equal 4, database.num_urls
-    assert_equal 1, database.num_docs
+    assert_equal 4, db.num_urls
+    assert_equal 1, db.num_docs
   end
 
   def test_index_www__max_data
@@ -137,7 +137,7 @@ class TestIndexer < TestHelper
 
     # Assert nothing was indexed. The only DB record is the original url.
     assert url? url: url, crawled: false
-    assert_equal 1, database.num_records
+    assert_equal 1, db.num_records
   end
 
   def test_index_www__robots_txt
@@ -152,14 +152,14 @@ class TestIndexer < TestHelper
 
     # Assert that some indexed docs were inserted into the DB.
     # The orig url and its doc plus an external url and pages.
-    assert_equal 2, database.num_urls
-    assert_equal 4, database.num_docs
+    assert_equal 2, db.num_urls
+    assert_equal 4, db.num_docs
     assert_equal(
       [
         "http://link-to-robots-txt.com", "http://robots.txt.com",
         "http://robots.txt.com/about", "http://robots.txt.com/contact"
       ],
-      database.docs.map(&:url).map(&:to_s))
+      db.docs.map(&:url).map(&:to_s))
   end
 
   def test_index_www__robots_txt__disallow_all
@@ -174,8 +174,8 @@ class TestIndexer < TestHelper
     assert url? url: url, crawled: true
 
     # Assert that no indexed docs were inserted into the DB.
-    assert_equal 1, database.num_urls
-    assert_equal 0, database.num_docs
+    assert_equal 1, db.num_urls
+    assert_equal 0, db.num_docs
   end
 
   def test_index_site__without_externals
@@ -190,8 +190,8 @@ class TestIndexer < TestHelper
     assert url? url: url, crawled: true
 
     # The site has one doc plus its url.
-    assert_equal 1, database.num_urls
-    assert_equal 1, database.num_docs
+    assert_equal 1, db.num_urls
+    assert_equal 1, db.num_docs
   end
 
   def test_index_site__with_externals
@@ -211,8 +211,8 @@ class TestIndexer < TestHelper
     assert url? url: url, crawled: true
 
     # The site has one doc plus its url and one external url.
-    assert_equal 2, database.num_urls
-    assert_equal 1, database.num_docs
+    assert_equal 2, db.num_urls
+    assert_equal 1, db.num_docs
     assert_equal 1, num_pages_crawled
   end
 
@@ -233,8 +233,8 @@ class TestIndexer < TestHelper
     assert url? url: url, crawled: true
 
     # The site has one doc plus its url.
-    assert_equal 1, database.num_urls
-    assert_equal 0, database.num_docs
+    assert_equal 1, db.num_urls
+    assert_equal 0, db.num_docs
   end
 
   def test_index_site__invalid_url
@@ -254,8 +254,8 @@ class TestIndexer < TestHelper
     assert url? url: url, crawled: true
 
     # The url's doc wasn't indexed because it's nil due to an invalid url.
-    assert_equal 1, database.num_urls
-    assert_equal 0, database.num_docs
+    assert_equal 1, db.num_urls
+    assert_equal 0, db.num_docs
   end
 
   def test_index_site__manipulate_doc
@@ -274,8 +274,8 @@ class TestIndexer < TestHelper
     assert url? url: url, crawled: true
 
     # The site has one doc plus its url.
-    assert_equal 1, database.num_urls
-    assert_equal 1, database.num_docs
+    assert_equal 1, db.num_urls
+    assert_equal 1, db.num_docs
   end
 
   def test_index_site__redirects
@@ -294,8 +294,8 @@ class TestIndexer < TestHelper
     assert url? url: 'http://redirect.com/7', crawled: true
 
     # Assert that some indexed docs were inserted into the DB.
-    assert_equal 4, database.num_urls
-    assert_equal 1, database.num_docs
+    assert_equal 4, db.num_urls
+    assert_equal 1, db.num_docs
   end
 
   def test_index_site__robots_txt
@@ -310,11 +310,11 @@ class TestIndexer < TestHelper
     assert url? url: url, crawled: true
 
     # The site has 3 indexable docs plus its url.
-    assert_equal 1, database.num_urls
-    assert_equal 3, database.num_docs
+    assert_equal 1, db.num_urls
+    assert_equal 3, db.num_docs
     assert_equal(
       ["http://robots.txt.com", "http://robots.txt.com/about", "http://robots.txt.com/contact"],
-      database.docs.map(&:url).map(&:to_s))
+      db.docs.map(&:url).map(&:to_s))
   end
 
   def test_index_site__robots_txt__disallow_all
@@ -330,8 +330,8 @@ class TestIndexer < TestHelper
     assert url? url: url, crawled: true
 
     # The site has 2 docs plus its url but only the url is indexed/saved to the DB.
-    assert_equal 1, database.num_urls
-    assert_equal 0, database.num_docs
+    assert_equal 1, db.num_urls
+    assert_equal 0, db.num_docs
   end
 
   def test_index_urls__one_url
@@ -341,8 +341,8 @@ class TestIndexer < TestHelper
     @indexer.index_urls url, insert_externals: true
 
     # The site has one doc plus its url and one external url.
-    assert_equal 2, database.num_urls
-    assert_equal 1, database.num_docs
+    assert_equal 2, db.num_urls
+    assert_equal 1, db.num_docs
   end
 
   def test_index_urls__two_urls
@@ -353,9 +353,9 @@ class TestIndexer < TestHelper
     @indexer.index_urls url, url2
 
     # url points to url2 and url2 has no externals, totalling 2 urls and docs.
-    assert_equal 2, database.num_urls
-    assert_equal 2, database.num_docs
-    assert_empty database.uncrawled_urls
+    assert_equal 2, db.num_urls
+    assert_equal 2, db.num_docs
+    assert_empty db.uncrawled_urls
   end
 
   def test_index_urls__redirects
@@ -374,9 +374,9 @@ class TestIndexer < TestHelper
     assert url? url: 'https://motherfuckingwebsite.com/', crawled: true
 
     # Assert that some indexed docs were inserted into the DB.
-    assert_equal 5, database.num_urls
-    assert_equal 2, database.num_docs
-    assert_empty database.uncrawled_urls
+    assert_equal 5, db.num_urls
+    assert_equal 2, db.num_docs
+    assert_empty db.uncrawled_urls
   end
 
   def test_index_urls__manipulate_doc
@@ -395,8 +395,8 @@ class TestIndexer < TestHelper
     assert url? url: url, crawled: true
 
     # The site has one doc plus its url.
-    assert_equal 1, database.num_urls
-    assert_equal 1, database.num_docs
+    assert_equal 1, db.num_urls
+    assert_equal 1, db.num_docs
   end
 
   def test_index_urls__robots_txt_and_no_index
@@ -410,8 +410,8 @@ class TestIndexer < TestHelper
     # Index several URLs, not inserting the external urls found.
     @indexer.index_urls *urls
 
-    assert_equal urls.size, database.num_urls
-    assert_equal 0, database.num_docs
+    assert_equal urls.size, db.num_urls
+    assert_equal 0, db.num_docs
   end
 
   def test_index_url__without_externals
@@ -426,8 +426,8 @@ class TestIndexer < TestHelper
     assert url? url: url, crawled: true
 
     # The site has one doc plus its url.
-    assert_equal 1, database.num_urls
-    assert_equal 1, database.num_docs
+    assert_equal 1, db.num_urls
+    assert_equal 1, db.num_docs
   end
 
   def test_index_url__with_externals
@@ -442,8 +442,8 @@ class TestIndexer < TestHelper
     assert url? url: url, crawled: true
 
     # The site has one doc plus its url and one external url.
-    assert_equal 2, database.num_urls
-    assert_equal 1, database.num_docs
+    assert_equal 2, db.num_urls
+    assert_equal 1, db.num_docs
   end
 
   def test_index_url__no_doc_insert
@@ -463,8 +463,8 @@ class TestIndexer < TestHelper
     assert url? url: url, crawled: true
 
     # The site has one doc plus its url.
-    assert_equal 1, database.num_urls
-    assert_equal 0, database.num_docs
+    assert_equal 1, db.num_urls
+    assert_equal 0, db.num_docs
   end
 
   def test_index_url__invalid_url
@@ -484,8 +484,8 @@ class TestIndexer < TestHelper
     assert url? url: url, crawled: true
 
     # The site has one doc plus its url.
-    assert_equal 1, database.num_urls
-    assert_equal 0, database.num_docs
+    assert_equal 1, db.num_urls
+    assert_equal 0, db.num_docs
   end
 
   def test_index_url__manipulate_doc
@@ -504,8 +504,8 @@ class TestIndexer < TestHelper
     assert url? url: url, crawled: true
 
     # The site has one doc plus its url.
-    assert_equal 1, database.num_urls
-    assert_equal 1, database.num_docs
+    assert_equal 1, db.num_urls
+    assert_equal 1, db.num_docs
   end
 
   def test_index_url__upsert
@@ -540,9 +540,9 @@ class TestIndexer < TestHelper
     assert url? url: 'http://redirect.com/7', crawled: true
 
     # Assert that some indexed docs were inserted into the DB.
-    assert_equal 2, database.num_urls
-    assert_equal 1, database.num_docs
-    assert_empty database.uncrawled_urls
+    assert_equal 2, db.num_urls
+    assert_equal 1, db.num_docs
+    assert_empty db.uncrawled_urls
   end
 
   def test_index_url__several_redirects
@@ -562,9 +562,9 @@ class TestIndexer < TestHelper
     assert url? url: 'http://redirect.com/7', crawled: true
 
     # Assert that some indexed docs were inserted into the DB.
-    assert_equal 4, database.num_urls
-    assert_equal 1, database.num_docs
-    assert_empty database.uncrawled_urls
+    assert_equal 4, db.num_urls
+    assert_equal 1, db.num_docs
+    assert_empty db.uncrawled_urls
   end
 
   def test_index_url__robots_txt
@@ -579,8 +579,8 @@ class TestIndexer < TestHelper
     # Assert that url.crawled gets updated.
     assert url? url: url, crawled: true
 
-    assert_equal 1, database.num_urls
-    assert_equal 0, database.num_docs
+    assert_equal 1, db.num_urls
+    assert_equal 0, db.num_docs
   end
 
   def test_index_url__robots_txt__disallow_all
@@ -594,8 +594,8 @@ class TestIndexer < TestHelper
     # Assert that url.crawled gets updated.
     assert url? url: url, crawled: true
 
-    assert_equal 1, database.num_urls
-    assert_equal 0, database.num_docs
+    assert_equal 1, db.num_urls
+    assert_equal 0, db.num_docs
   end
 
   def test_index_url__no_index__html
@@ -610,8 +610,8 @@ class TestIndexer < TestHelper
     # Assert that url.crawled gets updated.
     assert url? url: url, crawled: true
 
-    assert_equal 1, database.num_urls
-    assert_equal 0, database.num_docs
+    assert_equal 1, db.num_urls
+    assert_equal 0, db.num_docs
   end
 
   def test_index_url__no_index__resp
@@ -626,8 +626,8 @@ class TestIndexer < TestHelper
     # Assert that url.crawled gets updated.
     assert url? url: url, crawled: true
 
-    assert_equal 1, database.num_urls
-    assert_equal 0, database.num_docs
+    assert_equal 1, db.num_urls
+    assert_equal 0, db.num_docs
   end
 
   def test_merge_paths__no_parser_rules
