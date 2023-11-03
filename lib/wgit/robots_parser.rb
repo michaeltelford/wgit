@@ -153,6 +153,7 @@ module Wgit
       return unless wgit_user_agent?(user_agents)
 
       path = remove_key(line, KEY_ALLOW)
+      path = remove_illegal_chars(path)
       return if PATHS_ALL.include?(path)
 
       @rules[:allow_paths] << path
@@ -162,6 +163,7 @@ module Wgit
       return unless wgit_user_agent?(user_agents)
 
       path = remove_key(line, KEY_DISALLOW)
+      path = remove_illegal_chars(path)
       @rules[:disallow_paths] << path
     end
 
@@ -169,6 +171,10 @@ module Wgit
       user_agents.any? do |agent|
         [USER_AGENT_ANY, USER_AGENT_WGIT].include?(agent.downcase)
       end
+    end
+
+    def remove_illegal_chars(path)
+      path.gsub('$', '')
     end
 
     alias_method :paths, :rules

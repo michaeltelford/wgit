@@ -18,8 +18,8 @@ class TestRobotsParser < TestHelper
     assert_equal({
       allow_paths:    Set.new(['/michaeltelford/wgit/wiki/*']),
       disallow_paths: Set.new([
-        '/buzz/*.xml$',
-        '/category/*.xml$',
+        '/buzz/*.xml',
+        '/category/*.xml',
         '/mobile/',
         '*?s=bpage-next',
         '*?s=lightbox',
@@ -33,8 +33,8 @@ class TestRobotsParser < TestHelper
     }, p.rules)
     assert_equal ['/michaeltelford/wgit/wiki/*'], p.allow_paths
     assert_equal([
-      '/buzz/*.xml$',
-      '/category/*.xml$',
+      '/buzz/*.xml',
+      '/category/*.xml',
       '/mobile/',
       '*?s=bpage-next',
       '*?s=lightbox',
@@ -200,6 +200,24 @@ class TestRobotsParser < TestHelper
     }, p.rules)
     assert_empty p.allow_paths
     assert_equal expected_disallow_paths__cloudflare, p.disallow_paths
+  end
+
+  def test_initialize__dollar_sign
+    p = Wgit::RobotsParser.new <<~TEXT
+      User-agent: *
+      Allow: /about$
+    TEXT
+
+    assert p.rules?
+    assert p.allow_rules?
+    refute p.disallow_rules?
+    refute p.no_index?
+    assert_equal({
+      allow_paths:    Set.new(['/about']),
+      disallow_paths: Set.new()
+    }, p.rules)
+    assert_equal ['/about'], p.allow_paths
+    assert_empty p.disallow_paths
   end
 
   private
