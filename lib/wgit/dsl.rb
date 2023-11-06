@@ -264,6 +264,8 @@ the 'start' function".freeze
       indexer.index_urls(*urls, insert_externals: insert_externals, &block)
     end
 
+    ### DATABASE METHODS ###
+
     # Performs a search of the database's indexed documents and pretty prints
     # the results in a search engine-esque format. See `Wgit::Database#search!`
     # and `Wgit::Document#search!` for details of how the search works.
