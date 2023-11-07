@@ -136,7 +136,7 @@ class TestUtils < TestHelper
     assert_equal expected, s2
 
     s = " hello world \xFE "
-    assert_raises(ArgumentError) { Wgit::Utils.sanitize(s, encode: false) }
+    assert_raises(Encoding::CompatibilityError) { Wgit::Utils.sanitize(s, encode: false) }
   end
 
   def test_sanitize__str__url
@@ -165,7 +165,7 @@ class TestUtils < TestHelper
     assert_equal expected, a2
 
     a = ['', true, nil, true, false, ' hello world ', " hello world \xFE "]
-    assert_raises(ArgumentError) { Wgit::Utils.sanitize(a, encode: false) }
+    assert_raises(Encoding::CompatibilityError) { Wgit::Utils.sanitize(a, encode: false) }
   end
 
   def test_sanitize__arr__urls

@@ -107,7 +107,7 @@ def stub_fixtures(pages, sites)
     index_file = "#{dir}/index.html"
     index_path = "#{fixtures_dir}/#{index_file}"
 
-    stub_page(url, fixture: index_file) if File.exists?(index_path)
+    stub_page(url, fixture: index_file) if File.exist?(index_path)
     stub_dir(url, fixtures_dir, dir)
   end
 end

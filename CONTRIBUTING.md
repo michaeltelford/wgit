@@ -12,7 +12,7 @@ Before you make a contribution, reach out to michael.telford@live.com about what
 - Write some code
 - Re-run the tests (which now hopefully pass)
 - Push your branch to your `origin` remote
-- Open a GitHub Pull Request (with the target branch being wgit's `origin/master`)
+- Open a GitHub Pull Request (with the target branch as wgit's (upstream) `master`)
 - Apply any requested changes
 - Wait for your PR to be merged
 
