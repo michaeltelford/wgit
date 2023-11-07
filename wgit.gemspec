@@ -40,11 +40,11 @@ Gem::Specification.new do |s|
   s.platform              = Gem::Platform::RUBY
   s.required_ruby_version = '>= 3', '< 4'
 
-  s.add_runtime_dependency 'addressable', '~> 2.6'
-  s.add_runtime_dependency 'mongo', '~> 2.9'
-  s.add_runtime_dependency 'nokogiri', '~> 1.10'
-  s.add_runtime_dependency 'typhoeus', '~> 1.3'
-  s.add_runtime_dependency 'ferrum', '~> 0.8'
+  s.add_runtime_dependency 'addressable', '~> 2.8'
+  s.add_runtime_dependency 'mongo', '~> 2.19'
+  s.add_runtime_dependency 'nokogiri', '~> 1.15'
+  s.add_runtime_dependency 'typhoeus', '~> 1.4'
+  s.add_runtime_dependency 'ferrum', '~> 0.14'
 
   s.add_development_dependency 'byebug', '~> 11.1'
   s.add_development_dependency 'dotenv', '~> 2.8'
