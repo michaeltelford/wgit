@@ -555,6 +555,16 @@ class TestUrl < TestHelper
     assert_instance_of String, joined
   end
 
+  def test_eql?
+    url = 'http://twitter.com'.to_url
+
+    assert url.eql?('http://twitter.com'.to_url)
+    assert url.eql?('http://twitter.com')
+    assert url.eql?('http://twitter.com/'.to_url)
+    assert url.eql?('http://twitter.com/')
+    refute url.eql?('https://twitter.com')
+  end
+
   def test_crawled=
     url = Wgit::Url.new 'http://www.google.co.uk'
     url.crawled = true

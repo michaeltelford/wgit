@@ -150,6 +150,18 @@ Addressable::URI::InvalidURIError")
       to_s.concat(other.to_s)
     end
 
+    # Overrides String#eql? to perform a comparison of two Wgit::Url String
+    # values with their trailing slashes omitted (if present).
+    #
+    # @param other [Wgit::Url, String] The other Url to compare for equality.
+    # @return [Boolean] True if this Url is equal in value to other. False
+    #   otherwise.
+    def eql?(other)
+      other_str = Wgit::Url.parse(other).omit_trailing_slash.to_s
+
+      omit_trailing_slash.to_s.eql?(other_str)
+    end
+
     # Returns true if self is a relative Url; false if absolute.
     #
     # An absolute URL must have a scheme prefix e.g.

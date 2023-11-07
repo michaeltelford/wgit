@@ -408,7 +408,7 @@ class TestIndexer < TestHelper
     ).to_urls
 
     # Index several URLs, not inserting the external urls found.
-    @indexer.index_urls *urls
+    @indexer.index_urls(*urls)
 
     assert_equal urls.size, db.num_urls
     assert_equal 0, db.num_docs

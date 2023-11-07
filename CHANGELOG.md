@@ -1,10 +1,37 @@
 # Wgit Change Log
 
-## v0.0.0 (TEMPLATE - DO NOT EDIT)
+## v0.0.0 [- BREAKING CHANGES] (TEMPLATE - DO NOT EDIT)
 ### Added
 - ...
 ### Changed/Removed
 - ...
+### Fixed
+- ...
+---
+
+## v0.11.0 - BREAKING CHANGES
+### Added
+- Ability to prevent indexing via `robots.txt` and `noindex` values in HTML `meta` elements and HTTP response header `X-Robots-Tag`. See new class `Wgit::RobotsParser` and the updated `Wgit::Indexer#index_*` methods. Also see the [wiki article](https://github.com/michaeltelford/wgit/wiki/How-To-Prevent-Indexing) on the subject.
+- `Wgit::RobotsParser` class for parsing `robots.txt` files.
+- `Wgit::Response#no_index?` and `Wgit::Document#no_index?` methods (see wiki article above).
+- Added two new default extractors which extract robots meta elements for use in `Wgit::Document#no_index?`.
+- Added `Wgit::Document.to_h_ignore_vars` Array for user manipulation.
+- Added `Wgit::Utils.pprint` method to aid debugging.
+- Added `Wgit::Utils.sanitize_url` method.
+- Added `Wgit::Indexer#index_www(max_urls_per_iteration:, ...)` param.
+- Added `Wgit::Url#redirects` used by `Wgit::Indexer` to insert a Url and it's redirects.
+- Added `Wgit::Url#eql?` override (of the `String`) method.
+- Added `Wgit::Database#bulk_upsert` which `Wgit::Indexer` now uses where possible. This reduces the total database calls made during an index operation.
+### Changed/Removed
+- Updated `Wgit::Indexer#index_*` methods to honour index prevention methods (see the [wiki article](https://github.com/michaeltelford/wgit/wiki/How-To-Prevent-Indexing)).
+- Updated `Wgit::Utils.sanitize*` methods so they no longer modify the receiver.
+- Updated `Wgit::Indexer` method logs.
+- Updated/added custom class `#inspect` methods.
+- Renamed `Wgit::Utils.printf_search_results` to `pprint_search_results`.
+- Renamed `Wgit::Url#concat` to `#join`. The `#concat` method is now `String#concat`.
+- Updated `Wgit::Indexer` methods to now write external Urls to the Database as: `doc.external_urls.map(&:to_origin)` meaning `http://example.com/about` becomes `http://example.com`.
+- Updated Ruby version to `3.2.2`.
+- Updated all bundle dependencies to latest versions, see `Gemfile.lock` for exact versions.
 ### Fixed
 - ...
 ---
