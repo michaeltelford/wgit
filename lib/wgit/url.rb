@@ -454,7 +454,7 @@ protocol scheme and domain (e.g. http://example.com): #{url}"
     #   an endpoint, / is returned.
     def to_endpoint
       endpoint = @uri.path
-      endpoint = '/' + endpoint unless endpoint.start_with?('/')
+      endpoint = "/#{endpoint}" unless endpoint.start_with?('/')
       Wgit::Url.new(endpoint)
     end
 
@@ -545,7 +545,7 @@ protocol scheme and domain (e.g. http://example.com): #{url}"
     #
     # @return [Wgit::Url] Self without a trailing slash.
     def omit_leading_slash
-      start_with?('/') ? Wgit::Url.new(self[1..-1]) : self
+      start_with?('/') ? Wgit::Url.new(self[1..]) : self
     end
 
     # Returns a new Wgit::Url containing self without a trailing slash. Is

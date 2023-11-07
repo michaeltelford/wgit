@@ -210,8 +210,8 @@ module Wgit
         {
           update_many: {
             filter: query,
-            update: { '$set' =>  data_hash },
-            upsert: true,
+            update: { '$set' => data_hash },
+            upsert: true
           }
         }
       end
@@ -235,14 +235,14 @@ module Wgit
     # @yield [doc] Given each Document object (Wgit::Document) returned from
     #   the DB.
     # @return [Array<Wgit::Document>] The Documents obtained from the DB.
-    def docs(limit: 0, skip: 0)
+    def docs(limit: 0, skip: 0, &block)
       results = retrieve(DOCUMENTS_COLLECTION, {},
-                         sort: { date_added: 1 }, limit: limit, skip: skip)
+                         sort: { date_added: 1 }, limit:, skip:)
       return [] if results.count < 1 # results#empty? doesn't exist.
 
       # results.respond_to? :map! is false so we use map and overwrite the var.
       results = results.map { |doc_hash| Wgit::Document.new(doc_hash) }
-      results.each { |doc| yield(doc) } if block_given?
+      results.each(&block) if block_given?
 
       results
     end
@@ -257,17 +257,16 @@ module Wgit
     # @param skip [Integer] Skip n amount of Url's.
     # @yield [url] Given each Url object (Wgit::Url) returned from the DB.
     # @return [Array<Wgit::Url>] The Urls obtained from the DB.
-    def urls(crawled: nil, limit: 0, skip: 0)
-      query = crawled.nil? ? {} : { crawled: crawled }
+    def urls(crawled: nil, limit: 0, skip: 0, &block)
+      query = crawled.nil? ? {} : { crawled: }
       sort = { date_added: 1 }
 
-      results = retrieve(URLS_COLLECTION, query,
-                         sort: sort, limit: limit, skip: skip)
+      results = retrieve(URLS_COLLECTION, query, sort:, limit:, skip:)
       return [] if results.count < 1 # results#empty? doesn't exist.
 
       # results.respond_to? :map! is false so we use map and overwrite the var.
       results = results.map { |url_doc| Wgit::Url.new(url_doc) }
-      results.each { |url| yield(url) } if block_given?
+      results.each(&block) if block_given?
 
       results
     end
@@ -279,7 +278,7 @@ module Wgit
     # @yield [url] Given each Url object (Wgit::Url) returned from the DB.
     # @return [Array<Wgit::Url>] The crawled Urls obtained from the DB.
     def crawled_urls(limit: 0, skip: 0, &block)
-      urls(crawled: true, limit: limit, skip: skip, &block)
+      urls(crawled: true, limit:, skip:, &block)
     end
 
     # Returned Url records that haven't yet been crawled.
@@ -289,7 +288,7 @@ module Wgit
     # @yield [url] Given each Url object (Wgit::Url) returned from the DB.
     # @return [Array<Wgit::Url>] The uncrawled Urls obtained from the DB.
     def uncrawled_urls(limit: 0, skip: 0, &block)
-      urls(crawled: false, limit: limit, skip: skip, &block)
+      urls(crawled: false, limit:, skip:, &block)
     end
 
     # Searches the database's Documents for the given query.
@@ -316,19 +315,21 @@ module Wgit
       query, case_sensitive: false, whole_sentence: true, limit: 10, skip: 0
     )
       query = query.to_s.strip
-      query.replace('"' + query + '"') if whole_sentence
+      query.replace("\"#{query}\"") if whole_sentence
 
       # Sort based on the most search hits (aka "textScore").
       # We use the sort_proj hash as both a sort and a projection below.
       sort_proj = { score: { :$meta => 'textScore' } }
-      query = { :$text => {
-        :$search => query,
-        :$caseSensitive => case_sensitive
-      } }
+      query = {
+        :$text => {
+          :$search => query,
+          :$caseSensitive => case_sensitive
+        }
+      }
 
       results = retrieve(DOCUMENTS_COLLECTION, query,
                          sort: sort_proj, projection: sort_proj,
-                         limit: limit, skip: skip)
+                         limit:, skip:)
 
       results.map do |mongo_doc|
         doc = Wgit::Document.new(mongo_doc)
@@ -358,21 +359,10 @@ module Wgit
       query, case_sensitive: false, whole_sentence: true,
       limit: 10, skip: 0, sentence_limit: 80
     )
-      results = search(
-        query,
-        case_sensitive: case_sensitive,
-        whole_sentence: whole_sentence,
-        limit: limit,
-        skip: skip
-      )
+      results = search(query, case_sensitive:, whole_sentence:, limit:, skip:)
 
       results.each do |doc|
-        doc.search!(
-          query,
-          case_sensitive: case_sensitive,
-          whole_sentence: whole_sentence,
-          sentence_limit: sentence_limit
-        )
+        doc.search!(query, case_sensitive:, whole_sentence:, sentence_limit:)
         yield(doc) if block_given?
       end
 
@@ -403,26 +393,16 @@ module Wgit
       query, case_sensitive: false, whole_sentence: true,
       limit: 10, skip: 0, sentence_limit: 80, top_result_only: false
     )
-      results = search(
-        query,
-        case_sensitive: case_sensitive,
-        whole_sentence: whole_sentence,
-        limit: limit,
-        skip: skip
-      )
+      results = search(query, case_sensitive:, whole_sentence:, limit:, skip:)
 
       results
         .map do |doc|
           yield(doc) if block_given?
 
-          results = doc.search(
-            query,
-            case_sensitive: case_sensitive,
-            whole_sentence: whole_sentence,
-            sentence_limit: sentence_limit
-          )
-
           # Only return result if its text has a match - compact is called below.
+          results = doc.search(
+            query, case_sensitive:, whole_sentence:, sentence_limit:
+          )
           next nil if results.empty?
 
           [doc.url, (top_result_only ? results.first : results)]
@@ -473,7 +453,7 @@ module Wgit
     # @return [Boolean] True if url exists, otherwise false.
     def url?(url)
       assert_type(url, String) # This includes Wgit::Url's.
-      query = { url: url }
+      query = { url: }
       retrieve(URLS_COLLECTION, query, limit: 1).any?
     end
 

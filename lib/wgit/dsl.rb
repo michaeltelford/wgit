@@ -101,7 +101,7 @@ the 'start' function".freeze
       raise DSL_ERROR__NO_START_URL if urls.empty?
 
       urls.map! { |url| Wgit::Url.parse(url) }
-      crawler.crawl_urls(*urls, follow_redirects: follow_redirects, &block)
+      crawler.crawl_urls(*urls, follow_redirects:, &block)
     end
 
     # Crawls an entire site using `Wgit::Crawler#crawl_site` underneath. If no
@@ -135,9 +135,7 @@ the 'start' function".freeze
       raise DSL_ERROR__NO_START_URL if urls.empty?
 
       xpath = follow || :default
-      opts  = {
-        follow: xpath, allow_paths: allow_paths, disallow_paths: disallow_paths
-      }
+      opts  = { follow: xpath, allow_paths:, disallow_paths: }
 
       urls.reduce([]) do |externals, url|
         externals + crawler.crawl_site(Wgit::Url.parse(url), **opts, &block)
@@ -189,7 +187,7 @@ the 'start' function".freeze
       db      = Wgit::Database.new(connection_string)
       indexer = Wgit::Indexer.new(db, crawler)
 
-      indexer.index_www(max_sites: max_sites, max_data: max_data)
+      indexer.index_www(max_sites:, max_data:)
     end
 
     # Indexes a single website using `Wgit::Indexer#index_site` underneath.
@@ -226,8 +224,7 @@ the 'start' function".freeze
       indexer    = Wgit::Indexer.new(db, crawler)
       xpath      = follow || :default
       crawl_opts = {
-        insert_externals: insert_externals, follow: xpath,
-        allow_paths: allow_paths, disallow_paths: disallow_paths
+        insert_externals:, follow: xpath, allow_paths:, disallow_paths:
       }
 
       urls.reduce(0) do |total, url|
@@ -261,7 +258,7 @@ the 'start' function".freeze
       indexer = Wgit::Indexer.new(db, crawler)
 
       urls.map! { |url| Wgit::Url.parse(url) }
-      indexer.index_urls(*urls, insert_externals: insert_externals, &block)
+      indexer.index_urls(*urls, insert_externals:, &block)
     end
 
     ### DATABASE METHODS ###
@@ -287,7 +284,7 @@ the 'start' function".freeze
     #   database containing only its matching `#text`.
     # @return [Array<Wgit::Document>] The search results with matching text.
     def search(
-      query, connection_string: @dsl_conn_str, stream: STDOUT,
+      query, connection_string: @dsl_conn_str, stream: $stdout,
       case_sensitive: false, whole_sentence: true,
       limit: 10, skip: 0, sentence_limit: 80, &block
     )
@@ -296,15 +293,12 @@ the 'start' function".freeze
 
       results = db.search!(
         query,
-        case_sensitive: case_sensitive,
-        whole_sentence: whole_sentence,
-        limit: limit,
-        skip: skip,
-        sentence_limit: sentence_limit,
-        &block
+        case_sensitive:, whole_sentence:,
+        limit:, skip:,
+        sentence_limit:, &block
       )
 
-      Wgit::Utils.pprint_search_results(results, stream: stream)
+      Wgit::Utils.pprint_search_results(results, stream:)
 
       results
     end

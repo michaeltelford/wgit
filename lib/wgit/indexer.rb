@@ -72,7 +72,7 @@ database capacity, exiting")
           site_count += 1
 
           parser = parse_robots_txt(url)
-          if parser && parser.no_index?
+          if parser&.no_index?
             upsert_url_and_redirects(url)
 
             next
@@ -129,18 +129,14 @@ future iterations")
       allow_paths: nil, disallow_paths: nil
     )
       parser = parse_robots_txt(url)
-      if parser && parser.no_index?
+      if parser&.no_index?
         upsert_url_and_redirects(url)
 
         return 0
       end
 
       allow_paths, disallow_paths = merge_paths(parser, allow_paths, disallow_paths)
-      crawl_opts = {
-        follow: follow,
-        allow_paths: allow_paths,
-        disallow_paths: disallow_paths
-      }
+      crawl_opts = { follow:, allow_paths:, disallow_paths: }
       total_pages_indexed = 0
 
       ext_urls = @crawler.crawl_site(url, **crawl_opts) do |doc|
@@ -180,7 +176,7 @@ for the site: #{url}")
     def index_urls(*urls, insert_externals: false, &block)
       raise 'You must provide at least one Url' if urls.empty?
 
-      opts = { insert_externals: insert_externals }
+      opts = { insert_externals: }
       Wgit::Utils.each(urls) { |url| index_url(url, **opts, &block) }
 
       nil
@@ -283,9 +279,9 @@ for the site: #{url}")
     # @return [Integer] The number of upserted urls.
     def upsert_external_urls(urls)
       urls = urls
-        .reject(&:invalid?)
-        .map(&:to_origin)
-        .uniq
+             .reject(&:invalid?)
+             .map(&:to_origin)
+             .uniq
       return 0 if urls.empty?
 
       count = @db.bulk_upsert(urls)
@@ -296,7 +292,7 @@ for the site: #{url}")
 
     private
 
-    # Crawls robots.txt file (if present) and parses it. Returns the parser or nil.
+    # Crawls and parses robots.txt file (if found). Returns the parser or nil.
     def parse_robots_txt(url)
       robots_url = url.to_origin.join('/robots.txt')
 
@@ -309,13 +305,16 @@ for the site: #{url}")
 
       Wgit.logger.info("robots.txt allow paths: #{parser.allow_paths}")
       Wgit.logger.info("robots.txt disallow paths: #{parser.disallow_paths}")
-      Wgit.logger.info('robots.txt has banned wgit indexing, skipping') if parser.no_index?
+      if parser.no_index?
+        Wgit.logger.info('robots.txt has banned wgit indexing, skipping')
+      end
 
       parser
     end
 
-    # Takes the user defined allow/disallow_paths and merges robots paths into them.
-    # The allow/disallow_paths vars each can be of type nil, String, Enumerable<String>.
+    # Takes the user defined allow/disallow_paths and merges robots paths
+    # into them. The allow/disallow_paths vars each can be of type nil, String,
+    # Enumerable<String>.
     def merge_paths(parser, allow_paths, disallow_paths)
       return allow_paths, disallow_paths unless parser&.rules?
 
@@ -325,10 +324,10 @@ for the site: #{url}")
       disallow = disallow_paths || []
       disallow = [disallow] unless disallow.is_a?(Enumerable)
 
-      allow = allow.concat(parser.allow_paths)
-      disallow = disallow.concat(parser.disallow_paths)
+      allow.concat(parser.allow_paths)
+      disallow.concat(parser.disallow_paths)
 
-      return allow, disallow
+      [allow, disallow]
     end
 
     # Returns true if url is included in the given paths.

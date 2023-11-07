@@ -3,7 +3,6 @@ require_relative 'utils'
 require_relative 'assertable'
 require 'nokogiri'
 require 'json'
-require 'set'
 
 module Wgit
   # Class modeling/serialising a HTML web document, although other MIME types
@@ -18,7 +17,7 @@ module Wgit
     include Assertable
 
     # Regex for the allowed var names when defining an extractor.
-    REGEX_EXTRACTOR_NAME = /[a-z0-9_]+/.freeze
+    REGEX_EXTRACTOR_NAME = /[a-z0-9_]+/
 
     # Set of text elements used to build the xpath for Document#text.
     @text_elements = Set.new(%i[
@@ -89,9 +88,9 @@ module Wgit
     #   false if the Document content is an image etc.
     def initialize(url_or_obj, html = '', encode: true)
       if url_or_obj.is_a?(String)
-        init_from_strings(url_or_obj, html, encode: encode)
+        init_from_strings(url_or_obj, html, encode:)
       else
-        init_from_object(url_or_obj, encode: encode)
+        init_from_object(url_or_obj, encode:)
       end
     end
 
@@ -104,7 +103,7 @@ module Wgit
     def self.text_elements_xpath
       @text_elements.each_with_index.reduce('') do |xpath, (el, i)|
         xpath += ' | ' unless i.zero?
-        xpath += format('//%s/text()', el)
+        xpath + format('//%s/text()', el)
       end
     end
 
@@ -305,7 +304,7 @@ be relative"
       ignore << '@html' unless include_html
       ignore << '@score' unless include_score
 
-      Wgit::Utils.to_h(self, ignore: ignore)
+      Wgit::Utils.to_h(self, ignore:)
     end
 
     # Converts this Document's #to_h return value to a JSON String.
@@ -314,7 +313,7 @@ be relative"
     #   returned JSON String.
     # @return [String] This Document represented as a JSON String.
     def to_json(include_html: false)
-      h = to_h(include_html: include_html)
+      h = to_h(include_html:)
       JSON.generate(h)
     end
 
@@ -336,7 +335,7 @@ be relative"
         else
           next unless instance_variable_get(var).respond_to?(:length)
 
-          hash[var[1..-1].to_sym] = instance_variable_get(var).send(:length)
+          hash[var[1..].to_sym] = instance_variable_get(var).send(:length)
         end
       end
 
@@ -520,10 +519,7 @@ be relative"
       query, case_sensitive: false, whole_sentence: true, sentence_limit: 80
     )
       orig_text = @text
-      @text = search(
-        query, case_sensitive: case_sensitive,
-               whole_sentence: whole_sentence, sentence_limit: sentence_limit
-      )
+      @text = search(query, case_sensitive:, whole_sentence:, sentence_limit:)
 
       orig_text
     end
@@ -546,11 +542,7 @@ be relative"
     # @return [String, Object] The value found in the html or the default value
     #   (singleton ? nil : []).
     def extract(xpath, singleton: true, text_content_only: true, &block)
-      send(
-        :extract_from_html, xpath,
-        singleton: singleton, text_content_only: text_content_only,
-        &block
-      )
+      send(:extract_from_html, xpath, singleton:, text_content_only:, &block)
     end
 
     # Works with the default extractors to extract and check the HTML meta tags
@@ -651,13 +643,13 @@ be relative"
       @parser = init_nokogiri
       @score  = 0.0
 
-      @html = Wgit::Utils.sanitize(@html, encode: encode)
+      @html = Wgit::Utils.sanitize(@html, encode:)
 
       # Dynamically run the init_*_from_html methods.
       Document.private_instance_methods(false).each do |method|
         if method.to_s.start_with?('init_') &&
-           method.to_s.end_with?('_from_html')
-          send(method) unless method == __method__
+           method.to_s.end_with?('_from_html') && method != __method__
+          send(method)
         end
       end
     end
@@ -672,13 +664,13 @@ be relative"
       @parser = init_nokogiri
       @score  = obj.fetch('score', 0.0)
 
-      @html = Wgit::Utils.sanitize(@html, encode: encode)
+      @html = Wgit::Utils.sanitize(@html, encode:)
 
       # Dynamically run the init_*_from_object methods.
       Document.private_instance_methods(false).each do |method|
         if method.to_s.start_with?('init_') &&
-           method.to_s.end_with?('_from_object')
-          send(method, obj) unless method == __method__
+           method.to_s.end_with?('_from_object') && method != __method__
+          send(method, obj)
         end
       end
     end
@@ -691,7 +683,7 @@ be relative"
     def init_var(var, value)
       # instance_var_name starts with @, var_name doesn't.
       var = var.to_s
-      var_name = (var.start_with?('@') ? var[1..-1] : var).to_sym
+      var_name = (var.start_with?('@') ? var[1..] : var).to_sym
       instance_var_name = "@#{var_name}".to_sym
 
       instance_variable_set(instance_var_name, value)

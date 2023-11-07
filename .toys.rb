@@ -190,12 +190,19 @@ end
 
 tool :rubocop do
   desc 'Run the rubocop linter, use -a to auto correct'
-  flag :autocorrect, '-a', '--autocorrect'
+  flag :autocorrect,    '-a', '--autocorrect'
+  flag :autocorrectall, '-A', '--autocorrect-all'
 
   include :exec, exit_on_nonzero_status: true
 
   def run
-    autocorrect ? exec('bundle exec rubocop -a') : exec_tool('lint')
+    if autocorrect
+      exec('bundle exec rubocop -a')
+    elsif autocorrectall
+      exec('bundle exec rubocop -A')
+    else
+      exec_tool('lint')
+    end
   end
 end
 

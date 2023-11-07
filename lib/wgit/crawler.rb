@@ -5,7 +5,6 @@ require_relative 'document'
 require_relative 'utils'
 require_relative 'assertable'
 require_relative 'response'
-require 'set'
 require 'benchmark'
 require 'typhoeus'
 require 'ferrum'
@@ -118,12 +117,8 @@ module Wgit
       doc = crawl_url(url, &block)
       return nil if doc.nil?
 
-      link_opts = {
-        xpath: follow,
-        allow_paths: allow_paths,
-        disallow_paths: disallow_paths
-      }
-      alt_url   = url.end_with?('/') ? url.chop : url + '/'
+      link_opts = { xpath: follow, allow_paths:, disallow_paths: }
+      alt_url   = url.end_with?('/') ? url.chop : "#{url}/"
 
       crawled   = Set.new([url, alt_url])
       externals = Set.new(doc.external_links)
@@ -167,7 +162,7 @@ module Wgit
     def crawl_urls(*urls, follow_redirects: true, &block)
       raise 'You must provide at least one Url' if urls.empty?
 
-      opts = { follow_redirects: follow_redirects }
+      opts = { follow_redirects: }
       doc = nil
 
       Wgit::Utils.each(urls) { |url| doc = crawl_url(url, **opts, &block) }
@@ -194,7 +189,7 @@ module Wgit
       # meaning a redirect isn't reflected; A Wgit::Url is passed by reference.
       assert_type(url, Wgit::Url)
 
-      html = fetch(url, follow_redirects: follow_redirects)
+      html = fetch(url, follow_redirects:)
       doc  = Wgit::Document.new(url, html, encode: @encode)
 
       yield(doc) if block_given?
@@ -224,7 +219,7 @@ module Wgit
       response = Wgit::Response.new
       raise "Invalid url: #{url}" if url.invalid?
 
-      resolve(url, response, follow_redirects: follow_redirects)
+      resolve(url, response, follow_redirects:)
       get_browser_response(url, response) if @parse_javascript
 
       response.body_or_nil

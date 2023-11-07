@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'set'
-
 module Wgit
   # The RobotsParser class handles parsing and processing of a web servers
   # robots.txt file.
@@ -13,19 +11,19 @@ module Wgit
     # Key value separator used in robots.txt files.
     KEY_SEPARATOR  = ':'
     # Key representing a user agent.
-    KEY_USER_AGENT = 'User-agent'.freeze
+    KEY_USER_AGENT = 'User-agent'
     # Key representing an allow URL rule.
-    KEY_ALLOW      = 'Allow'.freeze
+    KEY_ALLOW      = 'Allow'
     # Key representing a disallow URL rule.
-    KEY_DISALLOW   = 'Disallow'.freeze
+    KEY_DISALLOW   = 'Disallow'
 
     # Value representing the Wgit user agent.
-    USER_AGENT_WGIT = :wgit.freeze
+    USER_AGENT_WGIT = :wgit
     # Value representing any user agent including Wgit.
-    USER_AGENT_ANY  = :*.freeze
+    USER_AGENT_ANY  = :*
 
     # Value representing any and all paths.
-    PATHS_ALL = %w(/ *).freeze
+    PATHS_ALL = %w[/ *].freeze
 
     # Hash containing the user-agent allow/disallow URL rules. Looks like:
     #   allow_paths:    ["/"]
@@ -40,7 +38,7 @@ module Wgit
     def initialize(contents)
       @rules = {
         allow_paths: Set.new,
-        disallow_paths: Set.new,
+        disallow_paths: Set.new
       }
 
       assert_respond_to(contents, :to_s)
@@ -145,7 +143,7 @@ module Wgit
       return line unless line.count(KEY_SEPARATOR) == 1
 
       segs = line.split(KEY_SEPARATOR)
-      return "" if segs.size == 1
+      return '' if segs.size == 1
 
       segs.last.strip
     end

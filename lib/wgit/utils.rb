@@ -23,7 +23,7 @@ module Wgit
       obj.instance_variables.each do |var|
         next if ignore.include?(var.to_s)
 
-        key = var.to_s[1..-1] # Remove the @ prefix.
+        key = var.to_s[1..] # Remove the @ prefix.
         key = key.to_sym unless use_strings_as_keys
         hash[key] = obj.instance_variable_get(var)
       end
@@ -37,9 +37,9 @@ module Wgit
     # @yield [el] Gives each element (Object) of obj_or_objects if it's
     #   Enumerable, otherwise obj_or_objs itself is given.
     # @return [Object] The obj_or_objs parameter is returned.
-    def self.each(obj_or_objs)
+    def self.each(obj_or_objs, &block)
       if obj_or_objs.respond_to?(:each)
-        obj_or_objs.each { |obj| yield(obj) }
+        obj_or_objs.each(&block)
       else
         yield(obj_or_objs)
       end
@@ -147,7 +147,7 @@ module Wgit
     # @param stream [#puts] Any object that respond_to?(:puts). It is used
     #   to output text somewhere e.g. a file or STDERR.
     # @return [Integer] The number of results.
-    def self.pprint_search_results(results, keyword_limit: 5, stream: STDOUT)
+    def self.pprint_search_results(results, keyword_limit: 5, stream: $stdout)
       raise 'stream must respond_to? :puts' unless stream.respond_to?(:puts)
 
       results.each do |doc|
@@ -178,11 +178,11 @@ module Wgit
     def self.sanitize(obj, encode: true)
       case obj
       when Wgit::Url
-        sanitize_url(obj, encode: encode)
+        sanitize_url(obj, encode:)
       when String
-        sanitize_str(obj, encode: encode)
+        sanitize_str(obj, encode:)
       when Array
-        sanitize_arr(obj, encode: encode)
+        sanitize_arr(obj, encode:)
       else
         obj
       end
@@ -197,7 +197,7 @@ module Wgit
     #   invalid characters.
     # @return [Wgit::Url] The sanitized url, which is also modified.
     def self.sanitize_url(url, encode: true)
-      str = sanitize_str(url.to_s, encode: encode)
+      str = sanitize_str(url.to_s, encode:)
       url.replace(str)
     end
 
@@ -225,11 +225,11 @@ module Wgit
     def self.sanitize_arr(arr, encode: true)
       return arr unless arr.is_a?(Array)
 
-      arr.
-        map { |str| sanitize(str, encode: encode) }.
-        reject { |str| str.is_a?(String) && str.empty? }.
-        compact.
-        uniq
+      arr
+        .map { |str| sanitize(str, encode:) }
+        .reject { |str| str.is_a?(String) && str.empty? }
+        .compact
+        .uniq
     end
 
     # Pretty prints a log statement, used for debugging purposes.
@@ -240,19 +240,20 @@ module Wgit
     #   DEBUG1 - include_html: true | ignore: ['@html', '@parser']
     #
     # @param i [Integer] A numbered log identifier e.g. the expected log order.
-    # @param stream [#puts] Any object that respond_to? :puts and :print. It is used
-    #   to output the log text somewhere e.g. a file or STDERR.
+    # @param stream [#puts] Any object that respond_to? :puts and :print. It is
+    #   used to output the log text somewhere e.g. a file or STDERR.
     # @param prefix [String] The log prefix, useful for visibility/greping.
-    # @param new_line [Boolean] Wether or not to use a new line (\n) as the separator.
+    # @param new_line [Boolean] Wether or not to use a new line (\n) as the
+    #   separator.
     # @param vars [Hash<#inspect, #inspect>] The vars to inspect in the log.
-    def self.pprint(i, stream: STDOUT, prefix: 'DEBUG', new_line: false, **vars)
+    def self.pprint(i, stream: $stdout, prefix: 'DEBUG', new_line: false, **vars)
       sep1 = new_line ? "\n" : ' - '
       sep2 = new_line ? "\n" : ' | '
 
       stream.print "\n#{prefix}#{i}#{sep1}"
 
       vars.each_with_index do |arr, i|
-        last_item = (i+1) == vars.size
+        last_item = (i + 1) == vars.size
         sep3 = sep2
         sep3 = new_line ? "\n" : '' if last_item
         k, v = arr

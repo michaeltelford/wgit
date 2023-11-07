@@ -29,3 +29,5 @@ Metrics/CyclomaticComplexity:
   Max: 12
 Layout/LineLength:
   Max: 85
+Style/Alias:
+  EnforcedStyle: prefer_alias_method
