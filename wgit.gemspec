@@ -46,14 +46,14 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency 'typhoeus', '~> 1.3'
   s.add_runtime_dependency 'ferrum', '~> 0.8'
 
-  s.add_development_dependency 'byebug', '~> 10.0'
-  s.add_development_dependency 'dotenv', '~> 2.5'
-  s.add_development_dependency 'maxitest', '~> 3.3'
-  s.add_development_dependency 'pry', '~> 0.12'
-  s.add_development_dependency 'rubocop', '~> 0.74'
-  s.add_development_dependency 'toys', '~> 0.8'
-  s.add_development_dependency 'webmock', '~> 3.6'
-  s.add_development_dependency 'yard', ['>= 0.9.20', '< 1.0']
+  s.add_development_dependency 'byebug', '~> 11.1'
+  s.add_development_dependency 'dotenv', '~> 2.8'
+  s.add_development_dependency 'maxitest', '~> 5.4'
+  s.add_development_dependency 'pry', '~> 0.14'
+  s.add_development_dependency 'rubocop', '~> 1.57'
+  s.add_development_dependency 'toys', '~> 0.15'
+  s.add_development_dependency 'webmock', '~> 3.19'
+  s.add_development_dependency 'yard', '~> 0.9'
 
   # Only allow gem pushes to rubygems.org.
   if s.respond_to?(:metadata)
