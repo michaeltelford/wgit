@@ -118,7 +118,8 @@ module Wgit
       return nil if doc.nil?
 
       link_opts = { xpath: follow, allow_paths:, disallow_paths: }
-      alt_url   = url.end_with?('/') ? url.chop : "#{url}/"
+      alt_str   = url.end_with?('/') ? url.chop : "#{url}/"
+      alt_url   = Wgit::Url.new(alt_str)
 
       crawled   = Set.new([url, alt_url])
       externals = Set.new(doc.external_links)
@@ -131,10 +132,11 @@ module Wgit
         break if links.empty?
 
         links.each do |link|
-          orig_link = link.dup
           doc = crawl_url(link, follow_redirects: :host, &block)
 
-          crawled += [orig_link, link] # Push both links in case of redirects.
+          redirects = url.redirects.keys.map { |from| Wgit::Url.new(from) }
+          crawled += [link, redirects].flatten
+
           next if doc.nil?
 
           internals += next_internal_links(doc, **link_opts)
