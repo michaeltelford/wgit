@@ -579,6 +579,21 @@ class TestUrl < TestHelper
     assert_nil url.date_crawled
   end
 
+  def test_redirects=
+    url = Wgit::Url.new 'http://www.google.co.uk'
+    assert_empty url.redirects
+
+    url.redirects = {
+      'http://example.com' => Wgit::Url.new('https://example.com'),
+      Wgit::Url.new('https://example.com') => 'https://example2.com',
+    }
+    assert_equal 2, url.redirects.size
+    assert url.redirects.all? { |k, v| k.instance_of?(Wgit::Url) && v.instance_of?(Wgit::Url) }
+
+    url.redirects = {}
+    assert_empty url.redirects
+  end
+
   def test_normalise
     # Normalise an IRI.
     url = Wgit::Url.new 'https://www.über.com/about#top'

@@ -29,7 +29,7 @@ module Wgit
     attr_accessor :crawl_duration
 
     # Record the redirects from the initial Url to the final Url.
-    attr_accessor :redirects
+    attr_reader :redirects
 
     # Initializes a new instance of Wgit::Url which models a web based
     # HTTP URL.
@@ -112,16 +112,6 @@ Addressable::URI::InvalidURIError")
       nil
     end
 
-    # Sets the @crawled instance var, also setting @date_crawled for
-    # convenience.
-    #
-    # @param bool [Boolean] True if this Url has been crawled, false otherwise.
-    # @return [Boolean] The value of bool having been set.
-    def crawled=(bool)
-      @crawled      = bool
-      @date_crawled = bool ? Wgit::Utils.time_stamp : nil
-    end
-
     # Overrides String#inspect to distingiush this Url from a String.
     #
     # @return [String] A short textual representation of this Url.
@@ -160,6 +150,31 @@ Addressable::URI::InvalidURIError")
       other_str = Wgit::Url.parse(other).omit_trailing_slash.to_s
 
       omit_trailing_slash.to_s.eql?(other_str)
+    end
+
+    # Sets the @crawled instance var, also setting @date_crawled for
+    # convenience.
+    #
+    # @param bool [Boolean] True if this Url has been crawled, false otherwise.
+    # @return [Boolean] The value of bool having been set.
+    def crawled=(bool)
+      @crawled      = bool
+      @date_crawled = bool ? Wgit::Utils.time_stamp : nil
+    end
+
+    # Sets the @redirects instance var, mapping any Strings into Wgit::Urls.
+    #
+    # @param redirects [Hash] The redirects Hash to set for this Url.
+    def redirects=(redirects)
+      assert_type(redirects, Hash)
+
+      map_to_url = proc do |url|
+        Wgit::Url.new(url.to_s, crawled: @crawled, date_crawled: @date_crawled)
+      end
+
+      @redirects = redirects
+                   .map { |from, to| [map_to_url.call(from), map_to_url.call(to)] }
+                   .to_h
     end
 
     # Returns true if self is a relative Url; false if absolute.

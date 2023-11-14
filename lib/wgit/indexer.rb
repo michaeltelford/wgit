@@ -259,12 +259,9 @@ for the site: #{url}")
     def upsert_url_and_redirects(url)
       url.crawled = true unless url.crawled?
 
-      # Handle any url redirects, updating them as crawled also.
-      redirect_urls = url.redirects.keys.map do |from|
-        Wgit::Url.new(from, crawled: true, date_crawled: url.date_crawled)
-      end
-
-      urls = [url] + redirect_urls
+      # Upsert any url redirects, setting them as crawled also.
+      redirects = url.redirects.keys
+      urls = [url] + redirects
 
       @db.bulk_upsert(urls)
     end

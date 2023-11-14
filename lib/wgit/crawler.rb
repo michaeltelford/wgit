@@ -134,7 +134,7 @@ module Wgit
         links.each do |link|
           doc = crawl_url(link, follow_redirects: :host, &block)
 
-          redirects = url.redirects.keys.map { |from| Wgit::Url.new(from) }
+          redirects = url.redirects.keys
           crawled += [link, redirects].flatten
 
           next if doc.nil?
