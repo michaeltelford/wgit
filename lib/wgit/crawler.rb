@@ -8,6 +8,7 @@ require_relative 'response'
 require 'benchmark'
 require 'typhoeus'
 require 'ferrum'
+require 'wgit/core_ext'
 
 module Wgit
   # The Crawler class provides a means of crawling web based HTTP `Wgit::Url`s,
@@ -127,12 +128,19 @@ module Wgit
 
       return externals.to_a if internals.empty?
 
+      total_pages = 0
+      total_subt = 0
+
       loop do
-        links = internals - crawled
+        total_subt += 1
+        links = subtract_links(total_subt, internals, crawled)
         break if links.empty?
+
+        assert_types(links, internals, crawled)
 
         links.each do |link|
           doc = crawl_url(link, follow_redirects: :host, &block)
+          total_pages += 1
 
           redirects = url.redirects.keys
           crawled += [link, redirects].flatten
@@ -144,7 +152,43 @@ module Wgit
         end
       end
 
+      Wgit::Utils.pprint "TOTAL_PAGES", total_pages: total_pages, crawled_pages: crawled.map(&:to_s)
+
       externals.to_a
+    end
+
+    def subtract_links(i, internals, crawled)
+      Wgit::Utils.pprint "STARTING_SUBT_#{i}", num_internals: internals.size, num_crawled: crawled.size
+
+      links = Set.new
+      internals.each do |internal_url|
+        internal_str = internal_url.omit_trailing_slash.to_s
+        already_crawled = false
+
+        crawled.each do |crawled_url|
+          crawled_str  = crawled_url.omit_trailing_slash.to_s
+          already_crawled = internal_str == crawled_str
+          break if already_crawled
+        end
+
+        links.add(internal_url) unless already_crawled
+
+        Wgit::Utils.pprint "SUBT", internal_link: internal_url, already_crawled: already_crawled
+      end
+
+      Wgit::Utils.pprint "ENDING_SUBT", num_links: links.size
+
+      links
+    end
+
+    def assert_types(links, internals, crawled)
+      raise 'NON SET FOUND: LINKS'     unless links.instance_of?(Set)
+      raise 'NON SET FOUND: INTERNALS' unless internals.instance_of?(Set)
+      raise 'NON SET FOUND: CRAWLED'   unless crawled.instance_of?(Set)
+
+      raise 'NON URL FOUND: LINKS'     if links.any?     { |l| !l.instance_of?(Wgit::Url) }
+      raise 'NON URL FOUND: INTERNALS' if internals.any? { |l| !l.instance_of?(Wgit::Url) }
+      raise 'NON URL FOUND: CRAWLED'   if crawled.any?   { |l| !l.instance_of?(Wgit::Url) }
     end
 
     # Crawls one or more individual urls using Wgit::Crawler#crawl_url
