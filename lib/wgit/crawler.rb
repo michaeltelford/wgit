@@ -129,21 +129,18 @@ module Wgit
       return externals.to_a if internals.empty?
 
       total_pages = 0
-      total_subt = 0
 
       loop do
-        total_subt += 1
-        links = subtract_links(total_subt, internals, crawled)
+        links = internals.delete_if { |internal| crawled.include?(internal) }
         break if links.empty?
 
         assert_types(links, internals, crawled)
 
         links.each do |link|
           doc = crawl_url(link, follow_redirects: :host, &block)
-          total_pages += 1
 
-          redirects = url.redirects.keys
-          crawled += [link, redirects].flatten
+          total_pages += 1
+          crawled += [link.redirects.keys, link].flatten
 
           next if doc.nil?
 
@@ -155,30 +152,6 @@ module Wgit
       Wgit::Utils.pprint "TOTAL_PAGES", total_pages: total_pages, crawled_pages: crawled.map(&:to_s)
 
       externals.to_a
-    end
-
-    def subtract_links(i, internals, crawled)
-      Wgit::Utils.pprint "STARTING_SUBT_#{i}", num_internals: internals.size, num_crawled: crawled.size
-
-      links = Set.new
-      internals.each do |internal_url|
-        internal_str = internal_url.omit_trailing_slash.to_s
-        already_crawled = false
-
-        crawled.each do |crawled_url|
-          crawled_str  = crawled_url.omit_trailing_slash.to_s
-          already_crawled = internal_str == crawled_str
-          break if already_crawled
-        end
-
-        links.add(internal_url) unless already_crawled
-
-        Wgit::Utils.pprint "SUBT", internal_link: internal_url, already_crawled: already_crawled
-      end
-
-      Wgit::Utils.pprint "ENDING_SUBT", num_links: links.size
-
-      links
     end
 
     def assert_types(links, internals, crawled)

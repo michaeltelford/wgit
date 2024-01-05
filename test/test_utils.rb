@@ -183,7 +183,7 @@ class TestUtils < TestHelper
   def test_pprint
     buffer = StringIO.new
     Wgit::Utils.pprint(100, stream: buffer, name: 'michael', age: 34)
-    assert_equal "\nDEBUG100 - name: michael | age: 34\n\n", buffer.string
+    assert_equal "\nDEBUG_100 - name: michael | age: 34\n\n", buffer.string
   end
 
   def test_pprint__new_line
@@ -192,7 +192,7 @@ class TestUtils < TestHelper
 
     expected = <<~TEXT
 
-      DEBUG1
+      DEBUG_1
       html: true
       xml: false
 

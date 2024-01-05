@@ -560,8 +560,8 @@ class TestUrl < TestHelper
 
     assert url.eql?('http://twitter.com'.to_url)
     assert url.eql?('http://twitter.com')
-    assert url.eql?('http://twitter.com/'.to_url)
-    assert url.eql?('http://twitter.com/')
+    refute url.eql?('http://twitter.com/'.to_url)
+    refute url.eql?('http://twitter.com/')
     refute url.eql?('https://twitter.com')
   end
 

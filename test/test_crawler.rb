@@ -921,9 +921,9 @@ class TestCrawler < TestHelper
       refute_nil doc.url.date_crawled
 
       case doc.url
-      when 'http://test-site.com/sneaky' # Redirects to different domain.
+      when 'http://test-site.com/sneaky'      # Redirects to different domain.
         assert_empty_doc(doc)
-      when 'http://test-site.com/ftp'    # Redirects to different host.
+      when 'http://test-site.com/ftp'         # Redirects to different host.
         assert_empty_doc(doc)
       when 'http://test-site.com/doesntexist' # Times out without a response.
         assert_empty_doc(doc)
