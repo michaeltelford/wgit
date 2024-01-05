@@ -237,9 +237,9 @@ module Wgit
     # Use like:
     #   Wgit::Utils.pprint 1, include_html: include_html, ignore: ignore_vars
     # Which produces a log like:
-    #   DEBUG1 - include_html: true | ignore: ['@html', '@parser']
+    #   DEBUG_1 - include_html: true | ignore: ['@html', '@parser']
     #
-    # @param i [Integer] A numbered log identifier e.g. the expected log order.
+    # @param i [#to_s] A log identifier e.g. "START" or 1 etc.
     # @param stream [#puts] Any object that respond_to? :puts and :print. It is
     #   used to output the log text somewhere e.g. a file or STDERR.
     # @param prefix [String] The log prefix, useful for visibility/greping.
@@ -250,7 +250,7 @@ module Wgit
       sep1 = new_line ? "\n" : ' - '
       sep2 = new_line ? "\n" : ' | '
 
-      stream.print "\n#{prefix}#{i}#{sep1}"
+      stream.print "\n#{prefix}_#{i}#{sep1}"
 
       vars.each_with_index do |arr, i|
         last_item = (i + 1) == vars.size
