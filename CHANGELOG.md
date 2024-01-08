@@ -30,7 +30,7 @@
 - Renamed `Wgit::Utils.printf_search_results` to `pprint_search_results`.
 - Renamed `Wgit::Url#concat` to `#join`. The `#concat` method is now `String#concat`.
 - Updated `Wgit::Indexer` methods to now write external Urls to the Database as: `doc.external_urls.map(&:to_origin)` meaning `http://example.com/about` becomes `http://example.com`.
-- Updated Ruby version to `3.2.2`.
+- Updated Ruby version to `3.3.0`.
 - Updated all bundle dependencies to latest versions, see `Gemfile.lock` for exact versions.
 ### Fixed
 - ...

@@ -563,11 +563,11 @@ class TestCrawler < TestHelper
     assert resp.ok?
   end
 
-  def test_resolve__string_url
+  def test_resolve__ascii_url
     # All ASCII chars.
     c = Wgit::Crawler.new
     resp = Wgit::Response.new
-    url = 'http://test-site.com'
+    url = 'http://test-site.com'.to_url
     c.send :resolve, url, resp
 
     assert_equal 'http://test-site.com', url
@@ -576,7 +576,7 @@ class TestCrawler < TestHelper
     # Non ASCII chars (IRI String).
     c = Wgit::Crawler.new
     resp = Wgit::Response.new
-    url = 'https://www.über.com/about'
+    url = 'https://www.über.com/about'.to_url
     c.send :resolve, url, resp
 
     assert_equal 'https://www.über.com/about', url

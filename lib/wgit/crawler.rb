@@ -8,7 +8,6 @@ require_relative 'response'
 require 'benchmark'
 require 'typhoeus'
 require 'ferrum'
-require 'wgit/core_ext'
 
 module Wgit
   # The Crawler class provides a means of crawling web based HTTP `Wgit::Url`s,
@@ -128,20 +127,14 @@ module Wgit
 
       return externals.to_a if internals.empty?
 
-      total_pages = 0
-
       loop do
-        links = internals.delete_if { |internal| crawled.include?(internal) }
+        links = subtract_links(internals, crawled)
         break if links.empty?
-
-        assert_types(links, internals, crawled)
 
         links.each do |link|
           doc = crawl_url(link, follow_redirects: :host, &block)
 
-          total_pages += 1
           crawled += [link.redirects.keys, link].flatten
-
           next if doc.nil?
 
           internals += next_internal_links(doc, **link_opts)
@@ -149,19 +142,7 @@ module Wgit
         end
       end
 
-      Wgit::Utils.pprint "TOTAL_PAGES", total_pages: total_pages, crawled_pages: crawled.map(&:to_s)
-
       externals.to_a
-    end
-
-    def assert_types(links, internals, crawled)
-      raise 'NON SET FOUND: LINKS'     unless links.instance_of?(Set)
-      raise 'NON SET FOUND: INTERNALS' unless internals.instance_of?(Set)
-      raise 'NON SET FOUND: CRAWLED'   unless crawled.instance_of?(Set)
-
-      raise 'NON URL FOUND: LINKS'     if links.any?     { |l| !l.instance_of?(Wgit::Url) }
-      raise 'NON URL FOUND: INTERNALS' if internals.any? { |l| !l.instance_of?(Wgit::Url) }
-      raise 'NON URL FOUND: CRAWLED'   if crawled.any?   { |l| !l.instance_of?(Wgit::Url) }
     end
 
     # Crawls one or more individual urls using Wgit::Crawler#crawl_url
@@ -268,7 +249,7 @@ module Wgit
     #   :origin, :host, :domain or :brand. See Wgit::Url#relative? opts param.
     # @raise [StandardError] If a redirect isn't allowed etc.
     def resolve(url, response, follow_redirects: true)
-      origin = url.to_url.to_origin # Recorded before any redirects.
+      origin = url.to_origin # Record the origin before any redirects.
       follow_redirects, within = redirect?(follow_redirects)
 
       loop do
@@ -435,6 +416,27 @@ module Wgit
 
     private
 
+    # Manually does the following: `links = internals - crawled`.
+    # This is needed because of an apparent bug in Set (when upgrading from
+    # Ruby v3.0.2 to v3.3.0) causing an infinite crawl loop in #crawl_site.
+    # TODO: Check in future Ruby versions and removed this method when fixed.
+    def subtract_links(internals, crawled)
+      links = Set.new
+
+      internals.each do |internal_url|
+        already_crawled = false
+
+        crawled.each do |crawled_url|
+          already_crawled = internal_url == crawled_url
+          break if already_crawled
+        end
+
+        links.add(internal_url) unless already_crawled
+      end
+
+      links
+    end
+
     # Returns the next links used to continue crawling a site. The xpath value
     # is used to obtain the links. Any valid URL Strings will be converted into
     # absolute Wgit::Urls. Invalid URLs will be silently dropped. Any link not
@@ -446,7 +448,8 @@ module Wgit
           .compact
       end
 
-      if links.any? { |link| link.to_domain != doc.url.to_domain }
+      doc_domain = doc.url.to_domain
+      if links.any? { |link| link.to_domain != doc_domain }
         raise 'The links to follow must be within the site domain'
       end
 
