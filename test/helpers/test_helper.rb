@@ -37,3 +37,10 @@ class TestHelper < Minitest::Test
     flunk e.message
   end
 end
+
+# Override type #inspect methods for nicer test failure messages.
+class Wgit::Url
+  def inspect
+    "\"#{to_s}\""
+  end
+end

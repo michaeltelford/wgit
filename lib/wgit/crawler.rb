@@ -509,7 +509,7 @@ module Wgit
     def filter_links(links, filter_method, paths)
       links.send(filter_method) do |link|
         # Turn http://example.com into / meaning index.
-        link = link.to_endpoint.index? ? '/' : link.omit_base
+        link = link.to_endpoint.index? ? '/' : link.omit_base.omit_trailing_slash
 
         match = false
         paths.each do |pattern|

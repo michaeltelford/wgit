@@ -443,7 +443,6 @@ be relative"
                 end
               end
               .reject { |link| link.relative?(host: @url.to_origin) }
-              .map(&:omit_trailing_slash)
 
       Wgit::Utils.sanitize(links)
     end

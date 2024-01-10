@@ -520,9 +520,14 @@ class TestUrl < TestHelper
   def test_join
     assert_equal 'http://www.google.co.uk/about.html', Wgit::Url.new('http://www.google.co.uk').join('/about.html')
     assert_equal 'http://www.google.co.uk/about.html', Wgit::Url.new('http://www.google.co.uk').join('about.html')
+    assert_equal 'http://www.google.co.uk/index.html', Wgit::Url.new('http://www.google.co.uk/index').join('.html')
+    assert_equal 'http://www.google.co.uk/index/.html', Wgit::Url.new('http://www.google.co.uk/index/').join('.html')
+    assert_equal 'http://www.google.co.uk/about.html#top', Wgit::Url.new('http://www.google.co.uk').join('/about.html').join('#top')
     assert_equal 'http://www.google.co.uk/about.html#top', Wgit::Url.new('http://www.google.co.uk').join('about.html').join('#top')
     assert_equal 'http://www.google.co.uk/about.html#about-us', Wgit::Url.new('http://www.google.co.uk/about.html').join('#about-us')
     assert_equal 'http://www.google.co.uk/about.html?foo=bar', Wgit::Url.new('http://www.google.co.uk/about.html').join('?foo=bar')
+    assert_equal 'http://www.google.co.uk/about.html/#about-us', Wgit::Url.new('http://www.google.co.uk/about.html/').join('#about-us')
+    assert_equal 'http://www.google.co.uk/about.html/?foo=bar', Wgit::Url.new('http://www.google.co.uk/about.html/').join('?foo=bar')
     assert_equal 'http://www.google.co.uk/about.html', Wgit::Url.new('http://www.google.co.uk/about').join('.html')
     assert_equal 'http://example.com/', Wgit::Url.new('http://example.com').join('/')
     assert_equal 'http://example.com/', Wgit::Url.new('http://example.com/').join('/')
@@ -757,7 +762,7 @@ class TestUrl < TestHelper
     assert_equal Wgit::Url, url.to_path.class
 
     url = Wgit::Url.new '/about.html/'
-    assert_equal 'about.html', url.to_path
+    assert_equal 'about.html/', url.to_path
     assert_equal Wgit::Url, url.to_path.class
 
     url = Wgit::Url.new '/'
@@ -874,6 +879,10 @@ class TestUrl < TestHelper
     assert_equal 'html', url.to_extension
     assert_equal Wgit::Url, url.to_extension.class
 
+    url = Wgit::Url.new 'https://www.über.com/about.html/'
+    assert_equal 'html', url.to_extension
+    assert_equal Wgit::Url, url.to_extension.class
+
     url = Wgit::Url.new 'https://www.über.com/not_found.JPEG'
     assert_equal 'JPEG', url.to_extension
     assert_equal Wgit::Url, url.to_extension.class
@@ -973,7 +982,7 @@ class TestUrl < TestHelper
     assert_equal Wgit::Url, url.omit_base.class
 
     url = Wgit::Url.new '/about.html#hello/'
-    assert_equal 'about.html#hello', url.omit_base
+    assert_equal 'about.html#hello/', url.omit_base
     assert_equal Wgit::Url, url.omit_base.class
 
     url = Wgit::Url.new '/about.html/hello?a=b&b=c#about'
@@ -1011,7 +1020,7 @@ class TestUrl < TestHelper
     assert_equal Wgit::Url, url.omit_origin.class
 
     url = Wgit::Url.new '/about.html#hello/'
-    assert_equal 'about.html#hello', url.omit_origin
+    assert_equal 'about.html#hello/', url.omit_origin
     assert_equal Wgit::Url, url.omit_origin.class
 
     url = Wgit::Url.new '/about.html/hello?a=b&b=c#about'

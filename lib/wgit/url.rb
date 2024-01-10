@@ -269,7 +269,8 @@ protocol scheme and domain (e.g. http://example.com): #{url}"
 
       other = other.omit_leading_slash
       separator = %w[# ? .].include?(other[0]) ? '' : '/'
-      joined = omit_trailing_slash + separator + other
+      separator = '' if end_with?('/')
+      joined = self + separator + other
 
       Wgit::Url.new(joined)
     end
@@ -457,7 +458,7 @@ protocol scheme and domain (e.g. http://example.com): #{url}"
       return nil if path.nil? || path.empty?
       return Wgit::Url.new('/') if path == '/'
 
-      Wgit::Url.new(path).omit_slashes
+      Wgit::Url.new(path).omit_leading_slash
     end
 
     # Returns the endpoint of this URL e.g. the bit after the host with any
@@ -514,7 +515,7 @@ protocol scheme and domain (e.g. http://example.com): #{url}"
     #
     # @return [Wgit::Url, nil] Containing just the extension string or nil.
     def to_extension
-      path = to_path
+      path = to_path&.omit_trailing_slash
       return nil unless path
 
       segs = path.split('.')
@@ -594,7 +595,7 @@ protocol scheme and domain (e.g. http://example.com): #{url}"
 
       return self if ['', '/'].include?(omit_base)
 
-      Wgit::Url.new(omit_base).omit_slashes
+      Wgit::Url.new(omit_base).omit_leading_slash
     end
 
     # Returns a new Wgit::Url with the origin (base + port) removed e.g. Given
@@ -609,7 +610,7 @@ protocol scheme and domain (e.g. http://example.com): #{url}"
 
       return self if ['', '/'].include?(omit_origin)
 
-      Wgit::Url.new(omit_origin).omit_slashes
+      Wgit::Url.new(omit_origin).omit_leading_slash
     end
 
     # Returns a new Wgit::Url with the query string portion removed e.g. Given

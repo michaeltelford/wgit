@@ -174,11 +174,12 @@ class TestDocument < TestHelper
       'http://www.mytestsite.com/home?foo=bar',
       'http://www.mytestsite.com/security.html',
       'http://www.mytestsite.com/about.html',
+      'http://www.mytestsite.com/about.html/',
       'http://www.mytestsite.com/',
       'http://www.mytestsite.com/contact.html',
       'http://www.mytestsite.com/tests.html',
       'http://www.mytestsite.com/blog#about-us',
-      'http://www.mytestsite.com/contents'
+      'http://www.mytestsite.com/contents/'
     ], doc.internal_absolute_links
     assert doc.internal_absolute_links.all? do |link|
       link.instance_of?(Wgit::Url)
@@ -190,11 +191,12 @@ class TestDocument < TestHelper
       'http://www.mytestsite.com?foo=bar',
       'http://www.mytestsite.com/security.html',
       'http://www.mytestsite.com/about.html',
+      'http://www.mytestsite.com/about.html/',
       'http://www.mytestsite.com/',
       'http://www.mytestsite.com/contact.html',
       'http://www.mytestsite.com/tests.html',
       'http://www.mytestsite.com/blog#about-us',
-      'http://www.mytestsite.com/contents'
+      'http://www.mytestsite.com/contents/'
     ], doc.internal_absolute_links
     assert doc.internal_absolute_links.all? do |link|
       link.instance_of?(Wgit::Url)
@@ -213,11 +215,12 @@ class TestDocument < TestHelper
       'http://server.com/public?foo=bar',
       'http://server.com/public/security.html',
       'http://server.com/public/about.html',
+      'http://server.com/public/about.html/',
       'http://server.com/public/',
       'http://server.com/public/contact.html',
       'http://server.com/public/tests.html',
       'http://server.com/public/blog#about-us',
-      'http://server.com/public/contents'
+      'http://server.com/public/contents/'
     ], doc.internal_absolute_links
     assert doc.internal_absolute_links.all? do |link|
       link.instance_of?(Wgit::Url)
@@ -231,11 +234,12 @@ class TestDocument < TestHelper
       'http://www.mytestsite.com/public?foo=bar',
       'http://www.mytestsite.com/public/security.html',
       'http://www.mytestsite.com/public/about.html',
+      'http://www.mytestsite.com/public/about.html/',
       'http://www.mytestsite.com/public/',
       'http://www.mytestsite.com/public/contact.html',
       'http://www.mytestsite.com/public/tests.html',
       'http://www.mytestsite.com/public/blog#about-us',
-      'http://www.mytestsite.com/public/contents'
+      'http://www.mytestsite.com/public/contents/'
     ], doc.internal_absolute_links
     assert doc.internal_absolute_links.all? do |link|
       link.instance_of?(Wgit::Url)
@@ -255,10 +259,11 @@ class TestDocument < TestHelper
       'http://www.google.co.uk',
       'http://fonts.googleapis.com',
       'http://www.yahoo.com',
-      'http://www.bing.com',
+      'http://www.bing.com/',
       'https://search.yahoo.com/search?q=hello&page=2',
       'https://example.com/blog#about-us',
       'http://ftp.mytestsite.com',
+      'http://ftp.mytestsite.com/',
       'http://ftp.mytestsite.com/files'
     ], doc.external_links
     assert doc.external_links.all? { |link| link.instance_of?(Wgit::Url) }
@@ -630,11 +635,12 @@ Minitest framework."
       '?foo=bar',
       'security.html',
       'about.html',
+      'about.html/',
       '/',
       'contact.html',
       'tests.html',
       'blog#about-us',
-      'contents'
+      'contents/'
     ], doc.internal_links
     assert doc.internal_links.all? { |link| link.instance_of?(Wgit::Url) }
   end
