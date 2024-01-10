@@ -266,6 +266,33 @@ tool :test do
     end
   end
 
+  tool :infinite_crawl_loop do
+    desc 'Manually crawl_r URLs to check for an infinite loop condition'
+
+    include :terminal
+
+    require 'wgit'
+    require 'wgit/core_ext'
+
+    def run
+      puts 'If the crawl is hanging for more than 2 mins, there is an infinite loop', :yellow
+
+      crawler = Wgit::Crawler.new
+      urls = %w(
+        https://jaloulangeree.com/
+        https://www.belfastpilates.co.uk/
+        https://anaeko.com/
+      ).to_urls
+
+      urls.each_with_index do |url, i|
+        crawler.crawl_site(url)
+        puts "Successfully crawled site (#{i+1}/#{urls.size}): #{url}"
+      end
+
+      puts 'Successfully crawled all sites, no infinite loop detected', :green
+    end
+  end
+
   tool :save_page do
     desc 'Download/update a web page test fixture to test/mock/fixtures'
     required_arg :url

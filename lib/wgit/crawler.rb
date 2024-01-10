@@ -419,9 +419,9 @@ module Wgit
     private
 
     # Manually does the following: `links = internals - crawled`.
-    # This is needed because of an apparent bug in Set (when upgrading from
+    # This is needed due to an apparent bug in Set<Url> (when upgrading from
     # Ruby v3.0.2 to v3.3.0) causing an infinite crawl loop in #crawl_site.
-    # TODO: Check in future Ruby versions and removed this method when fixed.
+    # TODO: Check in future Ruby versions and remove this method when fixed.
     def subtract_links(internals, crawled)
       links = Set.new
 
