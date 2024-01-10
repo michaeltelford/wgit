@@ -117,6 +117,7 @@ module Wgit
       doc = crawl_url(url, &block)
       return nil if doc.nil?
 
+      total_pages = 1
       link_opts = { xpath: follow, allow_paths:, disallow_paths: }
 
       crawled   = Set.new(url.redirects_journey)
@@ -135,10 +136,13 @@ module Wgit
           crawled += link.redirects_journey
           next if doc.nil?
 
-          internals += next_internal_links(doc, **link_opts)
-          externals += doc.external_links
+          total_pages += 1
+          internals   += next_internal_links(doc, **link_opts)
+          externals   += doc.external_links
         end
       end
+
+      Wgit.logger.debug("Crawled #{total_pages} documents for the site: #{url}")
 
       externals.to_a
     end
