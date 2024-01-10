@@ -165,6 +165,31 @@ Addressable::URI::InvalidURIError")
                    .to_h
     end
 
+    # Returns the Wgit::Url's starting with the originally requested Url to be
+    # crawled, followed by each redirected to Url, finishing with the final
+    # crawled Url e.g.
+    #
+    # Example Url redirects journey (dictated by the webserver):
+    #
+    # http://example.com   => 301 to https://example.com
+    # https://example.com  => 301 to https://example.com/
+    # https://example.com/ => 200 OK (no more redirects, crawl complete)
+    #
+    # Would return an Array of Wgit::Url's in the form of:
+    #
+    # [
+    #   "http://example.com",
+    #   "https://example.com",
+    #   "https://example.com/"
+    # ]
+    #
+    # @return [Array<Wgit::Url>] Each redirected to Url's finishing with the
+    #   final (successfully) crawled Url. If no redirects took place, then just
+    #   the originally requested Url is returned inside the Array.
+    def redirects_journey
+      [redirects.keys, self].flatten
+    end
+
     # Returns true if self is a relative Url; false if absolute.
     #
     # An absolute URL must have a scheme prefix e.g.
@@ -258,7 +283,8 @@ protocol scheme and domain (e.g. http://example.com): #{url}"
     end
 
     # Joins self and other together before returning a new Url. Self is not
-    # modified.
+    # modified. Some magic occurs depending on what is being joined, see
+    # the source code for more information.
     #
     # @param other [Wgit::Url, String] The other (relative) Url to join to the
     #   end of self.

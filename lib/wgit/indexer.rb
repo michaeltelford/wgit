@@ -259,11 +259,8 @@ for the site: #{url}")
     def upsert_url_and_redirects(url)
       url.crawled = true unless url.crawled?
 
-      # Upsert any url redirects, setting them as crawled also.
-      redirects = url.redirects.keys
-      urls = [url] + redirects
-
-      @db.bulk_upsert(urls)
+      # Upsert the url and any url redirects, setting them as crawled also.
+      @db.bulk_upsert(url.redirects_journey)
     end
 
     # Write the external urls to the DB. For any external url, its origin will

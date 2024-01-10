@@ -134,7 +134,7 @@ module Wgit
         links.each do |link|
           doc = crawl_url(link, follow_redirects: :host, &block)
 
-          crawled += [link.redirects.keys, link].flatten
+          crawled += link.redirects_journey
           next if doc.nil?
 
           internals += next_internal_links(doc, **link_opts)

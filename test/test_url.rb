@@ -599,6 +599,31 @@ class TestUrl < TestHelper
     assert_empty url.redirects
   end
 
+  def test_redirects_journey
+    url = Wgit::Url.new 'http://example.com'
+    url.redirects = {
+      'http://example.com' => 'https://example.com',
+      'https://example.com' => 'https://example.com/',
+    }
+    url.replace("https://example.com/")
+
+    assert_instance_of Array, url.redirects_journey
+    assert_equal 3, url.redirects_journey.size
+    assert_equal [
+      'http://example.com',
+      'https://example.com',
+      'https://example.com/'
+    ], url.redirects_journey
+  end
+
+  def test_redirects_journey__without_redirects
+    url = Wgit::Url.new 'http://example.com'
+
+    assert_instance_of Array, url.redirects_journey
+    assert_equal 1, url.redirects_journey.size
+    assert_equal ['http://example.com'], url.redirects_journey
+  end
+
   def test_normalise
     # Normalise an IRI.
     url = Wgit::Url.new 'https://www.über.com/about#top'

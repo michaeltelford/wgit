@@ -19,8 +19,8 @@
 - Added `Wgit::Utils.pprint` method to aid debugging.
 - Added `Wgit::Utils.sanitize_url` method.
 - Added `Wgit::Indexer#index_www(max_urls_per_iteration:, ...)` param.
-- Added `Wgit::Url#redirects` used by `Wgit::Indexer` to insert a Url and it's redirects.
-- Added `Wgit::Url#eql?` override (of the `String`) method.
+- Added `Wgit::Url#redirects` and `#redirects=` methods.
+- Added `Wgit::Url#redirects_journey` used by `Wgit::Indexer` to insert a Url and it's redirects.
 - Added `Wgit::Database#bulk_upsert` which `Wgit::Indexer` now uses where possible. This reduces the total database calls made during an index operation.
 ### Changed/Removed
 - Updated `Wgit::Indexer#index_*` methods to honour index prevention methods (see the [wiki article](https://github.com/michaeltelford/wgit/wiki/How-To-Prevent-Indexing)).
@@ -34,7 +34,8 @@
 - Updated Ruby version to `3.3.0`.
 - Updated all bundle dependencies to latest versions, see `Gemfile.lock` for exact versions.
 ### Fixed
-- ...
+- `Wgit::Crawler#crawl_site` now internally records all redirects for a given Url.
+- `Wgit::Crawler#crawl_site` infinite loop when using Wgit on a Ruby version > `3.0.2`.
 ---
 
 ## v0.10.8
