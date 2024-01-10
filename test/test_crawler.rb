@@ -239,10 +239,10 @@ class TestCrawler < TestHelper
     ]
 
     # Test small site - Static well formed HTML.
-    url = Wgit::Url.new 'http://txti.es'
+    url = Wgit::Url.new 'http://txti.es/'
     c = Wgit::Crawler.new
     assert_crawl_site c, url, 7, 8, expected_pages: [
-      'http://txti.es',
+      'http://txti.es/',
       'http://txti.es/about',
       'http://txti.es/how',
       'http://txti.es/terms',
@@ -263,8 +263,27 @@ class TestCrawler < TestHelper
     # Test custom small site.
     url = Wgit::Url.new 'http://test-site.com'
     c = Wgit::Crawler.new
-    assert_crawl_site c, url, 9, 2, expected_pages: [
+    assert_crawl_site c, url, 10, 2, expected_pages: [
       'http://test-site.com',
+      'http://test-site.com/contact',
+      'http://test-site.com/search',
+      'http://test-site.com/about',
+      'http://test-site.com/ftp',
+      'http://test-site.com/sneaky',
+      'http://test-site.com/doesntexist',
+      'http://test-site.com/',
+      'http://test-site.com/public/records',
+      'http://test-site.com/public/records?q=username'
+    ], expected_externals: [
+      'http://test-site.co.uk',
+      'http://ftp.test-site.com'
+    ]
+
+    # Test custom small site with trailing slash
+    url = Wgit::Url.new 'http://test-site.com/'
+    c = Wgit::Crawler.new
+    assert_crawl_site c, url, 9, 2, expected_pages: [
+      'http://test-site.com/',
       'http://test-site.com/contact',
       'http://test-site.com/search',
       'http://test-site.com/about',
@@ -297,9 +316,9 @@ class TestCrawler < TestHelper
     ]
 
     # Test custom small site with an initial host redirect.
-    url = Wgit::Url.new 'http://myserver.com' # Redirects to test-site.com.
+    url = Wgit::Url.new 'http://myserver.com/' # Redirects to test-site.com.
     c = Wgit::Crawler.new
-    assert_crawl_site c, url, 9, 2, expected_pages: [
+    assert_crawl_site c, url, 10, 2, expected_pages: [
       'http://test-site.com',
       'http://test-site.com/contact',
       'http://test-site.com/search',
@@ -307,6 +326,7 @@ class TestCrawler < TestHelper
       'http://test-site.com/ftp',
       'http://test-site.com/sneaky',
       'http://test-site.com/doesntexist',
+      'http://test-site.com/',
       'http://test-site.com/public/records',
       'http://test-site.com/public/records?q=username'
     ], expected_externals: [
@@ -337,10 +357,10 @@ class TestCrawler < TestHelper
   end
 
   def test_crawl_site__disallow_paths
-    url = Wgit::Url.new 'http://www.belfastpilates.co.uk/privacy-policy'
+    url = Wgit::Url.new 'http://www.belfastpilates.co.uk/privacy-policy/'
     c = Wgit::Crawler.new
     assert_crawl_site(c, url, 12, 9, expected_pages: [
-      'http://www.belfastpilates.co.uk/privacy-policy',
+      'http://www.belfastpilates.co.uk/privacy-policy/',
       'http://www.belfastpilates.co.uk/pilates/what-is-pilates/',
       'http://www.belfastpilates.co.uk/pilates/pilates-classes/pilates-classes-timetable/',
       'http://www.belfastpilates.co.uk/pilates/pilates-faqs/',

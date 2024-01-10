@@ -91,7 +91,7 @@ class TestIndexer < TestHelper
 
     # Assert that some indexed docs were inserted into the DB.
     assert_equal 7, db.num_urls
-    assert_equal 8, db.num_docs
+    assert_equal 9, db.num_docs
   end
 
   def test_index_www__several_sites
@@ -153,12 +153,15 @@ class TestIndexer < TestHelper
     # Assert that some indexed docs were inserted into the DB.
     # The orig url and its doc plus an external url and pages.
     assert_equal 2, db.num_urls
-    assert_equal 4, db.num_docs
+    assert_equal 5, db.num_docs
     assert_equal(
-      [
-        "http://link-to-robots-txt.com", "http://robots.txt.com",
-        "http://robots.txt.com/about", "http://robots.txt.com/contact"
-      ],
+      %w(
+        http://link-to-robots-txt.com
+        http://robots.txt.com
+        http://robots.txt.com/about
+        http://robots.txt.com/contact
+        http://robots.txt.com/
+      ),
       db.docs.map(&:url).map(&:to_s))
   end
 
@@ -311,9 +314,14 @@ class TestIndexer < TestHelper
 
     # The site has 3 indexable docs plus its url.
     assert_equal 1, db.num_urls
-    assert_equal 3, db.num_docs
+    assert_equal 4, db.num_docs
     assert_equal(
-      ["http://robots.txt.com", "http://robots.txt.com/about", "http://robots.txt.com/contact"],
+      %w(
+        http://robots.txt.com
+        http://robots.txt.com/about
+        http://robots.txt.com/contact
+        http://robots.txt.com/
+      ),
       db.docs.map(&:url).map(&:to_s))
   end
 

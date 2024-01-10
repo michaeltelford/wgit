@@ -177,11 +177,11 @@ Addressable::URI::InvalidURIError")
     #
     # Would return an Array of Wgit::Url's in the form of:
     #
-    # [
-    #   "http://example.com",
-    #   "https://example.com",
-    #   "https://example.com/"
-    # ]
+    # %w(
+    #   http://example.com
+    #   https://example.com
+    #   https://example.com/
+    # )
     #
     # @return [Array<Wgit::Url>] Each redirected to Url's finishing with the
     #   final (successfully) crawled Url. If no redirects took place, then just

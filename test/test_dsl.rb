@@ -153,10 +153,11 @@ class TestDSL < TestHelper
       urls << doc.url
     end
 
-    assert_equal 16, urls.size
+    assert_equal 17, urls.size
     refute urls.include?('http://twitter.com')
     assert urls.include?('http://txti.es/')
     assert urls.include?('http://test-site.com')
+    assert urls.include?('http://test-site.com/')
     assert externals.include?('http://twitter.com/txties')
     assert externals.include?('http://ftp.test-site.com')
   end
@@ -167,9 +168,10 @@ class TestDSL < TestHelper
     urls = []
     externals = crawl_site { |doc| urls << doc.url }
 
-    assert_equal 16, urls.size
+    assert_equal 17, urls.size
     assert urls.include?('http://txti.es/')
     assert urls.include?('http://test-site.com')
+    assert urls.include?('http://test-site.com/')
     assert externals.include?('http://twitter.com/txties')
     assert externals.include?('http://ftp.test-site.com')
   end
@@ -337,11 +339,12 @@ class TestDSL < TestHelper
       true # Index the page.
     end
 
-    assert_equal 16, urls.size
-    assert_equal 13, count # 3 urls are invalid/external redirects.
+    assert_equal 17, urls.size
+    assert_equal 14, count # 4 urls are invalid/external redirects.
     refute urls.include?('http://twitter.com')
     assert urls.include?('http://txti.es/')
     assert urls.include?('http://test-site.com')
+    assert urls.include?('http://test-site.com/')
   end
 
   def test_index_site__start__several_urls
@@ -355,10 +358,11 @@ class TestDSL < TestHelper
       true # Index the page.
     end
 
-    assert_equal 16, urls.size
-    assert_equal 13, count # 3 urls are invalid/external redirects.
+    assert_equal 17, urls.size
+    assert_equal 14, count # 4 urls are invalid/external redirects.
     assert urls.include?('http://txti.es/')
     assert urls.include?('http://test-site.com')
+    assert urls.include?('http://test-site.com/')
   end
 
   def test_search

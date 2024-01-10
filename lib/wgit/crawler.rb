@@ -118,10 +118,8 @@ module Wgit
       return nil if doc.nil?
 
       link_opts = { xpath: follow, allow_paths:, disallow_paths: }
-      alt_str   = url.end_with?('/') ? url.chop : "#{url}/"
-      alt_url   = Wgit::Url.new(alt_str)
 
-      crawled   = Set.new([url, alt_url])
+      crawled   = Set.new(url.redirects_journey)
       externals = Set.new(doc.external_links)
       internals = Set.new(next_internal_links(doc, **link_opts))
 
