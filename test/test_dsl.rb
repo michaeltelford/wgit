@@ -96,8 +96,9 @@ class TestDSL < TestHelper
   end
 
   def test_crawl__single_url__no_redirects
-    # Nil should return because of the redirect from http -> https.
-    assert_nil crawl('http://twitter.com', follow_redirects: false)
+    # An empty doc is returned because of the redirect from http -> https.
+    doc = crawl('http://twitter.com', follow_redirects: false)
+    assert doc.empty?
   end
 
   def test_crawl_site__no_url

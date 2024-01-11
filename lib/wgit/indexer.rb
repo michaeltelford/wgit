@@ -290,7 +290,7 @@ for the site: #{url}")
       Wgit.logger.info("Crawling for robots.txt: #{robots_url}")
 
       doc = @crawler.crawl_url(robots_url)
-      return nil if !@crawler.last_response.ok? || doc.nil? || doc.empty?
+      return nil if !@crawler.last_response.ok? || doc.empty?
 
       parser = Wgit::RobotsParser.new(doc.content)
 

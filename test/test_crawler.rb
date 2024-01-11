@@ -66,7 +66,8 @@ class TestCrawler < TestHelper
       assert_equal url, d.url
       assert_empty d
     end
-    assert_nil doc
+    refute_nil doc
+    assert doc.empty?
     assert c.last_response.failure?
     assert_equal 'doesnt_exist', url
     assert url.crawled
@@ -187,7 +188,8 @@ class TestCrawler < TestHelper
       assert d.empty?
       assert d.url.crawled
     end
-    assert_nil doc
+    refute_nil doc
+    assert doc.empty?
     assert url.crawled
     refute_nil url.date_crawled
     refute_nil url.crawl_duration

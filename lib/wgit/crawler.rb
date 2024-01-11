@@ -115,7 +115,7 @@ module Wgit
       url, follow: :default, allow_paths: nil, disallow_paths: nil, &block
     )
       doc = crawl_url(url, &block)
-      return nil if doc.nil?
+      return nil if doc.empty?
 
       total_pages = 1
       link_opts = { xpath: follow, allow_paths:, disallow_paths: }
@@ -134,7 +134,7 @@ module Wgit
           doc = crawl_url(link, follow_redirects: :host, &block)
 
           crawled += link.redirects_journey
-          next if doc.nil?
+          next if doc.empty?
 
           total_pages += 1
           internals   += next_internal_links(doc, **link_opts)
@@ -184,8 +184,8 @@ module Wgit
     # @yield [doc] The crawled HTML page (Wgit::Document) regardless if the
     #   crawl was successful or not. Therefore, Document#url etc. can be used.
     #   Use `doc.empty?` to determine if the page is valid.
-    # @return [Wgit::Document, nil] The crawled HTML Document or nil if the
-    #   crawl was unsuccessful.
+    # @return [Wgit::Document] The crawled HTML Document. Check if the crawl
+    #   was successful with doc.empty? (true if unsuccessful).
     def crawl_url(url, follow_redirects: true)
       # A String url isn't allowed because it's passed by value not reference,
       # meaning a redirect isn't reflected; A Wgit::Url is passed by reference.
@@ -196,7 +196,7 @@ module Wgit
 
       yield(doc) if block_given?
 
-      doc.empty? ? nil : doc
+      doc
     end
 
     protected

@@ -26,6 +26,7 @@ This release is a biggie with the main headline being the introduction of robots
 ### Changed/Removed
 - Updated `Wgit::Indexer#index_*` methods to honour index prevention methods (see the [wiki article](https://github.com/michaeltelford/wgit/wiki/How-To-Prevent-Indexing)).
 - Updated `Wgit::Utils.sanitize*` methods so they no longer modify the receiver.
+- Updated `Wgit::Crawler#crawl_url` to always return the crawled `Wgit::Document`. If relying on `nil` in your code, you should now use `doc.empty?` instead.
 - Updated `Wgit::Indexer` method logs.
 - Updated/added custom class `#inspect` methods.
 - Renamed `Wgit::Utils.printf_search_results` to `pprint_search_results`.
