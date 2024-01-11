@@ -10,6 +10,7 @@
 ---
 
 ## v0.11.0 - BREAKING CHANGES
+This release is a biggie with the main headline being the introduction of robots.txt support (see below). This release introduces several breaking changes so take care when updating your current version of Wgit.
 ### Added
 - Ability to prevent indexing via `robots.txt` and `noindex` values in HTML `meta` elements and HTTP response header `X-Robots-Tag`. See new class `Wgit::RobotsParser` and the updated `Wgit::Indexer#index_*` methods. Also see the [wiki article](https://github.com/michaeltelford/wgit/wiki/How-To-Prevent-Indexing) on the subject.
 - `Wgit::RobotsParser` class for parsing `robots.txt` files.
@@ -30,12 +31,13 @@
 - Renamed `Wgit::Utils.printf_search_results` to `pprint_search_results`.
 - Renamed `Wgit::Url#concat` to `#join`. The `#concat` method is now `String#concat`.
 - Updated `Wgit::Indexer` methods to now write external Urls to the Database as: `doc.external_urls.map(&:to_origin)` meaning `http://example.com/about` becomes `http://example.com`.
-- Updated the following methods to no longer strip trailing slashes off Urls: `Wgit::Url` - `#to_path`, `#omit_base`, `#omit_origin` and `Wgit::Document` - `#internal_links`, `#internal_absolute_links`, `#external_links`.
+- Updated the following methods to no longer omit trailing slashes from Urls: `Wgit::Url` - `#to_path`, `#omit_base`, `#omit_origin` and `Wgit::Document` - `#internal_links`, `#internal_absolute_links`, `#external_links`. For an average website, this results in ~30% less network requests when crawling.
 - Updated Ruby version to `3.3.0`.
 - Updated all bundle dependencies to latest versions, see `Gemfile.lock` for exact versions.
 ### Fixed
 - `Wgit::Crawler#crawl_site` now internally records all redirects for a given Url.
 - `Wgit::Crawler#crawl_site` infinite loop when using Wgit on a Ruby version > `3.0.2`.
+- Various other minor fixes/improvements throughout the code base.
 ---
 
 ## v0.10.8

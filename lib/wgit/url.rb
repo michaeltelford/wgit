@@ -171,17 +171,21 @@ Addressable::URI::InvalidURIError")
     #
     # Example Url redirects journey (dictated by the webserver):
     #
+    # ```
     # http://example.com   => 301 to https://example.com
     # https://example.com  => 301 to https://example.com/
     # https://example.com/ => 200 OK (no more redirects, crawl complete)
+    # ```
     #
     # Would return an Array of Wgit::Url's in the form of:
     #
+    # ```
     # %w(
     #   http://example.com
     #   https://example.com
     #   https://example.com/
     # )
+    # ```
     #
     # @return [Array<Wgit::Url>] Each redirected to Url's finishing with the
     #   final (successfully) crawled Url. If no redirects took place, then just

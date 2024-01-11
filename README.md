@@ -164,7 +164,7 @@ indexer = Wgit::Indexer.new
 indexer.index_site(wiki, **opts)
 ```
 
-- Wgit's built in indexing methods will (by default), honour a site's `robots.txt` rules. There's also a handy robots parser that you can use in your own code.
+- Wgit's built in indexing methods will by default, honour a site's `robots.txt` rules. There's also a handy robots.txt parser that you can use in your own code.
 
 ## Why Not Wgit?
 
@@ -239,7 +239,7 @@ And you're good to go!
 
 ### Tooling
 
-Wgit uses the [`toys`](https://github.com/dazuma/toys) gem (instead of Rake) for task invocation. For a full list of available tasks a.k.a. tools, run `toys --tools`. You can search for a tool using `toys -s tool_name`. The most commonly used tools are listed below...
+Wgit uses the [`toys`](https://github.com/dazuma/toys) gem (instead of Rake) for task invocation. Always run `toys` as `bundle exec toys`. For a full list of available tasks a.k.a. tools, run `toys --tools`. You can search for a tool using `toys -s tool_name`. The most commonly used tools are listed below...
 
 Run `toys db` to see a list of database related tools, enabling you to run a Mongo DB instance locally using Docker. Run `toys test` to execute the tests.
 
