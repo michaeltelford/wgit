@@ -69,6 +69,8 @@ module Wgit
     # @param parse_javascript [Boolean] Whether or not to parse the Javascript
     #   of the crawled document. Parsing requires Chrome/Chromium to be
     #   installed and in $PATH.
+    # @param parse_javascript_delay [Integer] The delay time given to a page's
+    #   JS to update the DOM. After the delay, the HTML is crawled.
     def initialize(redirect_limit: 5, timeout: 5, encode: true,
                    parse_javascript: false, parse_javascript_delay: 1)
       @redirect_limit         = redirect_limit
