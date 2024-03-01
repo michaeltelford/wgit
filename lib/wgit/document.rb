@@ -554,6 +554,49 @@ be relative"
       [@meta_robots, @meta_wgit].include?('noindex')
     end
 
+    # Firstly finds the target element whose text contains el_text.
+    # Then finds the preceeding fragment element nearest to the target
+    # element and returns it's href value (starting with #).
+    #
+    # @param el_text [String] The element text of the target element.
+    # @param el_type [String] The element type, defaulting to any type.
+    # @yield [results] Given the results of the xpath query. Return the target
+    #   you want or nil to use the default (first) target in results.
+    # @return [String, nil] nil if no nearest fragment or '#about' if nearest
+    #   fragment's href is '#about'.
+    # @raise [StandardError] Raises if no matching target element containg
+    #   el_text can be found.
+    def nearest_fragment(el_text, el_type = "*")
+      results = xpath("//#{el_type}[contains(text(),\"#{el_text}\")]")
+      if results.empty?
+        raise "Unable to find element #{el_type} containing text '#{el_text}'"
+      end
+
+      target = results.first
+      if block_given?
+        result = yield(results)
+        target = result if result
+      end
+
+      target_index = html_index(target)
+      raise 'Failed to find target index' unless target_index
+
+      fragment_h = fragment_indices(fragments)
+
+      # Return the target href if it's a fragment.
+      return fragment_h[target_index] if fragment_h.keys.include?(target_index)
+
+      # Find the target's nearest preceeding fragment href.
+      closest_index = 0
+      fragment_h.each do |fragment_index, href|
+        if fragment_index.between?(closest_index, target_index)
+          closest_index = fragment_index
+        end
+      end
+
+      fragment_h[closest_index]
+    end
+
     protected
 
     # Initializes the nokogiri object using @html, which cannot be nil.
@@ -689,6 +732,38 @@ be relative"
       Wgit::Document.attr_accessor(var_name)
 
       var_name
+    end
+
+    # Returns all <a> fragment elements from within the HTML body e.g. #about.
+    def fragments
+      anchors = xpath("/html/body//a")
+
+      anchors.select do |anchor|
+        href = anchor.attributes['href']&.value
+        href&.start_with?('#')
+      end
+    end
+
+    # Returns a Hash{Int=>String} of <a> fragment positions and their href
+    # values. Only fragment anchors are returned e.g. <a> elements with a
+    # href starting with '#'.
+    def fragment_indices(fragments)
+      fragments.reduce({}) do |hash, fragment|
+        index = html_index(fragment)
+        next(hash) unless index
+
+        href = fragment.attributes['href']&.value
+        hash[index] = href
+
+        hash
+      end
+    end
+
+    # Takes a Nokogiri element or HTML substring and returns it's index in
+    # @html. Returns the index/position Integer or nil if not found. The search
+    # is case insensitive because Nokogiri lower cases camelCase attributes.
+    def html_index(el_or_str)
+      @html.downcase.index(el_or_str.to_s.strip.downcase)
     end
 
     alias_method :content,                :html

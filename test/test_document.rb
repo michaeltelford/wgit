@@ -584,6 +584,50 @@ Minitest framework."
     refute doc.no_index?
   end
 
+  def test_nearest_fragment
+    html = File.read('test/mock/fixtures/nearest_fragment.html')
+    doc = Wgit::Document.new 'http://example.com'.to_url, html
+
+    assert_equal nil,          doc.nearest_fragment('Hello1')
+    assert_equal '#fragment1', doc.nearest_fragment('Hello2')
+    assert_equal '#fragment1', doc.nearest_fragment('Hello3')
+    assert_equal '#fragment1', doc.nearest_fragment('Hello4')
+    assert_equal '#fragment3', doc.nearest_fragment('Hello5')
+    assert_equal '#fragment4', doc.nearest_fragment('Hello6')
+    assert_equal '#fragment4', doc.nearest_fragment('Hello7')
+    assert_equal '#fragment6', doc.nearest_fragment('Hello8')
+    assert_equal '#fragment7', doc.nearest_fragment('Hello9')
+    assert_equal '#fragment8', doc.nearest_fragment('Hello10')
+  end
+
+  def test_nearest_fragment__missing_fragment
+    html = '<html><body><p>Hello</p></body></html>'
+    doc = Wgit::Document.new 'http://example.com'.to_url, html
+
+    assert_nil doc.nearest_fragment("Hello")
+
+    # Anchor is after the target which is no good.
+    html = '<html><body><p>Hello</p><a href="#fragment">Anchor</a></body></html>'
+    doc = Wgit::Document.new 'http://example.com'.to_url, html
+
+    assert_nil doc.nearest_fragment("Hello")
+  end
+
+  def test_nearest_fragment__missing_target
+    html = '<html><body><p>Hello</p></body></html>'
+    doc = Wgit::Document.new 'http://example.com'.to_url, html
+
+    assert_raises { doc.nearest_fragment("FooBar") }
+  end
+
+  def test_nearest_fragment__block
+    html = '<html><body><p>Hello1</p><a href="#foo">Anchor</a><p>Hello2</p></body></html>'
+    doc = Wgit::Document.new 'http://example.com'.to_url, html
+
+    assert_nil doc.nearest_fragment('Hello')
+    assert_equal "#foo", doc.nearest_fragment('Hello', &:last)
+  end
+
   private
 
   # Inserts a <base> element into @html.
