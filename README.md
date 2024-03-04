@@ -178,9 +178,9 @@ So why might you not use Wgit, I hear you ask?
 
 Only MRI Ruby is tested and supported, but Wgit may work with other Ruby implementations.
 
-Currently, the required MRI Ruby version is:
+Currently, the supported range of MRI Ruby versions is:
 
-`ruby '>= 2.6', '< 4'`
+`ruby '~> 3.0'` a.k.a. between Ruby 3.0 and up to but not including Ruby 4.0. Wgit will probably work fine with older versions but best to upgrade if possible.
 
 ### Using Bundler
 
