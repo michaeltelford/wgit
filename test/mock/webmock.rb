@@ -11,7 +11,10 @@ WebMock.disable_net_connect!(allow: %w[127.0.0.1 vlang.io duckduckgo.com])
 # Any custom Typhoeus mocking (missing from Webmock) goes below.
 class Typhoeus::Response
   def total_time
-    options[:total_time] || rand(0.2...0.7)
+    total_time = options[:total_time]
+    return total_time if total_time.positive?
+
+    rand(0.2...0.7)
   end
 
   def primary_ip

@@ -68,29 +68,7 @@ tool :db do
     include :exec, exit_on_nonzero_status: true
 
     def run
-      exec 'docker build -t michaeltelford/mongo-wgit ./docker'
-    end
-  end
-
-  tool :push do
-    desc 'Push the local mongo DB image to Docker Hub'
-
-    include :exec, exit_on_nonzero_status: true
-
-    def run
-      exec 'docker login' unless docker_authenticated?
-      exec 'docker push michaeltelford/mongo-wgit'
-    end
-
-    def docker_authenticated?
-      docker_config = "#{Dir.home}/.docker/config.json"
-      return false unless File.exist?(docker_config)
-
-      config = JSON.parse(File.read(docker_config))
-      auths = config['auths']
-      return false unless auths && !auths.empty?
-
-      true
+      exec 'docker build --no-cache -t michaeltelford/mongo-wgit ./docker'
     end
   end
 
@@ -115,6 +93,28 @@ tool :db do
     def run
       exec 'docker stop mongo-wgit'
       puts "Successfully stopped container 'mongo-wgit'", :green
+    end
+  end
+
+  tool :push do
+    desc 'Push the local mongo DB image to Docker Hub'
+
+    include :exec, exit_on_nonzero_status: true
+
+    def run
+      exec 'docker login' unless docker_authenticated?
+      exec 'docker push michaeltelford/mongo-wgit'
+    end
+
+    def docker_authenticated?
+      docker_config = "#{Dir.home}/.docker/config.json"
+      return false unless File.exist?(docker_config)
+
+      config = JSON.parse(File.read(docker_config))
+      auths = config['auths']
+      return false unless auths && !auths.empty?
+
+      true
     end
   end
 end

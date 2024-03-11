@@ -30,9 +30,7 @@ module Wgit
 
     # Instance vars to be ignored by Document#to_h and in turn Model.document.
     @to_h_ignore_vars = [
-      '@parser',      # Always ignore the Nokogiri object.
-      '@meta_robots', # Used by #no_index?, ignore.
-      '@meta_wgit'    # Used by #no_index?, ignore.
+      '@parser' # Always ignore the Nokogiri object.
     ]
 
     # Set of Symbols representing the defined Document extractors.
@@ -544,14 +542,24 @@ be relative"
       send(:extract_from_html, xpath, singleton:, text_content_only:, &block)
     end
 
-    # Works with the default extractors to extract and check the HTML meta tags
-    # instructing Wgit not to index this document (save it to a Database). If
-    # the default extractors are removed, this method will always return false.
+    # Attempts to extract and check the HTML meta tags instructing Wgit not to
+    # index this document (save it to a Database).
     #
     # @return [Boolean] True if this document shouldn't be saved to a Database,
     #   false otherwise.
     def no_index?
-      [@meta_robots, @meta_wgit].include?('noindex')
+      meta_robots = extract_from_html(
+        '//meta[@name="robots"]/@content',
+        singleton: true,
+        text_content_only: true
+      )
+      meta_wgit = extract_from_html(
+        '//meta[@name="wgit"]/@content',
+        singleton: true,
+        text_content_only: true
+      )
+
+      [meta_robots, meta_wgit].include?('noindex')
     end
 
     # Firstly finds the target element whose text contains el_text.
