@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require_relative 'crawler'
-require_relative 'database/database'
+require_relative 'database/database_adapter'
 
 module Wgit
   # Class which crawls and saves the Documents to a database. Can be thought of

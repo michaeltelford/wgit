@@ -8,7 +8,7 @@ Security/Eval:
 Metrics/ParameterLists:
   Exclude:
     - 'lib/wgit/dsl.rb'
-    - 'lib/wgit/database/database.rb'
+    - 'lib/wgit/database/database_adapter.rb'
 Style/FrozenStringLiteralComment:
   Enabled: false
 Layout/HashAlignment:
