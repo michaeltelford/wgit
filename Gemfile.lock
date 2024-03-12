@@ -3,6 +3,7 @@ PATH
   specs:
     wgit (0.11.0)
       addressable (~> 2.8)
+      base64 (~> 0.2)
       ferrum (~> 0.14)
       mongo (~> 2.19)
       nokogiri (~> 1.15)
@@ -14,6 +15,7 @@ GEM
     addressable (2.8.6)
       public_suffix (>= 2.0.2, < 6.0)
     ast (2.4.2)
+    base64 (0.2.0)
     bigdecimal (3.1.6)
     bson (4.15.0)
     byebug (11.1.3)

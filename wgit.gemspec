@@ -41,10 +41,11 @@ Gem::Specification.new do |s|
   s.required_ruby_version = '>= 3', '< 4'
 
   s.add_runtime_dependency 'addressable', '~> 2.8'
+  s.add_runtime_dependency 'base64', '~> 0.2'
+  s.add_runtime_dependency 'ferrum', '~> 0.14'
   s.add_runtime_dependency 'mongo', '~> 2.19'
   s.add_runtime_dependency 'nokogiri', '~> 1.15'
   s.add_runtime_dependency 'typhoeus', '~> 1.4'
-  s.add_runtime_dependency 'ferrum', '~> 0.14'
 
   s.add_development_dependency 'byebug', '~> 11.1'
   s.add_development_dependency 'dotenv', '~> 2.8'
@@ -56,9 +57,9 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'yard', '~> 0.9'
 
   # Only allow gem pushes to rubygems.org.
-  if s.respond_to?(:metadata)
-    s.metadata['allowed_push_host'] = 'https://rubygems.org'
-  else
+  unless s.respond_to?(:metadata)
     raise 'Only RubyGems 2.0 or newer can protect against public gem pushes'
   end
+
+  s.metadata['allowed_push_host'] = 'https://rubygems.org'
 end
