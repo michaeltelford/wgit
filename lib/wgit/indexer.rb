@@ -18,7 +18,7 @@ module Wgit
     # @param database [Wgit::Database] The database instance (already
     #   initialized and connected) used to index.
     # @param crawler [Wgit::Crawler] The crawler instance used to index.
-    def initialize(database = Wgit::Database.new, crawler = Wgit::Crawler.new)
+    def initialize(database = Wgit::Database::MongoDB.new, crawler = Wgit::Crawler.new)
       @db      = database
       @crawler = crawler
     end

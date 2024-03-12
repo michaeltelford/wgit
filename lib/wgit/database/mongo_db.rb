@@ -11,8 +11,6 @@ require 'mongo'
 module Wgit::Database
   # Database implementor class for MongoDB.
   class MongoDB < DatabaseAdapter
-    include Assertable
-
     # The default name of the urls collection.
     URLS_COLLECTION = :urls
 
@@ -44,7 +42,7 @@ module Wgit::Database
     # A custom setter method is also provided for changing the search logic.
     attr_reader :text_index
 
-    # The raw MongoDB result of the most recent operation.
+    # The raw MongoDB client result of the most recent operation.
     attr_reader :last_result
 
     # Initializes a connected database client using the provided
@@ -59,14 +57,14 @@ module Wgit::Database
       raise "connection_string and ENV['WGIT_CONNECTION_STRING'] are nil" \
       unless connection_string
 
-      @client = Database.establish_connection(connection_string)
+      @client = MongoDB.establish_connection(connection_string)
       @connection_string = connection_string
       @text_index = DEFAULT_TEXT_INDEX
 
       super()
     end
 
-    # A class alias for Database.new.
+    # A class alias for self.new.
     #
     # @param connection_string [String] The connection string needed to connect
     #   to the database.

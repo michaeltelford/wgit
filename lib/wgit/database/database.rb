@@ -15,7 +15,7 @@ module Wgit
     # Database adapter class for inheriting from by underlying implementation
     # classes.
     class DatabaseAdapter
-      include Assertable
+      include Wgit::Assertable
 
       # Initializes a DatabaseAdapter instance.
       def initialize; end

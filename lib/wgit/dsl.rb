@@ -184,7 +184,7 @@ the 'start' function".freeze
     def index_www(
       connection_string: @dsl_conn_str, max_sites: -1, max_data: 1_048_576_000
     )
-      db      = Wgit::Database.new(connection_string)
+      db      = Wgit::Database::MongoDB.new(connection_string)
       indexer = Wgit::Indexer.new(db, crawler)
 
       indexer.index_www(max_sites:, max_data:)
@@ -220,7 +220,7 @@ the 'start' function".freeze
       urls = (@dsl_start || []) if urls.empty?
       raise DSL_ERROR__NO_START_URL if urls.empty?
 
-      db         = Wgit::Database.new(connection_string)
+      db         = Wgit::Database::MongoDB.new(connection_string)
       indexer    = Wgit::Indexer.new(db, crawler)
       xpath      = follow || :default
       crawl_opts = {
@@ -254,7 +254,7 @@ the 'start' function".freeze
       urls = (@dsl_start || []) if urls.empty?
       raise DSL_ERROR__NO_START_URL if urls.empty?
 
-      db      = Wgit::Database.new(connection_string)
+      db      = Wgit::Database::MongoDB.new(connection_string)
       indexer = Wgit::Indexer.new(db, crawler)
 
       urls.map! { |url| Wgit::Url.parse(url) }
@@ -289,7 +289,7 @@ the 'start' function".freeze
       limit: 10, skip: 0, sentence_limit: 80, &block
     )
       stream ||= File.open(File::NULL, 'w')
-      db = Wgit::Database.new(connection_string)
+      db = Wgit::Database::MongoDB.new(connection_string)
 
       results = db.search!(
         query,
@@ -309,7 +309,7 @@ the 'start' function".freeze
     #
     # @return [Integer] The number of deleted records.
     def clear_db!(connection_string: @dsl_conn_str)
-      db = Wgit::Database.new(connection_string)
+      db = Wgit::Database::MongoDB.new(connection_string)
       db.clear_db
     end
 
