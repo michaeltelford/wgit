@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require_relative '../url'
-require_relative '../document'
-require_relative '../logger'
-require_relative '../assertable'
-require_relative 'model'
+require_relative '../../url'
+require_relative '../../document'
+require_relative '../../logger'
+require_relative '../../assertable'
+require_relative '../model'
 require 'logger'
 require 'mongo'
 
@@ -183,7 +183,7 @@ module Wgit::Database
     # @return [Boolean] True if inserted, false if updated.
     def upsert(obj)
       collection, query, model = get_type_info(obj)
-      data_hash = model.merge(Wgit::Model.common_update_data)
+      data_hash = model.merge(Model.common_update_data)
       result = @client[collection].replace_one(query, data_hash, upsert: true)
 
       result.matched_count.zero?
@@ -204,7 +204,7 @@ module Wgit::Database
       collection = nil
       request_objs = objs.map do |obj|
         collection, query, model = get_type_info(obj)
-        data_hash = model.merge(Wgit::Model.common_update_data)
+        data_hash = model.merge(Model.common_update_data)
 
         {
           update_many: {
@@ -500,7 +500,7 @@ module Wgit::Database
     # @return [Integer] The number of updated records/objects.
     def update(obj)
       collection, query, model = get_type_info(obj)
-      data_hash = model.merge(Wgit::Model.common_update_data)
+      data_hash = model.merge(Model.common_update_data)
 
       mutate(collection, query, { '$set' => data_hash })
     end
@@ -569,11 +569,11 @@ module Wgit::Database
       when Wgit::Url
         collection = URLS_COLLECTION
         query      = { url: obj.to_s }
-        model      = Wgit::Model.url(obj)
+        model      = Model.url(obj)
       when Wgit::Document
         collection = DOCUMENTS_COLLECTION
         query      = { 'url.url' => obj.url.to_s }
-        model      = Wgit::Model.document(obj)
+        model      = Model.document(obj)
       else
         raise "obj must be a Wgit::Url or Wgit::Document, not: #{obj.class}"
       end
@@ -592,14 +592,14 @@ module Wgit::Database
 
       case data
       when Hash # Single record.
-        data.merge!(Wgit::Model.common_insert_data)
+        data.merge!(Model.common_insert_data)
         result = @client[collection.to_sym].insert_one(data)
         raise 'DB write (insert) failed' unless write_succeeded?(result)
 
         result.n
       when Array # Multiple records.
         assert_arr_type(data, Hash)
-        data.map! { |hash| hash.merge(Wgit::Model.common_insert_data) }
+        data.map! { |hash| hash.merge(Model.common_insert_data) }
         result = @client[collection.to_sym].insert_many(data)
         unless write_succeeded?(result, num_writes: data.length)
           raise 'DB write(s) (insert) failed'

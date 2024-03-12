@@ -2,7 +2,7 @@
 
 require_relative '../utils'
 
-module Wgit
+module Wgit::Database
   # Module used to build the database collection objects, forming a data model.
   module Model
     @include_doc_html  = false
