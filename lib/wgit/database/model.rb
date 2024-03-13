@@ -3,23 +3,20 @@
 require_relative '../utils'
 
 module Wgit::Database
-  # Module used to build the database collection objects, forming a data model.
+  # Module used to build the Database collection objects, forming a data model.
   module Model
-    @include_doc_html  = false
+    # Whether or not to include the Document#html in the #document model.
+    @include_doc_html = false
+
+    # Whether or not to include the Document#score in the #document model.
     @include_doc_score = false
 
-    # Whether or not to include the Document#html in it's model.
-    #
-    # @param bool [Boolean] True to include html, false otherwise.
-    def self.include_doc_html=(bool)
-      @include_doc_html = bool
-    end
+    class << self
+      # Whether or not to include the Document#html in the #document model.
+      attr_accessor :include_doc_html
 
-    # Whether or not to include the Document#score in it's model.
-    #
-    # @param bool [Boolean] True to include score, false otherwise.
-    def self.include_doc_score=(bool)
-      @include_doc_score = bool
+      # Whether or not to include the Document#score in the #document model.
+      attr_accessor :include_doc_score
     end
 
     # The data model for a Wgit::Url collection object and for an embedded

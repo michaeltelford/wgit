@@ -43,6 +43,7 @@ class TestModel < TestHelper
     Wgit::Database::Model.include_doc_html = true
     model = Wgit::Database::Model.document(doc)
 
+    assert Wgit::Database::Model.include_doc_html
     assert_equal '<html>Hello</html>', model['html']
   end
 
@@ -55,6 +56,7 @@ class TestModel < TestHelper
     Wgit::Database::Model.include_doc_score = true
     model = Wgit::Database::Model.document(doc)
 
+    assert Wgit::Database::Model.include_doc_score
     assert_equal 10.5, model['score']
   end
 

@@ -5,6 +5,7 @@ require_relative '../../document'
 require_relative '../../logger'
 require_relative '../../assertable'
 require_relative '../model'
+require_relative '../database_adapter'
 require 'logger'
 require 'mongo'
 

@@ -161,7 +161,8 @@ the 'start' function".freeze
 
     # Defines the connection string to the database used in subsequent `index*`
     # method calls. This method is optional as the connection string can be
-    # passed to the index method instead.
+    # passed to the index method instead or simply set
+    # `ENV['WGIT_CONNECTION_STRING']`.
     #
     # @param conn_str [String] The connection string used to connect to the
     #   database in subsequent `index*` method calls.
@@ -184,7 +185,7 @@ the 'start' function".freeze
     def index_www(
       connection_string: @dsl_conn_str, max_sites: -1, max_data: 1_048_576_000
     )
-      db      = Wgit::Database::MongoDB.new(connection_string)
+      db      = Wgit::Database.adapter_class.new(connection_string)
       indexer = Wgit::Indexer.new(db, crawler)
 
       indexer.index_www(max_sites:, max_data:)
@@ -220,7 +221,7 @@ the 'start' function".freeze
       urls = (@dsl_start || []) if urls.empty?
       raise DSL_ERROR__NO_START_URL if urls.empty?
 
-      db         = Wgit::Database::MongoDB.new(connection_string)
+      db         = Wgit::Database.adapter_class.new(connection_string)
       indexer    = Wgit::Indexer.new(db, crawler)
       xpath      = follow || :default
       crawl_opts = {
@@ -254,7 +255,7 @@ the 'start' function".freeze
       urls = (@dsl_start || []) if urls.empty?
       raise DSL_ERROR__NO_START_URL if urls.empty?
 
-      db      = Wgit::Database::MongoDB.new(connection_string)
+      db      = Wgit::Database.adapter_class.new(connection_string)
       indexer = Wgit::Indexer.new(db, crawler)
 
       urls.map! { |url| Wgit::Url.parse(url) }
@@ -290,7 +291,7 @@ the 'start' function".freeze
       limit: 10, skip: 0, sentence_limit: 80
     )
       stream ||= File.open(File::NULL, 'w')
-      db = Wgit::Database::MongoDB.new(connection_string)
+      db = Wgit::Database.adapter_class.new(connection_string)
 
       results = db.search(query, case_sensitive:, whole_sentence:, limit:, skip:)
 
@@ -309,7 +310,7 @@ the 'start' function".freeze
     #
     # @return [Integer] The number of deleted records.
     def empty_db!(connection_string: @dsl_conn_str)
-      db = Wgit::Database::MongoDB.new(connection_string)
+      db = Wgit::Database.adapter_class.new(connection_string)
       db.empty
     end
 
