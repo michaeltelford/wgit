@@ -264,8 +264,9 @@ the 'start' function".freeze
     ### DATABASE METHODS ###
 
     # Performs a search of the database's indexed documents and pretty prints
-    # the results in a search engine-esque format. See `Wgit::Database#search!`
-    # and `Wgit::Document#search!` for details of how the search works.
+    # the results in a search engine-esque format. See
+    # `Wgit::Database::DatabaseAdapter#search!` and `Wgit::Document#search!`
+    # for details of how the search works.
     #
     # @param query [String] The text query to search with.
     # @param connection_string [String] The database connection string. Set as
@@ -304,8 +305,8 @@ the 'start' function".freeze
     end
 
     # Deletes everything in the urls and documents collections by calling
-    # `Wgit::Database#clear_db` underneath. This will nuke the entire database
-    # so yeah... be careful.
+    # `Wgit::Database::DatabaseAdapter#clear_db` underneath. This will nuke
+    # the entire database as Wgit see's it so yeah... be careful.
     #
     # @return [Integer] The number of deleted records.
     def clear_db!(connection_string: @dsl_conn_str)

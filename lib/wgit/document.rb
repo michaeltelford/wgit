@@ -7,7 +7,8 @@ require 'json'
 module Wgit
   # Class modeling/serialising a HTML web document, although other MIME types
   # will work e.g. images etc. Also doubles as a search result when
-  # loading Documents from the database via `Wgit::Database#search`.
+  # loading Documents from the database via
+  # `Wgit::Database::DatabaseAdapter#search`.
   #
   # The initialize method dynamically initializes instance variables from the
   # Document HTML / Database object e.g. text. This bit is dynamic so that the
@@ -449,8 +450,9 @@ be relative"
     #
     # The number of search hits for each sentenence are recorded internally
     # and used to rank/sort the search results before being returned. Where
-    # the Wgit::Database#search method search all documents for the most hits,
-    # this method searches each document's @text for the most hits.
+    # the Wgit::Database::DatabaseAdapter#search method search all documents
+    # for the most hits, this method searches each document's @text for the
+    # most hits.
     #
     # Each search result comprises of a sentence of a given length. The length
     # will be based on the sentence_limit parameter or the full length of the

@@ -5,7 +5,7 @@ require_relative 'database/database_adapter'
 
 module Wgit
   # Class which crawls and saves the Documents to a database. Can be thought of
-  # as a combination of Wgit::Crawler and Wgit::Database.
+  # as a combination of Wgit::Crawler and Wgit::Database::DatabaseAdapter.
   class Indexer
     # The crawler used to index the WWW.
     attr_reader :crawler
@@ -15,8 +15,8 @@ module Wgit
 
     # Initialize the Indexer.
     #
-    # @param database [Wgit::Database] The database instance (already
-    #   initialized and connected) used to index.
+    # @param database [Wgit::Database::DatabaseAdapter] The database instance
+    #   (already initialized and connected) used to index.
     # @param crawler [Wgit::Crawler] The crawler instance used to index.
     def initialize(database = Wgit::Database::MongoDB.new, crawler = Wgit::Crawler.new)
       @db      = database

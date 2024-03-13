@@ -52,7 +52,7 @@ this method"
 
       # Searches the database's Documents for the given query and then searches
       # each result in turn using `doc.search!`. This method is therefore the
-      # equivalent of calling `Wgit::Database#search` and then
+      # equivalent of calling `Wgit::Database::DatabaseAdapter#search` and then
       # `Wgit::Document#search!` in turn. See their documentation for more info.
       #
       # @param query [String] The text query to search with.

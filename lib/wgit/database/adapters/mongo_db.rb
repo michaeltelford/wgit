@@ -24,7 +24,8 @@ module Wgit::Database
     UNIQUE_INDEX = 'unique_url'
 
     # The documents collection default text search index. Use
-    # `db.text_index = Wgit::Database::DEFAULT_TEXT_INDEX` to revert changes.
+    # `db.text_index = Wgit::Database::MongoDB::DEFAULT_TEXT_INDEX` to revert
+    # changes.
     DEFAULT_TEXT_INDEX = {
       title: 2,
       description: 2,
@@ -70,7 +71,7 @@ module Wgit::Database
     #   to the database.
     # @raise [StandardError] If a connection string isn't provided, either as a
     #   parameter or via the environment.
-    # @return [Wgit::Database] The connected database client.
+    # @return [Wgit::Database::MongoDB] The connected database client.
     def self.connect(connection_string = nil)
       new(connection_string)
     end
@@ -339,7 +340,7 @@ module Wgit::Database
 
     # Searches the database's Documents for the given query and then searches
     # each result in turn using `doc.search!`. This method is therefore the
-    # equivalent of calling `Wgit::Database#search` and then
+    # equivalent of calling `Wgit::Database::MongoDB#search` and then
     # `Wgit::Document#search!` in turn. See their documentation for more info.
     #
     # @param query [String] The text query to search with.
