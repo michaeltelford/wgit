@@ -17,7 +17,7 @@ class TestIndexer < TestHelper
 
     assert_instance_of Wgit::Indexer,  indexer
     assert_instance_of Wgit::Crawler,  indexer.crawler
-    assert_instance_of Wgit::Database, indexer.db
+    assert_instance_of Wgit::Database::MongoDB, indexer.db
 
     refute_equal db, indexer.db
   end
@@ -27,7 +27,7 @@ class TestIndexer < TestHelper
 
     assert_instance_of Wgit::Indexer,  indexer
     assert_instance_of Wgit::Crawler,  indexer.crawler
-    assert_instance_of Wgit::Database, indexer.db
+    assert_instance_of Wgit::Database::MongoDB, indexer.db
 
     assert_equal db, indexer.db
   end
@@ -38,7 +38,7 @@ class TestIndexer < TestHelper
 
     assert_instance_of Wgit::Indexer,  indexer
     assert_instance_of Wgit::Crawler,  indexer.crawler
-    assert_instance_of Wgit::Database, indexer.db
+    assert_instance_of Wgit::Database::MongoDB, indexer.db
 
     assert_equal crawler,  indexer.crawler
     assert_equal db, indexer.db
