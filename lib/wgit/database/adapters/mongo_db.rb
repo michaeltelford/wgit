@@ -543,7 +543,7 @@ module Wgit::Database
     end
 
     # Deletes everything in the urls and documents collections. This will nuke
-    # the entire database so yeah... be careful.
+    # the entire database as Wgit see's it so yeah... be careful.
     #
     # @return [Integer] The number of deleted records.
     def clear_db
