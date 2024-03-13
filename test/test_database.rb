@@ -7,7 +7,7 @@ class TestDatabase < TestHelper
 
   # Runs before every test.
   def setup
-    clear_db
+    empty_db
 
     @url = Wgit::Url.new(DatabaseTestData.url)
     @doc = Wgit::Document.new(DatabaseTestData.doc)
@@ -567,30 +567,30 @@ class TestDatabase < TestHelper
     assert_equal 'obj must be a Wgit::Url or Wgit::Document, not: Integer', ex.message
   end
 
-  def test_clear_urls
+  def test_empty_urls
     seed { urls 3 }
     db = Wgit::Database::MongoDB.new
 
-    assert_equal 3, db.clear_urls
+    assert_equal 3, db.empty_urls
     assert_equal 0, db.num_urls
   end
 
-  def test_clear_docs
+  def test_empty_docs
     seed { docs 3 }
     db = Wgit::Database::MongoDB.new
 
-    assert_equal 3, db.clear_docs
+    assert_equal 3, db.empty_docs
     assert_equal 0, db.num_docs
   end
 
-  def test_clear_db
+  def test_empty
     seed do
       urls 3
       docs 2
     end
     db = Wgit::Database::MongoDB.new
 
-    assert_equal 5, db.clear_db
+    assert_equal 5, db.empty
     assert_equal 0, db.num_records
   end
 

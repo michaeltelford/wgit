@@ -19,8 +19,8 @@ module DatabaseHelper
   end
 
   # Deletes everything in the urls and documents collections.
-  def clear_db
-    @@db.clear_db
+  def empty_db
+    @@db.empty
   end
 
   # Seed what's in the block, comprising of url and doc method calls

@@ -397,7 +397,7 @@ class TestDocumentExtractors < TestHelper
   end
 
   def test_document_extractor__init_from_database
-    clear_db
+    empty_db
 
     # Define a text extractor.
     Wgit::Document.text_elements << :table

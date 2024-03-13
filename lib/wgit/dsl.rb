@@ -305,13 +305,12 @@ the 'start' function".freeze
     end
 
     # Deletes everything in the urls and documents collections by calling
-    # `Wgit::Database::DatabaseAdapter#clear_db` underneath. This will nuke
-    # the entire database as Wgit see's it so yeah... be careful.
+    # `Wgit::Database::DatabaseAdapter#empty` underneath.
     #
     # @return [Integer] The number of deleted records.
-    def clear_db!(connection_string: @dsl_conn_str)
+    def empty_db!(connection_string: @dsl_conn_str)
       db = Wgit::Database::MongoDB.new(connection_string)
-      db.clear_db
+      db.empty
     end
 
     alias_method :crawl_url,  :crawl

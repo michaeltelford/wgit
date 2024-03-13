@@ -7,7 +7,7 @@ class TestIndexer < TestHelper
 
   # Runs before every test.
   def setup
-    clear_db
+    empty_db
 
     @indexer = Wgit::Indexer.new(db)
   end

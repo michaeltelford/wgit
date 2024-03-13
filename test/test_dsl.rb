@@ -204,7 +204,7 @@ class TestDSL < TestHelper
   end
 
   def test_index_www__max_sites
-    clear_db
+    empty_db
     seed do
       url 'http://txti.es/'
       url 'http://test-site.com'
@@ -217,7 +217,7 @@ class TestDSL < TestHelper
   end
 
   def test_index_www__max_data
-    clear_db
+    empty_db
     seed do
       url 'http://txti.es/'
       url 'http://test-site.com'
@@ -237,7 +237,7 @@ class TestDSL < TestHelper
   end
 
   def test_index_site__start_url
-    clear_db
+    empty_db
 
     start 'http://txti.es/'
     index_site connection_string: ENV['WGIT_CONNECTION_STRING'], insert_externals: true
@@ -248,7 +248,7 @@ class TestDSL < TestHelper
   end
 
   def test_index_site__url_param
-    clear_db
+    empty_db
 
     # Shouldn't be used because of the url param.
     start 'http://example.com/doesntexist'
@@ -264,7 +264,7 @@ class TestDSL < TestHelper
   end
 
   def test_index_site__allow_paths
-    clear_db
+    empty_db
 
     index_site 'http://txti.es/', allow_paths: 'about'
 
@@ -273,7 +273,7 @@ class TestDSL < TestHelper
   end
 
   def test_index_site__disallow_paths
-    clear_db
+    empty_db
 
     index_site 'http://txti.es/', disallow_paths: 'images'
 
@@ -288,7 +288,7 @@ class TestDSL < TestHelper
   end
 
   def test_index__start_url
-    clear_db
+    empty_db
 
     start 'http://txti.es/'
     index connection_string: ENV['WGIT_CONNECTION_STRING']
@@ -299,7 +299,7 @@ class TestDSL < TestHelper
   end
 
   def test_index__single_url
-    clear_db
+    empty_db
 
     # Dont save the page to the DB.
     index('http://txti.es/') { false }
@@ -310,7 +310,7 @@ class TestDSL < TestHelper
   end
 
   def test_index__several_urls
-    clear_db
+    empty_db
 
     # Shouldn't be used because of the urls param.
     start 'http://example.com/doesntexist'
@@ -329,7 +329,7 @@ class TestDSL < TestHelper
   end
 
   def test_index_site__several_urls
-    clear_db
+    empty_db
 
     # Shouldn't be used because of the urls param.
     start 'http://twitter.com'
@@ -349,7 +349,7 @@ class TestDSL < TestHelper
   end
 
   def test_index_site__start__several_urls
-    clear_db
+    empty_db
 
     start 'http://txti.es/', 'http://test-site.com'
 
@@ -367,7 +367,7 @@ class TestDSL < TestHelper
   end
 
   def test_search
-    clear_db
+    empty_db
     count = 0
 
     results = search('noop', stream: nil) { count += 1 }
@@ -377,7 +377,7 @@ class TestDSL < TestHelper
   end
 
   def test_search__connection_string
-    clear_db
+    empty_db
 
     connection_string ENV['WGIT_CONNECTION_STRING']
     results = search('noop', stream: nil)
@@ -393,11 +393,11 @@ class TestDSL < TestHelper
     assert_empty results
   end
 
-  def test_clear_db!
-    clear_db
+  def test_empty_db!
+    empty_db # From DatabaseHelper.
     seed { url(2) }
 
-    clear_db!
+    empty_db! # From DSL.
 
     assert_equal 0, db.size
   end

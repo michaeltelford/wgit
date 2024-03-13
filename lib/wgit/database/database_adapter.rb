@@ -74,11 +74,10 @@ this method"
         raise NotImplementedError, ERROR_MSG
       end
 
-      # Deletes everything in the urls and documents collections. This will nuke
-      # the entire database as Wgit see's it so yeah... be careful.
+      # Deletes everything in the urls and documents collections.
       #
       # @return [Integer] The number of deleted records.
-      def clear_db
+      def empty
         raise NotImplementedError, ERROR_MSG
       end
 

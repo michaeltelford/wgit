@@ -526,7 +526,7 @@ module Wgit::Database
     # Deletes everything in the urls collection.
     #
     # @return [Integer] The number of deleted records.
-    def clear_urls
+    def empty_urls
       result = @client[URLS_COLLECTION].delete_many({})
       result.n
     ensure
@@ -536,19 +536,18 @@ module Wgit::Database
     # Deletes everything in the documents collection.
     #
     # @return [Integer] The number of deleted records.
-    def clear_docs
+    def empty_docs
       result = @client[DOCUMENTS_COLLECTION].delete_many({})
       result.n
     ensure
       @last_result = result
     end
 
-    # Deletes everything in the urls and documents collections. This will nuke
-    # the entire database as Wgit see's it so yeah... be careful.
+    # Deletes everything in the urls and documents collections.
     #
     # @return [Integer] The number of deleted records.
-    def clear_db
-      clear_urls + clear_docs
+    def empty
+      empty_urls + empty_docs
     end
 
     private
@@ -674,6 +673,6 @@ module Wgit::Database
     end
 
     alias_method :num_objects, :num_records
-    alias_method :clear_db!,   :clear_db
+    alias_method :empty!,      :empty
   end
 end
