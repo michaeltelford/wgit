@@ -339,37 +339,6 @@ module Wgit::Database
     end
 
     # Searches the database's Documents for the given query and then searches
-    # each result in turn using `doc.search!`. This method is therefore the
-    # equivalent of calling `Wgit::Database::MongoDB#search` and then
-    # `Wgit::Document#search!` in turn. See their documentation for more info.
-    #
-    # @param query [String] The text query to search with.
-    # @param case_sensitive [Boolean] Whether character case must match.
-    # @param whole_sentence [Boolean] Whether multiple words should be searched
-    #   for separately.
-    # @param limit [Integer] The max number of results to return.
-    # @param skip [Integer] The number of results to skip.
-    # @param sentence_limit [Integer] The max length of each search result
-    #   sentence.
-    # @yield [doc] Given each search result (Wgit::Document) returned from the
-    #   DB having called `doc.search!(query)`.
-    # @return [Array<Wgit::Document>] The search results obtained from the DB
-    #   having called `doc.search!(query)`.
-    def search!(
-      query, case_sensitive: false, whole_sentence: true,
-      limit: 10, skip: 0, sentence_limit: 80
-    )
-      results = search(query, case_sensitive:, whole_sentence:, limit:, skip:)
-
-      results.each do |doc|
-        doc.search!(query, case_sensitive:, whole_sentence:, sentence_limit:)
-        yield(doc) if block_given?
-      end
-
-      results
-    end
-
-    # Searches the database's Documents for the given query and then searches
     # each result in turn using `doc.search`. Instead of an Array of Documents,
     # this method returns a Hash of the docs url => search_results creating a
     # search engine like result set for quick access to text matches.
@@ -399,7 +368,7 @@ module Wgit::Database
         .map do |doc|
           yield(doc) if block_given?
 
-          # Only return result if its text has a match - compact is called below.
+          # Only return result if it's text has a match - compact is called below.
           results = doc.search(
             query, case_sensitive:, whole_sentence:, sentence_limit:
           )

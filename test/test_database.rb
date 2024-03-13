@@ -1,6 +1,6 @@
 require_relative 'helpers/test_helper'
 
-# Test class for the Database methods.
+# Test class for the Database::MongoDB methods.
 # WARNING: The DB is cleared down prior to each test run.
 class TestDatabase < TestHelper
   include DatabaseHelper
@@ -382,27 +382,6 @@ class TestDatabase < TestHelper
       assert_equal @docs[1], doc
       assert_equal @docs[1].url.to_h, doc.url.to_h
     end
-  end
-
-  def test_search!
-    @docs.last.text << 'Foo Bar'
-
-    seed { docs @docs }
-
-    db = Wgit::Database::MongoDB.new
-
-    # Assert the result doc's text contains the query.
-    match = nil
-    results = db.search!('foo bar') do |doc|
-      assert_instance_of Wgit::Document, doc
-      match = doc
-    end
-
-    assert_equal 1, results.length
-    assert_equal 1, db.last_result&.count
-    assert results.all? { |doc| doc.instance_of? Wgit::Document }
-    assert results.first.object_id, match.object_id
-    assert_equal ['Foo Bar'], match.text
   end
 
   def test_search_text

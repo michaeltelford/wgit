@@ -19,8 +19,8 @@ module Wgit
     class DatabaseAdapter
       include Wgit::Assertable
 
-      ERROR_MSG = "The DatabaseAdapter class you're using hasn't implemented \
-this method"
+      NOT_IMPL_ERR = "The DatabaseAdapter class you're using hasn't \
+implemented this method"
 
       # Initializes a DatabaseAdapter instance.
       # The implementor class should establish a DB connection here...
@@ -30,7 +30,7 @@ this method"
       #
       # @return [Integer] The current size of the DB.
       def size
-        raise NotImplementedError, ERROR_MSG
+        raise NotImplementedError, NOT_IMPL_ERR
       end
 
       # Searches the database's Documents for the given query.
@@ -47,38 +47,14 @@ this method"
       def search(
         query, case_sensitive: false, whole_sentence: true, limit: 10, skip: 0
       )
-        raise NotImplementedError, ERROR_MSG
-      end
-
-      # Searches the database's Documents for the given query and then searches
-      # each result in turn using `doc.search!`. This method is therefore the
-      # equivalent of calling `Wgit::Database::DatabaseAdapter#search` and then
-      # `Wgit::Document#search!` in turn. See their documentation for more info.
-      #
-      # @param query [String] The text query to search with.
-      # @param case_sensitive [Boolean] Whether character case must match.
-      # @param whole_sentence [Boolean] Whether multiple words should be searched
-      #   for separately.
-      # @param limit [Integer] The max number of results to return.
-      # @param skip [Integer] The number of results to skip.
-      # @param sentence_limit [Integer] The max length of each search result
-      #   sentence.
-      # @yield [doc] Given each search result (Wgit::Document) returned from the
-      #   DB having called `doc.search!(query)`.
-      # @return [Array<Wgit::Document>] The search results obtained from the DB
-      #   having called `doc.search!(query)`.
-      def search!(
-        query, case_sensitive: false, whole_sentence: true,
-        limit: 10, skip: 0, sentence_limit: 80
-      )
-        raise NotImplementedError, ERROR_MSG
+        raise NotImplementedError, NOT_IMPL_ERR
       end
 
       # Deletes everything in the urls and documents collections.
       #
       # @return [Integer] The number of deleted records.
       def empty
-        raise NotImplementedError, ERROR_MSG
+        raise NotImplementedError, NOT_IMPL_ERR
       end
 
       # Returned Url records that haven't yet been crawled.
@@ -88,7 +64,7 @@ this method"
       # @yield [url] Given each Url object (Wgit::Url) returned from the DB.
       # @return [Array<Wgit::Url>] The uncrawled Urls obtained from the DB.
       def uncrawled_urls(limit: 0, skip: 0, &block)
-        raise NotImplementedError, ERROR_MSG
+        raise NotImplementedError, NOT_IMPL_ERR
       end
 
       # Inserts or updates the object in the database.
@@ -96,7 +72,7 @@ this method"
       # @param obj [Wgit::Url, Wgit::Document] The obj/record to insert/update.
       # @return [Boolean] True if inserted, false if updated.
       def upsert(obj)
-        raise NotImplementedError, ERROR_MSG
+        raise NotImplementedError, NOT_IMPL_ERR
       end
 
       # Bulk upserts the objects in the database collection.
@@ -106,7 +82,7 @@ this method"
       #   inserted/updated.
       # @return [Integer] The total number of upserted objects.
       def bulk_upsert(objs)
-        raise NotImplementedError, ERROR_MSG
+        raise NotImplementedError, NOT_IMPL_ERR
       end
     end
   end

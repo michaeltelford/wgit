@@ -265,8 +265,8 @@ the 'start' function".freeze
 
     # Performs a search of the database's indexed documents and pretty prints
     # the results in a search engine-esque format. See
-    # `Wgit::Database::DatabaseAdapter#search!` and `Wgit::Document#search!`
-    # for details of how the search works.
+    # `Wgit::Database::DatabaseAdapter#search` and `Wgit::Document#search!`
+    # for details of how the search methods work.
     #
     # @param query [String] The text query to search with.
     # @param connection_string [String] The database connection string. Set as
@@ -287,17 +287,17 @@ the 'start' function".freeze
     def search(
       query, connection_string: @dsl_conn_str, stream: $stdout,
       case_sensitive: false, whole_sentence: true,
-      limit: 10, skip: 0, sentence_limit: 80, &block
+      limit: 10, skip: 0, sentence_limit: 80
     )
       stream ||= File.open(File::NULL, 'w')
       db = Wgit::Database::MongoDB.new(connection_string)
 
-      results = db.search!(
-        query,
-        case_sensitive:, whole_sentence:,
-        limit:, skip:,
-        sentence_limit:, &block
-      )
+      results = db.search(query, case_sensitive:, whole_sentence:, limit:, skip:)
+
+      results.each do |doc|
+        doc.search!(query, case_sensitive:, whole_sentence:, sentence_limit:)
+        yield(doc) if block_given?
+      end
 
       Wgit::Utils.pprint_search_results(results, stream:)
 

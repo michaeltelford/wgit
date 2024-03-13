@@ -368,12 +368,22 @@ class TestDSL < TestHelper
 
   def test_search
     empty_db
+
+    test_doc = Wgit::Document.new(DatabaseTestData.doc)
+    seed { doc test_doc }
+
     count = 0
+    results = search('Route', stream: nil) do |doc|
+      assert_instance_of Wgit::Document, doc
+      assert doc.text.include?('Route')
 
-    results = search('noop', stream: nil) { count += 1 }
+      count += 1
+    end
 
-    assert_equal 0, count
-    assert_empty results
+    assert_equal 1, count
+    assert_equal 1, results.size
+    assert_instance_of Wgit::Document, results.first
+    assert results.first.text.include?('Route')
   end
 
   def test_search__connection_string
