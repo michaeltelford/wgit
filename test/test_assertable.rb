@@ -51,6 +51,30 @@ class TestAssertable < TestHelper
     assert_equal s, e.message
   end
 
+  def test_assert_common_arr_types__pass
+    url = '/about'.to_url
+    assert_equal [1, 2, 3], assert_common_arr_types([1, 2, 3], [Integer, String])
+    assert_equal [url, '/about'], assert_common_arr_type([url, '/about'], String)
+  end
+
+  def test_assert_common_arr_types__fail
+    e = assert_raises StandardError do
+      assert_common_arr_types [1, 'Boom!'], [Integer, String]
+    end
+    s = 'Expected an Enumerable with elements of a single common type'
+
+    assert_equal s, e.message
+  end
+
+  def test_assert_common_arr_types__non_enumerable
+    e = assert_raises StandardError do
+      assert_common_arr_type 'non enumerable', Integer
+    end
+    s = 'Expected an Enumerable responding to #each, not: String'
+
+    assert_equal s, e.message
+  end
+
   def test_assert_respond_to__pass
     objs = ['Hello World!', [1, 2, 3]]
 

@@ -126,7 +126,7 @@ num_docs=#{@docs.size} size=#{size}>"
     #   inserted/updated.
     # @return [Integer] The total number of upserted objects.
     def bulk_upsert(objs)
-      assert_arr_types(objs, [Wgit::Url, Wgit::Document])
+      assert_common_arr_types(objs, [Wgit::Url, Wgit::Document])
 
       objs.each { |obj| upsert(obj) }
       objs.size
