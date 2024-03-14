@@ -2,21 +2,20 @@ require_relative '../database_adapter'
 
 module Wgit::Database
   # Database adapter class for in-memory (RAM) storage. This DB is mainly used
-  # for testing and experimenting with.
+  # for testing and experimenting with. This DB is thread safe.
   class InMemory < DatabaseAdapter
-    # The urls collections which is stored in an in-memory Array.
+    # The urls collections stored as an in-memory Concurrent::Array.
     attr_reader :urls
 
-    # The documents collections which is stored in an in-memory Array.
+    # The documents collections stored as an in-memory Concurrent::Array.
     attr_reader :docs
 
-    # Initializes an InMemory Database instance.
+    # Initializes a thread safe InMemory Database instance.
     #
     # @param connection_string [String] Not used but needed to adhere to the
     #   DatabaseAdapter interface.
     def initialize(connection_string = nil)
-      @urls = []
-      @docs = []
+      initialize_store
 
       super
     end
@@ -42,9 +41,10 @@ num_docs=#{@docs.size} size=#{size}>"
     # of the returned results is chronological i.e. the order they were
     # upserted; not the order of most relavence. Also, the Document#score is
     # not set for each result. This is deemed acceptable for an in-memory DB
-    # that is used mainly for experimenting with.
+    # that is used mainly for testing and experimenting with.
     #
-    # @param query [String] The text query to search with.
+    # @param query [Regexp, #to_s] The regex or text value to search each
+    #   document's @text for.
     # @param case_sensitive [Boolean] Whether character case must match.
     # @param whole_sentence [Boolean] Whether multiple words should be searched
     #   for separately.
@@ -58,7 +58,7 @@ num_docs=#{@docs.size} size=#{size}>"
     )
       regex = if query.is_a?(Regexp)
                 query
-              else # query.respond_to? :to_s == true
+              else
                 query = query.to_s
                 query = query.gsub(' ', '|') unless whole_sentence
                 Regexp.new(query, !case_sensitive)
@@ -83,9 +83,7 @@ num_docs=#{@docs.size} size=#{size}>"
     # @return [Integer] The number of deleted records.
     def empty
       previous_size = @urls.size + @docs.size
-
-      @urls = []
-      @docs = []
+      initialize_store
 
       previous_size
     end
@@ -138,6 +136,12 @@ num_docs=#{@docs.size} size=#{size}>"
     end
 
     private
+
+    # Creates a new Concurrent::Array for each collection.
+    def initialize_store
+      @urls = Concurrent::Array.new
+      @docs = Concurrent::Array.new
+    end
 
     # Get the database's model info (collection type, index, model) for
     # obj.
