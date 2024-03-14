@@ -365,7 +365,7 @@ protocol scheme and domain (e.g. http://example.com): #{url}"
     # @return [Hash] self's instance vars as a Hash.
     def to_h
       h = Wgit::Utils.to_h(self, ignore: ['@uri'])
-      Hash[h.to_a.insert(0, ['url', self])] # Insert url at position 0.
+      Hash[h.to_a.insert(0, ['url', to_s])] # Insert url at position 0.
     end
 
     # Returns a normalised URI object for this URL.

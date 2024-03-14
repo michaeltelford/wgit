@@ -63,7 +63,7 @@ module Wgit::Database
       @connection_string = connection_string
       @text_index = DEFAULT_TEXT_INDEX
 
-      super()
+      super
     end
 
     # A class alias for self.new.
@@ -155,6 +155,8 @@ module Wgit::Database
       @text_index = fields
     end
 
+    ### DML ###
+
     ### Create Data ###
 
     # Insert one or more Url or Document objects into the DB.
@@ -168,11 +170,11 @@ module Wgit::Database
 
       if data.respond_to?(:map)
         request_obj = data.map do |obj|
-          collection, _, model = get_type_info(obj)
+          collection, _, model = get_model_info(obj)
           model
         end
       else
-        collection, _, model = get_type_info(data)
+        collection, _, model = get_model_info(data)
         request_obj = model
       end
 
@@ -184,7 +186,7 @@ module Wgit::Database
     # @param obj [Wgit::Url, Wgit::Document] The obj/record to insert/update.
     # @return [Boolean] True if inserted, false if updated.
     def upsert(obj)
-      collection, query, model = get_type_info(obj)
+      collection, query, model = get_model_info(obj)
       data_hash = model.merge(Model.common_update_data)
       result = @client[collection].replace_one(query, data_hash, upsert: true)
 
@@ -198,6 +200,7 @@ module Wgit::Database
     #
     # @param objs [Array<Wgit::Url>, Array<Wgit::Document>] The objs to be
     #   inserted/updated.
+    # @raise [StandardError] If objs is empty.
     # @return [Integer] The total number of upserted objects.
     def bulk_upsert(objs)
       assert_arr_types(objs, [Wgit::Url, Wgit::Document])
@@ -205,7 +208,7 @@ module Wgit::Database
 
       collection = nil
       request_objs = objs.map do |obj|
-        collection, query, model = get_type_info(obj)
+        collection, query, model = get_model_info(obj)
         data_hash = model.merge(Model.common_update_data)
 
         {
@@ -282,7 +285,7 @@ module Wgit::Database
       urls(crawled: true, limit:, skip:, &block)
     end
 
-    # Returned Url records that haven't yet been crawled.
+    # Returns Url records that haven't yet been crawled.
     #
     # @param limit [Integer] The max number of Url's to return. 0 returns all.
     # @param skip [Integer] Skip n amount of Url's.
@@ -454,7 +457,7 @@ module Wgit::Database
     # @return [Wgit::Url, Wgit::Document, nil] The record with the matching
     #   'url' field or nil if no results can be found.
     def get(obj)
-      collection, query = get_type_info(obj)
+      collection, query = get_model_info(obj)
 
       record = retrieve(collection, query, limit: 1).first
       return nil unless record
@@ -470,7 +473,7 @@ module Wgit::Database
     # @raise [StandardError] If the obj is not valid.
     # @return [Integer] The number of updated records/objects.
     def update(obj)
-      collection, query, model = get_type_info(obj)
+      collection, query, model = get_model_info(obj)
       data_hash = model.merge(Model.common_update_data)
 
       mutate(collection, query, { '$set' => data_hash })
@@ -486,7 +489,7 @@ module Wgit::Database
     # @return [Integer] The number of records deleted - should always be
     #   0 or 1 because urls are unique.
     def delete(obj)
-      collection, query = get_type_info(obj)
+      collection, query = get_model_info(obj)
       result = @client[collection].delete_one(query)
       result.n
     ensure
@@ -522,8 +525,11 @@ module Wgit::Database
 
     private
 
-    # Get the database's type info (collection type, query hash, model) for
+    # Get the database's model info (collection type, query hash, model) for
     # obj.
+    #
+    # Use like:
+    #   collection, query, model = get_model_info(obj)
     #
     # Raises an error if obj isn't a Wgit::Url or Wgit::Document.
     # Note, that no database calls are made during this method call.
@@ -532,18 +538,18 @@ module Wgit::Database
     # @raise [StandardError] If obj isn't a Wgit::Url or Wgit::Document.
     # @return [Array<Symbol, Hash>] The collection type, query to get
     #   the record/obj from the database (if it exists) and the model of obj.
-    def get_type_info(obj)
+    def get_model_info(obj)
       obj = obj.dup
 
       case obj
       when Wgit::Url
         collection = URLS_COLLECTION
         query      = { url: obj.to_s }
-        model      = Model.url(obj)
+        model      = Wgit::Database::Model.url(obj)
       when Wgit::Document
         collection = DOCUMENTS_COLLECTION
         query      = { 'url.url' => obj.url.to_s }
-        model      = Model.document(obj)
+        model      = Wgit::Database::Model.document(obj)
       else
         raise "obj must be a Wgit::Url or Wgit::Document, not: #{obj.class}"
       end
@@ -618,7 +624,7 @@ module Wgit::Database
                 limit: 0, skip: 0)
       assert_type(query, Hash)
       @last_result = @client[collection.to_sym].find(query).projection(projection)
-                                              .skip(skip).limit(limit).sort(sort)
+                                               .skip(skip).limit(limit).sort(sort)
     end
 
     # Mutate/update one or more Url or Document records in the DB.

@@ -1,14 +1,26 @@
 # frozen_string_literal: true
 
+# The parent Database class that should be inherited from when creating a
+# Database adapter implementation class.
 class Wgit::Database::DatabaseAdapter
   include Wgit::Assertable
 
+  # The NotImplementedError message that gets raised if an implementor class
+  # doesn't implement a method required by Wgit.
   NOT_IMPL_ERR = "The DatabaseAdapter class you're using hasn't \
 implemented this method"
+
+  ###################### START OF INTERFACE METHODS ######################
 
   # Initializes a DatabaseAdapter instance.
   # The implementor class should establish a DB connection here using the
   # given connection_string, falling back to ENV['WGIT_CONNECTION_STRING'].
+  # Don't forget to call `super`.
+  #
+  # @param connection_string [String] The connection string needed to connect
+  #   to the database.
+  # @raise [StandardError] If a connection string isn't provided, either as a
+  #   parameter or via the environment.
   def initialize(connection_string = nil); end
 
   # Returns the current size of the database.
@@ -42,7 +54,7 @@ implemented this method"
     raise NotImplementedError, NOT_IMPL_ERR
   end
 
-  # Returned Url records that haven't yet been crawled.
+  # Returns Url records that haven't yet been crawled.
   #
   # @param limit [Integer] The max number of Url's to return. 0 returns all.
   # @param skip [Integer] Skip n amount of Url's.
@@ -68,5 +80,23 @@ implemented this method"
   # @return [Integer] The total number of upserted objects.
   def bulk_upsert(objs)
     raise NotImplementedError, NOT_IMPL_ERR
+  end
+
+  ###################### END OF INTERFACE METHODS ######################
+
+  private
+
+  # Returns the correct Wgit::Database:Model for the given obj type.
+  #
+  # @param obj [Wgit::Url, Wgit::Document] The obj to obtain a model for.
+  # @return [Hash] The obj model.
+  def get_model(obj)
+    assert_type(obj, [Wgit::Url, Wgit::Document])
+
+    if obj.is_a?(Wgit::Url)
+      Wgit::Database::Model.url(obj)
+    else
+      Wgit::Database::Model.document(obj)
+    end
   end
 end
