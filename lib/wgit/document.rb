@@ -579,7 +579,7 @@ be relative"
     def nearest_fragment(el_text, el_type = "*")
       results = xpath("//#{el_type}[contains(text(),\"#{el_text}\")]")
       if results.empty?
-        raise "Unable to find element #{el_type} containing text '#{el_text}'"
+        raise "Unable to find element '#{el_type}' containing text '#{el_text}'"
       end
 
       target = results.first

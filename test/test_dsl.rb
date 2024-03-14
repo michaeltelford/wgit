@@ -8,10 +8,10 @@ class TestDSL < TestHelper
 
   # Runs before every test.
   def setup
-    @dsl_crawler  = nil
-    @dsl_start    = nil
-    @dsl_follow   = nil
-    @dsl_conn_str = nil
+    @dsl_crawler = nil
+    @dsl_start   = nil
+    @dsl_follow  = nil
+    @dsl_db      = nil
   end
 
   ### CRAWLER METHOD TESTS ###
@@ -28,8 +28,8 @@ class TestDSL < TestHelper
     Wgit::Document.remove_extractor :blah
   end
 
-  def test_crawler
-    crawler { |c| c.redirect_limit = 10 }
+  def test_use_crawler
+    crawler = use_crawler { |c| c.redirect_limit = 10 }
 
     assert_instance_of Wgit::Crawler, @dsl_crawler
     assert_equal @dsl_crawler.object_id, crawler.object_id
@@ -43,7 +43,7 @@ class TestDSL < TestHelper
     end
 
     assert_equal ['http://example.com'], @dsl_start
-    assert_equal 10, crawler.timeout
+    assert_equal 10, use_crawler.timeout
   end
 
   def test_start__several_urls
@@ -52,7 +52,7 @@ class TestDSL < TestHelper
     end
 
     assert_equal ['http://example.com', 'http://txti.es/'], @dsl_start
-    assert_equal 10, crawler.timeout
+    assert_equal 10, use_crawler.timeout
   end
 
   def test_follow
@@ -183,24 +183,24 @@ class TestDSL < TestHelper
   end
 
   def test_reset
-    start('http://example.com') { |c| c.timeout = 5 }
+    use_database true # Just to test nilification below.
     follow '//a'
-    connection_string ENV['WGIT_CONNECTION_STRING']
+    start('http://example.com') { |c| c.timeout = 5 }
 
     reset
 
     assert_nil @dsl_crawler
     assert_nil @dsl_start
     assert_nil @dsl_follow
-    assert_nil @dsl_conn_str
+    assert_nil @dsl_db
   end
 
   ### INDEXER METHOD TESTS ###
 
-  def test_connection_string
-    connection_string 'mongodb://myprimary.com:27017'
+  def test_use_database
+    use_database true # Just to test var value below.
 
-    assert_equal 'mongodb://myprimary.com:27017', @dsl_conn_str
+    assert @dsl_db
   end
 
   def test_index_www__max_sites
@@ -223,8 +223,9 @@ class TestDSL < TestHelper
       url 'http://test-site.com'
     end
 
+    use_database Wgit::Database::MongoDB.new
     # max_data: 1KB should only allow the crawl of the first site.
-    index_www connection_string: ENV['WGIT_CONNECTION_STRING'], max_data: 1000
+    index_www max_data: 1000
 
     assert doc?('url.url' => 'http://txti.es/')
     refute doc?('url.url' => 'http://test-site.com')
@@ -240,7 +241,8 @@ class TestDSL < TestHelper
     empty_db
 
     start 'http://txti.es/'
-    index_site connection_string: ENV['WGIT_CONNECTION_STRING'], insert_externals: true
+    use_database Wgit::Database::MongoDB.new
+    index_site insert_externals: true
 
     assert doc?('url.url' => 'http://txti.es/')
     assert_equal 7, db.num_docs
@@ -291,7 +293,8 @@ class TestDSL < TestHelper
     empty_db
 
     start 'http://txti.es/'
-    index connection_string: ENV['WGIT_CONNECTION_STRING']
+    use_database Wgit::Database::MongoDB.new
+    index
 
     assert doc?('url.url' => 'http://txti.es/')
     assert_equal 1, db.num_docs
@@ -386,19 +389,9 @@ class TestDSL < TestHelper
     assert results.first.text.include?('Route')
   end
 
-  def test_search__connection_string
-    empty_db
-
-    connection_string ENV['WGIT_CONNECTION_STRING']
-    results = search('noop', stream: nil)
-
-    assert_empty results
-  end
-
   def test_search__all_params
-    results = search('noop', connection_string: ENV['WGIT_CONNECTION_STRING'],
-      stream: nil, case_sensitive: true, whole_sentence: false,
-      limit: 3, skip: 3, sentence_limit: 100)
+    results = search('noop', stream: nil, case_sensitive: true,
+      whole_sentence: false, limit: 3, skip: 3, sentence_limit: 100)
 
     assert_empty results
   end

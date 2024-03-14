@@ -1,7 +1,8 @@
 require_relative '../database_adapter'
 
 module Wgit::Database
-  # Database implementor class for in-memory (RAM).
+  # Database adapter class for in-memory (RAM) storage. This DB is mainly used
+  # for testing and experimenting with.
   class InMemory < DatabaseAdapter
     # The urls collections which is stored in an in-memory Array.
     attr_reader :urls
@@ -37,7 +38,11 @@ num_docs=#{@docs.size} size=#{size}>"
       @urls.to_s.size + @docs.to_s.size
     end
 
-    # Searches the database's Document#text for the given query.
+    # Searches the database's Document#text for the given query. The sort order
+    # of the returned results is chronological i.e. the order they were
+    # upserted; not the order of most relavence. Also, the Document#score is
+    # not set for each result. This is deemed acceptable for an in-memory DB
+    # that is used mainly for experimenting with.
     #
     # @param query [String] The text query to search with.
     # @param case_sensitive [Boolean] Whether character case must match.

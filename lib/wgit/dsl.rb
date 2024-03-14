@@ -44,14 +44,14 @@ the 'start' function".freeze
       Wgit::Document.define_extractor(var, xpath, opts, &block)
     end
 
-    # Initializes a `Wgit::Crawler`. This crawler is then used in all crawl and
-    # index methods used by the DSL. See the Wgit::Crawler documentation for
-    # more details.
+    # Sets and returns the Wgit::Crawler used in subsequent crawls including
+    # indexing. Defaults to `Wgit::Crawler.new` if not given a param. See the
+    # Wgit::Crawler documentation for more details.
     #
-    # @yield [crawler] The created crawler; use the block to configure.
-    # @return [Wgit::Crawler] The created crawler used by the DSL.
-    def crawler
-      @dsl_crawler ||= Wgit::Crawler.new
+    # @yield [crawler] Given the DSL crawler; use the block to configure.
+    # @return [Wgit::Crawler] The crawler instance used by the DSL.
+    def use_crawler(crawler = nil)
+      @dsl_crawler = crawler || @dsl_crawler || Wgit::Crawler.new
       yield @dsl_crawler if block_given?
       @dsl_crawler
     end
@@ -66,7 +66,7 @@ the 'start' function".freeze
     # @yield [crawler] The crawler that'll be used in the subsequent
     #   crawl/index; use the block to configure.
     def start(*urls, &block)
-      crawler(&block)
+      use_crawler(&block) if block_given?
       @dsl_start = urls
     end
 
@@ -101,7 +101,7 @@ the 'start' function".freeze
       raise DSL_ERROR__NO_START_URL if urls.empty?
 
       urls.map! { |url| Wgit::Url.parse(url) }
-      crawler.crawl_urls(*urls, follow_redirects:, &block)
+      get_crawler.crawl_urls(*urls, follow_redirects:, &block)
     end
 
     # Crawls an entire site using `Wgit::Crawler#crawl_site` underneath. If no
@@ -138,43 +138,41 @@ the 'start' function".freeze
       opts  = { follow: xpath, allow_paths:, disallow_paths: }
 
       urls.reduce([]) do |externals, url|
-        externals + crawler.crawl_site(Wgit::Url.parse(url), **opts, &block)
+        externals + get_crawler.crawl_site(Wgit::Url.parse(url), **opts, &block)
       end
     end
 
-    # Returns the DSL's `crawler#last_response`.
+    # Returns the DSL's `Wgit::Crawler#last_response`.
     #
     # @return [Wgit::Response] The response from the last URL crawled.
     def last_response
-      crawler.last_response
+      get_crawler.last_response
     end
 
     # Nilifies the DSL instance variables.
     def reset
-      @dsl_crawler  = nil
-      @dsl_start    = nil
-      @dsl_follow   = nil
-      @dsl_conn_str = nil
+      @dsl_crawler = nil
+      @dsl_start   = nil
+      @dsl_follow  = nil
+      @dsl_db      = nil
     end
 
     ### INDEXER METHODS ###
 
-    # Defines the connection string to the database used in subsequent `index*`
-    # method calls. This method is optional as the connection string can be
-    # passed to the index method instead or simply set
-    # `ENV['WGIT_CONNECTION_STRING']`.
+    # Defines the connected database instance used in subsequent index and DB
+    # method calls. This method is optional however, as a new instance of the
+    # Wgit::Database.adapter_class will be initialised otherwise. Therefore
+    # if not calling this method, you should ensure
+    # ENV['WGIT_CONNECTION_STRING'] is set or the connection will fail.
     #
-    # @param conn_str [String] The connection string used to connect to the
-    #   database in subsequent `index*` method calls.
-    def connection_string(conn_str)
-      @dsl_conn_str = conn_str
+    # @param db [Wgit::Database::DatabaseAdapter] The connected database
+    #   instance used in subsequent `index*` method calls.
+    def use_database(db)
+      @dsl_db = db
     end
 
     # Indexes the World Wide Web using `Wgit::Indexer#index_www` underneath.
     #
-    # @param connection_string [String] The database connection string. Set as
-    #   nil to use ENV['WGIT_CONNECTION_STRING'] or set using
-    #   `connection_string`.
     # @param max_sites [Integer] The number of separate and whole
     #   websites to be crawled before the method exits. Defaults to -1 which
     #   means the crawl will occur until manually stopped (Ctrl+C etc).
@@ -182,11 +180,8 @@ the 'start' function".freeze
     #   scraped from the web (default is 1GB). Note, that this value is used to
     #   determine when to stop crawling; it's not a guarantee of the max data
     #   that will be obtained.
-    def index_www(
-      connection_string: @dsl_conn_str, max_sites: -1, max_data: 1_048_576_000
-    )
-      db      = Wgit::Database.adapter_class.new(connection_string)
-      indexer = Wgit::Indexer.new(db, crawler)
+    def index_www(max_sites: -1, max_data: 1_048_576_000)
+      indexer = Wgit::Indexer.new(get_db, get_crawler)
 
       indexer.index_www(max_sites:, max_data:)
     end
@@ -195,9 +190,6 @@ the 'start' function".freeze
     #
     # @param urls [*String, *Wgit::Url] The base URL(s) of the website(s) to
     #   crawl. Can be set using `start`.
-    # @param connection_string [String] The database connection string. Set as
-    #   nil to use ENV['WGIT_CONNECTION_STRING'] or set using
-    #   `connection_string`.
     # @param insert_externals [Boolean] Whether or not to insert the website's
     #   external URL's into the database.
     # @param follow [String] The xpath extracting links to be followed during
@@ -214,15 +206,13 @@ the 'start' function".freeze
     #   set.
     # @return [Integer] The total number of pages crawled within the website.
     def index_site(
-      *urls, connection_string: @dsl_conn_str,
-      insert_externals: false, follow: @dsl_follow,
+      *urls, insert_externals: false, follow: @dsl_follow,
       allow_paths: nil, disallow_paths: nil, &block
     )
       urls = (@dsl_start || []) if urls.empty?
       raise DSL_ERROR__NO_START_URL if urls.empty?
 
-      db         = Wgit::Database.adapter_class.new(connection_string)
-      indexer    = Wgit::Indexer.new(db, crawler)
+      indexer    = Wgit::Indexer.new(get_db, get_crawler)
       xpath      = follow || :default
       crawl_opts = {
         insert_externals:, follow: xpath, allow_paths:, disallow_paths:
@@ -237,9 +227,6 @@ the 'start' function".freeze
     #
     # @param urls [*Wgit::Url] The webpage URL's to crawl. Defaults to the
     #   `start` URL(s).
-    # @param connection_string [String] The database connection string. Set as
-    #   nil to use ENV['WGIT_CONNECTION_STRING'] or set using
-    #   `connection_string`.
     # @param insert_externals [Boolean] Whether or not to insert the website's
     #   external URL's into the database.
     # @yield [doc] Given the Wgit::Document of the crawled webpage,
@@ -248,15 +235,11 @@ the 'start' function".freeze
     #   document from being saved into the database.
     # @raise [StandardError] If no urls are provided and no `start` URL has
     #   been set.
-    def index(
-      *urls, connection_string: @dsl_conn_str,
-      insert_externals: false, &block
-    )
+    def index(*urls, insert_externals: false, &block)
       urls = (@dsl_start || []) if urls.empty?
       raise DSL_ERROR__NO_START_URL if urls.empty?
 
-      db      = Wgit::Database.adapter_class.new(connection_string)
-      indexer = Wgit::Indexer.new(db, crawler)
+      indexer = Wgit::Indexer.new(get_db, get_crawler)
 
       urls.map! { |url| Wgit::Url.parse(url) }
       indexer.index_urls(*urls, insert_externals:, &block)
@@ -270,9 +253,6 @@ the 'start' function".freeze
     # for details of how the search methods work.
     #
     # @param query [String] The text query to search with.
-    # @param connection_string [String] The database connection string. Set as
-    #   nil to use ENV['WGIT_CONNECTION_STRING'] or set using
-    #   `connection_string`.
     # @param stream [nil, #puts] Any object that respond_to?(:puts). It is used
     #   to output text somewhere e.g. a file or STDERR. Use nil for no output.
     # @param case_sensitive [Boolean] Whether character case must match.
@@ -286,14 +266,14 @@ the 'start' function".freeze
     #   database containing only its matching `#text`.
     # @return [Array<Wgit::Document>] The search results with matching text.
     def search(
-      query, connection_string: @dsl_conn_str, stream: $stdout,
+      query, stream: $stdout,
       case_sensitive: false, whole_sentence: true,
       limit: 10, skip: 0, sentence_limit: 80
     )
       stream ||= File.open(File::NULL, 'w')
-      db = Wgit::Database.adapter_class.new(connection_string)
 
-      results = db.search(query, case_sensitive:, whole_sentence:, limit:, skip:)
+      results = get_db.search(
+        query, case_sensitive:, whole_sentence:, limit:, skip:)
 
       results.each do |doc|
         doc.search!(query, case_sensitive:, whole_sentence:, sentence_limit:)
@@ -309,9 +289,18 @@ the 'start' function".freeze
     # `Wgit::Database::DatabaseAdapter#empty` underneath.
     #
     # @return [Integer] The number of deleted records.
-    def empty_db!(connection_string: @dsl_conn_str)
-      db = Wgit::Database.adapter_class.new(connection_string)
-      db.empty
+    def empty_db!
+      get_db.empty
+    end
+
+    private
+
+    def get_crawler
+      @dsl_crawler ||= Wgit::Crawler.new
+    end
+
+    def get_db
+      @dsl_db ||= Wgit::Database.adapter_class.new
     end
 
     alias_method :crawl_url,  :crawl
