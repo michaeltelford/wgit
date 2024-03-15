@@ -566,7 +566,10 @@ be relative"
 
     # Firstly finds the target element whose text contains el_text.
     # Then finds the preceeding fragment element nearest to the target
-    # element and returns it's href value (starting with #).
+    # element and returns it's href value (starting with #). The search is
+    # performed against the @html so Documents loaded from a DB will need to
+    # contain the 'html' field in the Wgit::Database::Model. See the
+    # `Wgit::Database::Model#include_doc_html` documentation for more info.
     #
     # @param el_text [String] The element text of the target element.
     # @param el_type [String] The element type, defaulting to any type.
