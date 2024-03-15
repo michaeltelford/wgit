@@ -8,6 +8,12 @@ class TestModel < TestHelper
   # Runs before every test.
   def setup; end
 
+  # Runs after every test.
+  def teardown
+    Wgit::Database::Model.include_doc_html  = false
+    Wgit::Database::Model.include_doc_score = false
+  end
+
   def test_url
     url = Wgit::Url.new(
       'http://example.com',
@@ -58,11 +64,5 @@ class TestModel < TestHelper
 
     assert Wgit::Database::Model.include_doc_score
     assert_equal 10.5, model['score']
-  end
-
-  # Runs after every test.
-  def teardown
-    Wgit::Database::Model.include_doc_html  = false
-    Wgit::Database::Model.include_doc_score = false
   end
 end
