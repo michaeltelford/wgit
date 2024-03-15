@@ -39,16 +39,16 @@ accept duplicate urls. Exception details: #{err_msg}"
 
   # Returns if the url_hash/record exists in the DB.
   #
-  # Different from Wgit::Database#url? because it asserts the full url_hash,
-  # not just the presence of the unique 'url' field.
+  # Different from Wgit::Database::MongoDB#url? because it asserts the full
+  # url_hash, not just the presence of the unique 'url' field.
   def url?(url_hash)
     db.client[:urls].find(url_hash).any?
   end
 
   # Returns if the doc_hash/record exists in the DB.
   #
-  # Different from Wgit::Database#doc? because it asserts the full doc_hash,
-  # not just the presence of the unique 'url' field.
+  # Different from Wgit::Database::MongoDB#doc? because it asserts the full
+  # doc_hash, not just the presence of the unique 'url' field.
   def doc?(doc_hash)
     db.client[:documents].find(doc_hash).any?
   end

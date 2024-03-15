@@ -200,7 +200,7 @@ module Wgit::Database
     # @param objs [Array<Wgit::Url>, Array<Wgit::Document>] The objs to be
     #   inserted/updated.
     # @raise [StandardError] If objs is empty.
-    # @return [Integer] The total number of upserted objects.
+    # @return [Integer] The total number of newly inserted objects.
     def bulk_upsert(objs)
       assert_common_arr_types(objs, [Wgit::Url, Wgit::Document])
       raise 'objs is empty' if objs.empty?

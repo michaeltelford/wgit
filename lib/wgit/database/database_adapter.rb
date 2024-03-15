@@ -86,7 +86,7 @@ module Wgit::Database
     #
     # @param objs [Array<Wgit::Url>, Array<Wgit::Document>] The objs to be
     #   inserted/updated.
-    # @return [Integer] The total number of upserted objects.
+    # @return [Integer] The total number of newly inserted objects.
     def bulk_upsert(objs)
       raise NotImplementedError, NOT_IMPL_ERR
     end

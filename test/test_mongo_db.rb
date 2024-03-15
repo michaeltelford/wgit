@@ -1,6 +1,6 @@
 require_relative 'helpers/test_helper'
 
-# Test class for the Database::MongoDB logic.
+# Test class for the Database::MongoDB adapter logic.
 # WARNING: The DB is cleared down prior to each test run.
 class TestDatabase < TestHelper
   include MongoDBHelper
@@ -19,22 +19,21 @@ class TestDatabase < TestHelper
   # Runs after every test.
   def teardown
     # Reset the text index for other tests.
-    db = Wgit::Database::MongoDB.new
     db.text_index = Wgit::Database::MongoDB::DEFAULT_TEXT_INDEX
   end
 
   def test_initialize
-    db = Wgit::Database::MongoDB.new
-    refute_nil db.connection_string
-    refute_nil db.client
-    assert_equal db.text_index, Wgit::Database::MongoDB::DEFAULT_TEXT_INDEX
-    assert_nil db.last_result
+    db2 = Wgit::Database::MongoDB.new
+    refute_nil db2.connection_string
+    refute_nil db2.client
+    assert_equal db2.text_index, Wgit::Database::MongoDB::DEFAULT_TEXT_INDEX
+    assert_nil db2.last_result
 
-    db = Wgit::Database::MongoDB.new ENV['WGIT_CONNECTION_STRING']
-    refute_nil db.connection_string
-    refute_nil db.client
-    assert_equal db.text_index, Wgit::Database::MongoDB::DEFAULT_TEXT_INDEX
-    assert_nil db.last_result
+    db2 = Wgit::Database::MongoDB.new ENV['WGIT_CONNECTION_STRING']
+    refute_nil db2.connection_string
+    refute_nil db2.client
+    assert_equal db2.text_index, Wgit::Database::MongoDB::DEFAULT_TEXT_INDEX
+    assert_nil db2.last_result
 
     reset_connection_string do
       e = assert_raises(StandardError) { Wgit::Database::MongoDB.new }
@@ -43,17 +42,17 @@ class TestDatabase < TestHelper
   end
 
   def test_connect
-    db = Wgit::Database::MongoDB.connect
-    refute_nil db.connection_string
-    refute_nil db.client
-    assert_equal db.text_index, Wgit::Database::MongoDB::DEFAULT_TEXT_INDEX
-    assert_nil db.last_result
+    db2 = Wgit::Database::MongoDB.connect
+    refute_nil db2.connection_string
+    refute_nil db2.client
+    assert_equal db2.text_index, Wgit::Database::MongoDB::DEFAULT_TEXT_INDEX
+    assert_nil db2.last_result
 
-    db = Wgit::Database::MongoDB.connect ENV['WGIT_CONNECTION_STRING']
-    refute_nil db.connection_string
-    refute_nil db.client
-    assert_equal db.text_index, Wgit::Database::MongoDB::DEFAULT_TEXT_INDEX
-    assert_nil db.last_result
+    db2 = Wgit::Database::MongoDB.connect ENV['WGIT_CONNECTION_STRING']
+    refute_nil db2.connection_string
+    refute_nil db2.client
+    assert_equal db2.text_index, Wgit::Database::MongoDB::DEFAULT_TEXT_INDEX
+    assert_nil db2.last_result
 
     reset_connection_string do
       e = assert_raises(StandardError) { Wgit::Database::MongoDB.connect }
@@ -63,8 +62,6 @@ class TestDatabase < TestHelper
 
   # We test both methods together for convenience.
   def test_create_collections__unique_indexes
-    db = Wgit::Database::MongoDB.new
-
     urls = db.client[Wgit::Database::MongoDB::URLS_COLLECTION]
     docs = db.client[Wgit::Database::MongoDB::DOCUMENTS_COLLECTION]
 
@@ -79,20 +76,15 @@ class TestDatabase < TestHelper
   end
 
   def test_text_index__default_index
-    db = Wgit::Database::MongoDB.new
-
     assert_equal Wgit::Database::MongoDB::DEFAULT_TEXT_INDEX, db.text_index
   end
 
   def test_text_index_equals__fails
-    db = Wgit::Database::MongoDB.new
-
     ex = assert_raises(StandardError) { db.text_index = true }
     assert_equal 'fields must be an Array or Hash, not a TrueClass', ex.message
   end
 
   def test_text_index_equals__symbols
-    db = Wgit::Database::MongoDB.new
     index = db.text_index = %i[title code]
 
     assert_equal(%i[title code], index)
@@ -100,7 +92,6 @@ class TestDatabase < TestHelper
   end
 
   def test_text_index_equals__hash
-    db = Wgit::Database::MongoDB.new
     index = db.text_index = { title: 2, code: 1 }
 
     assert_equal({ title: 2, code: 1 }, index)
@@ -120,8 +111,6 @@ class TestDatabase < TestHelper
   end
 
   def test_insert__urls
-    db = Wgit::Database::MongoDB.new
-
     # Insert 1 url.
     num_inserted = db.insert @url
     assert_equal 1, num_inserted
@@ -149,8 +138,6 @@ class TestDatabase < TestHelper
   end
 
   def test_insert__docs
-    db = Wgit::Database::MongoDB.new
-
     # Insert 1 doc.
     num_inserted = db.insert @doc
     assert_equal 1, num_inserted
@@ -167,8 +154,6 @@ class TestDatabase < TestHelper
   end
 
   def test_upsert
-    db = Wgit::Database::MongoDB.new
-
     assert db.upsert(@url)
     assert_equal 1, db.num_records
     refute_nil db.last_result
@@ -184,8 +169,6 @@ class TestDatabase < TestHelper
   end
 
   def test_bulk_upsert__urls
-    db = Wgit::Database::MongoDB.new
-
     urls = [
       'http://example.com',   # Gets inserted.
       'http://example.com/2', # Gets inserted.
@@ -206,8 +189,6 @@ class TestDatabase < TestHelper
   end
 
   def test_bulk_upsert__docs
-    db = Wgit::Database::MongoDB.new
-
     urls = [
       'http://example.com',   # Gets inserted.
       'http://example.com/2', # Gets inserted.
@@ -234,8 +215,6 @@ class TestDatabase < TestHelper
   end
 
   def test_docs
-    db = Wgit::Database::MongoDB.new
-
     # Test empty docs result.
     assert_empty db.docs
 
@@ -252,8 +231,6 @@ class TestDatabase < TestHelper
   end
 
   def test_urls
-    db = Wgit::Database::MongoDB.new
-
     # Test empty urls result.
     assert_empty db.urls
     assert_empty db.crawled_urls
@@ -287,8 +264,6 @@ class TestDatabase < TestHelper
   end
 
   def test_urls__with_redirects
-    db = Wgit::Database::MongoDB.new
-
     # Seed url data to the DB.
     # Url with redirects populated.
     redirects_hash = {'http://example.com' => 'https://example.com'}
@@ -307,8 +282,6 @@ class TestDatabase < TestHelper
     @docs.last.text << 'Foo Bar'
 
     seed { docs @docs }
-
-    db = Wgit::Database::MongoDB.new
 
     # Test no results.
     assert_empty db.search('doesnt_exist_123')
@@ -344,8 +317,6 @@ class TestDatabase < TestHelper
   def test_search__limit__skip
     # All dev data docs contain the word 'Everest'.
     seed { docs @docs }
-
-    db = Wgit::Database::MongoDB.new
 
     assert_equal 3, db.search('everest').length
     assert_equal 3, db.last_result&.count
@@ -401,7 +372,6 @@ class TestDatabase < TestHelper
       'All climbers need to have climbed on a 7,000-8,000-meter peak previously'
     ]
 
-    db = Wgit::Database::MongoDB.new
     results =     db.search_text(query)
     top_results = db.search_text(query, top_result_only: true)
 
@@ -416,7 +386,6 @@ class TestDatabase < TestHelper
   end
 
   def test_stats
-    db = Wgit::Database::MongoDB.new
     stats = db.stats
 
     refute_nil stats
@@ -424,13 +393,10 @@ class TestDatabase < TestHelper
   end
 
   def test_size
-    db = Wgit::Database::MongoDB.new
-
     assert db.size.zero?
   end
 
   def test_num_urls
-    db = Wgit::Database::MongoDB.new
     assert_equal 0, db.num_urls
 
     seed { url 3 }
@@ -438,7 +404,6 @@ class TestDatabase < TestHelper
   end
 
   def test_num_docs
-    db = Wgit::Database::MongoDB.new
     assert_equal 0, db.num_docs
 
     seed { doc 3 }
@@ -446,7 +411,6 @@ class TestDatabase < TestHelper
   end
 
   def test_num_records
-    db = Wgit::Database::MongoDB.new
     assert_equal 0, db.num_records
 
     seed { url 3; doc 2 }
@@ -454,7 +418,6 @@ class TestDatabase < TestHelper
   end
 
   def test_url?
-    db = Wgit::Database::MongoDB.new
     refute db.url? @url
 
     seed { url @url }
@@ -462,7 +425,6 @@ class TestDatabase < TestHelper
   end
 
   def test_doc?
-    db = Wgit::Database::MongoDB.new
     refute db.doc? @doc
 
     seed { doc @doc }
@@ -470,7 +432,6 @@ class TestDatabase < TestHelper
   end
 
   def test_exists?
-    db = Wgit::Database::MongoDB.new
     refute db.exists?(@url)
 
     seed { url @url }
@@ -478,8 +439,6 @@ class TestDatabase < TestHelper
   end
 
   def test_get
-    db = Wgit::Database::MongoDB.new
-
     seed do
       url @url
       doc @doc
@@ -497,8 +456,6 @@ class TestDatabase < TestHelper
   end
 
   def test_get__empty
-    db = Wgit::Database::MongoDB.new
-
     ex = assert_raises(StandardError) { db.get 1 }
     assert_equal 'obj must be a Wgit::Url or Wgit::Document, not: Integer', ex.message
 
@@ -509,7 +466,6 @@ class TestDatabase < TestHelper
   def test_update__url
     seed { url @url }
     @url.crawled = false
-    db = Wgit::Database::MongoDB.new
     result = db.update @url
 
     assert_equal 1, result
@@ -522,7 +478,6 @@ class TestDatabase < TestHelper
     title = 'Climb Everest!'
     seed { doc @doc }
     @doc.title = title
-    db = Wgit::Database::MongoDB.new
     result = db.update @doc
 
     assert_equal 1, result
@@ -532,7 +487,6 @@ class TestDatabase < TestHelper
   end
 
   def test_delete
-    db = Wgit::Database::MongoDB.new
     assert_equal 0, db.delete(@url)
     refute_nil db.last_result
 
@@ -548,7 +502,6 @@ class TestDatabase < TestHelper
 
   def test_empty_urls
     seed { urls 3 }
-    db = Wgit::Database::MongoDB.new
 
     assert_equal 3, db.empty_urls
     assert_equal 0, db.num_urls
@@ -556,7 +509,6 @@ class TestDatabase < TestHelper
 
   def test_empty_docs
     seed { docs 3 }
-    db = Wgit::Database::MongoDB.new
 
     assert_equal 3, db.empty_docs
     assert_equal 0, db.num_docs
@@ -567,7 +519,6 @@ class TestDatabase < TestHelper
       urls 3
       docs 2
     end
-    db = Wgit::Database::MongoDB.new
 
     assert_equal 5, db.empty
     assert_equal 0, db.num_records

@@ -62,8 +62,8 @@ num_docs=#{@docs.size} size=#{size}>"
       regex = if query.is_a?(Regexp)
                 query
               else
-                query = query.to_s
-                query = query.gsub(' ', '|') unless whole_sentence
+                query = "\\b#{query}\\b"
+                query = query.gsub(' ', '\b|\b') unless whole_sentence
                 Regexp.new(query, !case_sensitive)
               end
 
@@ -75,10 +75,11 @@ num_docs=#{@docs.size} size=#{size}>"
       return [] unless results
 
       results = results[0...limit] if limit.positive?
-      results.map! { |doc| Wgit::Document.new(doc) }
-      results.each(&block) if block_given?
-
-      results
+      results.map do |doc|
+        doc = Wgit::Document.new(doc)
+        yield(doc) if block_given?
+        doc
+      end
     end
 
     # Deletes everything in the urls and documents collections.
@@ -118,11 +119,11 @@ num_docs=#{@docs.size} size=#{size}>"
 
       if index
         collection[index] = model
+        false
       else
         collection << model
+        true
       end
-
-      true
     end
 
     # Bulk upserts the objects in the in-memory database collection.
@@ -130,12 +131,16 @@ num_docs=#{@docs.size} size=#{size}>"
     #
     # @param objs [Array<Wgit::Url>, Array<Wgit::Document>] The objs to be
     #   inserted/updated.
-    # @return [Integer] The total number of upserted objects.
+    # @return [Integer] The total number of newly inserted objects.
     def bulk_upsert(objs)
       assert_common_arr_types(objs, [Wgit::Url, Wgit::Document])
 
-      objs.each { |obj| upsert(obj) }
-      objs.size
+      inserted = 0
+      objs.each do |obj|
+        inserted += 1 if upsert(obj)
+      end
+
+      inserted
     end
 
     private
