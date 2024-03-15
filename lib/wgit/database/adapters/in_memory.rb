@@ -1,7 +1,10 @@
+require_relative '../../url'
+require_relative '../../document'
+require_relative '../model'
 require_relative '../database_adapter'
 
 module Wgit::Database
-  # Database adapter class for in-memory (RAM) storage. This DB is mainly used
+  # Database implementer class for in-memory (RAM) storage. This DB is mainly used
   # for testing and experimenting with. This DB is thread safe.
   class InMemory < DatabaseAdapter
     # The urls collections stored as an in-memory Concurrent::Array.
@@ -163,12 +166,12 @@ num_docs=#{@docs.size} size=#{size}>"
         key        = obj.to_s
         collection = @urls
         index      = @urls.index { |url| url['url'] == key }
-        model      = Wgit::Database::Model.url(obj)
+        model      = build_model(obj)
       when Wgit::Document
         key        = obj.url.to_s
         collection = @docs
         index      = @docs.index { |doc| doc['url']&.[]('url') == key }
-        model      = Wgit::Database::Model.document(obj)
+        model      = build_model(obj)
       else
         raise "obj must be a Wgit::Url or Wgit::Document, not: #{obj.class}"
       end

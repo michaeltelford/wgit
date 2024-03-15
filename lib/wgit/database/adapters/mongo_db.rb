@@ -3,14 +3,13 @@
 require_relative '../../url'
 require_relative '../../document'
 require_relative '../../logger'
-require_relative '../../assertable'
 require_relative '../model'
 require_relative '../database_adapter'
 require 'logger'
 require 'mongo'
 
 module Wgit::Database
-  # Database implementor class for MongoDB.
+  # Database implementer class for MongoDB.
   class MongoDB < DatabaseAdapter
     # The default name of the urls collection.
     URLS_COLLECTION = :urls
@@ -545,11 +544,11 @@ module Wgit::Database
       when Wgit::Url
         collection = URLS_COLLECTION
         query      = { url: obj.to_s }
-        model      = Wgit::Database::Model.url(obj)
+        model      = build_model(obj)
       when Wgit::Document
         collection = DOCUMENTS_COLLECTION
         query      = { 'url.url' => obj.url.to_s }
-        model      = Wgit::Database::Model.document(obj)
+        model      = build_model(obj)
       else
         raise "obj must be a Wgit::Url or Wgit::Document, not: #{obj.class}"
       end

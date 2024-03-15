@@ -3,7 +3,7 @@ require_relative 'helpers/test_helper'
 # Test class for testing the DSL methods.
 # WARNING: Certain tests will clear down the DB prior to the test run.
 class TestDSL < TestHelper
-  include DatabaseHelper
+  include MongoDBHelper
   include Wgit::DSL
 
   # Runs before every test.
@@ -397,7 +397,7 @@ class TestDSL < TestHelper
   end
 
   def test_empty_db!
-    empty_db # From DatabaseHelper.
+    empty_db # From MongoDBHelper.
     seed { url(2) }
 
     empty_db! # From DSL.

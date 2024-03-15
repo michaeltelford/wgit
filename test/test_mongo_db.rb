@@ -1,9 +1,9 @@
 require_relative 'helpers/test_helper'
 
-# Test class for the Database::MongoDB methods.
+# Test class for the Database::MongoDB logic.
 # WARNING: The DB is cleared down prior to each test run.
 class TestDatabase < TestHelper
-  include DatabaseHelper
+  include MongoDBHelper
 
   # Runs before every test.
   def setup

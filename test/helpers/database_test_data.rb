@@ -1,7 +1,8 @@
 require 'securerandom'
 
 # Module containing example DB collection objects. The 'url' fields use a
-# UUID in order to be unique.
+# UUID in order to be unique. The objects returned from this module should
+# mimic what is produced by Wgit::Model and are therefore DB agnostic.
 module DatabaseTestData
   # Returns a Hash representing a Url record in the DB.
   def self.url(url: 'http://www.example.co.uk', append_suffix: true, timestamps: true)

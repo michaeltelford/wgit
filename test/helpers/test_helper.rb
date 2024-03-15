@@ -10,8 +10,9 @@ require 'dotenv'
 require 'byebug' # Call 'byebug' anywhere in the code to debug.
 
 require_relative '../mock/fixtures' # Mock HTTP responses.
-require_relative 'database_helper'
 require_relative 'database_test_data'
+require_relative 'database_helper'
+require_relative 'mongo_db_helper'
 
 # Require all code being tested once, in one place.
 require_relative '../../lib/wgit'

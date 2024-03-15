@@ -3,7 +3,7 @@ require_relative 'helpers/test_helper'
 # Test class for testing the Indexer methods.
 # WARNING: The DB is cleared down prior to each test run.
 class TestIndexer < TestHelper
-  include DatabaseHelper
+  include MongoDBHelper
 
   # Runs before every test.
   def setup

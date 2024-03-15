@@ -7,7 +7,7 @@ require_relative 'helpers/test_helper'
 # NOTE: Every test case should clean up after itself by removing any defined
 # extractors in the 'teardown' method to avoid affecting other tests.
 class TestDocumentExtractors < TestHelper
-  include DatabaseHelper
+  include MongoDBHelper
 
   # Runs before every test.
   def setup

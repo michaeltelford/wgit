@@ -1,26 +1,31 @@
 # frozen_string_literal: true
 
 require_relative 'database_test_data'
-require 'mongo'
 
-# Helper class used to manipulate the database.
+# Helper module used to manipulate any database adapter. This module should
+# be included in other DB helper modules. To do so, you must implement the
+# following underlying methods:
+#
+# database_instance
+# empty_db
+# seed_urls(url_hashes)
+# seed_docs(doc_hashes)
+# url?(url_hash)
+# doc?(url_hash)
+#
+# The above method implementations should be done using the raw client for
+# your DB adapter, not the Wgit adapter class that you're testing; this way
+# the helpers won't fail before your DB tests fail.
 module DatabaseHelper
-  # A connection to the database is established when this module is included.
+  # database_instance should return a connected Wgit::Database:DatabaseAdapter.
   def self.included(_base)
-    @@db ||= Wgit::Database::MongoDB.new
-
     @@urls = []
     @@docs = []
   end
 
-  # Returns the connected Wgit::Database instance.
+  # Returns the connected Wgit::Database::DatabaseAdapter instance.
   def db
-    @@db
-  end
-
-  # Deletes everything in the urls and documents collections.
-  def empty_db
-    @@db.empty
+    @@db ||= database_instance
   end
 
   # Seed what's in the block, comprising of url and doc method calls
@@ -47,32 +52,10 @@ module DatabaseHelper
     # &block populates the @@urls and @@docs arrays.
     instance_eval(&block)
 
-    begin
-      @@db.client[:urls].insert_many(@@urls) unless @@urls.empty?
-      @@db.client[:documents].insert_many(@@docs) unless @@docs.empty?
+    seed_urls(@@urls) unless @@urls.empty?
+    seed_docs(@@docs) unless @@docs.empty?
 
-      @@urls.count + @@docs.count
-    rescue StandardError => e
-      err_msg = e.respond_to?(:result) ? e.result['writeErrors'] : e.message
-      raise "Write to DB failed - remember that both urls and docs won't \
-accept duplicate urls. Exception details: #{err_msg}"
-    end
-  end
-
-  # Returns if the url_hash/record exists in the DB.
-  #
-  # Different from Wgit::Database#url? because it asserts the full url_hash,
-  # not just the presence of the unique 'url' field.
-  def url?(url_hash)
-    @@db.client[:urls].find(url_hash).any?
-  end
-
-  # Returns if the doc_hash/record exists in the DB.
-  #
-  # Different from Wgit::Database#doc? because it asserts the full doc_hash,
-  # not just the presence of the unique 'url' field.
-  def doc?(doc_hash)
-    @@db.client[:documents].find(doc_hash).any?
+    @@urls.count + @@docs.count
   end
 
   private
@@ -111,13 +94,13 @@ accept duplicate urls. Exception details: #{err_msg}"
   # Appends a Url to @@urls.
   def append_url(url)
     model_hash = case url
-                  when Wgit::Url
-                    Wgit::Database::Model.url(url)
-                  when Hash
-                    url
-                  else
-                    raise "Invalid data type: #{url.class}"
-                  end
+                 when Wgit::Url
+                   Wgit::Database::Model.url(url)
+                 when Hash
+                   url
+                 else
+                   raise "Invalid data type: #{url.class}"
+                 end
 
     @@urls << model_hash.merge(Wgit::Database::Model.common_insert_data)
   end
@@ -125,13 +108,13 @@ accept duplicate urls. Exception details: #{err_msg}"
   # Appends a Document to @@docs.
   def append_doc(doc)
     model_hash = case doc
-                  when Wgit::Document
-                    Wgit::Database::Model.document(doc)
-                  when Hash
-                    doc
-                  else
-                    raise "Invalid data type: #{doc.class}"
-                  end
+                 when Wgit::Document
+                   Wgit::Database::Model.document(doc)
+                 when Hash
+                   doc
+                 else
+                   raise "Invalid data type: #{doc.class}"
+                 end
 
     @@docs << model_hash.merge(Wgit::Database::Model.common_insert_data)
   end

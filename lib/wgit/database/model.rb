@@ -4,6 +4,8 @@ require_relative '../utils'
 
 module Wgit::Database
   # Module used to build the Database collection objects, forming a data model.
+  # The models produced are Hash like and therefore DB agnostic. Each model
+  # will contain a unique field used for searching and avoiding duplicates.
   module Model
     # Whether or not to include the Document#html in the #document model.
     @include_doc_html = false
@@ -22,6 +24,8 @@ module Wgit::Database
     # The data model for a Wgit::Url collection object and for an embedded
     # 'url' inside a Wgit::Document collection object.
     #
+    # The unique field for this model is `model['url']`.
+    #
     # @param url [Wgit::Url] The Url data object.
     # @return [Hash] The URL model ready for DB insertion.
     def self.url(url)
@@ -32,6 +36,8 @@ module Wgit::Database
     end
 
     # The data model for a Wgit::Document collection object.
+    #
+    # The unique field for this model is `model['url']['url']`.
     #
     # @param doc [Wgit::Document] The Document data object.
     # @return [Hash] The Document model ready for DB insertion.
