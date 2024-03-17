@@ -39,7 +39,9 @@ module Wgit::Database
       raise NotImplementedError, NOT_IMPL_ERR
     end
 
-    # Searches the database's Documents for the given query.
+    # Searches the database's Documents for the given query. All matching
+    # Documents should be returned starting with the most relevant. Each
+    # returned Document should have it's 'score' field set for relevance.
     #
     # @param query [String] The text query to search with.
     # @param case_sensitive [Boolean] Whether character case must match.

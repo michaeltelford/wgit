@@ -40,11 +40,8 @@ num_docs=#{@docs.size} size=#{size}>"
       @urls.to_s.size + @docs.to_s.size
     end
 
-    # Searches the database's Document#text for the given query. The sort order
-    # of the returned results is chronological i.e. the order they were
-    # upserted; not the order of most relavence. Also, the Document#score is
-    # not set for each result. This is deemed acceptable for an in-memory DB
-    # that is used mainly for testing and experimenting with.
+    # Searches the database's Document#text for the given query. The returned
+    # Documents are sorted for relevance, starting with the most relevant.
     #
     # @param query [Regexp, #to_s] The regex or text value to search each
     #   document's @text for.
@@ -68,8 +65,14 @@ num_docs=#{@docs.size} size=#{size}>"
               end
 
       results = @docs.select do |doc|
-        doc['text'].any? { |text| text =~ regex }
+        score = 0.0
+        doc['text'].each { |text| text.scan(regex) { score += 0.5 } }
+        doc['score'] = score
+        score.positive?
       end
+      return [] if results.empty?
+
+      results.sort! { |a, b| b['score'] <=> a['score'] }
 
       results = results[skip..]
       return [] unless results

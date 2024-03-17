@@ -116,13 +116,32 @@ class TestDatabase < TestHelper
     assert_equal redirects_hash, urls.first['redirects']
   end
 
-  def test_search__case_sensitive__whole_sentence
+  def test_search
+    # doc1 = 1.0 (match), doc2 = 0.0, doc3 = 2.0
+    @docs.first.text << 'Foo Bar'
     @docs.last.text << 'Foo Bar'
+    @docs.last.text << 'foO bAr'
 
     seed { docs @docs }
 
     # Test no results.
     assert_empty db.search('doesnt_exist_123')
+
+    # Test two results sorted by relevance.
+    results = db.search('foo bar')
+
+    assert_equal 2, results.length
+    results.all? { |doc| doc.instance_of? Wgit::Document }
+
+    assert_equal @docs.last.url, results.first.url
+    assert_equal @docs.first.url, results.last.url
+    assert results.first.score > results.last.score
+  end
+
+  def test_search__case_sensitive__whole_sentence
+    @docs.last.text << 'Foo Bar'
+
+    seed { docs @docs }
 
     # Test case_sensitive: false and block.
     count = 0
