@@ -53,7 +53,7 @@ class TestReadme < TestHelper
 
     # Wgit.logger.level = Logger::WARN
 
-    # connection_string 'mongodb://user:password@localhost/crawler'
+    # ENV['WGIT_CONNECTION_STRING'] = 'mongodb://user:password@localhost/crawler'
 
     start  'http://quotes.toscrape.com/tag/humor/'
     follow "//li[@class='next']/a/@href"

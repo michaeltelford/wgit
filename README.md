@@ -13,12 +13,12 @@ Wgit is a HTML web crawler, written in Ruby, that allows you to programmatically
 Wgit was primarily designed to crawl static HTML websites to index and  search their content - providing the basis of any search engine; but Wgit is suitable for many application domains including:
 
 - URL parsing
-- Document content extraction (data mining)
-- Crawling entire websites (statistical analysis)
+- Document content extraction (data mining etc)
+- Recursive website crawling (indexing, statistical analysis etc)
 
 Wgit provides a high level, easy-to-use API and DSL that you can use in your own applications and scripts.
 
-Check out this [demo search engine](https://wgit-search-engine.fly.dev) - [built](https://github.com/michaeltelford/search_engine) using Wgit and Sinatra - deployed to [fly.io](https://fly.io). Try searching for something that's Ruby related like "Matz" or "Rails".
+Check out this [demo search engine](https://wgit-search-engine.fly.dev) - [built](https://github.com/michaeltelford/search_engine) using Wgit, Sinatra and MongoDB - deployed to [fly.io](https://fly.io). Try searching for something that's Ruby related like "Matz" or "Rails".
 
 ## Table Of Contents
 
@@ -78,7 +78,7 @@ Which outputs:
 ]
 ```
 
-Great! But what if we want to crawl and store the content in a database, so that it can be searched? Wgit makes it easy to index and search HTML using [MongoDB](https://www.mongodb.com/):
+Great! But what if we want to crawl and store the content in a database, so that it can be searched? Wgit makes it easy to index and search HTML using [MongoDB](https://www.mongodb.com/) (by default):
 
 ```ruby
 require 'wgit'
@@ -87,7 +87,7 @@ include Wgit::DSL
 
 Wgit.logger.level = Logger::WARN
 
-connection_string 'mongodb://user:password@localhost/crawler'
+ENV['WGIT_CONNECTION_STRING'] = 'mongodb://user:password@localhost/crawler'
 
 start  'http://quotes.toscrape.com/tag/humor/'
 follow "//li[@class='next']/a/@href"
@@ -109,11 +109,11 @@ http://quotes.toscrape.com/tag/humor/page/2/
 ...
 ```
 
-Using a MongoDB [client](https://robomongo.org/), we can see that the two web pages have been indexed, along with their extracted *quotes* and *authors*:
+Using a MongoDB client, we can see that the two web pages have been indexed, along with their extracted *quotes* and *authors*:
 
 ![MongoDBClient](https://raw.githubusercontent.com/michaeltelford/wgit/assets/assets/wgit_mongo_index.png)
 
-The [DSL](https://github.com/michaeltelford/wgit/wiki/How-To-Use-The-DSL) makes it easy to write scripts for experimenting with. Wgit's DSL is simply a wrapper around the underlying classes however. For comparison, here is the above example written using the Wgit API *instead of* the DSL:
+The [DSL](https://github.com/michaeltelford/wgit/wiki/How-To-Use-The-DSL) makes it easy to write scripts for experimenting with. Wgit's DSL is simply a wrapper around the underlying classes. For comparison, here is the quote example re-written using the Wgit API *instead of* the DSL:
 
 ```ruby
 require 'wgit'
@@ -143,7 +143,7 @@ puts JSON.generate(quotes)
 There are many [other HTML crawlers](https://awesome-ruby.com/#-web-crawling) out there so why use Wgit?
 
 - Wgit has excellent unit testing, 100% documentation coverage and follows [semantic versioning](https://semver.org/) rules.
-- Wgit excels at crawling an entire website's HTML out of the box. Many alternative crawlers require you to provide the `xpath` needed to *follow* the next URLs to crawl. Wgit by default, crawls the entire site by extracting its internal links pointing to the same host.
+- Wgit excels at crawling an entire website's HTML out of the box. Many alternative crawlers require you to provide the `xpath` needed to *follow* the next URLs to crawl. Wgit by default, crawls the entire site by extracting its internal links pointing to the same host - no `xpath` needed.
 - Wgit allows you to define content *extractors* that will fire on every subsequent crawl; be it a single URL or an entire website. This enables you to focus on the content you want.
 - Wgit can index (crawl and store) HTML to a database making it a breeze to build custom search engines. You can also specify which page content gets searched, making the search more meaningful. For example, here's a script that will index the Wgit [wiki](https://github.com/michaeltelford/wgit/wiki) articles:
 
@@ -164,7 +164,8 @@ indexer = Wgit::Indexer.new
 indexer.index_site(wiki, **opts)
 ```
 
-- Wgit's built in indexing methods will by default, honour a site's `robots.txt` rules. There's also a handy robots.txt parser that you can use in your own code.
+- Wgit supports different databases through the use of "adapter" classes, which you can write to support your own database of choice.
+- Wgit's built in indexing methods will by default, honour a site's `robots.txt` rules. There's also a handy `robots.txt` parser that you can use in your own code.
 
 ## Why Not Wgit?
 
