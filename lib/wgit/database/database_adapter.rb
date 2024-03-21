@@ -71,7 +71,7 @@ module Wgit::Database
     # @param skip [Integer] Skip n amount of Url's.
     # @yield [url] Given each Url object (Wgit::Url) returned from the DB.
     # @return [Array<Wgit::Url>] The uncrawled Urls obtained from the DB.
-    def uncrawled_urls(limit: 0, skip: 0, &block)
+    def uncrawled_urls(limit: 0, skip: 0)
       raise NotImplementedError, NOT_IMPL_ERR
     end
 

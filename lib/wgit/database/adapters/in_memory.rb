@@ -101,16 +101,17 @@ num_docs=#{@docs.size} size=#{size}>"
     # @param skip [Integer] Skip n amount of Url's.
     # @yield [url] Given each Url object (Wgit::Url) returned from the DB.
     # @return [Array<Wgit::Url>] The uncrawled Urls obtained from the DB.
-    def uncrawled_urls(limit: 0, skip: 0, &block)
+    def uncrawled_urls(limit: 0, skip: 0)
       uncrawled = @urls.reject { |url| url['crawled'] }
       uncrawled = uncrawled[skip..]
       return [] unless uncrawled
 
       uncrawled = uncrawled[0...limit] if limit.positive?
-      uncrawled.map! { |url_doc| Wgit::Url.new(url_doc) }
-      uncrawled.each(&block) if block_given?
-
-      uncrawled
+      uncrawled.map do |url_doc|
+        url = Wgit::Url.new(url_doc)
+        yield url if block_given?
+        url
+      end
     end
 
     # Inserts or updates the object in the in-memory database.
