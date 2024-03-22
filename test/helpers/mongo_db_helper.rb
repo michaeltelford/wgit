@@ -8,9 +8,9 @@ require 'mongo'
 module MongoDBHelper
   include DatabaseHelper
 
-  # Returns the connected Wgit::Database::DatabaseAdapter instance.
-  def database_instance
-    Wgit::Database::MongoDB.new
+  # Returns the connected MongoDB instance.
+  def db
+    @db ||= Wgit::Database::MongoDB.new
   end
 
   # Deletes everything in the urls and documents collections.

@@ -23,7 +23,7 @@ module Wgit::Database
 
     # Initializes a DatabaseAdapter instance.
     # The implementor class should establish a DB connection here using the
-    # given connection_string, falling back to ENV['WGIT_CONNECTION_STRING'].
+    # given connection_string, falling back to `ENV['WGIT_CONNECTION_STRING']`.
     # Don't forget to call `super`.
     #
     # @param connection_string [String] The connection string needed to connect

@@ -8,9 +8,9 @@ require 'mongo'
 module InMemoryHelper
   include DatabaseHelper
 
-  # Returns the connected Wgit::Database::DatabaseAdapter instance.
-  def database_instance
-    Wgit::Database::InMemory.new
+  # Returns the connected InMemory instance.
+  def db
+    @db ||= Wgit::Database::InMemory.new
   end
 
   # Deletes everything in the urls and documents collections.

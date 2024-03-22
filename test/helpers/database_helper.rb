@@ -6,26 +6,20 @@ require_relative 'database_test_data'
 # be included in other DB helper modules. To do so, you must implement the
 # following underlying methods:
 #
-# database_instance
-# empty_db
-# seed_urls(url_hashes)
-# seed_docs(doc_hashes)
-# url?(url_hash)
-# doc?(url_hash)
+# db                    # Returns a connected database adapter instance
+# empty_db              # Empties the url and document collections
+# seed_urls(url_hashes) # Seeds the given url hashes
+# seed_docs(doc_hashes) # Seeds the given document hashes
+# url?(url_hash)        # Returns true if the given url hash exists
+# doc?(url_hash)        # Returns true if the given document hash exists
 #
 # The above method implementations should be done using the raw client for
 # your DB adapter, not the Wgit adapter class that you're testing; this way
 # the helpers won't fail before your DB tests fail.
 module DatabaseHelper
-  # database_instance should return a connected Wgit::Database:DatabaseAdapter.
   def self.included(_base)
     @@urls = []
     @@docs = []
-  end
-
-  # Returns the connected Wgit::Database::DatabaseAdapter instance.
-  def db
-    @@db ||= database_instance
   end
 
   # Seed what's in the block, comprising of url and doc method calls

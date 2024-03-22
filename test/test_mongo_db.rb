@@ -2,7 +2,7 @@ require_relative 'helpers/test_helper'
 
 # Test class for the Database::MongoDB adapter logic.
 # WARNING: The DB is cleared down prior to each test run.
-class TestDatabase < TestHelper
+class TestMongoDB < TestHelper
   include MongoDBHelper
 
   # Runs before every test.

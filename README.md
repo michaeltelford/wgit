@@ -109,7 +109,7 @@ http://quotes.toscrape.com/tag/humor/page/2/
 ...
 ```
 
-Using a MongoDB client, we can see that the two web pages have been indexed, along with their extracted *quotes* and *authors*:
+Using a database client, we can see that the two web pages have been indexed, along with their extracted *quotes* and *authors*:
 
 ![MongoDBClient](https://raw.githubusercontent.com/michaeltelford/wgit/assets/assets/wgit_mongo_index.png)
 

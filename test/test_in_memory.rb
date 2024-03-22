@@ -2,7 +2,7 @@ require_relative 'helpers/test_helper'
 
 # Test class for the Database::InMemory adapter logic.
 # WARNING: The in-memory DB is cleared down prior to each test run.
-class TestDatabase < TestHelper
+class TestInMemory < TestHelper
   include InMemoryHelper
 
   # Runs before every test.
