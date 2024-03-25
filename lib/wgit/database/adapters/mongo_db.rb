@@ -240,14 +240,10 @@ module Wgit::Database
     # @return [Array<Wgit::Document>] The Documents obtained from the DB.
     def docs(limit: 0, skip: 0, &block)
       results = retrieve(DOCUMENTS_COLLECTION, {},
-                        sort: { date_added: 1 }, limit:, skip:)
+                         sort: { date_added: 1 }, limit:, skip:)
       return [] if results.count < 1 # results#empty? doesn't exist.
 
-      # results.respond_to? :map! is false so we use map and overwrite the var.
-      results = results.map { |doc_hash| Wgit::Document.new(doc_hash) }
-      results.each(&block) if block_given?
-
-      results
+      map_documents(results, &block)
     end
 
     # Returns all Url records from the DB.
@@ -267,11 +263,7 @@ module Wgit::Database
       results = retrieve(URLS_COLLECTION, query, sort:, limit:, skip:)
       return [] if results.count < 1 # results#empty? doesn't exist.
 
-      # results.respond_to? :map! is false so we use map and overwrite the var.
-      results = results.map { |url_doc| Wgit::Url.new(url_doc) }
-      results.each(&block) if block_given?
-
-      results
+      map_urls(results, &block)
     end
 
     # Returns Url records that have been crawled.
@@ -315,7 +307,8 @@ module Wgit::Database
     #   DB.
     # @return [Array<Wgit::Document>] The search results obtained from the DB.
     def search(
-      query, case_sensitive: false, whole_sentence: true, limit: 10, skip: 0
+      query, case_sensitive: false, whole_sentence: true,
+      limit: 10, skip: 0, &block
     )
       query = query.to_s.strip
       query.replace("\"#{query}\"") if whole_sentence
@@ -333,12 +326,7 @@ module Wgit::Database
       results = retrieve(DOCUMENTS_COLLECTION, query,
                         sort: sort_proj, projection: sort_proj,
                         limit:, skip:)
-
-      results.map do |mongo_doc|
-        doc = Wgit::Document.new(mongo_doc)
-        yield(doc) if block_given?
-        doc
-      end
+      map_documents(results, &block)
     end
 
     # Searches the database's Documents for the given query and then searches

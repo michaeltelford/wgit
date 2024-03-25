@@ -110,5 +110,25 @@ module Wgit::Database
         Wgit::Database::Model.document(obj)
       end
     end
+
+    # Map each DB hash object into a Wgit::Document. Each Document is yielded
+    # if a block is given before returning the mapped Array of Documents.
+    def map_documents(doc_hashes)
+      doc_hashes.map do |doc|
+        doc = Wgit::Document.new(doc)
+        yield(doc) if block_given?
+        doc
+      end
+    end
+
+    # Map each DB hash object into a Wgit::Url. Each Url is yielded
+    # if a block is given before returning the mapped Array of Urls.
+    def map_urls(url_hashes)
+      url_hashes.map do |url|
+        url = Wgit::Url.new(url)
+        yield(url) if block_given?
+        url
+      end
+    end
   end
 end

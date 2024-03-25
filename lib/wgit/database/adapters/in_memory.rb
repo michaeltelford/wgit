@@ -54,7 +54,8 @@ num_docs=#{@docs.size} size=#{size}>"
     #   DB.
     # @return [Array<Wgit::Document>] The search results obtained from the DB.
     def search(
-      query, case_sensitive: false, whole_sentence: true, limit: 10, skip: 0
+      query, case_sensitive: false, whole_sentence: true,
+      limit: 10, skip: 0, &block
     )
       regex = if query.is_a?(Regexp)
                 query
@@ -78,11 +79,7 @@ num_docs=#{@docs.size} size=#{size}>"
       return [] unless results
 
       results = results[0...limit] if limit.positive?
-      results.map do |doc|
-        doc = Wgit::Document.new(doc)
-        yield(doc) if block_given?
-        doc
-      end
+      map_documents(results, &block)
     end
 
     # Deletes everything in the urls and documents collections.
@@ -101,17 +98,13 @@ num_docs=#{@docs.size} size=#{size}>"
     # @param skip [Integer] Skip n amount of Url's.
     # @yield [url] Given each Url object (Wgit::Url) returned from the DB.
     # @return [Array<Wgit::Url>] The uncrawled Urls obtained from the DB.
-    def uncrawled_urls(limit: 0, skip: 0)
+    def uncrawled_urls(limit: 0, skip: 0, &block)
       uncrawled = @urls.reject { |url| url['crawled'] }
       uncrawled = uncrawled[skip..]
       return [] unless uncrawled
 
       uncrawled = uncrawled[0...limit] if limit.positive?
-      uncrawled.map do |url_doc|
-        url = Wgit::Url.new(url_doc)
-        yield url if block_given?
-        url
-      end
+      map_urls(uncrawled, &block)
     end
 
     # Inserts or updates the object in the in-memory database.

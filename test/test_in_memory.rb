@@ -138,9 +138,8 @@ class TestInMemory < TestHelper
     assert results.first.score > results.last.score
   end
 
-  def test_search__case_sensitive__whole_sentence
+  def test_search__case_sensitive
     @docs.last.text << 'Foo Bar'
-
     seed { docs @docs }
 
     # Test case_sensitive: false and block.
@@ -155,6 +154,11 @@ class TestInMemory < TestHelper
 
     # Test case_sensitive: true.
     assert_empty db.search('foo bar', case_sensitive: true)
+  end
+
+  def test_search__whole_sentence
+    @docs.last.text << 'Foo Bar'
+    seed { docs @docs }
 
     # Test whole_sentence: false.
     results = db.search('bar foo', whole_sentence: false)
@@ -170,8 +174,11 @@ class TestInMemory < TestHelper
     assert results.all? { |doc| doc.instance_of? Wgit::Document }
   end
 
-  def test_search__limit__skip
-    # All dev data docs contain the word 'Everest'.
+  def test_search__limit
+    # First doc has highest textScore and so on...
+    @docs.reverse.each_with_index do |doc, i|
+      i.times { doc.text << 'Everest' }
+    end
     seed { docs @docs }
 
     assert_equal 3, db.search('everest').length
@@ -185,6 +192,14 @@ class TestInMemory < TestHelper
       assert_equal @docs[i], doc
       assert_equal @docs[i].url.to_h, doc.url.to_h
     end
+  end
+
+  def test_search__skip
+    # First doc has highest textScore and so on...
+    @docs.reverse.each_with_index do |doc, i|
+      i.times { doc.text << 'Everest' }
+    end
+    seed { docs @docs }
 
     # Test skip.
     results = db.search('everest', skip: 1)
