@@ -1,0 +1,22 @@
+name: wgit
+on: [push]
+jobs:
+  wgit-ci:
+    runs-on: ubuntu-22.04
+    services:
+      mongodb:
+        image: michaeltelford/mongo-wgit
+        ports:
+          - 27017:27017
+    env:
+      WGIT_CONNECTION_STRING: "mongodb://rubyapp:abcdef@localhost/crawler"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          # ruby-version: '3.3' # Not needed with a .ruby-version file
+          bundler-cache: true # runs 'bundle install' and caches installed gems automatically
+      - name: ci
+        run: bundle exec toys ci
+      - name: docs
+        run: bundle exec toys generate_rubydocs
