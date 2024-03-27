@@ -240,14 +240,14 @@ And you're good to go!
 
 ### Tooling
 
-Wgit uses the [`toys`](https://github.com/dazuma/toys) gem (instead of Rake) for task invocation. Always run `toys` as `bundle exec toys`. For a full list of available tasks a.k.a. tools, run `toys --tools`. You can search for a tool using `toys -s tool_name`. The most commonly used tools are listed below...
+Wgit uses the [toys](https://github.com/dazuma/toys) gem (instead of Rake) for task invocation. Always run `toys` as `bundle exec toys`. For a full list of available tasks a.k.a. tools, run `bundle exec toys --tools`. You can search for a tool using `bundle exec toys -s tool_name`. The most commonly used tools are listed below...
 
-Run `toys db` to see a list of database related tools, enabling you to run a Mongo DB instance locally using Docker. Run `toys test` to execute the tests.
+Run `bundle exec toys db` to see a list of database related tools, enabling you to run a Mongo DB instance locally using Docker. Run `bundle exec toys test` to execute the tests.
 
-To generate code documentation locally, run `toys yardoc`. To browse the docs in a browser run `toys yardoc --serve`. You can also use the `yri` command line tool e.g. `yri Wgit::Crawler#crawl_site` etc.
+To generate code documentation locally, run `bundle exec toys yardoc`. To browse the docs in a browser run `bundle exec toys yardoc --serve`. You can also use the `yri` command line tool e.g. `yri Wgit::Crawler#crawl_site` etc.
 
-To install this gem onto your local machine, run `toys install` and follow the prompt.
+To install this gem onto your local machine, run `bundle exec toys install` and follow the prompt.
 
 ### Console
 
-You can run `toys console` for an interactive shell using the `./bin/wgit` executable. The `toys setup` task will have created an `.env` and `.wgit.rb` file which get loaded by the executable. You can use the contents of this [gist](https://gist.github.com/michaeltelford/b90d5e062da383be503ca2c3a16e9164) to turn the executable into a development console. It defines some useful functions, fixtures and connects to the database etc. Don't forget to set the `WGIT_CONNECTION_STRING` in the `.env` file.
+You can run `bundle exec toys console` for an interactive shell using the `./bin/wgit` executable. The `bundle exec toys setup` task will have created an `.env` and `.wgit.rb` file which get loaded by the executable. You can use the contents of this [gist](https://gist.github.com/michaeltelford/b90d5e062da383be503ca2c3a16e9164) to turn the executable into a development console. It defines some useful functions, fixtures and connects to the database etc. Don't forget to set the `WGIT_CONNECTION_STRING` in the `.env` file.

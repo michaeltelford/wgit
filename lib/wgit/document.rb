@@ -773,7 +773,7 @@ be relative"
     end
 
     # Takes a Nokogiri element or HTML substring and returns it's index in
-    # @html. Returns the index/position Integer or nil if not found. The search
+    # the html. Returns the index/position Int or nil if not found. The search
     # is case insensitive because Nokogiri lower cases camelCase attributes.
     def html_index(el_or_str)
       @html.downcase.index(el_or_str.to_s.strip.downcase)
