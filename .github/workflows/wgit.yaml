@@ -1,5 +1,10 @@
 name: wgit
-on: [push]
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+      - ci
 jobs:
   wgit-ci:
     runs-on: ubuntu-22.04
