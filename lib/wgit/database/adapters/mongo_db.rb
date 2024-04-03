@@ -23,25 +23,11 @@ module Wgit::Database
     # The default name of the urls and documents collections unique index.
     UNIQUE_INDEX = 'unique_url'
 
-    # The documents collection default text search index. Use
-    # `db.text_index = Wgit::Database::MongoDB::DEFAULT_TEXT_INDEX` to revert
-    # changes.
-    DEFAULT_TEXT_INDEX = {
-      title: 2,
-      description: 2,
-      keywords: 2,
-      text: 1
-    }.freeze
-
     # The connection string for the database.
     attr_reader :connection_string
 
     # The database client object. Gets set when a connection is established.
     attr_reader :client
-
-    # The documents collection text index, used to search the DB.
-    # A custom setter method is also provided for changing the search logic.
-    attr_reader :text_index
 
     # The raw MongoDB client result of the most recent operation.
     attr_reader :last_result
@@ -60,7 +46,6 @@ module Wgit::Database
 
       @client = MongoDB.establish_connection(connection_string)
       @connection_string = connection_string
-      @text_index = DEFAULT_TEXT_INDEX
 
       super
     end
@@ -119,39 +104,35 @@ module Wgit::Database
       nil
     end
 
-    # Set the documents collection text search index aka the fields to #search.
-    # This is labor intensive on large collections so change little and wisely.
-    # This method is idempotent in that it will remove the index if it already
-    # exists before it creates the new index.
+    # Sets the documents collection search fields via a text index. This method
+    # is called from Wgit::Database::Model.set_search_fields and shouldn't be
+    # called directly.
     #
-    # @param fields [Array<Symbol>, Hash<Symbol, Integer>] The field names or
-    #   the field names and their coresponding search weights.
-    # @return [Array<Symbol>, Hash] The passed in value of fields. Use
-    #   `#text_index` to get the new index's fields and weights.
-    # @raise [StandardError] If fields is of an incorrect type or an error
-    #   occurs with the underlying DB client.
-    def text_index=(fields)
-      # We want to end up with a Hash of fields (Symbols) and their
-      # weights (Integers).
-      case fields
-      when Array # of Strings/Symbols.
-        fields = fields.map { |field| [field.to_sym, 1] }
-      when Hash  # of Strings/Symbols and Integers.
-        fields = fields.map { |field, weight| [field.to_sym, weight.to_i] }
-      else
-        raise "fields must be an Array or Hash, not a #{fields.class}"
-      end
+    # This method is labor intensive on large collections so change rarely and
+    # wisely. This method is idempotent in that it will remove the index if it
+    # already exists before it creates the new index.
+    #
+    # @param fields [Hash<Symbol, Integer>] The field names or the field names
+    #   and their coresponding search weights.
+    # @raise [StandardError] If fields is not a Hash.
+    def search_fields=(fields)
+      assert_type(fields, Hash)
 
-      fields  = fields.to_h
       indexes = @client[DOCUMENTS_COLLECTION].indexes
 
       indexes.drop_one(TEXT_INDEX) if indexes.get(TEXT_INDEX)
       indexes.create_one(
-        fields.map { |field, _| [field, 'text'] }.to_h,
+        fields.transform_values { 'text' },
         { name: TEXT_INDEX, weights: fields, background: true }
       )
+    end
 
-      @text_index = fields
+    # Gets the documents collection text search fields and their weights.
+    #
+    # @return [Hash] The fields and their weights.
+    def search_fields
+      indexes = @client[DOCUMENTS_COLLECTION].indexes
+      indexes.get(TEXT_INDEX)&.[]('weights')
     end
 
     ### DML ###
@@ -228,7 +209,7 @@ module Wgit::Database
     ### Retrieve Data ###
 
     # Returns all Document records from the DB. Use #search to filter based on
-    # the text_index of the collection.
+    # the Wgit::Database::Model.search_fields of the documents collection.
     #
     # All Documents are sorted by date_added ascending, in other words the
     # first doc returned is the first one that was inserted into the DB.
@@ -286,11 +267,8 @@ module Wgit::Database
       urls(crawled: false, limit:, skip:, &block)
     end
 
-    # Searches the database's Documents for the given query.
-    #
-    # The searched fields are decided by the text index setup on the
-    # documents collection. Currently we search against the following fields:
-    # "author", "keywords", "title" and "text" by default.
+    # Searches the database's Documents for the given query using the
+    # `Wgit::Database::Model.search_fields`.
     #
     # The MongoDB search algorithm ranks/sorts the results in order (highest
     # first) based on each document's "textScore" (which records the number of
@@ -516,7 +494,9 @@ module Wgit::Database
     # obj.
     #
     # Use like:
-    #   collection, query, model = get_model_info(obj)
+    # ```
+    # collection, query, model = get_model_info(obj)
+    # ```
     #
     # Raises an error if obj isn't a Wgit::Url or Wgit::Document.
     # Note, that no database calls are made during this method call.

@@ -10,8 +10,48 @@ class TestModel < TestHelper
 
   # Runs after every test.
   def teardown
+    Wgit::Database::Model.set_default_search_fields
+
     Wgit::Database::Model.include_doc_html  = false
     Wgit::Database::Model.include_doc_score = false
+  end
+
+  def test_search_fields__default
+    assert_equal Wgit::Database::Model::DEFAULT_SEARCH_FIELDS, Wgit::Database::Model.search_fields
+  end
+
+  def test_set_search_fields__fails
+    ex = assert_raises(StandardError) { Wgit::Database::Model.set_search_fields(true) }
+    assert_equal 'fields must be an Array or Hash, not a TrueClass', ex.message
+  end
+
+  def test_set_search_fields__symbols
+    fields = Wgit::Database::Model.set_search_fields(%i[title code])
+
+    assert_equal({ title: 1, code: 1 }, fields)
+    assert_equal({ title: 1, code: 1 }, Wgit::Database::Model.search_fields)
+  end
+
+  def test_set_search_fields__hash
+    fields = Wgit::Database::Model.set_search_fields({ title: 2, code: 1 })
+
+    assert_equal({ title: 2, code: 1 }, fields)
+    assert_equal({ title: 2, code: 1 }, Wgit::Database::Model.search_fields)
+  end
+
+  def test_set_search_fields__db
+    # Create a mock DB that is called when passed to the Model.
+    mock_db = Struct.new do
+      def search_fields=(fields)
+        raise unless fields == { title: 2, code: 1 }
+      end
+    end
+    db = mock_db.new
+
+    refute_exception do
+      fields = Wgit::Database::Model.set_search_fields({ title: 2, code: 1 }, db)
+      assert_equal({ title: 2, code: 1 }, fields)
+    end
   end
 
   def test_url

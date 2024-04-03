@@ -53,7 +53,7 @@ module Wgit
     # @param str [String] The new HTML body.
     # @return [String] @body's new value.
     def body=(str)
-      @body = (str || '')
+      @body = str || ''
     end
 
     # Returns the HTML response body or nil (if it's empty).
@@ -81,10 +81,7 @@ module Wgit
         return
       end
 
-      @headers = headers.map do |k, v|
-        k = k.downcase.gsub('-', '_').to_sym
-        [k, v]
-      end.to_h
+      @headers = headers.transform_keys { |k| k.downcase.gsub('-', '_').to_sym }
     end
 
     # Returns whether or not the response is 404 Not Found.

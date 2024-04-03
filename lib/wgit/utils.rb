@@ -18,17 +18,15 @@ module Wgit
     #   keys.
     # @return [Hash] A Hash created from obj's instance vars and values.
     def self.to_h(obj, ignore: [], use_strings_as_keys: true)
-      hash = {}
-
-      obj.instance_variables.each do |var|
-        next if ignore.include?(var.to_s)
+      obj.instance_variables.reduce({}) do |hash, var|
+        next(hash) if ignore.include?(var.to_s)
 
         key = var.to_s[1..] # Remove the @ prefix.
         key = key.to_sym unless use_strings_as_keys
         hash[key] = obj.instance_variable_get(var)
-      end
 
-      hash
+        hash
+      end
     end
 
     # An improved :each method which supports both singleton and Enumerable

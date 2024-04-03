@@ -18,21 +18,18 @@ class TestMongoDB < TestHelper
 
   # Runs after every test.
   def teardown
-    # Reset the text index for other tests.
-    db.text_index = Wgit::Database::MongoDB::DEFAULT_TEXT_INDEX
+    Wgit::Database::Model.set_default_search_fields(db)
   end
 
   def test_initialize
     db2 = Wgit::Database::MongoDB.new
     refute_nil db2.connection_string
     refute_nil db2.client
-    assert_equal db2.text_index, Wgit::Database::MongoDB::DEFAULT_TEXT_INDEX
     assert_nil db2.last_result
 
     db2 = Wgit::Database::MongoDB.new ENV['WGIT_CONNECTION_STRING']
     refute_nil db2.connection_string
     refute_nil db2.client
-    assert_equal db2.text_index, Wgit::Database::MongoDB::DEFAULT_TEXT_INDEX
     assert_nil db2.last_result
 
     reset_connection_string do
@@ -45,13 +42,11 @@ class TestMongoDB < TestHelper
     db2 = Wgit::Database::MongoDB.connect
     refute_nil db2.connection_string
     refute_nil db2.client
-    assert_equal db2.text_index, Wgit::Database::MongoDB::DEFAULT_TEXT_INDEX
     assert_nil db2.last_result
 
     db2 = Wgit::Database::MongoDB.connect ENV['WGIT_CONNECTION_STRING']
     refute_nil db2.connection_string
     refute_nil db2.client
-    assert_equal db2.text_index, Wgit::Database::MongoDB::DEFAULT_TEXT_INDEX
     assert_nil db2.last_result
 
     reset_connection_string do
@@ -75,38 +70,19 @@ class TestMongoDB < TestHelper
     assert_equal 2, docs.indexes.count
   end
 
-  def test_text_index__default_index
-    assert_equal Wgit::Database::MongoDB::DEFAULT_TEXT_INDEX, db.text_index
-  end
+  def test_search_fields
+    field_strs = Wgit::Database::Model.search_fields.transform_keys(&:to_s)
 
-  def test_text_index_equals__fails
-    ex = assert_raises(StandardError) { db.text_index = true }
-    assert_equal 'fields must be an Array or Hash, not a TrueClass', ex.message
-  end
-
-  def test_text_index_equals__symbols
-    index = db.text_index = %i[title code]
-
-    assert_equal(%i[title code], index)
-    assert_equal({ title: 1, code: 1 }, db.text_index)
-  end
-
-  def test_text_index_equals__hash
-    index = db.text_index = { title: 2, code: 1 }
-
-    assert_equal({ title: 2, code: 1 }, index)
-    assert_equal({ title: 2, code: 1 }, db.text_index)
-  end
-
-  def test_text_index__search_results
     # Mimic an extracted field and seed in the DB.
     @doc.instance_variable_set :@code, ['bundle install']
     seed { doc @doc }
 
     db = Wgit::Database::MongoDB.new
+    assert_equal field_strs, db.search_fields
     assert_empty db.search('bundle')
 
-    db.text_index = %i[code]
+    Wgit::Database::Model.set_search_fields(%i[code], db)
+    assert_equal({ 'code' => 1 }, db.search_fields)
     refute_empty db.search('bundle')
   end
 

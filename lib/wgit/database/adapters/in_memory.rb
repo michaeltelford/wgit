@@ -132,12 +132,10 @@ num_docs=#{@docs.size} size=#{size}>"
     def bulk_upsert(objs)
       assert_common_arr_types(objs, [Wgit::Url, Wgit::Document])
 
-      inserted = 0
-      objs.each do |obj|
-        inserted += 1 if upsert(obj)
+      objs.reduce(0) do |inserted, obj|
+          inserted += 1 if upsert(obj)
+          inserted
       end
-
-      inserted
     end
 
     private
@@ -152,7 +150,9 @@ num_docs=#{@docs.size} size=#{size}>"
     # obj.
     #
     # Use like:
-    #   collection, index, model = get_model_info(obj)
+    # ```
+    # collection, index, model = get_model_info(obj)
+    # ```
     #
     # Raises an error if obj isn't a Wgit::Url or Wgit::Document.
     #

@@ -9,6 +9,11 @@ module Wgit::Database
   # implement to work with Wgit. Failure to do so will result in a
   # NotImplementedError being raised.
   #
+  # While not required, implementing the method `#search_fields=(fields)` in an
+  # adapter class will allow `Wgit::Database::Model.set_search_fields` to call
+  # it. This allows the search fields to be set in one method call, from within
+  # the Wgit::Database::Model class. See this method's docs for more info.
+  #
   # Also listed in this class is common helper methods available to all
   # Database implementer subclasses.
   class DatabaseAdapter
@@ -39,9 +44,11 @@ module Wgit::Database
       raise NotImplementedError, NOT_IMPL_ERR
     end
 
-    # Searches the database's Documents for the given query. All matching
-    # Documents should be returned starting with the most relevant. Each
-    # returned Document should have it's 'score' field set for relevance.
+    # Searches the database's Documents for the given query. The
+    # `Wgit::Database::Model.search_fields` should be searched for matches
+    # against the given query. Documents should be sorted starting with the
+    # most relevant. Each returned Document should have it's `score` field set
+    # for relevance.
     #
     # @param query [String] The text query to search with.
     # @param case_sensitive [Boolean] Whether character case must match.
