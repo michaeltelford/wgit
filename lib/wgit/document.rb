@@ -29,7 +29,8 @@ module Wgit
       summary sup td textarea th time u ul var wbr
     ])
 
-    # Instance vars to be ignored by Document#to_h and in turn Model.document.
+    # Instance vars to be ignored by Document#to_h and in turn
+    # Wgit::Model.document.
     @to_h_ignore_vars = [
       '@parser' # Always ignore the Nokogiri object.
     ]
@@ -43,8 +44,8 @@ module Wgit
       # README.md for how to add to this Set dynamically.
       attr_reader :text_elements
 
-      # Array of instance vars to ignore when Document#to_h and in turn
-      # Model.document methods are called. Append your own defined extractor
+      # Array of instance vars to ignore when Document#to_h and (in turn)
+      # Wgit::Model.document methods are called. Append your own defined extractor
       # vars to omit them from the model (database object) when indexing.
       # Each var should be a String starting with an '@' char e.g. "@data" etc.
       attr_reader :to_h_ignore_vars
@@ -568,8 +569,8 @@ be relative"
     # Then finds the preceeding fragment element nearest to the target
     # element and returns it's href value (starting with #). The search is
     # performed against the @html so Documents loaded from a DB will need to
-    # contain the 'html' field in the Wgit::Database::Model. See the
-    # `Wgit::Database::Model#include_doc_html` documentation for more info.
+    # contain the 'html' field in the Wgit::Model. See the
+    # `Wgit::Model#include_doc_html` documentation for more info.
     #
     # @param el_text [String] The element text of the target element.
     # @param el_type [String] The element type, defaulting to any type.

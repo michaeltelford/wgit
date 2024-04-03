@@ -25,8 +25,8 @@ module DatabaseHelper
   # Seed what's in the block, comprising of url and doc method calls
   # (from this module). An integer can be used to specify how many default
   # objects should be seeded, defaults to 1; or provide your own Wgit:Url and
-  # Wgit:Document instances (which are passed through Wgit::Database::Model).
-  # Hashes are also supported and will be merged with Model.common_insert_data.
+  # Wgit:Document instances (which are passed through Wgit::Model). Hashes are
+  # also supported and will be merged with Wgit::Model.common_insert_data.
   #
   # Returns the number of seeded/inserted documents in the DB.
   #
@@ -89,28 +89,28 @@ module DatabaseHelper
   def append_url(url)
     model_hash = case url
                  when Wgit::Url
-                   Wgit::Database::Model.url(url)
+                   Wgit::Model.url(url)
                  when Hash
                    url
                  else
                    raise "Invalid data type: #{url.class}"
                  end
 
-    @@urls << model_hash.merge(Wgit::Database::Model.common_insert_data)
+    @@urls << model_hash.merge(Wgit::Model.common_insert_data)
   end
 
   # Appends a Document to @@docs.
   def append_doc(doc)
     model_hash = case doc
                  when Wgit::Document
-                   Wgit::Database::Model.document(doc)
+                   Wgit::Model.document(doc)
                  when Hash
                    doc
                  else
                    raise "Invalid data type: #{doc.class}"
                  end
 
-    @@docs << model_hash.merge(Wgit::Database::Model.common_insert_data)
+    @@docs << model_hash.merge(Wgit::Model.common_insert_data)
   end
 
   alias_method :urls, :url

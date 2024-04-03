@@ -2,6 +2,7 @@
 
 $VERBOSE = nil # Suppress ruby warnings during the test run.
 
+# Require third party gems.
 require 'maxitest/autorun'
 require 'maxitest/threads' # Fail on orphaned test threads.
 require 'maxitest/timeout'
@@ -9,13 +10,14 @@ require 'logger'
 require 'dotenv'
 require 'byebug' # Call 'byebug' anywhere in the code to debug.
 
+# Require any test helpers.
 require_relative '../mock/fixtures' # Mock HTTP responses.
 require_relative 'database_test_data'
 require_relative 'database_helper'
 require_relative 'mongo_db_helper'
 require_relative 'in_memory_helper'
 
-# Require all code being tested once, in one place.
+# Require all code being tested, once, in one place.
 require_relative '../../lib/wgit'
 require_relative '../../lib/wgit/core_ext'
 

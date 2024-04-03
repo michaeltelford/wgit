@@ -1,6 +1,6 @@
 require_relative '../../url'
 require_relative '../../document'
-require_relative '../model'
+require_relative '../../model'
 require_relative '../database_adapter'
 
 module Wgit::Database
@@ -159,7 +159,7 @@ num_docs=#{@docs.size} size=#{size}>"
     # @param obj [Wgit::Url, Wgit::Document] The obj to get semantics for.
     # @raise [StandardError] If obj isn't a Wgit::Url or Wgit::Document.
     # @return [Array<Symbol, Hash>] The collection type, the obj's index (if in
-    #   the collection, nil otherwise) and the Wgit::Database::Model of obj.
+    #   the collection, nil otherwise) and the Wgit::Model of obj.
     def get_model_info(obj)
       obj = obj.dup
 

@@ -428,7 +428,7 @@ class TestDocumentExtractors < TestHelper
     assert doc.respond_to? :table_text
     assert_equal 'BoomskHeader TextAnother Header', doc.table_text
 
-    db.insert doc # Uses Document#to_h and Model.document.
+    db.insert doc # Uses Document#to_h and Wgit::Model.document.
 
     assert doc?(
       url: {

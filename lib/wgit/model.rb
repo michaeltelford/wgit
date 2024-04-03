@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require_relative '../utils'
+require_relative './utils'
 
-module Wgit::Database
+module Wgit
   # Module used to build the Database collection objects, forming a data model.
   # The models produced are Hash like and therefore DB agnostic. Each model
   # will contain a unique field used for searching and avoiding duplicates,
@@ -10,7 +10,7 @@ module Wgit::Database
   # search fields used in Database and Document #search calls.
   module Model
     # The default search fields used in Database and Document searches.
-    # Call Wgit::Database::Model.set_search_fields` to revert to default.
+    # Call Wgit::Model.set_default_search_fields` to revert to default.
     DEFAULT_SEARCH_FIELDS = {
       title: 2,
       description: 2,
@@ -48,9 +48,9 @@ module Wgit::Database
     #
     # Use like:
     # ```
-    # Wgit::Database::Model.set_search_fields [:title, :text], db
+    # Wgit::Model.set_search_fields [:title, :text], db
     # => { title: 1, text: 1 }
-    # Wgit::Database::Model.set_search_fields {title: 2, text: 1}, db
+    # Wgit::Model.set_search_fields {title: 2, text: 1}, db
     # => { title: 2, text: 1 }
     # ```
     #

@@ -1,5 +1,10 @@
 # frozen_string_literal: true
 
+require_relative '../assertable'
+require_relative '../url'
+require_relative '../document'
+require_relative '../model'
+
 module Wgit::Database
   # The parent DatabaseAdapter class that should be inherited from when
   # creating an underlying Database adapter implementation class e.g.
@@ -10,9 +15,9 @@ module Wgit::Database
   # NotImplementedError being raised.
   #
   # While not required, implementing the method `#search_fields=(fields)` in an
-  # adapter class will allow `Wgit::Database::Model.set_search_fields` to call
+  # adapter class will allow `Wgit::Model.set_search_fields` to call
   # it. This allows the search fields to be set in one method call, from within
-  # the Wgit::Database::Model class. See this method's docs for more info.
+  # the Wgit::Model class. See this method's docs for more info.
   #
   # Also listed in this class is common helper methods available to all
   # Database implementer subclasses.
@@ -45,7 +50,7 @@ module Wgit::Database
     end
 
     # Searches the database's Documents for the given query. The
-    # `Wgit::Database::Model.search_fields` should be searched for matches
+    # `Wgit::Model.search_fields` should be searched for matches
     # against the given query. Documents should be sorted starting with the
     # most relevant. Each returned Document should have it's `score` field set
     # for relevance.
@@ -112,9 +117,9 @@ module Wgit::Database
       assert_type(obj, [Wgit::Url, Wgit::Document])
 
       if obj.is_a?(Wgit::Url)
-        Wgit::Database::Model.url(obj)
+        Wgit::Model.url(obj)
       else
-        Wgit::Database::Model.document(obj)
+        Wgit::Model.document(obj)
       end
     end
 

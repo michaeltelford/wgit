@@ -3,7 +3,7 @@
 require_relative '../../url'
 require_relative '../../document'
 require_relative '../../logger'
-require_relative '../model'
+require_relative '../../model'
 require_relative '../database_adapter'
 require 'logger'
 require 'mongo'
@@ -105,7 +105,7 @@ module Wgit::Database
     end
 
     # Sets the documents collection search fields via a text index. This method
-    # is called from Wgit::Database::Model.set_search_fields and shouldn't be
+    # is called from Wgit::Model.set_search_fields and shouldn't be
     # called directly.
     #
     # This method is labor intensive on large collections so change rarely and
@@ -167,7 +167,7 @@ module Wgit::Database
     # @return [Boolean] True if inserted, false if updated.
     def upsert(obj)
       collection, query, model = get_model_info(obj)
-      data_hash = model.merge(Model.common_update_data)
+      data_hash = model.merge(Wgit::Model.common_update_data)
       result = @client[collection].replace_one(query, data_hash, upsert: true)
 
       result.matched_count.zero?
@@ -189,7 +189,7 @@ module Wgit::Database
       collection = nil
       request_objs = objs.map do |obj|
         collection, query, model = get_model_info(obj)
-        data_hash = model.merge(Model.common_update_data)
+        data_hash = model.merge(Wgit::Model.common_update_data)
 
         {
           update_many: {
@@ -209,7 +209,7 @@ module Wgit::Database
     ### Retrieve Data ###
 
     # Returns all Document records from the DB. Use #search to filter based on
-    # the Wgit::Database::Model.search_fields of the documents collection.
+    # the Wgit::Model.search_fields of the documents collection.
     #
     # All Documents are sorted by date_added ascending, in other words the
     # first doc returned is the first one that was inserted into the DB.
@@ -268,7 +268,7 @@ module Wgit::Database
     end
 
     # Searches the database's Documents for the given query using the
-    # `Wgit::Database::Model.search_fields`.
+    # `Wgit::Model.search_fields`.
     #
     # The MongoDB search algorithm ranks/sorts the results in order (highest
     # first) based on each document's "textScore" (which records the number of
@@ -439,7 +439,7 @@ module Wgit::Database
     # @return [Integer] The number of updated records/objects.
     def update(obj)
       collection, query, model = get_model_info(obj)
-      data_hash = model.merge(Model.common_update_data)
+      data_hash = model.merge(Wgit::Model.common_update_data)
 
       mutate(collection, query, { '$set' => data_hash })
     end
@@ -535,14 +535,14 @@ module Wgit::Database
 
       case data
       when Hash # Single record.
-        data.merge!(Model.common_insert_data)
+        data.merge!(Wgit::Model.common_insert_data)
         result = @client[collection.to_sym].insert_one(data)
         raise 'DB write (insert) failed' unless write_succeeded?(result)
 
         result.n
       when Array # Multiple records.
         assert_arr_type(data, Hash)
-        data.map! { |hash| hash.merge(Model.common_insert_data) }
+        data.map! { |hash| hash.merge(Wgit::Model.common_insert_data) }
         result = @client[collection.to_sym].insert_many(data)
         unless write_succeeded?(result, num_writes: data.length)
           raise 'DB write(s) (insert) failed'
@@ -596,7 +596,7 @@ module Wgit::Database
 
     # Mutate/update one or more Url or Document records in the DB.
     #
-    # This method expects Model.common_update_data to have been merged in
+    # This method expects Wgit::Model.common_update_data to have been merged in
     # already by the calling method.
     #
     # @param collection [Symbol] Either :urls or :documents.

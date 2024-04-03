@@ -18,7 +18,7 @@ class TestMongoDB < TestHelper
 
   # Runs after every test.
   def teardown
-    Wgit::Database::Model.set_default_search_fields(db)
+    Wgit::Model.set_default_search_fields(db)
   end
 
   def test_initialize
@@ -71,7 +71,7 @@ class TestMongoDB < TestHelper
   end
 
   def test_search_fields
-    field_strs = Wgit::Database::Model.search_fields.transform_keys(&:to_s)
+    field_strs = Wgit::Model.search_fields.transform_keys(&:to_s)
 
     # Mimic an extracted field and seed in the DB.
     @doc.instance_variable_set :@code, ['bundle install']
@@ -81,7 +81,7 @@ class TestMongoDB < TestHelper
     assert_equal field_strs, db.search_fields
     assert_empty db.search('bundle')
 
-    Wgit::Database::Model.set_search_fields(%i[code], db)
+    Wgit::Model.set_search_fields(%i[code], db)
     assert_equal({ 'code' => 1 }, db.search_fields)
     refute_empty db.search('bundle')
   end
@@ -118,13 +118,13 @@ class TestMongoDB < TestHelper
     num_inserted = db.insert @doc
     assert_equal 1, num_inserted
     refute_nil db.last_result
-    assert doc?(Wgit::Database::Model.document(@doc))
+    assert doc?(Wgit::Model.document(@doc))
     assert_equal 1, db.num_docs
 
     # Insert several docs.
     num_inserted = db.insert @docs
     assert_equal @docs.length, num_inserted
-    @docs.each { |doc| assert doc?(Wgit::Database::Model.document(doc)) }
+    @docs.each { |doc| assert doc?(Wgit::Model.document(doc)) }
     assert_equal @docs.length + 1, db.num_docs
     assert_equal db.num_docs, db.num_records
   end
@@ -474,7 +474,7 @@ class TestMongoDB < TestHelper
 
     assert_equal 1, result
     refute_nil db.last_result
-    assert doc?(Wgit::Database::Model.document(@doc))
+    assert doc?(Wgit::Model.document(@doc))
     refute doc? url: @doc.url, title: 'Altitude Junkies | Everest'
   end
 
