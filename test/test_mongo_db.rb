@@ -7,6 +7,8 @@ class TestMongoDB < TestHelper
 
   # Runs before every test.
   def setup
+    Wgit::Model.set_default_search_fields(db)
+
     empty_db
 
     @url = Wgit::Url.new(DatabaseTestData.url)
@@ -14,11 +16,6 @@ class TestMongoDB < TestHelper
 
     @urls = Array.new(3) { Wgit::Url.new(DatabaseTestData.url) }
     @docs = Array.new(3) { Wgit::Document.new(DatabaseTestData.doc) }
-  end
-
-  # Runs after every test.
-  def teardown
-    Wgit::Model.set_default_search_fields(db)
   end
 
   def test_initialize
@@ -349,32 +346,35 @@ class TestMongoDB < TestHelper
 
   def test_search_text
     # All dev data @docs contain the word 'peak' in the text.
-    # But doc only has 'peak' in the title and shouldn't be returned.
+    # And doc has 'peak' in the title.
     html = '<html><head><title>peak</title></head></html>'
-    doc = Wgit::Document.new 'http://example.com'.to_url, html
-    test_docs = @docs + [doc]
+    doc  = Wgit::Document.new 'http://example.com'.to_url, html
+    doc2 = Wgit::Document.new 'https://example.com'.to_url, '<html>FooBar</html>'
+    test_docs = @docs + [doc, doc2] # 5 docs in total, 4 matching.
     seed { docs test_docs }
 
     query = 'peak'
-    expected_url = 'http://altitudejunkies.com/everest.html'
     expected_matches = [
-      '· Expedition permit, peak fee and conservation fees',
-      ' a 7,000-meter or 8,000-meter Himalayan peak to qualify for our expedition. We d',
+      'Highest Peak',
+      'All climbers need to have climbed on a 7,000-8,000-meter peak previously',
       '8,000-meter peaks are a serious undertaking and climbers need to be aware there ',
-      'All climbers need to have climbed on a 7,000-8,000-meter peak previously'
+      ' a 7,000-meter or 8,000-meter Himalayan peak to qualify for our expedition. We d',
+      '· Expedition permit, peak fee and conservation fees'
     ]
 
-    results =     db.search_text(query)
+    results     = db.search_text(query)
     top_results = db.search_text(query, top_result_only: true)
 
-    assert_equal 3, results.size
+    assert_equal 4, results.size
     assert_equal 4, db.last_result&.count
     assert_instance_of Hash, results
     assert_instance_of Hash, top_results
-    assert results.keys.all? { |url| url.start_with? expected_url }
-    assert top_results.keys.all? { |url| url.start_with? expected_url }
-    assert_equal expected_matches, results.values.first
-    assert top_results.values.all? { |text| text == expected_matches.first }
+
+    assert(results.values.first(3).all? { |matches| matches == expected_matches })
+    assert(top_results.values.first(3).all? { |match| match == 'Highest Peak' })
+
+    assert_equal ['peak'], results.values.last
+    assert_equal 'peak', top_results.values.last
   end
 
   def test_stats

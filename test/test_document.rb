@@ -7,6 +7,8 @@ class TestDocument < TestHelper
 
   # Runs before every test.
   def setup
+    Wgit::Model.set_default_search_fields
+
     @html = File.read('test/mock/fixtures/test_doc.html')
     @mongo_doc_dup = {
       'url' => {
@@ -146,7 +148,7 @@ class TestDocument < TestHelper
     assert_equal 'http://server.com/public', doc.base
   end
 
-  def test_initialize__with_mongo_doc
+  def test_initialize__with_obj
     doc = Wgit::Document.new @mongo_doc_dup
 
     assert_doc doc
@@ -154,6 +156,10 @@ class TestDocument < TestHelper
     assert_equal 0.42446, doc.url.crawl_duration
     assert_equal @mongo_doc_dup['score'], doc.score
     assert_nil doc.base
+  end
+
+  def test_initialize__with_obj_missing_url
+    assert_raises("Missing 'url' field in doc object") { Wgit::Document.new({}) }
   end
 
   def test_internal_links
@@ -500,10 +506,9 @@ class TestDocument < TestHelper
     # Test case_sensitive: false.
     results = doc.search('minitest', case_sensitive: false)
     assert_equal([
-      "Minitest rocks!! It's simplicity and power matches the Ruby \
-language in which it",
-      "is primarily for testing the Ruby code used in Wgit with the \
-Minitest framework."
+      'Minitest',
+      'is primarily for testing the Ruby code used in Wgit with the Minitest framework.',
+      "Minitest rocks!! It's simplicity and power matches the Ruby language in which it"
     ], results)
 
     # Test case_sensitive: true.
@@ -534,12 +539,41 @@ Minitest framework."
     ], results)
   end
 
+  def test_search__default_search_fields
+    doc = Wgit::Document.new({
+      'url' => 'http://www.mytestsite.com/home',
+      'title' => 'abc abc',
+      'keywords' => ['abc 2', 'abc 3'],
+      'text' => 'abc abc abc'
+    })
+
+    results = doc.search('abc')
+    assert_equal([
+      'abc abc',      # => title    (2 hit  * 2 weight == 4)
+      'abc abc abc',  # => text     (3 hits * 1 weight == 3)
+      'abc 2',        # => keywords (1 hits * 2 weight == 2)
+      'abc 3'         # => keywords (1 hits * 2 weight == 2)
+    ], results)
+  end
+
+  def test_search__set_search_fields
+    # Wgit::Utils.pprint "MODEL_FIELDS", search_fields: Wgit::Model.search_fields
+    Wgit::Model.set_search_fields(%i[code foo]) # @code exists, @foo doesn't.
+    doc = Wgit::Document.new('http://www.mytestsite.com/home')
+    doc.instance_variable_set(:@code, 'print("hello world")')
+
+    results = doc.search('hello')
+    assert_equal([
+      'print("hello world")' # => code (1 hits * 1 weight == 1)
+    ], results)
+  end
+
   def test_search!
     doc = Wgit::Document.new 'http://www.mytestsite.com/home', @html
     orig_text = doc.text
 
     assert_equal orig_text, doc.search!('minitest', sentence_limit: 16)
-    assert_equal(['Minitest rocks!!', 'ith the Minitest'], doc.text)
+    assert_equal(['Minitest', 'ith the Minitest', 'Minitest rocks!!'], doc.text)
   end
 
   def test_xpath

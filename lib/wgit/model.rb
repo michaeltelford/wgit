@@ -9,7 +9,9 @@ module Wgit
   # this is typically a `url` field. Also contained in the model are the
   # search fields used in Database and Document #search calls.
   module Model
-    # The default search fields used in Database and Document searches.
+    # The default search fields used in Database and Document #search calls.
+    # The number of matches for each field is multiplied by the field weight,
+    # the total is the search score, used to sort the search results.
     # Call Wgit::Model.set_default_search_fields` to revert to default.
     DEFAULT_SEARCH_FIELDS = {
       title: 2,
@@ -19,6 +21,9 @@ module Wgit
     }.freeze
 
     # The search fields used in Database and Document #search calls.
+    # The number of matches for each field is multiplied by the field weight,
+    # the total is the search score, used to sort the search results.
+    # Call Wgit::Model.set_default_search_fields` to revert to default.
     @search_fields = DEFAULT_SEARCH_FIELDS
 
     # Whether or not to include the Document#html in the #document model.

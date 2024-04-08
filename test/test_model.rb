@@ -6,10 +6,7 @@ class TestModel < TestHelper
   parallelize_me!
 
   # Runs before every test.
-  def setup; end
-
-  # Runs after every test.
-  def teardown
+  def setup
     Wgit::Model.set_default_search_fields
 
     Wgit::Model.include_doc_html  = false

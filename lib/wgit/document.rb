@@ -64,7 +64,7 @@ module Wgit
     # The Nokogiri::HTML document object initialized from @html.
     attr_reader :parser
 
-    # The score is only used following a `Database#search` and records matches.
+    # The score is set/used following a `Database#search` and records matches.
     attr_reader :score
 
     # Initialize takes either two strings (representing the URL and HTML) or an
@@ -447,13 +447,14 @@ be relative"
       Wgit::Utils.sanitize(links)
     end
 
-    # Searches the @text for the given query and returns the results.
+    # Searches the Document's instance vars for the given query and returns
+    # the results. The `Wgit::Model.search_fields` denote the vars to be
+    # searched.
     #
-    # The number of search hits for each sentenence are recorded internally
+    # The number of matches for each search field is recorded internally
     # and used to rank/sort the search results before being returned. Where
-    # the Wgit::Database::DatabaseAdapter#search method search all documents
-    # for the most hits, this method searches each document's @text for the
-    # most hits.
+    # the Wgit::Database::DatabaseAdapter#search method searches all documents
+    # for matches, this method searches each individual Document for matches.
     #
     # Each search result comprises of a sentence of a given length. The length
     # will be based on the sentence_limit parameter or the full length of the
@@ -461,45 +462,51 @@ be relative"
     # that the search query is visible somewhere in the sentence.
     #
     # @param query [Regexp, #to_s] The regex or text value to search the
-    #   document's @text for.
+    #   document's instance vars (Wgit::Model.search_fields) for.
     # @param case_sensitive [Boolean] Whether character case must match.
     # @param whole_sentence [Boolean] Whether multiple words should be searched
     #   for separately.
     # @param sentence_limit [Integer] The max length of each search result
     #   sentence.
-    # @return [Array<String>] A subset of @text, matching the query.
+    # @return [Array<String>] A subset of this document's instance vars,
+    #   matching the query for fields defined in Wgit::Model.search_fields.
     def search(
       query, case_sensitive: false, whole_sentence: true, sentence_limit: 80
     )
       raise 'The sentence_limit value must be even' if sentence_limit.odd?
 
-      if query.is_a?(Regexp)
-        regex = query
-      else
-        query = query.to_s
-        query = query.gsub(' ', '|') unless whole_sentence
-        regex = Regexp.new(query, !case_sensitive)
-      end
-
+      regex = if query.is_a?(Regexp)
+                query
+              else
+                query = query.to_s
+                query = query.gsub(' ', '|') unless whole_sentence
+                Regexp.new(query, !case_sensitive)
+              end
       results = {}
 
-      @text.each do |sentence|
-        sentence = sentence.strip
-        next if results[sentence]
+      Wgit::Model.search_fields.each do |field, weight|
+        doc_field = instance_variable_get("@#{field}".to_sym)
+        next unless doc_field
 
-        hits = sentence.scan(regex).count
-        next unless hits.positive?
+        Wgit::Utils.each(doc_field) do |text|
+          assert_type(text, String)
 
-        index = sentence.index(regex) # Index of first match.
-        Wgit::Utils.format_sentence_length(sentence, index, sentence_limit)
+          text = text.strip
+          next if results[text]
 
-        results[sentence] = hits
+          matches = text.scan(regex).count
+          next unless matches.positive?
+
+          index = text.index(regex) # Index of first match.
+          Wgit::Utils.format_sentence_length(text, index, sentence_limit)
+
+          results[text] = matches * weight
+        end
       end
 
       return [] if results.empty?
 
-      results = Hash[results.sort_by { |_k, v| v }]
-      results.keys.reverse
+      Hash[results.sort_by { |_, score| -score }].keys
     end
 
     # Performs a text search (see Document#search for details) but assigns the
@@ -715,12 +722,14 @@ be relative"
     def init_from_object(obj, encode: true)
       assert_respond_to(obj, :fetch)
 
-      @url    = Wgit::Url.new(obj.fetch('url')) # Should always be present.
+      url = obj.fetch('url') # Should always be present.
+      raise "Missing 'url' field in doc object" unless url
+
+      @url    = Wgit::Url.new(url)
       @html   = obj.fetch('html', '')
       @parser = init_nokogiri
       @score  = obj.fetch('score', 0.0)
-
-      @html = Wgit::Utils.sanitize(@html, encode:)
+      @html   = Wgit::Utils.sanitize(@html, encode:)
 
       # Dynamically run the init_*_from_object methods.
       Document.private_instance_methods(false).each do |method|
