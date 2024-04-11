@@ -1,3 +1,4 @@
+require_relative '../../utils'
 require_relative '../../url'
 require_relative '../../document'
 require_relative '../../model'
@@ -66,11 +67,12 @@ num_docs=#{@docs.size} size=#{size}>"
               end
 
       results = @docs.select do |doc|
-        score = 0.0
-        doc['text'].each { |text| text.scan(regex) { score += 0.5 } }
+        score = search_doc(doc, regex)
         doc['score'] = score
+
         score.positive?
       end
+
       return [] if results.empty?
 
       results.sort! { |a, b| b['score'] <=> a['score'] }
@@ -179,6 +181,27 @@ num_docs=#{@docs.size} size=#{size}>"
       end
 
       [collection, index, model]
+    end
+
+    # Searches the given doc using the regex and returns a numeric score.
+    def search_doc(doc, regex)
+      score = 0.0
+
+      Wgit::Model.search_fields.each do |field, weight|
+        doc_field = doc[field.to_s]
+        next unless doc_field
+
+        Wgit::Utils.each(doc_field) do |text|
+          assert_type(text, String)
+
+          matches = text.strip.scan(regex).count
+          next unless matches.positive?
+
+          score += matches * weight
+        end
+      end
+
+      score
     end
   end
 end

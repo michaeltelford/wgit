@@ -557,7 +557,6 @@ class TestDocument < TestHelper
   end
 
   def test_search__set_search_fields
-    # Wgit::Utils.pprint "MODEL_FIELDS", search_fields: Wgit::Model.search_fields
     Wgit::Model.set_search_fields(%i[code foo]) # @code exists, @foo doesn't.
     doc = Wgit::Document.new('http://www.mytestsite.com/home')
     doc.instance_variable_set(:@code, 'print("hello world")')

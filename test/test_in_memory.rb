@@ -7,6 +7,8 @@ class TestInMemory < TestHelper
 
   # Runs before every test.
   def setup
+    Wgit::Model.set_default_search_fields
+
     empty_db
 
     @url = Wgit::Url.new(DatabaseTestData.url)
@@ -222,7 +224,42 @@ class TestInMemory < TestHelper
     end
   end
 
+  def test_search__default_search_fields
+    # => title    (2 hit  * 2 weight == 4)
+    # => text     (3 hits * 1 weight == 3)
+    # => keywords (1 hits * 2 weight == 2)
+    # => keywords (1 hits * 2 weight == 2)
+    # ------------------------------------
+    # => Total match score:          == 11
+    test_doc = Wgit::Document.new({
+      'url' => 'http://www.mytestsite.com/home',
+      'title' => 'abc abc',
+      'keywords' => ['abc 2', 'abc 3'],
+      'text' => 'abc abc abc'
+    })
+    seed { doc test_doc }
+
+    results = db.search('abc')
+
+    assert_equal(1, results.size)
+    assert_equal(11, results.first.score)
+  end
+
+  def test_search__set_search_fields
+    Wgit::Model.set_search_fields(%i[code foo]) # @code exists, @foo doesn't.
+
+    test_doc = Wgit::Document.new('http://www.mytestsite.com/home')
+    test_doc.instance_variable_set(:@code, 'print("hello world")') # Score of 1.
+    seed { doc test_doc }
+
+    results = db.search('hello')
+
+    assert_equal(1, results.size)
+    assert_equal(1, results.first.score)
+  end
+
   def test_size
+    # An empty db has two empty arrays taking up 4 bytes.
     assert_equal 4, db.size
   end
 

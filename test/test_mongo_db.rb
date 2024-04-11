@@ -344,6 +344,40 @@ class TestMongoDB < TestHelper
     end
   end
 
+  def test_search__default_search_fields
+    # => title    (2 hit  * 2 weight == 4)
+    # => text     (3 hits * 1 weight == 3)
+    # => keywords (1 hits * 2 weight == 2)
+    # => keywords (1 hits * 2 weight == 2)
+    # ------------------------------------
+    # => Total match score:          == 11
+    test_doc = Wgit::Document.new({
+      'url' => 'http://www.mytestsite.com/home',
+      'title' => 'abc abc',
+      'keywords' => ['abc 2', 'abc 3'],
+      'text' => 'abc abc abc'
+    })
+    seed { doc test_doc }
+
+    results = db.search('abc')
+
+    assert_equal(1, results.size)
+    assert_equal(7.75, results.first.score)
+  end
+
+  def test_search__set_search_fields
+    Wgit::Model.set_search_fields(%i[code foo], db) # @code exists, @foo doesn't.
+
+    test_doc = Wgit::Document.new('http://www.mytestsite.com/home')
+    test_doc.instance_variable_set(:@code, 'print("hello world")') # Score of 1.
+    seed { doc test_doc }
+
+    results = db.search('hello')
+
+    assert_equal(1, results.size)
+    assert_equal(0.67, results.first.score.round(2))
+  end
+
   def test_search_text
     # All dev data @docs contain the word 'peak' in the text.
     # And doc has 'peak' in the title.

@@ -147,7 +147,7 @@ module Wgit
       raise 'stream must respond_to? :puts' unless stream.respond_to?(:puts)
 
       results.each do |doc|
-        title    = (doc.title || '<no title>')
+        title    = doc.title || '<no title>'
         keywords = doc.keywords&.take(keyword_limit)&.join(', ')
         sentence = doc.text.first
         url      = doc.url
