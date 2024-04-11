@@ -449,7 +449,7 @@ be relative"
 
     # Searches the Document's instance vars for the given query and returns
     # the results. The `Wgit::Model.search_fields` denote the vars to be
-    # searched.
+    # searched, unless overridden using the search_fields: param.
     #
     # The number of matches for each search field is recorded internally
     # and used to rank/sort the search results before being returned. Where
@@ -468,12 +468,18 @@ be relative"
     #   for separately.
     # @param sentence_limit [Integer] The max length of each search result
     #   sentence.
+    # @param search_fields [Hash<Symbol, Integer>] The Document instance vars
+    #   to search and the weight for a match (used to determine relevence).
+    #   This should only be set for custom one-off Document searches. For
+    #   permanent changing of search fields, see Wgit::Model.set_search_fields.
     # @return [Array<String>] A subset of this document's instance vars,
-    #   matching the query for fields defined in Wgit::Model.search_fields.
+    #   matching the query for the search_fields: param.
     def search(
-      query, case_sensitive: false, whole_sentence: true, sentence_limit: 80
+      query, case_sensitive: false, whole_sentence: true,
+      sentence_limit: 80, search_fields: Wgit::Model.search_fields
     )
       raise 'The sentence_limit value must be even' if sentence_limit.odd?
+      assert_type(search_fields, Hash)
 
       regex = if query.is_a?(Regexp)
                 query
@@ -484,7 +490,7 @@ be relative"
               end
       results = {}
 
-      Wgit::Model.search_fields.each do |field, weight|
+      search_fields.each do |field, weight|
         doc_field = instance_variable_get("@#{field}".to_sym)
         next unless doc_field
 
@@ -509,10 +515,30 @@ be relative"
       Hash[results.sort_by { |_, score| -score }].keys
     end
 
-    # Performs a text search (see Document#search for details) but assigns the
-    # results to the @text instance variable. This can be used for sub search
-    # functionality. The original text is returned; no other reference to it
-    # is kept thereafter.
+    # Performs a text only search of the Document, instead of searching all
+    # search fields defined in Wgit::Model.search_fields.
+    #
+    # @param query [Regexp, #to_s] The regex or text value to search the
+    #   document's text for.
+    # @param case_sensitive [Boolean] Whether character case must match.
+    # @param whole_sentence [Boolean] Whether multiple words should be searched
+    #   for separately.
+    # @param sentence_limit [Integer] The max length of each search result
+    #   sentence.
+    # @return [Array<String>] A subset of this document's text fields that
+    #   match the query.
+    def search_text(
+      query, case_sensitive: false, whole_sentence: true, sentence_limit: 80
+    )
+      search(
+        query, case_sensitive:, whole_sentence:,
+        sentence_limit:, search_fields: { text: 1 })
+    end
+
+    # Performs a text only search (see Document#search_text for details) but
+    # assigns the results to the @text instance variable. This can be used
+    # for sub search functionality. The original text is returned; no other
+    # reference to it is kept thereafter.
     #
     # @param query [Regexp, #to_s] The regex or text value to search the
     #   document's @text for.
@@ -522,11 +548,11 @@ be relative"
     # @param sentence_limit [Integer] The max length of each search result
     #   sentence.
     # @return [String] This Document's original @text value.
-    def search!(
+    def search_text!(
       query, case_sensitive: false, whole_sentence: true, sentence_limit: 80
     )
       orig_text = @text
-      @text = search(query, case_sensitive:, whole_sentence:, sentence_limit:)
+      @text = search_text(query, case_sensitive:, whole_sentence:, sentence_limit:)
 
       orig_text
     end

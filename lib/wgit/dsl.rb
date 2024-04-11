@@ -276,7 +276,8 @@ the 'start' function".freeze
         query, case_sensitive:, whole_sentence:, limit:, skip:)
 
       results.each do |doc|
-        doc.search!(query, case_sensitive:, whole_sentence:, sentence_limit:)
+        doc.search_text!(
+          query, case_sensitive:, whole_sentence:, sentence_limit:)
         yield(doc) if block_given?
       end
 

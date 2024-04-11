@@ -567,12 +567,22 @@ class TestDocument < TestHelper
     ], results)
   end
 
-  def test_search!
+  def test_search_text
     doc = Wgit::Document.new 'http://www.mytestsite.com/home', @html
     orig_text = doc.text
 
-    assert_equal orig_text, doc.search!('minitest', sentence_limit: 16)
-    assert_equal(['Minitest', 'ith the Minitest', 'Minitest rocks!!'], doc.text)
+    assert_equal(
+      ['ith the Minitest', 'Minitest rocks!!'],
+      doc.search_text('minitest', sentence_limit: 16))
+    assert_equal(orig_text, doc.text)
+  end
+
+  def test_search_text!
+    doc = Wgit::Document.new 'http://www.mytestsite.com/home', @html
+    orig_text = doc.text
+
+    assert_equal orig_text, doc.search_text!('minitest', sentence_limit: 16)
+    assert_equal(['ith the Minitest', 'Minitest rocks!!'], doc.text)
   end
 
   def test_xpath

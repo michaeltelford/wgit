@@ -95,7 +95,7 @@ class TestUtils < TestHelper
       doc_hash['url'] = 'http://altitudejunkies.com/everest.html'
 
       doc = Wgit::Document.new(doc_hash)
-      doc.search!(query)
+      doc.search_text!(query)
 
       results << doc
     end
