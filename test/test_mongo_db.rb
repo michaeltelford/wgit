@@ -378,7 +378,7 @@ class TestMongoDB < TestHelper
     assert_equal(0.67, results.first.score.round(2))
   end
 
-  def test_search_text
+  def test_search!
     # All dev data @docs contain the word 'peak' in the text.
     # And doc has 'peak' in the title.
     html = '<html><head><title>peak</title></head></html>'
@@ -396,8 +396,8 @@ class TestMongoDB < TestHelper
       '· Expedition permit, peak fee and conservation fees'
     ]
 
-    results     = db.search_text(query)
-    top_results = db.search_text(query, top_result_only: true)
+    results     = db.search!(query)
+    top_results = db.search!(query, top_result_only: true)
 
     assert_equal 4, results.size
     assert_equal 4, db.last_result&.count

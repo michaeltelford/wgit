@@ -321,13 +321,14 @@ module Wgit::Database
     # @param sentence_limit [Integer] The max length of each search result
     #   sentence.
     # @param top_result_only [Boolean] Whether to return all of the documents
-    #   search results or just the top (most relavent) result.
+    #   search results (Array<String>) or just the top (most relevent) result
+    #   (String).
     # @yield [doc] Given each search result (Wgit::Document) returned from the
     #   DB.
     # @return [Hash<String, String | Array<String>>] The search results obtained
     #   from the DB having mapped the docs url => search_results. The format of
     #   search_results depends on the value of `top_result_only`.
-    def search_text(
+    def search!(
       query, case_sensitive: false, whole_sentence: true,
       limit: 10, skip: 0, sentence_limit: 80, top_result_only: false
     )
