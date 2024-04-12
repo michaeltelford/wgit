@@ -307,6 +307,7 @@ the 'start' function".freeze
     alias_method :crawl_url,  :crawl
     alias_method :crawl_r,    :crawl_site
     alias_method :index_r,    :index_site
+    alias_method :index_url,  :index
     alias_method :start_urls, :start
   end
 end

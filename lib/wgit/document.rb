@@ -737,7 +737,8 @@ be relative"
       # Dynamically run the init_*_from_html methods.
       Document.private_instance_methods(false).each do |method|
         if method.to_s.start_with?('init_') &&
-           method.to_s.end_with?('_from_html') && method != __method__
+           method.to_s.end_with?('_from_html') &&
+           method != __method__
           send(method)
         end
       end

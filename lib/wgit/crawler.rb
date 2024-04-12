@@ -80,6 +80,13 @@ module Wgit
       @parse_javascript_delay = parse_javascript_delay
     end
 
+    # Overrides String#inspect to shorten the printed output of a Crawler.
+    #
+    # @return [String] A short textual representation of this Crawler.
+    def inspect
+      "#<Wgit::Crawler encode=#{@encode} parse_javascript=#{@parse_javascript} parse_javascript_delay=#{@parse_javascript_delay} redirect_limit=#{@redirect_limit} timeout=#{@timeout}>"
+    end
+
     # Crawls an entire website's HTML pages by recursively going through
     # its internal `<a>` links; this can be overridden with `follow: xpath`.
     # Each crawled Document is yielded to a block. Use `doc.empty?` to
