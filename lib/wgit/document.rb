@@ -3,6 +3,7 @@ require_relative 'utils'
 require_relative 'assertable'
 require 'nokogiri'
 require 'json'
+require 'html2text'
 
 module Wgit
   # Class modeling/serialising a HTML web document, although other MIME types
@@ -66,6 +67,9 @@ module Wgit
 
     # The score is set/used following a `Database#search` and records matches.
     attr_reader :score
+
+    # The text snippets extracted from the @html.
+    attr_reader :text
 
     # Initialize takes either two strings (representing the URL and HTML) or an
     # object representing a database record (of a HTTP crawled web page). This
@@ -660,6 +664,19 @@ be relative"
       Nokogiri::HTML(@html, &block)
     end
 
+    # Extract the text from html and split into sentences before returning.
+    #
+    # @param html [String] The html to extract text from.
+    # @return [Array<String>] The html's text sentences.
+    def extract_text(html)
+      return [] if html.strip.empty?
+
+      text_str = Html2Text.convert(html)
+      text_str.squeeze("\n")
+              .split("\n")
+              .reject { |t| t.strip.empty? }
+    end
+
     # Extracts a value/object from this Document's @html using the given xpath
     # parameter.
     #
@@ -728,11 +745,10 @@ be relative"
       url.crawled = true unless url.crawled? # Avoid overriding date_crawled.
 
       @url    = url
-      @html   = html || ''
+      @html   = Wgit::Utils.sanitize(html.to_s, encode:)
       @parser = init_nokogiri
       @score  = 0.0
-
-      @html = Wgit::Utils.sanitize(@html, encode:)
+      @text   = extract_text(@html)
 
       # Dynamically run the init_*_from_html methods.
       Document.private_instance_methods(false).each do |method|
@@ -753,10 +769,10 @@ be relative"
       raise "Missing 'url' field in doc object" unless url
 
       @url    = Wgit::Url.new(url)
-      @html   = obj.fetch('html', '')
+      @html   = Wgit::Utils.sanitize(obj.fetch('html', ''), encode:)
       @parser = init_nokogiri
       @score  = obj.fetch('score', 0.0)
-      @html   = Wgit::Utils.sanitize(@html, encode:)
+      @text   = obj.fetch('text', [])
 
       # Dynamically run the init_*_from_object methods.
       Document.private_instance_methods(false).each do |method|

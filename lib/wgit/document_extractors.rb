@@ -2,7 +2,7 @@
 
 ### Default Document Extractors ###
 
-# Base.
+# Base string.
 Wgit::Document.define_extractor(
   :base,
   '//base/@href',
@@ -12,7 +12,7 @@ Wgit::Document.define_extractor(
   Wgit::Url.parse?(base) if base
 end
 
-# Title.
+# Title string.
 Wgit::Document.define_extractor(
   :title,
   '//title',
@@ -20,7 +20,7 @@ Wgit::Document.define_extractor(
   text_content_only: true
 )
 
-# Description.
+# Description string.
 Wgit::Document.define_extractor(
   :description,
   '//meta[@name="description"]/@content',
@@ -28,7 +28,7 @@ Wgit::Document.define_extractor(
   text_content_only: true
 )
 
-# Author.
+# Author string.
 Wgit::Document.define_extractor(
   :author,
   '//meta[@name="author"]/@content',
@@ -36,7 +36,7 @@ Wgit::Document.define_extractor(
   text_content_only: true
 )
 
-# Keywords.
+# Keywords array.
 Wgit::Document.define_extractor(
   :keywords,
   '//meta[@name="keywords"]/@content',
@@ -47,10 +47,11 @@ Wgit::Document.define_extractor(
     keywords = keywords.split(',')
     keywords = Wgit::Utils.sanitize(keywords)
   end
+
   keywords
 end
 
-# Links.
+# Links array.
 Wgit::Document.define_extractor(
   :links,
   '//a/@href',
@@ -61,11 +62,3 @@ Wgit::Document.define_extractor(
     .map { |link| Wgit::Url.parse?(link) }
     .compact # Remove unparsable links.
 end
-
-# Text.
-Wgit::Document.define_extractor(
-  :text,
-  proc { Wgit::Document.text_elements_xpath },
-  singleton: false,
-  text_content_only: true
-)

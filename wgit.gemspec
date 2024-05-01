@@ -46,6 +46,7 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency 'mongo', '~> 2.19'
   s.add_runtime_dependency 'nokogiri', '~> 1.15'
   s.add_runtime_dependency 'typhoeus', '~> 1.4'
+  s.add_runtime_dependency 'html2text', '~> 0.2'
 
   s.add_development_dependency 'byebug', '~> 11.1'
   s.add_development_dependency 'dotenv', '~> 2.8'
