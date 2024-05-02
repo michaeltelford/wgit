@@ -62,6 +62,7 @@ class TestDocument < TestHelper
         'About',
         'About 2',
         'Index',
+        '[Image alt text]',
         'This page is primarily for testing the Ruby code used in Wgit with the Minitest framework.',
         'Here is a table:',
         'Country',
@@ -92,14 +93,14 @@ class TestDocument < TestHelper
     }
     @stats = {
       url: 30,
-      html: 3180,
+      html: 3433,
       title: 15,
       description: 32,
       author: 15,
       keywords: 3,
       links: 21,
-      text: 36,
-      text_bytes: 582
+      text: 37,
+      text_bytes: 598
     }
   end
 

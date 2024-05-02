@@ -23,14 +23,6 @@ class TestDocumentExtractors < TestHelper
   # Runs after every test and should remove all defined extractors
   # to avoid affecting other tests.
   def teardown
-    if Wgit::Document.text_elements.include?(:table)
-      Wgit::Document.text_elements.delete(:table)
-    end
-
-    unless Wgit::Document.text_elements.include?(:p)
-      Wgit::Document.text_elements << :p
-    end
-
     if Wgit::Document.to_h_ignore_vars.include?('@data')
       Wgit::Document.to_h_ignore_vars.delete('@data')
     end
@@ -84,40 +76,6 @@ class TestDocumentExtractors < TestHelper
     end
   end
 
-  def test_text_elements__addition
-    Wgit::Document.text_elements << :table
-
-    doc = Wgit::Document.new(
-      'http://some_url.com',
-      <<~HTML
-      <html>
-        <p>Hello world!</p>
-        <table>My table</table>
-      </html>
-      HTML
-    )
-
-    assert_equal ['Hello world!', 'My table'], doc.text
-    assert Wgit::Document.text_elements.include?(:table)
-  end
-
-  def test_text_elements__deletion
-    Wgit::Document.text_elements.delete(:p)
-
-    doc = Wgit::Document.new(
-      'http://some_url.com',
-      <<~HTML
-      <html>
-        <p>Hello world!</p>
-        <code>obj.method()</code>
-      </html>
-      HTML
-    )
-
-    assert_equal ['obj.method()'], doc.text
-    refute Wgit::Document.text_elements.include?(:p)
-  end
-
   def test_to_h_ignore_vars__addition
     Wgit::Document.to_h_ignore_vars << '@data'
 
@@ -154,7 +112,7 @@ class TestDocumentExtractors < TestHelper
 
   ### DEFINE EXTRACTOR TESTS ###
 
-  def test_document_extractor__with_defaults
+  def test_define_extractor__with_defaults
     # Test default scenario - singleton: true and text_content_only: true.
     name = Wgit::Document.define_extractor(:table_text, '//table',
                                            singleton: true, text_content_only: true)
@@ -177,7 +135,7 @@ class TestDocumentExtractors < TestHelper
     assert_equal 'Hello World', doc.table_text
   end
 
-  def test_document_extractor__with_non_defaults
+  def test_define_extractor__with_non_defaults
     # Test singleton: false and text_content_only: false
     name = Wgit::Document.define_extractor(:tables, '//table',
                                            singleton: false, text_content_only: false)
@@ -204,7 +162,7 @@ class TestDocumentExtractors < TestHelper
     assert_instance_of Nokogiri::XML::Element, tables.first
   end
 
-  def test_document_extractor__with_mixed_defaults
+  def test_define_extractor__with_mixed_defaults
     # Test singleton: false and text_content_only: true
     name = Wgit::Document.define_extractor(
       :code_snippets,
@@ -228,7 +186,7 @@ class TestDocumentExtractors < TestHelper
     assert_equal %w[curl wget wgit], snippets
   end
 
-  def test_document_extractor__with_mixed_defaults_2
+  def test_define_extractor__with_mixed_defaults_2
     # Test singleton: true and text_content_only: false
     name = Wgit::Document.define_extractor(
       :code_snippet,
@@ -250,7 +208,7 @@ class TestDocumentExtractors < TestHelper
     assert_equal 'curl', snippet.content
   end
 
-  def test_document_extractor__change_simple_value__from_html
+  def test_define_extractor__change_simple_value__from_html
     # We get the first image's alt text value and then upcase it.
     # default_opts = { singleton: true, text_content_only: true }
     name = Wgit::Document.define_extractor(:img_alt, '//img/@alt') do |value|
@@ -271,7 +229,7 @@ class TestDocumentExtractors < TestHelper
     assert_equal 'SMILEY FACE', alt_text
   end
 
-  def test_document_extractor__change_simple_value__from_object
+  def test_define_extractor__change_simple_value__from_object
     # We get the first image's alt text value and then upcase it.
     # default_opts = { singleton: true, text_content_only: true }
     name = Wgit::Document.define_extractor(:img_alt, '//img/@alt') do |value|
@@ -290,7 +248,7 @@ class TestDocumentExtractors < TestHelper
     assert_equal 'SMILEY FACE', alt_text
   end
 
-  def test_document_extractor__examine_value__from_html
+  def test_define_extractor__examine_value__from_html
     # We get the first image's dimensions to determine the area value but we
     # don't change the actual Nokogiri object.
     obj = nil
@@ -322,7 +280,7 @@ class TestDocumentExtractors < TestHelper
     assert_equal 120, area
   end
 
-  def test_document_extractor__examine_value__from_object
+  def test_define_extractor__examine_value__from_object
     # We get the first image's dimensions to determine the area value but we
     # don't change the actual value.
     obj = nil
@@ -353,7 +311,7 @@ class TestDocumentExtractors < TestHelper
     assert_equal 120, area
   end
 
-  def test_document_extractor__return_predicate_from_html
+  def test_define_extractor__return_predicate_from_html
     # Define an extractor which returns an elements presence (predicate).
     Wgit::Document.define_extractor(:has_div, '//div') do |value|
       value ? true : false
@@ -367,7 +325,7 @@ class TestDocumentExtractors < TestHelper
     assert doc.has_div
   end
 
-  def test_document_extractor__return_predicate_from_object
+  def test_define_extractor__return_predicate_from_object
     # Define an extractor which returns an elements presence (predicate).
     Wgit::Document.define_extractor(:has_div, '//div') do |value|
       value ? true : false
@@ -396,17 +354,11 @@ class TestDocumentExtractors < TestHelper
     assert_equal "\"Good design is as little design as possible.\"\n            - some German motherfucker", blockquote
   end
 
-  def test_document_extractor__init_from_database
+  def test_define_extractor__init_from_database
     empty_db
 
-    # Define a text extractor.
-    Wgit::Document.text_elements << :table
-
     # Define a Document extractor.
-    name = Wgit::Document.define_extractor(
-      :table_text, '//table',
-      singleton: true, text_content_only: true
-    )
+    name = Wgit::Document.define_extractor(:blockquote, '//blockquote')
 
     time = '2019-10-08T07:12:15.601+00:00'
     url = Wgit::Url.new(
@@ -419,14 +371,14 @@ class TestDocumentExtractors < TestHelper
       url,
       "<html><p>Hello world!</p>\
 <a href='https://made-up-link.com'>Click this link.</a>\
-<table>Boomsk<th>Header Text</th><th>Another Header</th></table></html>"
+<div><blockquote>This is a quote</blockquote></div></html>"
     )
 
     # Some basic Document assertions before the database interactions.
-    assert_equal :table_text, name
+    assert_equal :blockquote, name
     assert ['https://made-up-link.com'], doc.links
-    assert doc.respond_to? :table_text
-    assert_equal 'BoomskHeader TextAnother Header', doc.table_text
+    assert doc.respond_to? :blockquote
+    assert_equal 'This is a quote', doc.blockquote
 
     db.insert doc # Uses Document#to_h and Wgit::Model.document.
 
@@ -443,8 +395,8 @@ class TestDocumentExtractors < TestHelper
       author: nil,
       keywords: nil,
       links: ['https://made-up-link.com'],
-      text: ['Hello world!', 'Click this link.', 'Boomsk', 'Header Text', 'Another Header'],
-      table_text: 'BoomskHeader TextAnother Header'
+      text: ['Hello world!', 'Click this link.', 'This is a quote'],
+      blockquote: 'This is a quote'
     )
 
     results = db.search 'Hello world'
@@ -456,16 +408,13 @@ class TestDocumentExtractors < TestHelper
     assert_instance_of Wgit::Document, db_doc
     assert_equal 'http://some_url.com', db_doc.url
     assert_equal ['https://made-up-link.com'], db_doc.links
-    assert_equal ['Hello world!', 'Click this link.', 'Boomsk', 'Header Text', 'Another Header'], db_doc.text
-    assert db_doc.respond_to? :table_text
-    assert_instance_of String, db_doc.table_text
-    assert_equal 'BoomskHeader TextAnother Header', db_doc.table_text
-    assert Wgit::Document.text_elements.include?(:table)
-
-    Wgit::Document.text_elements.delete(:table)
+    assert_equal ['Hello world!', 'Click this link.', 'This is a quote'], db_doc.text
+    assert db_doc.respond_to? :blockquote
+    assert_instance_of String, db_doc.blockquote
+    assert_equal 'This is a quote', db_doc.blockquote
   end
 
-  def test_document_extractor__init_from_mongo_doc
+  def test_define_extractor__init_from_mongo_doc
     # Simulate a Wgit::Document with extractors initialized and stored in
     # MongoDB before being retrieved as a Hash instance.
     extended_mongo_doc = {
@@ -600,6 +549,7 @@ class TestDocumentExtractors < TestHelper
   end
 
   def test_remove_extractors
+    assert Wgit::Document.extractors.include?(:text)
     refute Wgit::Document.extractors.empty?
 
     Wgit::Document.remove_extractors

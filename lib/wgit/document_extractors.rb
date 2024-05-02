@@ -62,3 +62,19 @@ Wgit::Document.define_extractor(
     .map { |link| Wgit::Url.parse?(link) }
     .compact # Remove unparsable links.
 end
+
+# Text array.
+Wgit::Document.define_extractor(
+  :text,
+  '/html',
+  singleton: true,
+  text_content_only: false
+) do |el_or_text, doc, type|
+  text = el_or_text
+  if el_or_text && (type == :document)
+    html = el_or_text.to_s
+    text = doc.send(:extract_text, html)
+  end
+
+  text || []
+end

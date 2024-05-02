@@ -21,14 +21,8 @@ module Wgit
     # Regex for the allowed var names when defining an extractor.
     REGEX_EXTRACTOR_NAME = /[a-z0-9_]+/
 
-    # Set of text elements used to build the xpath for Document#text.
-    @text_elements = Set.new(%i[
-      a abbr address article aside b bdi bdo blockquote button caption cite
-      code data dd del details dfn div dl dt em figcaption figure footer h1 h2
-      h3 h4 h5 h6 header hr i input ins kbd label legend li main mark meter ol
-      option output p pre q rb rt ruby s samp section small span strong sub
-      summary sup td textarea th time u ul var wbr
-    ])
+    # Regex for detecting Html2Text extracted links.
+    REGEX_HTML_2_TEXT_LINKS = /\[.+\]\(.+\)/
 
     # Instance vars to be ignored by Document#to_h and in turn
     # Wgit::Model.document.
@@ -40,11 +34,6 @@ module Wgit
     @extractors = Set.new
 
     class << self
-      # Set of HTML elements that make up the visible text on a page. These
-      # elements are used to initialize the Wgit::Document#text. See the
-      # README.md for how to add to this Set dynamically.
-      attr_reader :text_elements
-
       # Array of instance vars to ignore when Document#to_h and (in turn)
       # Wgit::Model.document methods are called. Append your own defined extractor
       # vars to omit them from the model (database object) when indexing.
@@ -99,17 +88,6 @@ module Wgit
     end
 
     ### Document Class Methods ###
-
-    # Uses Document.text_elements to build an xpath String, used to obtain
-    # all of the combined visual text on a webpage.
-    #
-    # @return [String] An xpath String to obtain a webpage's text elements.
-    def self.text_elements_xpath
-      @text_elements.each_with_index.reduce('') do |xpath, (el, i)|
-        xpath += ' | ' unless i.zero?
-        xpath + format('//%s/text()', el)
-      end
-    end
 
     # Defines a content extractor, which extracts HTML elements/content
     # into instance variables upon Document initialization. See the default
@@ -664,19 +642,6 @@ be relative"
       Nokogiri::HTML(@html, &block)
     end
 
-    # Extract the text from html and split into sentences before returning.
-    #
-    # @param html [String] The html to extract text from.
-    # @return [Array<String>] The html's text sentences.
-    def extract_text(html)
-      return [] if html.strip.empty?
-
-      text_str = Html2Text.convert(html)
-      text_str.squeeze("\n")
-              .split("\n")
-              .reject { |t| t.strip.empty? }
-    end
-
     # Extracts a value/object from this Document's @html using the given xpath
     # parameter.
     #
@@ -734,6 +699,21 @@ be relative"
       result
     end
 
+    # Extract the text from html and split into sentences before returning.
+    #
+    # @param html [String] The html to extract text from.
+    # @return [Array<String>] The html's text sentences.
+    def extract_text(html)
+      return [] if html.strip.empty?
+
+      text_str = Html2Text.convert(html)
+      text_str.squeeze("\n")
+              .squeeze("\t")
+              .split(Regexp.union(["\n", "\t"]))
+              .reject { |t| t.strip.empty? }
+              .map { |t| extract_link_text(t) }
+    end
+
     private
 
     # Initialise the Document from URL and HTML Strings.
@@ -748,7 +728,6 @@ be relative"
       @html   = Wgit::Utils.sanitize(html.to_s, encode:)
       @parser = init_nokogiri
       @score  = 0.0
-      @text   = extract_text(@html)
 
       # Dynamically run the init_*_from_html methods.
       Document.private_instance_methods(false).each do |method|
@@ -830,6 +809,15 @@ be relative"
     # is case insensitive because Nokogiri lower cases camelCase attributes.
     def html_index(el_or_str)
       @html.downcase.index(el_or_str.to_s.strip.downcase)
+    end
+
+    # Extracts the link text from the Html2Text extracted text e.g.
+    # "[Click this link.](https://made-up-link.com)" => "Click this link."
+    def extract_link_text(text)
+      return text unless REGEX_HTML_2_TEXT_LINKS =~ text
+
+      index = text.index(']')
+      text[1...index]
     end
 
     alias_method :content,                :html
