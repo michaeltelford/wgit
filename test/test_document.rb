@@ -671,6 +671,27 @@ class TestDocument < TestHelper
     assert_equal "#foo", doc.nearest_fragment('Hello', &:last)
   end
 
+  def test_extract_text__anchors
+    url = 'http://example.com'.to_url
+    html = File.read './test/mock/fixtures/anchor_display.html'
+    doc = Wgit::Document.new url, html
+    text = doc.send :extract_text # text comes from method instead of @text.
+
+    assert_equal %w[About Location ContactContact2Contact3], text
+  end
+
+  def test_extract_text__spans
+    url = 'http://example.com'.to_url
+    html = File.read './test/mock/fixtures/span_display.html'
+    doc = Wgit::Document.new url, html
+    text = doc.send :extract_text # text comes from method instead of @text.
+
+    assert_equal [
+      'Running the following Wgit code will programmatically configure your database:',
+      "db = Wgit::Database.new '<connection_string>'"
+    ], text
+  end
+
   private
 
   # Inserts a <base> element into @html.

@@ -28,7 +28,7 @@ class TestDocumentExtractors < TestHelper
     end
 
     unless Wgit::Document.text_elements.include?(:p)
-      Wgit::Document.text_elements << :p
+      Wgit::Document.text_elements[:p] = :block
     end
 
     if Wgit::Document.to_h_ignore_vars.include?('@data')
@@ -85,7 +85,7 @@ class TestDocumentExtractors < TestHelper
   end
 
   def test_text_elements__addition
-    Wgit::Document.text_elements << :table
+    Wgit::Document.text_elements[:table] = :block
 
     doc = Wgit::Document.new(
       'http://some_url.com',
@@ -98,7 +98,7 @@ class TestDocumentExtractors < TestHelper
     )
 
     assert_equal ['Hello world!', 'My table'], doc.text
-    assert Wgit::Document.text_elements.include?(:table)
+    assert Wgit::Document.text_elements.keys.include?(:table)
   end
 
   def test_text_elements__deletion
@@ -115,7 +115,7 @@ class TestDocumentExtractors < TestHelper
     )
 
     assert_equal ['obj.method()'], doc.text
-    refute Wgit::Document.text_elements.include?(:p)
+    refute Wgit::Document.text_elements.keys.include?(:p)
   end
 
   def test_to_h_ignore_vars__addition
@@ -400,7 +400,7 @@ class TestDocumentExtractors < TestHelper
     empty_db
 
     # Define a text extractor.
-    Wgit::Document.text_elements << :table
+    Wgit::Document.text_elements[:table] = :block
 
     # Define a Document extractor.
     name = Wgit::Document.define_extractor(
@@ -417,16 +417,23 @@ class TestDocumentExtractors < TestHelper
     )
     doc = Wgit::Document.new(
       url,
-      "<html><p>Hello world!</p>\
-<a href='https://made-up-link.com'>Click this link.</a>\
-<table>Boomsk<th>Header Text</th><th>Another Header</th></table></html>"
+      <<~HTML
+        <html>
+          <p>Hello world!</p>
+          <a href='https://made-up-link.com'>Click this link.</a>
+          <table>Boomsk
+            <th>Header Text</th>
+            <th>Another Header</th>
+          </table>
+        </html>
+      HTML
     )
 
     # Some basic Document assertions before the database interactions.
     assert_equal :table_text, name
     assert ['https://made-up-link.com'], doc.links
     assert doc.respond_to? :table_text
-    assert_equal 'BoomskHeader TextAnother Header', doc.table_text
+    assert_equal "Boomsk\n    Header Text\n    Another Header", doc.table_text
 
     db.insert doc # Uses Document#to_h and Wgit::Model.document.
 
@@ -444,7 +451,7 @@ class TestDocumentExtractors < TestHelper
       keywords: nil,
       links: ['https://made-up-link.com'],
       text: ['Hello world!', 'Click this link.', 'Boomsk', 'Header Text', 'Another Header'],
-      table_text: 'BoomskHeader TextAnother Header'
+      table_text: "Boomsk\n    Header Text\n    Another Header"
     )
 
     results = db.search 'Hello world'
@@ -456,11 +463,13 @@ class TestDocumentExtractors < TestHelper
     assert_instance_of Wgit::Document, db_doc
     assert_equal 'http://some_url.com', db_doc.url
     assert_equal ['https://made-up-link.com'], db_doc.links
-    assert_equal ['Hello world!', 'Click this link.', 'Boomsk', 'Header Text', 'Another Header'], db_doc.text
+    assert_equal [
+      'Hello world!', 'Click this link.', 'Boomsk', 'Header Text', 'Another Header'
+    ], db_doc.text
     assert db_doc.respond_to? :table_text
     assert_instance_of String, db_doc.table_text
-    assert_equal 'BoomskHeader TextAnother Header', db_doc.table_text
-    assert Wgit::Document.text_elements.include?(:table)
+    assert_equal "Boomsk\n    Header Text\n    Another Header", db_doc.table_text
+    assert Wgit::Document.text_elements.keys.include?(:table)
 
     Wgit::Document.text_elements.delete(:table)
   end

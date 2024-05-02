@@ -43,7 +43,7 @@ Wgit::Document.define_extractor(
   singleton: true,
   text_content_only: true
 ) do |keywords, _source, type|
-  if keywords && (type == :document)
+  if keywords && type == :document
     keywords = keywords.split(',')
     keywords = Wgit::Utils.sanitize(keywords)
   end
@@ -65,7 +65,11 @@ end
 # Text.
 Wgit::Document.define_extractor(
   :text,
-  proc { Wgit::Document.text_elements_xpath },
-  singleton: false,
-  text_content_only: true
-)
+  '/html',
+  singleton: true,
+  text_content_only: false
+) do |text, doc, type|
+  text = doc.send(:extract_text) if type == :document
+
+  text
+end

@@ -20,14 +20,79 @@ module Wgit
     # Regex for the allowed var names when defining an extractor.
     REGEX_EXTRACTOR_NAME = /[a-z0-9_]+/
 
-    # Set of text elements used to build the xpath for Document#text.
-    @text_elements = Set.new(%i[
-      a abbr address article aside b bdi bdo blockquote button caption cite
-      code data dd del details dfn div dl dt em figcaption figure footer h1 h2
-      h3 h4 h5 h6 header hr i input ins kbd label legend li main mark meter ol
-      option output p pre q rb rt ruby s samp section small span strong sub
-      summary sup td textarea th time u ul var wbr
-    ])
+    # Set of text elements used to extract the Document#text.
+    # The element's display (:inline or :block) is used to delimit sentences.
+    @text_elements = {
+      a:          :inline,
+      abbr:       :inline,
+      address:    :block,
+      article:    :block,
+      aside:      :block,
+      b:          :inline,
+      bdi:        :inline,
+      bdo:        :inline,
+      blockquote: :block,
+      button:     :inline,
+      caption:    :block,
+      cite:       :inline,
+      code:       :inline,
+      data:       :inline,
+      dd:         :block,
+      del:        :inline,
+      details:    :block,
+      dfn:        :inline,
+      div:        :block,
+      dl:         :block,
+      dt:         :block,
+      em:         :inline,
+      figcaption: :block,
+      figure:     :block,
+      footer:     :block,
+      h1:         :block,
+      h2:         :block,
+      h3:         :block,
+      h4:         :block,
+      h5:         :block,
+      h6:         :block,
+      header:     :block,
+      hr:         :block,
+      i:          :inline,
+      input:      :inline,
+      ins:        :block,
+      kbd:        :inline,
+      label:      :inline,
+      legend:     :block,
+      li:         :block,
+      main:       :block,
+      mark:       :inline,
+      meter:      :block,
+      ol:         :block,
+      option:     :block,
+      output:     :block,
+      p:          :block,
+      pre:        :block,
+      q:          :inline,
+      rb:         :inline,
+      rt:         :inline,
+      ruby:       :inline,
+      s:          :inline,
+      samp:       :inline,
+      section:    :block,
+      small:      :inline,
+      span:       :inline,
+      strong:     :inline,
+      sub:        :inline,
+      summary:    :block,
+      sup:        :inline,
+      td:         :block,
+      textarea:   :block,
+      th:         :block,
+      time:       :inline,
+      u:          :inline,
+      ul:         :block,
+      var:        :inline,
+      wbr:        :inline
+    }
 
     # Instance vars to be ignored by Document#to_h and in turn
     # Wgit::Model.document.
@@ -95,17 +160,6 @@ module Wgit
     end
 
     ### Document Class Methods ###
-
-    # Uses Document.text_elements to build an xpath String, used to obtain
-    # all of the combined visual text on a webpage.
-    #
-    # @return [String] An xpath String to obtain a webpage's text elements.
-    def self.text_elements_xpath
-      @text_elements.each_with_index.reduce('') do |xpath, (el, i)|
-        xpath += ' | ' unless i.zero?
-        xpath + format('//%s/text()', el)
-      end
-    end
 
     # Defines a content extractor, which extracts HTML elements/content
     # into instance variables upon Document initialization. See the default
@@ -717,6 +771,41 @@ be relative"
       result
     end
 
+    # Extracts and returns the text sentences from @html.
+    #
+    # @return [Array<String>] An array of text sentences.
+    def extract_text
+      return [] if @html.nil? || @html.empty?
+
+      text_str = ""
+      iterate_child_nodes(@parser) do |node|
+
+        Utils.pprint("NODE", node: node.name, is_text: node.text?, text: node.text)
+
+        if node.text?
+          if node.parent.text.strip != node.text.strip # && !node.text.include?("\n")
+            text_str << node.text
+          end
+          next
+        end
+
+        node_name = node.name&.downcase&.to_sym
+        display = Wgit::Document.text_elements[node_name]
+        next unless display
+
+        delimiter = display == :inline ? '' : "\n"
+        text_str << "#{node.text.strip}#{delimiter}"
+      end
+
+      text_str
+        .squeeze("\n")
+        .squeeze("\t")
+        .split("\n")
+        .map(&:strip)
+        .reject(&:empty?)
+        .uniq
+    end
+
     private
 
     # Initialise the Document from URL and HTML Strings.
@@ -782,6 +871,12 @@ be relative"
       Wgit::Document.attr_accessor(var_name)
 
       var_name
+    end
+
+    # Iterate over node and its child nodes, yielding each to &block.
+    def iterate_child_nodes(node, &block)
+      yield node
+      node.children.each { |child| iterate_child_nodes(child, &block) }
     end
 
     # Returns all <a> fragment elements from within the HTML body e.g. #about.
