@@ -251,17 +251,18 @@ module Wgit
     # @param vars [Hash<#inspect, #inspect>] The vars to inspect in the log.
     def self.pprint(identifier, stream: $stdout, prefix: 'DEBUG', new_line: false, **vars)
       sep1 = new_line ? "\n" : ' - '
+      sep1 = '' if vars.empty?
       sep2 = new_line ? "\n" : ' | '
 
       stream.print "\n#{prefix}_#{identifier}#{sep1}"
 
       vars.each_with_index do |arr, i|
-        last_item = (i + 1) == vars.size
+        is_last_item = (i + 1) == vars.size
         sep3 = sep2
-        sep3 = new_line ? "\n" : '' if last_item
+        sep3 = new_line ? "\n" : '' if is_last_item
         k, v = arr
 
-        stream.print "#{k}: #{v}#{sep3}"
+        stream.print "#{k}: #{v.inspect}#{sep3}"
       end
 
       stream.puts "\n"
