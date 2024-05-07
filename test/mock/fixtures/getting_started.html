@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html
+  <body>
+    <p>Running the following Wgit code will programmatically configure your database:</p>
+<div class="highlight highlight-source-ruby notranslate position-relative overflow-auto" data-snippet-clipboard-copy-content="db = Wgit::Database.new '&lt;connection_string&gt;'
+
+db.create_collections
+db.create_unique_indexes
+db.text_index = Wgit::Database::DEFAULT_TEXT_INDEX"><pre><span class="pl-s1">db</span> <span class="pl-c1">=</span> <span class="pl-v">Wgit</span>::<span class="pl-v">Database</span><span class="pl-kos">.</span><span class="pl-en">new</span> <span class="pl-s">'&lt;connection_string&gt;'</span>
+
+<span class="pl-s1">db</span><span class="pl-kos">.</span><span class="pl-en">create_collections</span>
+<span class="pl-s1">db</span><span class="pl-kos">.</span><span class="pl-en">create_unique_indexes</span>
+<span class="pl-s1">db</span><span class="pl-kos">.</span><span class="pl-en">text_index</span> <span class="pl-c1">=</span> <span class="pl-v">Wgit</span>::<span class="pl-v">Database</span>::<span class="pl-c1">DEFAULT_TEXT_INDEX</span></pre></div>
+<p>Or take a look at the <a href="https://github.com/michaeltelford/wgit/blob/master/docker/mongo-init.js#L16">mongo_init.js</a> file for the equivalent Javascript commands.</p>
+<p><strong>Note</strong>: The <em>text search index</em> lists all document fields to be searched by MongoDB when calling <code>Wgit::Database#search</code>. Therefore, you should append this list with any other fields that you want searched. For example, if you <a href="#Extending-The-API">extend the API</a> then you might want to search your new fields in the database by adding them to the index above. This can be done programmatically with:</p>
+  </body>
+</html>

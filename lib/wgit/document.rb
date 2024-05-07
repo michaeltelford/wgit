@@ -775,35 +775,110 @@ be relative"
     #
     # @return [Array<String>] An array of text sentences.
     def extract_text
+      Utils.pprint "EXTRACT_TEXT_STARTING"
+
       return [] if @html.nil? || @html.empty?
 
       text_str = ""
-      iterate_child_nodes(@parser) do |node|
+      iterate_child_nodes(@parser) do |node, display|
 
-        Utils.pprint("NODE", node: node.name, is_text: node.text?, text: node.text)
+        Utils.pprint("NODE", node: node.name, text: node.text)
 
         if node.text?
-          if node.parent.text.strip != node.text.strip # && !node.text.include?("\n")
+          has_new_line = node.text.include?("\n")
+          if !has_new_line
+            Utils.pprint "ADDING_NEW_LINE_FOR_TEXT" unless prev_node_inline?(node)
+            text_str << "\n" unless prev_node_inline?(node)
+
+            Utils.pprint "ADDING_TEXT", node: node.name, text: node.text
             text_str << node.text
           end
+
           next
         end
 
-        node_name = node.name&.downcase&.to_sym
-        display = Wgit::Document.text_elements[node_name]
-        next unless display
+        # Only process node if its only child is a text node.
+        next unless node.children.size == 1 && has_text_node?(node)
 
-        delimiter = display == :inline ? '' : "\n"
-        text_str << "#{node.text.strip}#{delimiter}"
+        prev = prev_sibling_or_parent(node)
+        Utils.pprint "ADDING_NEW_LINE_FOR_NODE_1" if prev && !node_inline?(prev) && !has_text_node?(prev)
+        text_str << "\n" if prev && !node_inline?(prev) && !has_text_node?(prev)
+
+        prev = prev_sibling(node)
+        Utils.pprint "ADDING_NEW_LINE_FOR_NODE_2" if prev && node_inline?(node) && !node_inline?(prev)
+        text_str << "\n" if prev && node_inline?(node) && !node_inline?(prev)
+
+        Utils.pprint "ADDING_NEW_LINE_FOR_NODE_3" if prev && !node_inline?(node) && !node_inline?(prev)
+        text_str << "\n" if prev && !node_inline?(node) && !node_inline?(prev)
+
+        Utils.pprint "ADDING_NODE", node: node.name, text: node.text
+        text_str << node.text
       end
 
-      text_str
+      Utils.pprint "FINAL_TEXT_STR", text_str: text_str
+
+      text = text_str
         .squeeze("\n")
         .squeeze("\t")
         .split("\n")
-        .map(&:strip)
-        .reject(&:empty?)
+        .reject { |t| t.strip.empty? }
         .uniq
+
+      Utils.pprint "FINAL_TEXT", text: text
+
+      text
+    end
+
+    def node_name(node)
+      node.name&.downcase&.to_sym
+    end
+
+    # Return true if any of its child nodes contain a non empty :text node.
+    def has_text_node?(node)
+      node.children.any? { |child| child.text? && !child.text.strip.empty? }
+    end
+
+    def node_inline?(node)
+      name = node_name(node)
+      display = Wgit::Document.text_elements[name]
+
+      display == :inline
+    end
+
+    # Get the previous sibling and return true if its display is :inline.
+    # Text nodes are omitted, so only concrete nodes e.g. <div> are processed.
+    def prev_node_inline?(node)
+      prev = prev_sibling_or_parent(node)
+      return false unless prev
+
+      node_inline?(prev)
+    end
+
+    def prev_sibling(node)
+      prev = node.previous
+      return nil unless prev
+      return prev unless prev.text?
+
+      prev.previous
+    end
+
+    def prev_sibling_or_parent(node)
+      prev = prev_sibling(node)
+      return prev if prev
+
+      node.parent
+    end
+
+    # Iterate over node and its child nodes, yielding each to &block.
+    # Only Document.text_elements or :text nodes will be yielded.
+    # Duplicate text nodes (that follow a concrete node) are omitted.
+    def iterate_child_nodes(node, &block)
+      name = node_name(node)
+      display = Wgit::Document.text_elements[name]
+      text_node = name == :text && node.text != node.parent.text
+
+      yield(node, display) if display || text_node
+      node.children.each { |child| iterate_child_nodes(child, &block) }
     end
 
     private
@@ -871,12 +946,6 @@ be relative"
       Wgit::Document.attr_accessor(var_name)
 
       var_name
-    end
-
-    # Iterate over node and its child nodes, yielding each to &block.
-    def iterate_child_nodes(node, &block)
-      yield node
-      node.children.each { |child| iterate_child_nodes(child, &block) }
     end
 
     # Returns all <a> fragment elements from within the HTML body e.g. #about.

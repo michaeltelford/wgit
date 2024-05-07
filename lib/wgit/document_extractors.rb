@@ -65,7 +65,7 @@ end
 # Text.
 Wgit::Document.define_extractor(
   :text,
-  '/html',
+  '/html', # TODO: Pass nil here to skip the xpath computation
   singleton: true,
   text_content_only: false
 ) do |text, doc, type|
