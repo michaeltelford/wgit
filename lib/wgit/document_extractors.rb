@@ -69,7 +69,10 @@ Wgit::Document.define_extractor(
   singleton: true,
   text_content_only: false
 ) do |text, doc, type|
-  text = doc.send(:extract_text) if type == :document
+  if type == :document
+    html_to_text = Wgit::HtmlToText.new(doc.parser)
+    text = html_to_text.extract
+  end
 
   text
 end

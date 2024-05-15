@@ -20,80 +20,6 @@ module Wgit
     # Regex for the allowed var names when defining an extractor.
     REGEX_EXTRACTOR_NAME = /[a-z0-9_]+/
 
-    # Set of text elements used to extract the Document#text.
-    # The element's display (:inline or :block) is used to delimit sentences.
-    @text_elements = {
-      a:          :inline,
-      abbr:       :inline,
-      address:    :block,
-      article:    :block,
-      aside:      :block,
-      b:          :inline,
-      bdi:        :inline,
-      bdo:        :inline,
-      blockquote: :block,
-      button:     :inline,
-      caption:    :block,
-      cite:       :inline,
-      code:       :inline,
-      data:       :inline,
-      dd:         :block,
-      del:        :inline,
-      details:    :block,
-      dfn:        :inline,
-      div:        :block,
-      dl:         :block,
-      dt:         :block,
-      em:         :inline,
-      figcaption: :block,
-      figure:     :block,
-      footer:     :block,
-      h1:         :block,
-      h2:         :block,
-      h3:         :block,
-      h4:         :block,
-      h5:         :block,
-      h6:         :block,
-      header:     :block,
-      hr:         :block,
-      i:          :inline,
-      input:      :inline,
-      ins:        :block,
-      kbd:        :inline,
-      label:      :inline,
-      legend:     :block,
-      li:         :block,
-      main:       :block,
-      mark:       :inline,
-      meter:      :block,
-      ol:         :block,
-      option:     :block,
-      output:     :block,
-      p:          :block,
-      pre:        :block,
-      q:          :inline,
-      rb:         :inline,
-      rt:         :inline,
-      ruby:       :inline,
-      s:          :inline,
-      samp:       :inline,
-      section:    :block,
-      small:      :inline,
-      span:       :inline,
-      strong:     :inline,
-      sub:        :inline,
-      summary:    :block,
-      sup:        :inline,
-      td:         :block,
-      textarea:   :block,
-      th:         :block,
-      time:       :inline,
-      u:          :inline,
-      ul:         :block,
-      var:        :inline,
-      wbr:        :inline
-    }
-
     # Instance vars to be ignored by Document#to_h and in turn
     # Wgit::Model.document.
     @to_h_ignore_vars = [
@@ -104,11 +30,6 @@ module Wgit
     @extractors = Set.new
 
     class << self
-      # Set of HTML elements that make up the visible text on a page. These
-      # elements are used to initialize the Wgit::Document#text. See the
-      # README.md for how to add to this Set dynamically.
-      attr_reader :text_elements
-
       # Array of instance vars to ignore when Document#to_h and (in turn)
       # Wgit::Model.document methods are called. Append your own defined extractor
       # vars to omit them from the model (database object) when indexing.
@@ -769,116 +690,6 @@ be relative"
       result = Wgit::Utils.sanitize(result)
       result = yield(result, obj, :object) if block_given?
       result
-    end
-
-    # Extracts and returns the text sentences from @html.
-    #
-    # @return [Array<String>] An array of text sentences.
-    def extract_text
-      Utils.pprint "EXTRACT_TEXT_STARTING"
-
-      return [] if @html.nil? || @html.empty?
-
-      text_str = ""
-      iterate_child_nodes(@parser) do |node, display|
-
-        Utils.pprint("NODE", node: node.name, text: node.text)
-
-        if node.text?
-          has_new_line = node.text.include?("\n")
-          if !has_new_line
-            Utils.pprint "ADDING_NEW_LINE_FOR_TEXT" unless prev_node_inline?(node)
-            text_str << "\n" unless prev_node_inline?(node)
-
-            Utils.pprint "ADDING_TEXT", node: node.name, text: node.text
-            text_str << node.text
-          end
-
-          next
-        end
-
-        # Only process node if its only child is a text node.
-        next unless node.children.size == 1 && has_text_node?(node)
-
-        prev = prev_sibling_or_parent(node)
-        Utils.pprint "ADDING_NEW_LINE_FOR_NODE_1" if prev && !node_inline?(prev) && !has_text_node?(prev)
-        text_str << "\n" if prev && !node_inline?(prev) && !has_text_node?(prev)
-
-        prev = prev_sibling(node)
-        Utils.pprint "ADDING_NEW_LINE_FOR_NODE_2" if prev && node_inline?(node) && !node_inline?(prev)
-        text_str << "\n" if prev && node_inline?(node) && !node_inline?(prev)
-
-        Utils.pprint "ADDING_NEW_LINE_FOR_NODE_3" if prev && !node_inline?(node) && !node_inline?(prev)
-        text_str << "\n" if prev && !node_inline?(node) && !node_inline?(prev)
-
-        Utils.pprint "ADDING_NODE", node: node.name, text: node.text
-        text_str << node.text
-      end
-
-      Utils.pprint "FINAL_TEXT_STR", text_str: text_str
-
-      text = text_str
-        .squeeze("\n")
-        .squeeze("\t")
-        .split("\n")
-        .reject { |t| t.strip.empty? }
-        .uniq
-
-      Utils.pprint "FINAL_TEXT", text: text
-
-      text
-    end
-
-    def node_name(node)
-      node.name&.downcase&.to_sym
-    end
-
-    # Return true if any of its child nodes contain a non empty :text node.
-    def has_text_node?(node)
-      node.children.any? { |child| child.text? && !child.text.strip.empty? }
-    end
-
-    def node_inline?(node)
-      name = node_name(node)
-      display = Wgit::Document.text_elements[name]
-
-      display == :inline
-    end
-
-    # Get the previous sibling and return true if its display is :inline.
-    # Text nodes are omitted, so only concrete nodes e.g. <div> are processed.
-    def prev_node_inline?(node)
-      prev = prev_sibling_or_parent(node)
-      return false unless prev
-
-      node_inline?(prev)
-    end
-
-    def prev_sibling(node)
-      prev = node.previous
-      return nil unless prev
-      return prev unless prev.text?
-
-      prev.previous
-    end
-
-    def prev_sibling_or_parent(node)
-      prev = prev_sibling(node)
-      return prev if prev
-
-      node.parent
-    end
-
-    # Iterate over node and its child nodes, yielding each to &block.
-    # Only Document.text_elements or :text nodes will be yielded.
-    # Duplicate text nodes (that follow a concrete node) are omitted.
-    def iterate_child_nodes(node, &block)
-      name = node_name(node)
-      display = Wgit::Document.text_elements[name]
-      text_node = name == :text && node.text != node.parent.text
-
-      yield(node, display) if display || text_node
-      node.children.each { |child| iterate_child_nodes(child, &block) }
     end
 
     private
