@@ -200,6 +200,13 @@ class TestUtils < TestHelper
     assert_equal expected, buffer.string
   end
 
+  def test_pprint__display_false
+    buffer = StringIO.new
+    Wgit::Utils.pprint(1, display: false, stream: buffer, new_line: true, html: true, xml: false)
+
+    assert_equal '', buffer.string
+  end
+
   private
 
   def printf_output__results

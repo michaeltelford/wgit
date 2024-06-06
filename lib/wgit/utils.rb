@@ -243,13 +243,17 @@ module Wgit
     # ```
     #
     # @param identifier [#to_s] A log identifier e.g. "START" or 1 etc.
+    # @param display [Boolean] Setting as false will cause a noop, useful for
+    #   switching off several/all pprint statements at once e.g. via ENV var.
     # @param stream [#puts] Any object that respond_to? :puts and :print. It is
     #   used to output the log text somewhere e.g. a file or STDERR.
     # @param prefix [String] The log prefix, useful for visibility/greping.
     # @param new_line [Boolean] Wether or not to use a new line (\n) as the
     #   separator.
     # @param vars [Hash<#inspect, #inspect>] The vars to inspect in the log.
-    def self.pprint(identifier, stream: $stdout, prefix: 'DEBUG', new_line: false, **vars)
+    def self.pprint(identifier, display: true, stream: $stdout, prefix: 'DEBUG', new_line: false, **vars)
+      return unless display
+
       sep1 = new_line ? "\n" : ' - '
       sep1 = '' if vars.empty?
       sep2 = new_line ? "\n" : ' | '
