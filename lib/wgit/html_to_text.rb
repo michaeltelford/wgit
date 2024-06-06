@@ -20,6 +20,7 @@ module Wgit
       bdi:        :inline,
       bdo:        :inline,
       blockquote: :block,
+      br:         :block,
       button:     :inline,
       caption:    :block,
       cite:       :inline,
@@ -106,23 +107,22 @@ module Wgit
     #
     # @return [Array<String>] An array of text sentences.
     def extract
-      Utils.pprint "EXTRACT_TEXT_STARTING"
+      Utils.pprint 'EXTRACT_TEXT_STARTING'
 
       return [] if @parser.to_s.empty?
 
       text_str = extract_text_str
 
-      Utils.pprint "FINAL_TEXT_STR", text_str: text_str
+      Utils.pprint 'FINAL_TEXT_STR', text_str: text_str
 
       # Split the text_str into an Array of text sentences.
       text = text_str
-        .squeeze("\n")
-        .squeeze("\t")
-        .split("\n")
-        .reject { |t| t.strip.empty? }
-        .uniq
+             .split("\n")
+             .map(&:strip)
+             .reject(&:empty?)
+             .uniq
 
-      Utils.pprint "FINAL_TEXT", text: text
+      Utils.pprint 'FINAL_TEXT', text: text
 
       text
     end
@@ -130,54 +130,70 @@ module Wgit
     private
 
     def extract_text_str
+      display_logs = ENV['DISPLAY_LOGS']
       text_str = ''
 
       iterate_child_nodes(@parser) do |node, display|
 
-        Utils.pprint('NODE', node: node.name, text: node.text)
+        Utils.pprint('NODE', display: display_logs, node: node.name, text: node.text)
+
+        # byebug if node_name(node) == :span && node.text == 'post'
 
         # Skip any lines we don't care about.
         if node.text?
-          # Only process text node if absent of new lines.
-          next if node.text.include?("\n")
+          # Skip any text element containing a new line as semantic HTML will
+          # use <br> and block elements for this.
+          next if contains_new_line(node.text)
         else
-          # Only process concrete node if it's only child is a text node.
-          next unless node.children.size == 1 && has_text_node?(node)
+          # Skip a concrete node if it has other concrete child nodes as these
+          # will be iterated onto later.
+          # Process if node has no children or one child which is a text node.
+          unless node.children.empty? || (node.children.size == 1 && owns_child_text_node?(node))
+            next
+          end
         end
 
-        add_new_line  = false
-        prev          = prev_sibling_or_parent(node)
-        prev_sib      = prev_sibling(node)
+        add_new_line = false
+        node_text    = format_text(node.text)
+        prev         = prev_sibling_or_parent(node)
+        sibling      = prev_sibling(node)
+        parent       = node.parent
 
+        # Apply display rules deciding if a new line is needed before node.text.
         if node.text?
           unless prev && inline?(prev)
-            Utils.pprint 'ADDING_NEW_LINE_FOR_TEXT_1'
+            Utils.pprint 'ADDING_NEW_LINE_FOR_TEXT_1', display: display_logs
             add_new_line = true
           end
         else
-          if prev && block?(prev) && !has_text_node?(prev)
-            Utils.pprint 'ADDING_NEW_LINE_FOR_NODE_1'
+          if display == :block
+            Utils.pprint 'ADDING_NEW_LINE_FOR_NODE_1', display: display_logs
             add_new_line = true
           end
 
-          if prev_sib && display == :inline && block?(prev_sib)
-            Utils.pprint 'ADDING_NEW_LINE_FOR_NODE_2'
+          if sibling && block?(sibling)
+            Utils.pprint 'ADDING_NEW_LINE_FOR_NODE_2', display: display_logs
             add_new_line = true
           end
 
-          if prev_sib && display == :block && block?(prev_sib)
-            Utils.pprint 'ADDING_NEW_LINE_FOR_NODE_3'
+          if prev && block?(prev) && !owns_child_text_node?(prev)
+            Utils.pprint 'ADDING_NEW_LINE_FOR_NODE_3', display: display_logs
             add_new_line = true
           end
         end
 
         text_str << "\n" if add_new_line
 
-        Utils.pprint 'ADDING_NODE_TEXT', node: node.name, text: node.text
-        text_str << node.text
+        Utils.pprint 'ADDING_NODE_TEXT', display: display_logs, node: node.name, text: node_text
+        text_str << node_text
       end
 
+      Utils.pprint 'TEXT_STR_PRE_SQUEEZE', display: display_logs, text_str: text_str
+
       text_str
+        .strip
+        .squeeze("\n")
+        .squeeze("\t")
     end
 
     def node_name(node)
@@ -199,8 +215,10 @@ module Wgit
 
     def prev_sibling(node)
       prev = node.previous
+
       return nil unless prev
       return prev unless prev.text?
+      return prev if valid_text_node?(prev) && !contains_new_line(prev.text)
 
       prev.previous
     end
@@ -212,17 +230,41 @@ module Wgit
       node.parent
     end
 
-    # Return true if any of its child nodes contain a non empty :text node.
-    def has_text_node?(node)
-      node.children.any? { |child| child.text? && !child.text.strip.empty? }
+    # Returns true if any of the child nodes contain a non empty :text node.
+    def owns_child_text_node?(node)
+      node.children.any? { |child| child.text? && valid_text_content?(child.text) }
+    end
+
+    # Returns true if text is not empty having removed all new lines.
+    def valid_text_content?(text)
+      !format_text(text).empty?
+    end
+
+    # Returns true if node is a text node.
+    # Duplicate text nodes (that follow a concrete node) are omitted.
+    def valid_text_node?(node)
+      node.text? && node.text != node.parent.text
+    end
+
+    def contains_new_line(text)
+      ["\n", '\\n'].any? { |new_line| text.include?(new_line) }
+    end
+
+    # Remove any new lines as semantic HTML will use <br> or block elements.
+    def format_text(text)
+      text
+        .gsub("\n",  '')
+        .gsub('\\n', '')
+        .gsub("\t",  '')
+        .gsub('\\t', '')
     end
 
     # Iterate over node and it's child nodes, yielding each to &block.
-    # Only HtmlToText.text_elements or :text nodes will be yielded.
+    # Only HtmlToText.text_elements or valid :text nodes will be yielded.
     # Duplicate text nodes (that follow a concrete node) are omitted.
     def iterate_child_nodes(node, &block)
       display = display(node)
-      text_node = node.text? && node.text != node.parent.text
+      text_node = valid_text_node?(node)
 
       yield(node, display) if display || text_node
       node.children.each { |child| iterate_child_nodes(child, &block) }
