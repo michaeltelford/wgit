@@ -4,12 +4,14 @@ require 'nokogiri'
 
 module Wgit
   # Class used to extract the visible page text from a HTML string.
-  # This is used to set the output of a Wgit::Document#text method.
-  class HtmlToText
+  # This is in turn used to set the output of a Wgit::Document#text method.
+  class HTMLToText
     include Assertable
 
     # Set of text elements used to extract the visible text.
-    # The element's display (:inline or :block) is used to delimit sentences.
+    # The element's display (:inline or :block) is used to delimit sentences e.g.
+    # <div>foo</div><div>bar</div> will be extracted as ['foo', 'bar'] whereas
+    # <span>foo</span><span>bar</span> will be extracted as ['foobar'].
     @text_elements = {
       a:          :inline,
       abbr:       :inline,
@@ -21,7 +23,7 @@ module Wgit
       bdo:        :inline,
       blockquote: :block,
       br:         :block,
-      button:     :inline,
+      button:     :block, # Normally inline but Wgit treats as block.
       caption:    :block,
       cite:       :inline,
       code:       :inline,
@@ -106,7 +108,7 @@ module Wgit
 
     # Extracts and returns the text sentences from the @parser HTML.
     #
-    # @return [Array<String>] An array of text sentences.
+    # @return [Array<String>] An array of unique text sentences.
     def extract_arr
       Wgit::Utils.pprint('START_TEXT_ARR', display: @display_logs)
 
@@ -128,17 +130,18 @@ module Wgit
       text
     end
 
+    # Extracts and returns a text string from the @parser HTML.
+    #
+    # @return [String] A string of text with \n delimiting sentences.
     def extract_str
       text_str = ''
 
       iterate_child_nodes(@parser) do |node, display|
-
         Wgit::Utils.pprint('NODE', display: @display_logs, node: node.name, text: node.text)
 
-        # byebug if node_name(node) == :a && node.text.downcase == 'contact'
+        # byebug if node_name(node) == :span && node.text.downcase == 'post'
 
         # Handle any special cases e.g. skip nodes we don't care about...
-
         # <pre> nodes should have their contents displayed exactly as is.
         if node_name(node) == :pre
           Wgit::Utils.pprint('ADDING_PRE_CONTENT_AS_IS', display: @display_logs, content: "\n#{node.text}")
@@ -152,25 +155,22 @@ module Wgit
         next if child_of?(:pre, node)
 
         if node.text?
-          # Skip any text element containing a new line as semantic HTML will
-          # use <br> and block elements for this.
-          next if contains_new_line(node.text)
+          # Skip any text element that is purely whitespace.
+          next unless valid_text_content?(node.text)
         else
           # Skip a concrete node if it has other concrete child nodes as these
           # will be iterated onto later.
-          # Process if node has no children or one child which is a text node.
+          # Process if node has no children or one child which is a valid text node.
           unless node.children.empty? || (node.children.size == 1 && parent_of_text_node?(node))
             next
           end
         end
 
+        # Apply display rules deciding if a new line is needed before node.text.
         add_new_line = false
         node_text    = format_text(node.text)
         prev         = prev_sibling_or_parent(node)
-        sibling      = prev_sibling(node)
-        parent       = node.parent
 
-        # Apply display rules deciding if a new line is needed before node.text.
         if node.text?
           unless prev && inline?(prev)
             Wgit::Utils.pprint('ADDING_NEW_LINE_FOR_TEXT_1', display: @display_logs)
@@ -184,11 +184,6 @@ module Wgit
 
           if prev && block?(prev)
             Wgit::Utils.pprint('ADDING_NEW_LINE_FOR_NODE_2', display: @display_logs)
-            add_new_line = true
-          end
-
-          if prev && block?(prev) && !parent_of_text_node?(prev)
-            Wgit::Utils.pprint('ADDING_NEW_LINE_FOR_NODE_3', display: @display_logs)
             add_new_line = true
           end
         end
@@ -205,6 +200,7 @@ module Wgit
         .strip
         .squeeze("\n")
         .squeeze("\t")
+        .squeeze(' ')
     end
 
     private
@@ -215,7 +211,7 @@ module Wgit
 
     def display(node)
       name = node_name(node)
-      HtmlToText.text_elements[name]
+      Wgit::HTMLToText.text_elements[name]
     end
 
     def inline?(node)
@@ -226,16 +222,21 @@ module Wgit
       display(node) == :block
     end
 
+    # Returns the previous sibling of node or nil. Only valid text elements are
+    # returned i.e. non duplicates with valid text content.
     def prev_sibling(node)
       prev = node.previous
 
       return nil unless prev
       return prev unless prev.text?
       return prev if valid_text_node?(prev) && !contains_new_line(prev.text)
+      return prev if valid_text_node?(prev) && !format_text(prev.text).strip.empty?
 
       prev.previous
     end
 
+    # Returns node's previous sibling, parent or nil; in that order. Only valid
+    # text elements are returned i.e. non duplicates with valid text content.
     def prev_sibling_or_parent(node)
       prev = prev_sibling(node)
       return prev if prev
@@ -267,7 +268,8 @@ module Wgit
       ["\n", '\\n'].any? { |new_line| text.include?(new_line) }
     end
 
-    # Remove any new lines as semantic HTML will use <br> or block elements.
+    # Remove special characters including any new lines; as semantic HTML will
+    # use <br> and/or block elements to denote a line break.
     def format_text(text)
       text
         .gsub("\n",  '')
@@ -277,7 +279,7 @@ module Wgit
     end
 
     # Iterate over node and it's child nodes, yielding each to &block.
-    # Only HtmlToText.text_elements or valid :text nodes will be yielded.
+    # Only HTMLToText.text_elements or valid :text nodes will be yielded.
     # Duplicate text nodes (that follow a concrete node) are omitted.
     def iterate_child_nodes(node, &block)
       display = display(node)

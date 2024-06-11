@@ -23,12 +23,12 @@ class TestDocumentExtractors < TestHelper
   # Runs after every test and should remove all defined extractors
   # to avoid affecting other tests.
   def teardown
-    if Wgit::HtmlToText.text_elements.include?(:table)
-      Wgit::HtmlToText.text_elements.delete(:table)
+    if Wgit::HTMLToText.text_elements.include?(:table)
+      Wgit::HTMLToText.text_elements.delete(:table)
     end
 
-    unless Wgit::HtmlToText.text_elements.include?(:p)
-      Wgit::HtmlToText.text_elements[:p] = :block
+    unless Wgit::HTMLToText.text_elements.include?(:p)
+      Wgit::HTMLToText.text_elements[:p] = :block
     end
 
     if Wgit::Document.to_h_ignore_vars.include?('@data')
@@ -85,7 +85,7 @@ class TestDocumentExtractors < TestHelper
   end
 
   def test_text_elements__addition
-    Wgit::HtmlToText.text_elements[:table] = :block
+    Wgit::HTMLToText.text_elements[:table] = :block
 
     doc = Wgit::Document.new(
       'http://some_url.com',
@@ -98,11 +98,11 @@ class TestDocumentExtractors < TestHelper
     )
 
     assert_equal ['Hello world!', 'My table'], doc.text
-    assert Wgit::HtmlToText.text_elements.keys.include?(:table)
+    assert Wgit::HTMLToText.text_elements.keys.include?(:table)
   end
 
   def test_text_elements__deletion
-    Wgit::HtmlToText.text_elements.delete(:p)
+    Wgit::HTMLToText.text_elements.delete(:p)
 
     doc = Wgit::Document.new(
       'http://some_url.com',
@@ -115,7 +115,7 @@ class TestDocumentExtractors < TestHelper
     )
 
     assert_equal ['obj.method()'], doc.text
-    refute Wgit::HtmlToText.text_elements.keys.include?(:p)
+    refute Wgit::HTMLToText.text_elements.keys.include?(:p)
   end
 
   def test_to_h_ignore_vars__addition
@@ -400,7 +400,7 @@ class TestDocumentExtractors < TestHelper
     empty_db
 
     # Define a text extractor.
-    Wgit::HtmlToText.text_elements[:table] = :block
+    Wgit::HTMLToText.text_elements[:table] = :block
 
     # Define a Document extractor.
     name = Wgit::Document.define_extractor(
@@ -469,7 +469,7 @@ class TestDocumentExtractors < TestHelper
     assert db_doc.respond_to? :table_text
     assert_instance_of String, db_doc.table_text
     assert_equal "Boomsk\n    Header Text\n    Another Header", db_doc.table_text
-    assert Wgit::HtmlToText.text_elements.keys.include?(:table)
+    assert Wgit::HTMLToText.text_elements.keys.include?(:table)
   end
 
   def test_document_extractor__init_from_mongo_doc

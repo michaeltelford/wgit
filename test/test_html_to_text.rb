@@ -1,7 +1,7 @@
 require_relative 'helpers/test_helper'
 
 # Test class for utility module functions.
-class TestUtils < TestHelper
+class TestHTMLToText < TestHelper
   # Run non DB tests in parallel for speed.
   parallelize_me!
 
@@ -30,6 +30,7 @@ class TestUtils < TestHelper
       '    ',
       "\n",
       "  \n ",
+      " \n foo bar \n ",
       '<br>',
       '<hr>'
     ]
@@ -37,14 +38,15 @@ class TestUtils < TestHelper
     # For each use_case * text_variation combo above, what do we expect.
     @expected = [
       # inline parent - inline inline
-      "prepost",
-      "prefoobarpost",
-      "prefoo barpost",
-      "pre foo bar  post",
-      "pre post",
-      "pre    post",
-      "prepost",
-      "prepost",
+      'prepost',
+      'prefoobarpost',
+      'prefoo barpost',
+      'pre foo bar post',
+      'pre post',
+      'pre post',
+      'prepost',
+      'pre post',
+      'pre foo bar post',
       "pre\npost",
       "pre\npost",
 
@@ -52,11 +54,12 @@ class TestUtils < TestHelper
       "pre\npost",
       "prefoobar\npost",
       "prefoo bar\npost",
-      "pre foo bar  \npost",
+      "pre foo bar \npost",
       "pre \npost",
-      "pre    \npost",
+      "pre \npost",
       "pre\npost",
-      "pre\npost",
+      "pre \npost",
+      "pre foo bar \npost",
       "pre\npost",
       "pre\npost",
 
@@ -64,11 +67,12 @@ class TestUtils < TestHelper
       "pre\npost",
       "pre\nfoobarpost",
       "pre\nfoo barpost",
-      "pre\n foo bar  post",
+      "pre\n foo bar post",
       "pre\n post",
-      "pre\n    post",
+      "pre\n post",
       "pre\npost",
-      "pre\npost",
+      "pre\n \npost",
+      "pre\n foo bar post",
       "pre\npost",
       "pre\npost",
 
@@ -76,25 +80,27 @@ class TestUtils < TestHelper
       "pre\npost",
       "pre\nfoobar\npost",
       "pre\nfoo bar\npost",
-      "pre\n foo bar  \npost",
+      "pre\n foo bar \npost",
       "pre\n \npost",
-      "pre\n    \npost",
+      "pre\n \npost",
       "pre\npost",
-      "pre\npost",
+      "pre\n \npost",
+      "pre\n foo bar \npost",
       "pre\npost",
       "pre\npost",
 
       #######
 
       # block parent - inline inline
-      "prepost",
-      "prefoobarpost",
-      "prefoo barpost",
-      "pre foo bar  post",
-      "pre post",
-      "pre    post",
-      "prepost",
-      "prepost",
+      'prepost',
+      'prefoobarpost',
+      'prefoo barpost',
+      'pre foo bar post',
+      'pre post',
+      'pre post',
+      'prepost',
+      'pre post',
+      'pre foo bar post',
       "pre\npost",
       "pre\npost",
 
@@ -102,11 +108,12 @@ class TestUtils < TestHelper
       "pre\npost",
       "prefoobar\npost",
       "prefoo bar\npost",
-      "pre foo bar  \npost",
+      "pre foo bar \npost",
       "pre \npost",
-      "pre    \npost",
+      "pre \npost",
       "pre\npost",
-      "pre\npost",
+      "pre \npost",
+      "pre foo bar \npost",
       "pre\npost",
       "pre\npost",
 
@@ -114,11 +121,12 @@ class TestUtils < TestHelper
       "pre\npost",
       "pre\nfoobarpost",
       "pre\nfoo barpost",
-      "pre\n foo bar  post",
+      "pre\n foo bar post",
       "pre\n post",
-      "pre\n    post",
+      "pre\n post",
       "pre\npost",
-      "pre\npost",
+      "pre\n \npost",
+      "pre\n foo bar post",
       "pre\npost",
       "pre\npost",
 
@@ -126,53 +134,52 @@ class TestUtils < TestHelper
       "pre\npost",
       "pre\nfoobar\npost",
       "pre\nfoo bar\npost",
-      "pre\n foo bar  \npost",
+      "pre\n foo bar \npost",
       "pre\n \npost",
-      "pre\n    \npost",
+      "pre\n \npost",
       "pre\npost",
-      "pre\npost",
+      "pre\n \npost",
+      "pre\n foo bar \npost",
       "pre\npost",
       "pre\npost"
     ]
   end
 
   def test_extract_text_str
-    unless (@use_cases.size * @content_variations.size) == @expected.size
-      raise 'invalid @expected array'
-    end
-
+    total_test_cases = @use_cases.size * @content_variations.size
     should_fail = false
+    fail_count = 0
     i = 0
+
+    raise 'invalid @expected array' unless total_test_cases == @expected.size
 
     @use_cases.each do |use_case|
       @content_variations.each do |content|
-        nodes = use_case
-                .gsub('<inline_parent>',  '<span>')
-                .gsub('</inline_parent>', '</span>')
-                .gsub('<block_parent>',   '<div>')
-                .gsub('</block_parent>',  '</div>')
-                .gsub('<inline>',         '<span>pre</span>')
-                .gsub('</inline>',        '<span>post</span>')
-                .gsub('<block>',          '<div>pre</div>')
-                .gsub('</block>',         '<div>post</div>')
-                .gsub('*',                content)
+        nodes = gsub_use_case_content(use_case, content)
         parser = Nokogiri::HTML("<html><body>#{nodes}</body></html>")
 
         expected = @expected[i]
-        actual = Wgit::HtmlToText.new(parser).extract_str
+        actual = Wgit::HTMLToText.new(parser).extract_str
 
         i += 1
+        assert true # Add our assertion to minitest's total.
         has_passed = expected == actual
         next if has_passed
 
-        Wgit::Utils.pprint(i, prefix: 'TEST_EXTRACT_TEXT_STR_CASE', new_line: true,
+        Wgit::Utils.pprint("CASE_#{i}", prefix: 'TEST_EXTRACT_TEXT_STR', new_line: true,
           use_case: use_case, content: content, nodes: nodes, expected: expected, actual: actual)
 
         should_fail = true
+        fail_count += 1
       end
     end
 
-    flunk 'test_extract_text_str failed, see logs above for info' if should_fail
+    return unless should_fail
+
+    Wgit::Utils.pprint('SUMMARY', prefix: 'TEST_EXTRACT_TEXT_STR', new_line: true,
+      total_test_cases: total_test_cases, total_failing_cases: fail_count)
+
+    flunk 'test_extract_text_str failed, see logs above for info'
   end
 
   def test_extract__anchors
@@ -180,7 +187,7 @@ class TestUtils < TestHelper
     html = File.read './test/mock/fixtures/anchor_display.html'
     doc = Wgit::Document.new url, html
 
-    assert_equal ['About', 'Foo Location Bar', 'Contact Contact2Contact3'], doc.text
+    assert_equal ['About', 'Foo Location Bar', 'Contact Contact2 Contact3'], doc.text
   end
 
   def test_extract__spans
@@ -216,5 +223,20 @@ class TestUtils < TestHelper
       'Or take a look at the mongo_init.js file for the equivalent Javascript commands.',
       'Note: The text search index lists all document fields to be searched by MongoDB when calling Wgit::Database#search. Therefore, you should append this list with any other fields that you want searched. For example, if you extend the API then you might want to search your new fields in the database by adding them to the index above. This can be done programmatically with:',
     ], doc.text
+  end
+
+  private
+
+  def gsub_use_case_content(use_case, content)
+    use_case
+      .gsub('<inline_parent>',  '<span>')
+      .gsub('</inline_parent>', '</span>')
+      .gsub('<block_parent>',   '<div>')
+      .gsub('</block_parent>',  '</div>')
+      .gsub('<inline>',         '<span>pre</span>')
+      .gsub('</inline>',        '<span>post</span>')
+      .gsub('<block>',          '<div>pre</div>')
+      .gsub('</block>',         '<div>post</div>')
+      .gsub('*',                content)
   end
 end

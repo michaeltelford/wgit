@@ -70,7 +70,7 @@ Wgit::Document.define_extractor(
   text_content_only: true
 ) do |text, doc, type|
   if type == :document
-    html_to_text = Wgit::HtmlToText.new(doc.parser)
+    html_to_text = Wgit::HTMLToText.new(doc.parser)
     text = html_to_text.extract
   end
 

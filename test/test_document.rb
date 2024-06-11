@@ -92,7 +92,7 @@ class TestDocument < TestHelper
     }
     @stats = {
       url: 30,
-      html: 3180,
+      html: 3322,
       title: 15,
       description: 32,
       author: 15,
