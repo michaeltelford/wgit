@@ -101,19 +101,20 @@ module Wgit
       assert_type(parser, Nokogiri::HTML4::Document)
 
       @parser = parser
+      @display_logs = ENV['WGIT_DEBUG_HTML_TO_TEXT']
     end
 
     # Extracts and returns the text sentences from the @parser HTML.
     #
     # @return [Array<String>] An array of text sentences.
     def extract_arr
-      Utils.pprint 'EXTRACT_TEXT_STARTING'
+      Wgit::Utils.pprint('START_TEXT_ARR', display: @display_logs)
 
       return [] if @parser.to_s.empty?
 
       text_str = extract_str
 
-      Utils.pprint 'FINAL_TEXT_STR', text_str: text_str
+      Wgit::Utils.pprint('FINAL_TEXT_STR', display: @display_logs, text_str: text_str)
 
       # Split the text_str into an Array of text sentences.
       text = text_str
@@ -122,18 +123,17 @@ module Wgit
              .reject(&:empty?)
              .uniq
 
-      Utils.pprint 'FINAL_TEXT', text: text
+      Wgit::Utils.pprint('FINAL_TEXT_ARR', display: @display_logs, text: text)
 
       text
     end
 
     def extract_str
-      display_logs = ENV['DISPLAY_LOGS']
       text_str = ''
 
       iterate_child_nodes(@parser) do |node, display|
 
-        Utils.pprint('NODE', display: display_logs, node: node.name, text: node.text)
+        Wgit::Utils.pprint('NODE', display: @display_logs, node: node.name, text: node.text)
 
         # byebug if node_name(node) == :a && node.text.downcase == 'contact'
 
@@ -141,7 +141,7 @@ module Wgit
 
         # <pre> nodes should have their contents displayed exactly as is.
         if node_name(node) == :pre
-          Utils.pprint 'ADDING_PRE_CONTENT_AS_IS', display: display_logs, content: "\n#{node.text}"
+          Wgit::Utils.pprint('ADDING_PRE_CONTENT_AS_IS', display: @display_logs, content: "\n#{node.text}")
 
           text_str << "\n"
           text_str << node.text
@@ -173,33 +173,33 @@ module Wgit
         # Apply display rules deciding if a new line is needed before node.text.
         if node.text?
           unless prev && inline?(prev)
-            Utils.pprint 'ADDING_NEW_LINE_FOR_TEXT_1', display: display_logs
+            Wgit::Utils.pprint('ADDING_NEW_LINE_FOR_TEXT_1', display: @display_logs)
             add_new_line = true
           end
         else
           if display == :block
-            Utils.pprint 'ADDING_NEW_LINE_FOR_NODE_1', display: display_logs
+            Wgit::Utils.pprint('ADDING_NEW_LINE_FOR_NODE_1', display: @display_logs)
             add_new_line = true
           end
 
           if prev && block?(prev)
-            Utils.pprint 'ADDING_NEW_LINE_FOR_NODE_2', display: display_logs
+            Wgit::Utils.pprint('ADDING_NEW_LINE_FOR_NODE_2', display: @display_logs)
             add_new_line = true
           end
 
           if prev && block?(prev) && !parent_of_text_node?(prev)
-            Utils.pprint 'ADDING_NEW_LINE_FOR_NODE_3', display: display_logs
+            Wgit::Utils.pprint('ADDING_NEW_LINE_FOR_NODE_3', display: @display_logs)
             add_new_line = true
           end
         end
 
         text_str << "\n" if add_new_line
 
-        Utils.pprint 'ADDING_NODE_TEXT', display: display_logs, node: node.name, text: node_text
+        Wgit::Utils.pprint('ADDING_NODE_TEXT', display: @display_logs, node: node.name, text: node_text)
         text_str << node_text
       end
 
-      Utils.pprint 'TEXT_STR_PRE_SQUEEZE', display: display_logs, text_str: text_str
+      Wgit::Utils.pprint('TEXT_STR_PRE_SQUEEZE', display: @display_logs, text_str: text_str)
 
       text_str
         .strip
