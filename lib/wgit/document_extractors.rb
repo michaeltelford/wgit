@@ -66,8 +66,8 @@ end
 Wgit::Document.define_extractor(
   :text,
   '/html', # TODO: Pass nil here to skip the xpath computation
-  singleton: true,
-  text_content_only: false
+  singleton: false,
+  text_content_only: true
 ) do |text, doc, type|
   if type == :document
     html_to_text = Wgit::HtmlToText.new(doc.parser)

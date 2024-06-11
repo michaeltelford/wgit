@@ -159,7 +159,7 @@ class TestUtils < TestHelper
         parser = Nokogiri::HTML("<html><body>#{nodes}</body></html>")
 
         expected = @expected[i]
-        actual = Wgit::HtmlToText.new(parser).send(:extract_text_str)
+        actual = Wgit::HtmlToText.new(parser).extract_str
 
         i += 1
         has_passed = expected == actual
@@ -168,12 +168,11 @@ class TestUtils < TestHelper
         Wgit::Utils.pprint(i, prefix: 'TEST_EXTRACT_TEXT_STR_CASE', new_line: true,
           use_case: use_case, content: content, nodes: nodes, expected: expected, actual: actual)
 
-        # should_fail = true
-        flunk 'test_extract_text_str failed, see logs above for info'
+        should_fail = true
       end
     end
 
-    # flunk 'test_extract_text_str failed, see logs above for info' if should_fail
+    flunk 'test_extract_text_str failed, see logs above for info' if should_fail
   end
 
   def test_extract__anchors
@@ -208,6 +207,14 @@ class TestUtils < TestHelper
     html = File.read './test/mock/fixtures/getting_started.html'
     doc = Wgit::Document.new url, html
 
-    assert_equal %w[todo], doc.text
+    assert_equal [
+      'Running the following Wgit code will programmatically configure your database:',
+      "db = Wgit::Database.new '<connection_string>'",
+      'db.create_collections',
+      'db.create_unique_indexes',
+      'db.text_index = Wgit::Database::DEFAULT_TEXT_INDEX',
+      'Or take a look at the mongo_init.js file for the equivalent Javascript commands.',
+      'Note: The text search index lists all document fields to be searched by MongoDB when calling Wgit::Database#search. Therefore, you should append this list with any other fields that you want searched. For example, if you extend the API then you might want to search your new fields in the database by adding them to the index above. This can be done programmatically with:',
+    ], doc.text
   end
 end

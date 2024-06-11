@@ -106,12 +106,12 @@ module Wgit
     # Extracts and returns the text sentences from the @parser HTML.
     #
     # @return [Array<String>] An array of text sentences.
-    def extract
+    def extract_arr
       Utils.pprint 'EXTRACT_TEXT_STARTING'
 
       return [] if @parser.to_s.empty?
 
-      text_str = extract_text_str
+      text_str = extract_str
 
       Utils.pprint 'FINAL_TEXT_STR', text_str: text_str
 
@@ -127,9 +127,7 @@ module Wgit
       text
     end
 
-    private
-
-    def extract_text_str
+    def extract_str
       display_logs = ENV['DISPLAY_LOGS']
       text_str = ''
 
@@ -137,9 +135,22 @@ module Wgit
 
         Utils.pprint('NODE', display: display_logs, node: node.name, text: node.text)
 
-        # byebug if node_name(node) == :span && node.text == 'post'
+        # byebug if node_name(node) == :a && node.text.downcase == 'contact'
 
-        # Skip any lines we don't care about.
+        # Handle any special cases e.g. skip nodes we don't care about...
+
+        # <pre> nodes should have their contents displayed exactly as is.
+        if node_name(node) == :pre
+          Utils.pprint 'ADDING_PRE_CONTENT_AS_IS', display: display_logs, content: "\n#{node.text}"
+
+          text_str << "\n"
+          text_str << node.text
+          next
+        end
+
+        # Skip any child node of <pre> since they're handled as a special case above.
+        next if child_of?(:pre, node)
+
         if node.text?
           # Skip any text element containing a new line as semantic HTML will
           # use <br> and block elements for this.
@@ -148,7 +159,7 @@ module Wgit
           # Skip a concrete node if it has other concrete child nodes as these
           # will be iterated onto later.
           # Process if node has no children or one child which is a text node.
-          unless node.children.empty? || (node.children.size == 1 && owns_child_text_node?(node))
+          unless node.children.empty? || (node.children.size == 1 && parent_of_text_node?(node))
             next
           end
         end
@@ -171,12 +182,12 @@ module Wgit
             add_new_line = true
           end
 
-          if sibling && block?(sibling)
+          if prev && block?(prev)
             Utils.pprint 'ADDING_NEW_LINE_FOR_NODE_2', display: display_logs
             add_new_line = true
           end
 
-          if prev && block?(prev) && !owns_child_text_node?(prev)
+          if prev && block?(prev) && !parent_of_text_node?(prev)
             Utils.pprint 'ADDING_NEW_LINE_FOR_NODE_3', display: display_logs
             add_new_line = true
           end
@@ -195,6 +206,8 @@ module Wgit
         .squeeze("\n")
         .squeeze("\t")
     end
+
+    private
 
     def node_name(node)
       node.name&.downcase&.to_sym
@@ -230,8 +243,12 @@ module Wgit
       node.parent
     end
 
+    def child_of?(ancestor_name, node)
+      node.ancestors.any? { |ancestor| node_name(ancestor) == ancestor_name }
+    end
+
     # Returns true if any of the child nodes contain a non empty :text node.
-    def owns_child_text_node?(node)
+    def parent_of_text_node?(node)
       node.children.any? { |child| child.text? && valid_text_content?(child.text) }
     end
 
@@ -269,5 +286,7 @@ module Wgit
       yield(node, display) if display || text_node
       node.children.each { |child| iterate_child_nodes(child, &block) }
     end
+
+    alias_method :extract, :extract_arr
   end
 end
