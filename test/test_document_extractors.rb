@@ -84,7 +84,7 @@ class TestDocumentExtractors < TestHelper
     end
   end
 
-  def test_text_elements__addition
+  def test_text_elements__addition__block
     Wgit::HTMLToText.text_elements[:table] = :block
 
     doc = Wgit::Document.new(
@@ -98,6 +98,22 @@ class TestDocumentExtractors < TestHelper
     )
 
     assert_equal ['Hello world!', 'My table'], doc.text
+    assert Wgit::HTMLToText.text_elements.keys.include?(:table)
+  end
+
+  def test_text_elements__addition__inline
+    Wgit::HTMLToText.text_elements[:table] = :inline
+
+    doc = Wgit::Document.new(
+      'http://some_url.com',
+      <<~HTML
+      <html>
+        <span>Hello</span> <table>world!</table>
+      </html>
+      HTML
+    )
+
+    assert_equal ['Hello world!'], doc.text
     assert Wgit::HTMLToText.text_elements.keys.include?(:table)
   end
 

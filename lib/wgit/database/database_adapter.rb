@@ -19,7 +19,7 @@ module Wgit::Database
   # it. This allows the search fields to be set in one method call, from within
   # the Wgit::Model class. See this method's docs for more info.
   #
-  # Also listed in this class is common helper methods available to all
+  # Also listed in this class are common helper methods available to all
   # Database implementer subclasses.
   class DatabaseAdapter
     include Wgit::Assertable

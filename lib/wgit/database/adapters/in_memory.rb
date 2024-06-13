@@ -135,8 +135,8 @@ num_docs=#{@docs.size} size=#{size}>"
       assert_common_arr_types(objs, [Wgit::Url, Wgit::Document])
 
       objs.reduce(0) do |inserted, obj|
-          inserted += 1 if upsert(obj)
-          inserted
+        inserted += 1 if upsert(obj)
+        inserted
       end
     end
 
