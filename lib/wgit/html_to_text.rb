@@ -160,6 +160,7 @@ module Wgit
         else
           # Skip a concrete node if it has other concrete child nodes as these
           # will be iterated onto later.
+          #
           # Process if node has no children or one child which is a valid text node.
           unless node.children.empty? || (node.children.size == 1 && parent_of_text_node?(node))
             next
@@ -199,7 +200,6 @@ module Wgit
       text_str
         .strip
         .squeeze("\n")
-        .squeeze("\t")
         .squeeze(' ')
     end
 
@@ -229,7 +229,7 @@ module Wgit
 
       return nil unless prev
       return prev unless prev.text?
-      return prev if valid_text_node?(prev) && !contains_new_line(prev.text)
+      return prev if valid_text_node?(prev) && !contains_new_line?(prev.text)
       return prev if valid_text_node?(prev) && !format_text(prev.text).strip.empty?
 
       prev.previous
@@ -264,18 +264,30 @@ module Wgit
       node.text? && node.text != node.parent.text
     end
 
-    def contains_new_line(text)
+    def contains_new_line?(text)
       ["\n", '\\n'].any? { |new_line| text.include?(new_line) }
     end
 
     # Remove special characters including any new lines; as semantic HTML will
-    # use <br> and/or block elements to denote a line break.
+    # typically use <br> and/or block elements to denote a line break.
     def format_text(text)
       text
-        .gsub("\n",  '')
-        .gsub('\\n', '')
-        .gsub("\t",  '')
-        .gsub('\\t', '')
+        .encode('UTF-8', undef: :replace, invalid: :replace)
+        .gsub("\n",       '')
+        .gsub('\\n',      '')
+        .gsub("\r",       '')
+        .gsub('\\r',      '')
+        .gsub("\f",       '')
+        .gsub('\\f',      '')
+        .gsub("\t",       '')
+        .gsub('\\t',      '')
+        .gsub('&zwnj;',   '')
+        .gsub('&nbsp;',   ' ')
+        .gsub('&#160;',   ' ')
+        .gsub('&thinsp;', ' ')
+        .gsub('&ensp;',   ' ')
+        .gsub('&emsp;',   ' ')
+        .gsub('\u00a0',   ' ')
     end
 
     # Iterate over node and it's child nodes, yielding each to &block.
