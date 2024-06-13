@@ -721,4 +721,25 @@ class TestDocumentExtractors < TestHelper
     assert_nil result
     assert_instance_of String, doc.extract('//p/text()') { |value| value }
   end
+
+  def test_extract__xpath_nil
+    doc = Wgit::Document.new 'http://www.mytestsite.com/home'.to_url, @html
+    result = doc.extract nil
+
+    assert_nil result
+  end
+
+  def test_extract__block__xpath_nil
+    doc = Wgit::Document.new 'http://www.mytestsite.com/home'.to_url, @html
+    result = doc.extract nil do |value, source, type|
+      assert_nil value
+      assert_instance_of Wgit::Document, source
+      assert_equal doc, source
+      assert_equal :document, type
+
+      value
+    end
+
+    assert_nil result
+  end
 end

@@ -47,6 +47,7 @@ Wgit::Document.define_extractor(
     keywords = keywords.split(',')
     keywords = Wgit::Utils.sanitize(keywords)
   end
+
   keywords
 end
 
@@ -65,9 +66,7 @@ end
 # Text.
 Wgit::Document.define_extractor(
   :text,
-  '/html', # TODO: Pass nil here to skip the xpath computation
-  singleton: false,
-  text_content_only: true
+  nil # doc.parser contains all HTML so omit the xpath search.
 ) do |text, doc, type|
   if type == :document
     html_to_text = Wgit::HTMLToText.new(doc.parser)

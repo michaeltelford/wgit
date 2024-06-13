@@ -105,8 +105,9 @@ module Wgit
     # @param var [Symbol] The name of the variable to be initialised, that will
     #   contain the extracted content. A getter and setter method is defined
     #   for the initialised variable.
-    # @param xpath [String, #call] The xpath used to find the element(s)
-    #   of the webpage. Only used when initializing from HTML.
+    # @param xpath [String, #call, nil] The xpath used to find the element(s)
+    #   of the webpage. Only used when initializing from HTML. Passing nil will
+    #   skip the HTML extraction, which sometimes isn't required.
     #
     #   Pass a callable object (proc etc.) if you want the
     #   xpath value to be derived on Document initialisation (instead of when
@@ -638,7 +639,8 @@ be relative"
     # Extracts a value/object from this Document's @html using the given xpath
     # parameter.
     #
-    # @param xpath [String, #call] Used to find the value/object in @html.
+    # @param xpath [String, #call, nil] Used to find the value/object in @html.
+    #   Passing nil will skip the HTML extraction which isn't always needed.
     # @param singleton [Boolean] singleton ? results.first (single Object) :
     #   results (Enumerable).
     # @param text_content_only [Boolean] text_content_only ? result.content
@@ -653,8 +655,12 @@ be relative"
     # @return [String, Object] The value found in the html or the default value
     #   (singleton ? nil : []).
     def extract_from_html(xpath, singleton: true, text_content_only: true)
-      xpath  = xpath.call if xpath.respond_to?(:call)
-      result = singleton ? at_xpath(xpath) : xpath(xpath)
+      result = nil
+
+      if xpath
+        xpath  = xpath.call if xpath.respond_to?(:call)
+        result = singleton ? at_xpath(xpath) : xpath(xpath)
+      end
 
       if result && text_content_only
         result = singleton ? result.content : result.map(&:content)
