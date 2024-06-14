@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require_relative '../assertable'
-require_relative '../url'
-require_relative '../document'
-require_relative '../model'
+require_relative "../assertable"
+require_relative "../url"
+require_relative "../document"
+require_relative "../model"
 
 module Wgit::Database
   # The parent DatabaseAdapter class that should be inherited from when

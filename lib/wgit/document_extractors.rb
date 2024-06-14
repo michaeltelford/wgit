@@ -5,7 +5,7 @@
 # Base.
 Wgit::Document.define_extractor(
   :base,
-  '//base/@href',
+  "//base/@href",
   singleton: true,
   text_content_only: true
 ) do |base|
@@ -15,7 +15,7 @@ end
 # Title.
 Wgit::Document.define_extractor(
   :title,
-  '//title',
+  "//title",
   singleton: true,
   text_content_only: true
 )
@@ -44,7 +44,7 @@ Wgit::Document.define_extractor(
   text_content_only: true
 ) do |keywords, _source, type|
   if keywords && type == :document
-    keywords = keywords.split(',')
+    keywords = keywords.split(",")
     keywords = Wgit::Utils.sanitize(keywords)
   end
 
@@ -54,7 +54,7 @@ end
 # Links.
 Wgit::Document.define_extractor(
   :links,
-  '//a/@href',
+  "//a/@href",
   singleton: false,
   text_content_only: true
 ) do |links|

@@ -31,3 +31,7 @@ Layout/LineLength:
   Max: 85
 Style/Alias:
   EnforcedStyle: prefer_alias_method
+Style/StringLiterals:
+  EnforcedStyle: double_quotes
+  Include:
+    - 'test/**/*.rb'

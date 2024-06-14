@@ -154,8 +154,7 @@ expand :gem_build do |t|
   t.install_gem = true
 end
 
-# tool :lint
-expand :rubocop, name: :lint
+tool :lint, delegate_to: :rubocop
 
 tool :release do
   desc 'The SAFE release task which double checks things!'

@@ -1,10 +1,10 @@
 #!/usr/bin/env ruby
 
-require 'wgit'
+require "wgit"
 
 # Eval .wgit.rb file (if it exists somewhere).
 def eval_wgit(filepath = nil)
-  puts 'Searching for .wgit.rb file in local and home directories...'
+  puts "Searching for .wgit.rb file in local and home directories..."
   success = false
 
   [filepath, Dir.pwd, Dir.home].each do |dir|
@@ -12,7 +12,7 @@ def eval_wgit(filepath = nil)
     next unless File.exist?(path)
 
     puts "Eval'ing #{path}"
-    puts 'Call `eval_wgit` after changes to re-eval the file'
+    puts "Call `eval_wgit` after changes to re-eval the file"
     eval(File.read(path))
     success = true
 
@@ -27,10 +27,10 @@ puts "\n#{Wgit.version_str}\n\n"
 
 # Use Pry if installed or fall back to IRB.
 begin
-  require 'pry'
+  require "pry"
   klass = Pry
 rescue LoadError
-  require 'irb'
+  require "irb"
   klass = IRB
 
   puts "Starting IRB because Pry isn't installed."
@@ -38,4 +38,4 @@ end
 
 klass.start
 
-puts 'Interactive session complete.'
+puts "Interactive session complete."

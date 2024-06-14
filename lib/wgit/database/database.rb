@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative 'adapters/mongo_db'
+require_relative "adapters/mongo_db"
 
 module Wgit
   # Module providing a Database connection and CRUD operations for the Url and

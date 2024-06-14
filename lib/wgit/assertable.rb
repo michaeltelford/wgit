@@ -4,10 +4,10 @@ module Wgit
   # Module containing assertion methods including type checking and duck typing.
   module Assertable
     # Default type fail message.
-    DEFAULT_TYPE_FAIL_MSG = 'Expected: %s, Actual: %s'
+    DEFAULT_TYPE_FAIL_MSG = "Expected: %s, Actual: %s"
 
     # Wrong method message.
-    NON_ENUMERABLE_MSG = 'Expected an Enumerable responding to #each, not: %s'
+    NON_ENUMERABLE_MSG = "Expected an Enumerable responding to #each, not: %s"
 
     # Enumerable with more than one type across it's elements.
     MIXED_ENUMERABLE_MSG = "Expected an Enumerable with elements of a single \
@@ -101,7 +101,7 @@ present: %s"
     # @raise [KeyError] If the assertion fails.
     # @return [Hash] The given hash on successful assertion.
     def assert_required_keys(hash, keys, msg = nil)
-      msg ||= format(DEFAULT_REQUIRED_KEYS_MSG, keys.join(', '))
+      msg ||= format(DEFAULT_REQUIRED_KEYS_MSG, keys.join(", "))
       all_present = keys.all? { |key| hash.keys.include? key }
       raise KeyError, msg unless all_present
 
@@ -112,7 +112,7 @@ present: %s"
 
     # obj must respond_to? all methods or an exception is raised.
     def _assert_respond_to(obj, methods, msg = nil)
-      raise 'methods must respond_to? :all?' unless methods.respond_to?(:all?)
+      raise "methods must respond_to? :all?" unless methods.respond_to?(:all?)
 
       msg ||= format(DEFAULT_DUCK_FAIL_MSG, "#{obj.class} (#{obj})", methods)
       match = methods.all? { |method| obj.respond_to?(method) }

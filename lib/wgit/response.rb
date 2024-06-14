@@ -27,7 +27,7 @@ module Wgit
 
     # Defaults some values and returns a "blank" Wgit::Response object.
     def initialize
-      @body         = ''
+      @body         = ""
       @headers      = {}
       @redirections = {}
       @total_time   = 0.0
@@ -45,7 +45,7 @@ module Wgit
     # @param time [Float] The time to add to @total_time.
     # @return [Float] @total_time's new value.
     def add_total_time(time)
-      @total_time += (time || 0.0)
+      @total_time += time || 0.0
     end
 
     # Sets the HTML response body.
@@ -53,7 +53,7 @@ module Wgit
     # @param str [String] The new HTML body.
     # @return [String] @body's new value.
     def body=(str)
-      @body = str || ''
+      @body = str || ""
     end
 
     # Returns the HTML response body or nil (if it's empty).
@@ -81,7 +81,7 @@ module Wgit
         return
       end
 
-      @headers = headers.transform_keys { |k| k.downcase.gsub('-', '_').to_sym }
+      @headers = headers.transform_keys { |k| k.downcase.gsub("-", "_").to_sym }
     end
 
     # Returns whether or not the response is 404 Not Found.
@@ -143,7 +143,7 @@ module Wgit
     # @return [Boolean] True if Wgit should not index this site, false
     #   otherwise.
     def no_index?
-      headers.fetch(:x_robots_tag, '').downcase.strip == 'noindex'
+      headers.fetch(:x_robots_tag, "").downcase.strip == "noindex"
     end
 
     alias_method :code,           :status
