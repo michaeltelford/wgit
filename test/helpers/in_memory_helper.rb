@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require_relative 'database_test_data'
-require_relative 'database_helper'
-require 'mongo'
+require_relative "database_test_data"
+require_relative "database_helper"
+require "mongo"
 
 # Helper class used to manipulate the InMemory database.
 module InMemoryHelper

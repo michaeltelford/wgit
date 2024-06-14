@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative 'database_test_data'
+require_relative "database_test_data"
 
 # Helper module used to manipulate any database adapter. This module should
 # be included in other DB helper modules. To do so, you must implement the
@@ -38,7 +38,7 @@ module DatabaseHelper
   #     doc     # Seeds 1 of the default dev doc records.
   #   end
   def seed(&block)
-    raise 'Must provide a block' unless block_given?
+    raise "Must provide a block" unless block_given?
 
     @@urls.clear
     @@docs.clear
