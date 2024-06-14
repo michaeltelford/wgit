@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative './utils'
+require_relative "./utils"
 
 module Wgit
   # Module used to build the Database collection objects, forming a data model.
@@ -111,7 +111,7 @@ module Wgit
     # @param url [Wgit::Url] The Url data object.
     # @return [Hash] The URL model ready for DB insertion.
     def self.url(url)
-      raise 'url must respond_to? :to_h' unless url.respond_to?(:to_h)
+      raise "url must respond_to? :to_h" unless url.respond_to?(:to_h)
 
       model = url.to_h
       select_bson_types(model)
@@ -124,11 +124,12 @@ module Wgit
     # @param doc [Wgit::Document] The Document data object.
     # @return [Hash] The Document model ready for DB insertion.
     def self.document(doc)
-      raise 'doc must respond_to? :to_h' unless doc.respond_to?(:to_h)
+      raise "doc must respond_to? :to_h" unless doc.respond_to?(:to_h)
 
       model = doc.to_h(
-        include_html: @include_doc_html, include_score: @include_doc_score)
-      model['url'] = url(doc.url) # Expand Url String into full object.
+        include_html: @include_doc_html, include_score: @include_doc_score
+      )
+      model["url"] = url(doc.url) # Expand Url String into full object.
 
       select_bson_types(model)
     end

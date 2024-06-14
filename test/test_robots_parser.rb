@@ -1,4 +1,4 @@
-require_relative 'helpers/test_helper'
+require_relative "helpers/test_helper"
 
 # Test class for the RobotsParser methods.
 class TestRobotsParser < TestHelper
@@ -16,34 +16,34 @@ class TestRobotsParser < TestHelper
     assert p.disallow_rules?
     assert p.no_index?
     assert_equal({
-      allow_paths:    Set.new(['/michaeltelford/wgit/wiki/*']),
+      allow_paths:    Set.new(["/michaeltelford/wgit/wiki/*"]),
       disallow_paths: Set.new([
-        '/buzz/*.xml',
-        '/category/*.xml',
-        '/mobile/',
-        '*?s=bpage-next',
-        '*?s=lightbox',
-        '*?s=feedpager',
-        '/fabordrab/',
-        '/bfmp/',
-        '/buzzfeed/',
-        '/michaeltelford/wgit/wiki/*/_history',
-        '*'
+        "/buzz/*.xml",
+        "/category/*.xml",
+        "/mobile/",
+        "*?s=bpage-next",
+        "*?s=lightbox",
+        "*?s=feedpager",
+        "/fabordrab/",
+        "/bfmp/",
+        "/buzzfeed/",
+        "/michaeltelford/wgit/wiki/*/_history",
+        "*"
       ])
     }, p.rules)
-    assert_equal ['/michaeltelford/wgit/wiki/*'], p.allow_paths
+    assert_equal ["/michaeltelford/wgit/wiki/*"], p.allow_paths
     assert_equal([
-      '/buzz/*.xml',
-      '/category/*.xml',
-      '/mobile/',
-      '*?s=bpage-next',
-      '*?s=lightbox',
-      '*?s=feedpager',
-      '/fabordrab/',
-      '/bfmp/',
-      '/buzzfeed/',
-      '/michaeltelford/wgit/wiki/*/_history',
-      '*'
+      "/buzz/*.xml",
+      "/category/*.xml",
+      "/mobile/",
+      "*?s=bpage-next",
+      "*?s=lightbox",
+      "*?s=feedpager",
+      "/fabordrab/",
+      "/bfmp/",
+      "/buzzfeed/",
+      "/michaeltelford/wgit/wiki/*/_history",
+      "*"
     ], p.disallow_paths)
   end
 
@@ -59,10 +59,10 @@ class TestRobotsParser < TestHelper
     assert p.no_index?
     assert_equal({
       allow_paths:    Set.new,
-      disallow_paths: Set.new(['/'])
+      disallow_paths: Set.new(["/"])
     }, p.rules)
     assert_empty p.allow_paths
-    assert_equal ['/'], p.disallow_paths
+    assert_equal ["/"], p.disallow_paths
   end
 
   def test_initialize__disallow_asterisk
@@ -77,10 +77,10 @@ class TestRobotsParser < TestHelper
     assert p.no_index?
     assert_equal({
       allow_paths:    Set.new,
-      disallow_paths: Set.new(['*'])
+      disallow_paths: Set.new(["*"])
     }, p.rules)
     assert_empty p.allow_paths
-    assert_equal ['*'], p.disallow_paths
+    assert_equal ["*"], p.disallow_paths
   end
 
   def test_initialize__allow_slash
@@ -145,11 +145,11 @@ class TestRobotsParser < TestHelper
     assert p.disallow_rules?
     refute p.no_index?
     assert_equal({
-      allow_paths:    Set.new(['/about']),
-      disallow_paths: Set.new(['/*.xml'])
+      allow_paths:    Set.new(["/about"]),
+      disallow_paths: Set.new(["/*.xml"])
     }, p.rules)
-    assert_equal ['/about'], p.allow_paths
-    assert_equal ['/*.xml'], p.disallow_paths
+    assert_equal ["/about"], p.allow_paths
+    assert_equal ["/*.xml"], p.disallow_paths
   end
 
   def test_initialize__no_white_space
@@ -160,11 +160,11 @@ class TestRobotsParser < TestHelper
     assert p.disallow_rules?
     refute p.no_index?
     assert_equal({
-      allow_paths:    Set.new(['/about']),
-      disallow_paths: Set.new(['/*.xml'])
+      allow_paths:    Set.new(["/about"]),
+      disallow_paths: Set.new(["/*.xml"])
     }, p.rules)
-    assert_equal ['/about'], p.allow_paths
-    assert_equal ['/*.xml'], p.disallow_paths
+    assert_equal ["/about"], p.allow_paths
+    assert_equal ["/*.xml"], p.disallow_paths
   end
 
   def test_initialize__case_insensitive
@@ -180,11 +180,11 @@ class TestRobotsParser < TestHelper
     assert p.disallow_rules?
     refute p.no_index?
     assert_equal({
-      allow_paths:    Set.new(['/about']),
-      disallow_paths: Set.new(['/*.xml'])
+      allow_paths:    Set.new(["/about"]),
+      disallow_paths: Set.new(["/*.xml"])
     }, p.rules)
-    assert_equal ['/about'], p.allow_paths
-    assert_equal ['/*.xml'], p.disallow_paths
+    assert_equal ["/about"], p.allow_paths
+    assert_equal ["/*.xml"], p.disallow_paths
   end
 
   def test_initialize__cloudflare
@@ -213,10 +213,10 @@ class TestRobotsParser < TestHelper
     refute p.disallow_rules?
     refute p.no_index?
     assert_equal({
-      allow_paths:    Set.new(['/about']),
-      disallow_paths: Set.new()
+      allow_paths:    Set.new(["/about"]),
+      disallow_paths: Set.new
     }, p.rules)
-    assert_equal ['/about'], p.allow_paths
+    assert_equal ["/about"], p.allow_paths
     assert_empty p.disallow_paths
   end
 
@@ -232,11 +232,11 @@ class TestRobotsParser < TestHelper
     assert p.disallow_rules?
     refute p.no_index?
     assert_equal({
-      allow_paths:    Set.new(['/about']),
-      disallow_paths: Set.new(['/contact#support'])
+      allow_paths:    Set.new(["/about"]),
+      disallow_paths: Set.new(["/contact#support"])
     }, p.rules)
-    assert_equal ['/about'], p.allow_paths
-    assert_equal ['/contact#support'], p.disallow_paths
+    assert_equal ["/about"], p.allow_paths
+    assert_equal ["/contact#support"], p.disallow_paths
   end
 
   def test_initialize__blank_path__allow
@@ -250,8 +250,8 @@ class TestRobotsParser < TestHelper
     refute p.disallow_rules?
     refute p.no_index?
     assert_equal({
-      allow_paths:    Set.new(),
-      disallow_paths: Set.new()
+      allow_paths:    Set.new,
+      disallow_paths: Set.new
     }, p.rules)
     assert_empty p.allow_paths
     assert_empty p.disallow_paths
@@ -268,11 +268,11 @@ class TestRobotsParser < TestHelper
     assert p.disallow_rules?
     assert p.no_index?
     assert_equal({
-      allow_paths:    Set.new(),
-      disallow_paths: Set.new(['*'])
+      allow_paths:    Set.new,
+      disallow_paths: Set.new(["*"])
     }, p.rules)
     assert_empty p.allow_paths
-    assert_equal ['*'], p.disallow_paths
+    assert_equal ["*"], p.disallow_paths
   end
 
   private
@@ -377,7 +377,7 @@ class TestRobotsParser < TestHelper
       #       _-_
       #    /~~   ~~\
       # /~~         ~~\
-      #{               }
+
       # \  _-     -_  /
       #   ~  \\ //  ~
       #_- -   | | _- _
@@ -481,38 +481,38 @@ class TestRobotsParser < TestHelper
 
   def expected_disallow_paths__cloudflare
     [
-      'pages.www.cloudflare.com/',
-      'en-us.www.cloudflare.com/',
-      '/lp',
-      '/de-de/lp',
-      '/en-au/lp',
-      '/en-ca/lp',
-      '/en-gb/lp',
-      '/en-in/lp',
-      '/es-es/lp',
-      '/es-la/lp',
-      '/fr-fr/lp',
-      '/it-it/lp',
-      '/ja-jp/lp',
-      '/ko-kr/lp',
-      '/pt-br/lp',
-      '/zh-cn/lp',
-      '/zh-tw/lp',
-      '/feedback',
-      '/de-de/feedback',
-      '/en-au/feedback',
-      '/en-ca/feedback',
-      '/en-gb/feedback',
-      '/en-in/feedback',
-      '/es-es/feedback',
-      '/es-la/feedback',
-      '/fr-fr/feedback',
-      '/it-it/feedback',
-      '/ja-jp/feedback',
-      '/ko-kr/feedback',
-      '/pt-br/feedback',
-      '/zh-cn/feedback',
-      '/zh-tw/feedback'
+      "pages.www.cloudflare.com/",
+      "en-us.www.cloudflare.com/",
+      "/lp",
+      "/de-de/lp",
+      "/en-au/lp",
+      "/en-ca/lp",
+      "/en-gb/lp",
+      "/en-in/lp",
+      "/es-es/lp",
+      "/es-la/lp",
+      "/fr-fr/lp",
+      "/it-it/lp",
+      "/ja-jp/lp",
+      "/ko-kr/lp",
+      "/pt-br/lp",
+      "/zh-cn/lp",
+      "/zh-tw/lp",
+      "/feedback",
+      "/de-de/feedback",
+      "/en-au/feedback",
+      "/en-ca/feedback",
+      "/en-gb/feedback",
+      "/en-in/feedback",
+      "/es-es/feedback",
+      "/es-la/feedback",
+      "/fr-fr/feedback",
+      "/it-it/feedback",
+      "/ja-jp/feedback",
+      "/ko-kr/feedback",
+      "/pt-br/feedback",
+      "/zh-cn/feedback",
+      "/zh-tw/feedback"
     ]
   end
 end

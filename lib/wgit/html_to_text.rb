@@ -1,6 +1,6 @@
-require_relative 'utils'
-require_relative 'assertable'
-require 'nokogiri'
+require_relative "utils"
+require_relative "assertable"
+require "nokogiri"
 
 module Wgit
   # Class used to extract the visible page text from a HTML string.
@@ -103,20 +103,21 @@ module Wgit
       assert_type(parser, Nokogiri::HTML4::Document)
 
       @parser = parser
-      @display_logs = ENV['WGIT_DEBUG_HTML_TO_TEXT']
+      @display_logs = ENV["WGIT_DEBUG_HTML_TO_TEXT"]
     end
 
     # Extracts and returns the text sentences from the @parser HTML.
     #
     # @return [Array<String>] An array of unique text sentences.
     def extract_arr
-      Wgit::Utils.pprint('START_TEXT_ARR', display: @display_logs)
+      Wgit::Utils.pprint("START_TEXT_ARR", display: @display_logs)
 
       return [] if @parser.to_s.empty?
 
       text_str = extract_str
 
-      Wgit::Utils.pprint('FINAL_TEXT_STR', display: @display_logs, text_str: text_str)
+      Wgit::Utils.pprint("FINAL_TEXT_STR", display: @display_logs,
+text_str: text_str)
 
       # Split the text_str into an Array of text sentences.
       text = text_str
@@ -125,7 +126,7 @@ module Wgit
              .reject(&:empty?)
              .uniq
 
-      Wgit::Utils.pprint('FINAL_TEXT_ARR', display: @display_logs, text: text)
+      Wgit::Utils.pprint("FINAL_TEXT_ARR", display: @display_logs, text: text)
 
       text
     end
@@ -134,17 +135,19 @@ module Wgit
     #
     # @return [String] A string of text with \n delimiting sentences.
     def extract_str
-      text_str = ''
+      text_str = ""
 
       iterate_child_nodes(@parser) do |node, display|
-        Wgit::Utils.pprint('NODE', display: @display_logs, node: node.name, text: node.text)
+        Wgit::Utils.pprint("NODE", display: @display_logs, node: node.name,
+text: node.text)
 
         # byebug if node_name(node) == :span && node.text.downcase == 'post'
 
         # Handle any special cases e.g. skip nodes we don't care about...
         # <pre> nodes should have their contents displayed exactly as is.
         if node_name(node) == :pre
-          Wgit::Utils.pprint('ADDING_PRE_CONTENT_AS_IS', display: @display_logs, content: "\n#{node.text}")
+          Wgit::Utils.pprint("ADDING_PRE_CONTENT_AS_IS", display: @display_logs,
+content: "\n#{node.text}")
 
           text_str << "\n"
           text_str << node.text
@@ -174,33 +177,35 @@ module Wgit
 
         if node.text?
           unless prev && inline?(prev)
-            Wgit::Utils.pprint('ADDING_NEW_LINE_FOR_TEXT_1', display: @display_logs)
+            Wgit::Utils.pprint("ADDING_NEW_LINE_FOR_TEXT_1", display: @display_logs)
             add_new_line = true
           end
         else
           if display == :block
-            Wgit::Utils.pprint('ADDING_NEW_LINE_FOR_NODE_1', display: @display_logs)
+            Wgit::Utils.pprint("ADDING_NEW_LINE_FOR_NODE_1", display: @display_logs)
             add_new_line = true
           end
 
           if prev && block?(prev)
-            Wgit::Utils.pprint('ADDING_NEW_LINE_FOR_NODE_2', display: @display_logs)
+            Wgit::Utils.pprint("ADDING_NEW_LINE_FOR_NODE_2", display: @display_logs)
             add_new_line = true
           end
         end
 
         text_str << "\n" if add_new_line
 
-        Wgit::Utils.pprint('ADDING_NODE_TEXT', display: @display_logs, node: node.name, text: node_text)
+        Wgit::Utils.pprint("ADDING_NODE_TEXT", display: @display_logs,
+node: node.name, text: node_text)
         text_str << node_text
       end
 
-      Wgit::Utils.pprint('TEXT_STR_PRE_SQUEEZE', display: @display_logs, text_str: text_str)
+      Wgit::Utils.pprint("TEXT_STR_PRE_SQUEEZE", display: @display_logs,
+text_str: text_str)
 
       text_str
         .strip
         .squeeze("\n")
-        .squeeze(' ')
+        .squeeze(" ")
     end
 
     private
@@ -272,22 +277,22 @@ module Wgit
     # typically use <br> and/or block elements to denote a line break.
     def format_text(text)
       text
-        .encode('UTF-8', undef: :replace, invalid: :replace)
-        .gsub("\n",       '')
-        .gsub('\\n',      '')
-        .gsub("\r",       '')
-        .gsub('\\r',      '')
-        .gsub("\f",       '')
-        .gsub('\\f',      '')
-        .gsub("\t",       '')
-        .gsub('\\t',      '')
-        .gsub('&zwnj;',   '')
-        .gsub('&nbsp;',   ' ')
-        .gsub('&#160;',   ' ')
-        .gsub('&thinsp;', ' ')
-        .gsub('&ensp;',   ' ')
-        .gsub('&emsp;',   ' ')
-        .gsub('\u00a0',   ' ')
+        .encode("UTF-8", undef: :replace, invalid: :replace)
+        .gsub("\n",       "")
+        .gsub('\\n',      "")
+        .gsub("\r",       "")
+        .gsub('\\r',      "")
+        .gsub("\f",       "")
+        .gsub('\\f',      "")
+        .gsub("\t",       "")
+        .gsub('\\t',      "")
+        .gsub("&zwnj;",   "")
+        .gsub("&nbsp;",   " ")
+        .gsub("&#160;",   " ")
+        .gsub("&thinsp;", " ")
+        .gsub("&ensp;",   " ")
+        .gsub("&emsp;",   " ")
+        .gsub('\u00a0',   " ")
     end
 
     # Iterate over node and it's child nodes, yielding each to &block.

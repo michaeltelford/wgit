@@ -7,15 +7,15 @@ module Wgit
     include Wgit::Assertable
 
     # Key representing the start of a comment.
-    KEY_COMMENT    = '#'
+    KEY_COMMENT    = "#"
     # Key value separator used in robots.txt files.
-    KEY_SEPARATOR  = ':'
+    KEY_SEPARATOR  = ":"
     # Key representing a user agent.
-    KEY_USER_AGENT = 'User-agent'
+    KEY_USER_AGENT = "User-agent"
     # Key representing an allow URL rule.
-    KEY_ALLOW      = 'Allow'
+    KEY_ALLOW      = "Allow"
     # Key representing a disallow URL rule.
-    KEY_DISALLOW   = 'Disallow'
+    KEY_DISALLOW   = "Disallow"
 
     # Value representing the Wgit user agent.
     USER_AGENT_WGIT = :wgit
@@ -143,7 +143,7 @@ module Wgit
       return line unless line.count(KEY_SEPARATOR) == 1
 
       segs = line.split(KEY_SEPARATOR)
-      return '' if segs.size == 1
+      return "" if segs.size == 1
 
       segs.last.strip
     end
@@ -176,13 +176,13 @@ module Wgit
 
     def parse_special_syntax(path)
       # Remove $ e.g. "/blah$" becomes "/blah"
-      path = path.gsub('$', '')
+      path = path.gsub("$", "")
 
       # Remove any inline comments e.g. "/blah # comment" becomes "/blah"
       path = path.split(" #{KEY_COMMENT}").first if path.include?(" #{KEY_COMMENT}")
 
       # Replace an empty path with * e.g. "Allow: " becomes "Allow: *"
-      path = '*' if path.empty?
+      path = "*" if path.empty?
 
       path
     end

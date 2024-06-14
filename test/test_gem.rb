@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative 'helpers/test_helper'
+require_relative "helpers/test_helper"
 
 # Test class for requiring the wgit gem.
 class TestGem < TestHelper
@@ -9,6 +9,6 @@ class TestGem < TestHelper
 
   # Test the wgit.rb file loads the API correctly.
   def test_require
-    refute_exception { require('wgit') }
+    refute_exception { require("wgit") }
   end
 end

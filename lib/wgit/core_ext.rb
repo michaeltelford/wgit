@@ -3,7 +3,7 @@
 # Script which extends Ruby's core functionality when parsed.
 # Needs to be required separately to 'wgit' using `require 'wgit/core_ext'`.
 
-require_relative 'url'
+require_relative "url"
 
 # Extend the standard String functionality.
 class String

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require 'webmock'
-require 'uri'
+require "webmock"
+require "uri"
 
 include WebMock::API
 
@@ -23,19 +23,19 @@ class Typhoeus::Response
 end
 
 def fixtures_dir
-  'test/mock/fixtures'
+  "test/mock/fixtures"
 end
 
 # Return the contents of a HTML fixture file.
 def fixture(file)
-  file = "#{file}.html" if %w(.html robots.txt).none? { |ext| file.end_with?(ext) }
+  file = "#{file}.html" if %w[.html robots.txt].none? { |ext| file.end_with?(ext) }
   file_path = file.start_with?(fixtures_dir) ? file : "#{fixtures_dir}/#{file}"
   File.read(file_path)
 end
 
 # Return the default HTML fixture data.
 def default_html
-  fixture('test_doc')
+  fixture("test_doc")
 end
 
 # Stub a single webpage. Stubs both:
@@ -46,21 +46,21 @@ def stub_page(url, status: 200, body: default_html, fixture: nil)
 
   # Webmock only mocks a trailing slash if there's no path so we do it.
   path = URI(url).path
-  unless path.empty? || path == '/'
-    alt_url = url.end_with?('/') ? url.chop : "#{url}/"
-    stub_request(:get, alt_url).to_return(status: status, body: body)
-  end
+  return if path.empty? || path == "/"
+
+  alt_url = url.end_with?("/") ? url.chop : "#{url}/"
+  stub_request(:get, alt_url).to_return(status: status, body: body)
 end
 
 # Stub a single page 404 not found.
 def stub_not_found(url)
-  stub_page(url, status: 404, fixture: 'not_found')
+  stub_page(url, status: 404, fixture: "not_found")
 end
 
 # Stub a 404 not found for /robots.txt.
 def stub_robots_txt_not_found(urls)
   urls.each do |url|
-    suffix = url.end_with?('/robots.txt') ? '' : '/robots.txt'
+    suffix = url.end_with?("/robots.txt") ? "" : "/robots.txt"
     stub_not_found(url + suffix)
   end
 end
@@ -78,24 +78,24 @@ end
 # Stub an entire website recursively according to what's saved on the file
 # system. Assumes the fixture data exists on disk.
 def stub_dir(url, path, dir)
-  url.chop!  if url.end_with?('/')  # Remove trailing slash.
-  path.chop! if path.end_with?('/') #   "
-  dir.chop!  if dir.end_with?('/')  #   "
+  url.chop!  if url.end_with?("/")  # Remove trailing slash.
+  path.chop! if path.end_with?("/") #   "
+  dir.chop!  if dir.end_with?("/")  #   "
 
   url  += "/#{dir}" unless URI(url).host == dir
   path += "/#{dir}"
 
   objects = Dir["#{path}/{*,.*}"]
-            .reject { |f| f.end_with?('.') || f.end_with?('..') }
+            .reject { |f| f.end_with?(".") || f.end_with?("..") }
   files   = objects
             .select { |obj| File.file?(obj) }
-            .reject { |f| f.end_with?('index.html') }
-            .map { |f| f.end_with?('.html') ? f[0..-6] : f } # Remove extension.
+            .reject { |f| f.end_with?("index.html") }
+            .map { |f| f.end_with?(".html") ? f[0..-6] : f } # Remove extension.
   dirs    = objects
             .select { |obj| File.directory?(obj) }
 
   files.each { |f| stub_page("#{url}/#{f.split('/').last}", fixture: f) }
-  dirs.each  { |d| stub_dir(url, path, d.split('/').last) }
+  dirs.each  { |d| stub_dir(url, path, d.split("/").last) }
 end
 
 # Stub all single webpages and full websites from the fixtures directory.

@@ -6,8 +6,8 @@
 # <path_to_script>/fixtures/blah.com/admin/about.html
 # Call this script like: `ruby save_site.rb http://blah.com` or use toys task.
 
-require_relative '../../lib/wgit'
-require 'fileutils'
+require_relative "../../lib/wgit"
+require "fileutils"
 
 def save_site(base_url, follow: :default)
   base_url = Wgit::Url.parse(base_url)
@@ -29,13 +29,13 @@ def save_site(base_url, follow: :default)
     # Save the index.html file to disk.
     if !base_url.omit_slashes.to_path && url.omit_slashes == base_url.omit_slashes
       puts "Saving document #{base_url.to_host}/index.html"
-      File.open('index.html', 'w') { |f| f.write(doc.html) }
+      File.open("index.html", "w") { |f| f.write(doc.html) }
       next
     end
 
     # Work out the file structure on disk.
-    segs = url.omit_base.split('/').reject(&:empty?)
-    dir = ''
+    segs = url.omit_base.split("/").reject(&:empty?)
+    dir = ""
     if segs.length == 1
       file_name = segs[0]
     else
@@ -45,22 +45,23 @@ def save_site(base_url, follow: :default)
     end
 
     # Create the directory if necessary.
-    if dir != ''
+    if dir != ""
       FileUtils.mkdir_p(dir)
-      dir += '/'
+      dir += "/"
     end
 
     file_path = dir + file_name
-    file_path += '.html' unless file_path.end_with? '.html'
+    file_path += ".html" unless file_path.end_with? ".html"
 
     # Save the HTML file for the page.
     puts "Saving document #{base_url.to_host}/#{file_path}"
-    File.open(file_path, 'w') { |f| f.write(doc.html) }
+    File.open(file_path, "w") { |f| f.write(doc.html) }
   end
 end
 
-if $0 == __FILE__
-  raise 'ARGV[0] must be a URL' unless ARGV[0]
+if $PROGRAM_NAME == __FILE__
+  raise "ARGV[0] must be a URL" unless ARGV[0]
+
   base_url = ARGV[0]
   xpath    = ARGV[1] || :default
   save_site(base_url, follow: xpath)

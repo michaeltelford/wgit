@@ -1,4 +1,4 @@
-require_relative 'helpers/test_helper'
+require_relative "helpers/test_helper"
 
 # Test class which includes the Wgit::DSL for testing with.
 class TestClass

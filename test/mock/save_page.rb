@@ -6,8 +6,8 @@
 # <path_to_script>/fixtures/blah.com.html
 # Call this script like: `ruby save_page.rb "http://blah.com"` or use toys task.
 
-require_relative '../../lib/wgit'
-require 'fileutils'
+require_relative "../../lib/wgit"
+require "fileutils"
 
 def save_page(url)
   url     = Wgit::Url.parse(url)
@@ -25,14 +25,15 @@ def save_page(url)
     end
 
     file_path = url.to_host
-    file_path += '.html' unless file_path.end_with? '.html'
+    file_path += ".html" unless file_path.end_with? ".html"
     puts "Saving document #{file_path}"
-    File.open(file_path, 'w') { |f| f.write(doc.html) }
+    File.open(file_path, "w") { |f| f.write(doc.html) }
   end
 end
 
-if $0 == __FILE__
-  raise 'ARGV[0] must be a URL' unless ARGV[0]
+if $PROGRAM_NAME == __FILE__
+  raise "ARGV[0] must be a URL" unless ARGV[0]
+
   url = ARGV[0]
   save_page(url)
 end

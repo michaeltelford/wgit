@@ -1,4 +1,4 @@
-require_relative 'helpers/test_helper'
+require_relative "helpers/test_helper"
 
 # Test class for testing the Indexer methods.
 # WARNING: The DB is cleared down prior to each test run.
@@ -40,12 +40,12 @@ class TestIndexer < TestHelper
     assert_instance_of Wgit::Crawler,  indexer.crawler
     assert_instance_of Wgit::Database::MongoDB, indexer.db
 
-    assert_equal crawler,  indexer.crawler
+    assert_equal crawler, indexer.crawler
     assert_equal db, indexer.db
   end
 
   def test_index_www__one_site
-    url = Wgit::Url.new 'https://motherfuckingwebsite.com/'
+    url = Wgit::Url.new "https://motherfuckingwebsite.com/"
     seed { url(url) }
 
     # Index only one site.
@@ -62,10 +62,10 @@ class TestIndexer < TestHelper
 
   def test_index_www__one_site__define_extractor
     Wgit::Document.define_extractor(
-      :aside, '//aside', singleton: false, text_content_only: true
+      :aside, "//aside", singleton: false, text_content_only: true
     )
 
-    url = Wgit::Url.new 'https://motherfuckingwebsite.com/'
+    url = Wgit::Url.new "https://motherfuckingwebsite.com/"
     seed { url(url) }
 
     # Index only one site.
@@ -80,7 +80,7 @@ class TestIndexer < TestHelper
   end
 
   def test_index_www__two_sites
-    url = Wgit::Url.new 'https://motherfuckingwebsite.com/'
+    url = Wgit::Url.new "https://motherfuckingwebsite.com/"
     seed { url(url) }
 
     # Index two sites.
@@ -95,7 +95,7 @@ class TestIndexer < TestHelper
   end
 
   def test_index_www__several_sites
-    url = Wgit::Url.new 'https://external-link-portal.com'
+    url = Wgit::Url.new "https://external-link-portal.com"
     seed { url(url) }
 
     # Index https://external-link-portal.com plus it's 5 externally linked sites.
@@ -111,17 +111,17 @@ class TestIndexer < TestHelper
   end
 
   def test_index_www__redirects
-    url = Wgit::Url.new 'http://redirect.com/4'
+    url = Wgit::Url.new "http://redirect.com/4"
     seed { url(url) }
 
     # Index http://redirect.com/4 which redirects through to 7 and yields a single page.
     @indexer.index_www max_sites: 1
 
     # Assert that url and its redirects all get indexed as crawled.
-    assert url? url: 'http://redirect.com/4', crawled: true
-    assert url? url: 'http://redirect.com/5', crawled: true
-    assert url? url: 'http://redirect.com/6', crawled: true
-    assert url? url: 'http://redirect.com/7', crawled: true
+    assert url? url: "http://redirect.com/4", crawled: true
+    assert url? url: "http://redirect.com/5", crawled: true
+    assert url? url: "http://redirect.com/6", crawled: true
+    assert url? url: "http://redirect.com/7", crawled: true
 
     # Assert that some indexed docs were inserted into the DB.
     assert_equal 4, db.num_urls
@@ -129,7 +129,7 @@ class TestIndexer < TestHelper
   end
 
   def test_index_www__max_data
-    url = Wgit::Url.new 'https://motherfuckingwebsite.com/'
+    url = Wgit::Url.new "https://motherfuckingwebsite.com/"
     seed { url(url) }
 
     # Index nothing because max_data is zero.
@@ -142,7 +142,7 @@ class TestIndexer < TestHelper
 
   def test_index_www__robots_txt
     # Links to http://robots.txt.com which has no externals, so crawl 2 sites.
-    url = Wgit::Url.new 'http://link-to-robots-txt.com'
+    url = Wgit::Url.new "http://link-to-robots-txt.com"
     seed { url(url) }
 
     @indexer.index_www
@@ -155,18 +155,19 @@ class TestIndexer < TestHelper
     assert_equal 2, db.num_urls
     assert_equal 5, db.num_docs
     assert_equal(
-      %w(
+      %w[
         http://link-to-robots-txt.com
         http://robots.txt.com
         http://robots.txt.com/about
         http://robots.txt.com/contact
         http://robots.txt.com/
-      ),
-      db.docs.map(&:url).map(&:to_s))
+      ],
+      db.docs.map(&:url).map(&:to_s)
+    )
   end
 
   def test_index_www__robots_txt__disallow_all
-    url = Wgit::Url.new 'http://disallow-all.com'
+    url = Wgit::Url.new "http://disallow-all.com"
     seed { url(url) }
 
     # Try to index the site which is illegal via robots.txt file.
@@ -182,7 +183,7 @@ class TestIndexer < TestHelper
   end
 
   def test_index_site__without_externals
-    url = Wgit::Url.new 'https://motherfuckingwebsite.com/'
+    url = Wgit::Url.new "https://motherfuckingwebsite.com/"
 
     refute url? url: url
 
@@ -198,7 +199,7 @@ class TestIndexer < TestHelper
   end
 
   def test_index_site__with_externals
-    url = Wgit::Url.new 'https://motherfuckingwebsite.com/'
+    url = Wgit::Url.new "https://motherfuckingwebsite.com/"
     num_pages_crawled = 0
 
     refute url? url: url
@@ -222,7 +223,7 @@ class TestIndexer < TestHelper
   def test_index_site__no_doc_insert
     # Test that returning nil/false from the block prevents saving the doc to
     # the DB.
-    url = Wgit::Url.new 'https://motherfuckingwebsite.com/'
+    url = Wgit::Url.new "https://motherfuckingwebsite.com/"
 
     refute url? url: url
 
@@ -242,7 +243,7 @@ class TestIndexer < TestHelper
 
   def test_index_site__invalid_url
     # Test that an invalid URL isn't indexed.
-    url = Wgit::Url.new 'http://doesnt_exist/'
+    url = Wgit::Url.new "http://doesnt_exist/"
 
     refute url? url: url
 
@@ -262,18 +263,18 @@ class TestIndexer < TestHelper
   end
 
   def test_index_site__manipulate_doc
-    url = Wgit::Url.new 'https://motherfuckingwebsite.com/'
+    url = Wgit::Url.new "https://motherfuckingwebsite.com/"
 
     refute url? url: url
 
     # Index the page and change the title before saving to DB.
     @indexer.index_site url do |doc|
-      doc.title = 'Boomskies!'
+      doc.title = "Boomskies!"
       true # Index the page.
     end
 
     # Assert that doc.title gets updated.
-    assert doc? title: 'Boomskies!'
+    assert doc? title: "Boomskies!"
     assert url? url: url, crawled: true
 
     # The site has one doc plus its url.
@@ -282,7 +283,7 @@ class TestIndexer < TestHelper
   end
 
   def test_index_site__redirects
-    url = Wgit::Url.new 'http://redirect.com/4'
+    url = Wgit::Url.new "http://redirect.com/4"
 
     refute url? url: url
 
@@ -290,11 +291,11 @@ class TestIndexer < TestHelper
     @indexer.index_site url, insert_externals: false
 
     # Assert that url and its redirects all get indexed as crawled.
-    assert_equal 'http://redirect.com/7', url.to_s
-    assert url? url: 'http://redirect.com/4', crawled: true
-    assert url? url: 'http://redirect.com/5', crawled: true
-    assert url? url: 'http://redirect.com/6', crawled: true
-    assert url? url: 'http://redirect.com/7', crawled: true
+    assert_equal "http://redirect.com/7", url.to_s
+    assert url? url: "http://redirect.com/4", crawled: true
+    assert url? url: "http://redirect.com/5", crawled: true
+    assert url? url: "http://redirect.com/6", crawled: true
+    assert url? url: "http://redirect.com/7", crawled: true
 
     # Assert that some indexed docs were inserted into the DB.
     assert_equal 4, db.num_urls
@@ -302,7 +303,7 @@ class TestIndexer < TestHelper
   end
 
   def test_index_site__robots_txt
-    url = Wgit::Url.new 'http://robots.txt.com'
+    url = Wgit::Url.new "http://robots.txt.com"
 
     refute url? url: url
 
@@ -316,17 +317,18 @@ class TestIndexer < TestHelper
     assert_equal 1, db.num_urls
     assert_equal 4, db.num_docs
     assert_equal(
-      %w(
+      %w[
         http://robots.txt.com
         http://robots.txt.com/about
         http://robots.txt.com/contact
         http://robots.txt.com/
-      ),
-      db.docs.map(&:url).map(&:to_s))
+      ],
+      db.docs.map(&:url).map(&:to_s)
+    )
   end
 
   def test_index_site__robots_txt__disallow_all
-    url = Wgit::Url.new 'http://disallow-all.com'
+    url = Wgit::Url.new "http://disallow-all.com"
 
     refute url? url: url
 
@@ -343,7 +345,7 @@ class TestIndexer < TestHelper
   end
 
   def test_index_urls__one_url
-    url = Wgit::Url.new 'https://motherfuckingwebsite.com/'
+    url = Wgit::Url.new "https://motherfuckingwebsite.com/"
 
     # Index one URL.
     @indexer.index_urls url, insert_externals: true
@@ -354,8 +356,8 @@ class TestIndexer < TestHelper
   end
 
   def test_index_urls__two_urls
-    url  = Wgit::Url.new 'https://motherfuckingwebsite.com/'
-    url2 = Wgit::Url.new 'http://txti.es'
+    url  = Wgit::Url.new "https://motherfuckingwebsite.com/"
+    url2 = Wgit::Url.new "http://txti.es"
 
     # Index two URLs.
     @indexer.index_urls url, url2
@@ -367,19 +369,19 @@ class TestIndexer < TestHelper
   end
 
   def test_index_urls__redirects
-    url  = Wgit::Url.new 'http://redirect.com/4'
-    url2 = Wgit::Url.new 'https://motherfuckingwebsite.com/'
+    url  = Wgit::Url.new "http://redirect.com/4"
+    url2 = Wgit::Url.new "https://motherfuckingwebsite.com/"
 
     # Index the site and don't insert the external urls.
     @indexer.index_urls url, url2
 
     # Assert that url and its redirects all get indexed as crawled.
-    assert_equal 'http://redirect.com/7', url.to_s
-    assert url? url: 'http://redirect.com/4', crawled: true
-    assert url? url: 'http://redirect.com/5', crawled: true
-    assert url? url: 'http://redirect.com/6', crawled: true
-    assert url? url: 'http://redirect.com/7', crawled: true
-    assert url? url: 'https://motherfuckingwebsite.com/', crawled: true
+    assert_equal "http://redirect.com/7", url.to_s
+    assert url? url: "http://redirect.com/4", crawled: true
+    assert url? url: "http://redirect.com/5", crawled: true
+    assert url? url: "http://redirect.com/6", crawled: true
+    assert url? url: "http://redirect.com/7", crawled: true
+    assert url? url: "https://motherfuckingwebsite.com/", crawled: true
 
     # Assert that some indexed docs were inserted into the DB.
     assert_equal 5, db.num_urls
@@ -388,18 +390,18 @@ class TestIndexer < TestHelper
   end
 
   def test_index_urls__manipulate_doc
-    url = Wgit::Url.new 'https://motherfuckingwebsite.com/'
+    url = Wgit::Url.new "https://motherfuckingwebsite.com/"
 
     refute url? url: url
 
     # Index the page and change the title before saving to DB.
     @indexer.index_urls url do |doc|
-      doc.title = 'Boomskies!'
+      doc.title = "Boomskies!"
       true # Index the page.
     end
 
     # Assert that doc.title gets updated.
-    assert doc? title: 'Boomskies!'
+    assert doc? title: "Boomskies!"
     assert url? url: url, crawled: true
 
     # The site has one doc plus its url.
@@ -408,12 +410,12 @@ class TestIndexer < TestHelper
   end
 
   def test_index_urls__robots_txt_and_no_index
-    urls = %w(
+    urls = %w[
       http://robots.txt.com/login
       http://disallow-all.com
       http://robots.txt.com/pwreset
       http://robots.txt.com/account
-    ).to_urls
+    ].to_urls
 
     # Index several URLs, not inserting the external urls found.
     @indexer.index_urls(*urls)
@@ -423,7 +425,7 @@ class TestIndexer < TestHelper
   end
 
   def test_index_url__without_externals
-    url = Wgit::Url.new 'https://motherfuckingwebsite.com/'
+    url = Wgit::Url.new "https://motherfuckingwebsite.com/"
 
     refute url? url: url
 
@@ -439,7 +441,7 @@ class TestIndexer < TestHelper
   end
 
   def test_index_url__with_externals
-    url = Wgit::Url.new 'https://motherfuckingwebsite.com/'
+    url = Wgit::Url.new "https://motherfuckingwebsite.com/"
 
     refute url? url: url
 
@@ -457,7 +459,7 @@ class TestIndexer < TestHelper
   def test_index_url__no_doc_insert
     # Test that returning nil/false from the block prevents saving the doc to
     # the DB.
-    url = Wgit::Url.new 'https://motherfuckingwebsite.com/'
+    url = Wgit::Url.new "https://motherfuckingwebsite.com/"
 
     refute url? url: url
 
@@ -477,7 +479,7 @@ class TestIndexer < TestHelper
 
   def test_index_url__invalid_url
     # Test that an invalid URL isn't indexed.
-    url = Wgit::Url.new 'http://doesnt_exist/'
+    url = Wgit::Url.new "http://doesnt_exist/"
 
     refute url? url: url
 
@@ -497,18 +499,18 @@ class TestIndexer < TestHelper
   end
 
   def test_index_url__manipulate_doc
-    url = Wgit::Url.new 'https://motherfuckingwebsite.com/'
+    url = Wgit::Url.new "https://motherfuckingwebsite.com/"
 
     refute url? url: url
 
     # Index the page and change the title before saving to DB.
     @indexer.index_url url do |doc|
-      doc.title = 'Boomskies!'
+      doc.title = "Boomskies!"
       true # Index the page.
     end
 
     # Assert that doc.title gets updated.
-    assert doc? title: 'Boomskies!'
+    assert doc? title: "Boomskies!"
     assert url? url: url, crawled: true
 
     # The site has one doc plus its url.
@@ -521,20 +523,20 @@ class TestIndexer < TestHelper
     # All index_* methods use #upsert_doc so there's no need to test them all.
 
     # 1st index returns 'Original content', 2nd: 'Updated content'.
-    url = 'http://www.content-updates.com'.to_url
+    url = "http://www.content-updates.com".to_url
 
     @indexer.index_url url
-    assert_equal 1, @indexer.db.search('Original').size
-    assert_equal 0, @indexer.db.search('Updated').size
+    assert_equal 1, @indexer.db.search("Original").size
+    assert_equal 0, @indexer.db.search("Updated").size
 
     @indexer.index_url url
-    assert_equal 0, @indexer.db.search('Original').size
-    assert_equal 1, @indexer.db.search('Updated').size
+    assert_equal 0, @indexer.db.search("Original").size
+    assert_equal 1, @indexer.db.search("Updated").size
     assert_equal 1, @indexer.db.num_docs
   end
 
   def test_index_url__single_redirect
-    url = Wgit::Url.new 'http://redirect.com/6'
+    url = Wgit::Url.new "http://redirect.com/6"
 
     refute url? url: url
 
@@ -542,10 +544,10 @@ class TestIndexer < TestHelper
     @indexer.index_url url
 
     # Assert that url and its single redirect get indexed as crawled.
-    assert_equal 'http://redirect.com/7', url.to_s
+    assert_equal "http://redirect.com/7", url.to_s
 
-    assert url? url: 'http://redirect.com/6', crawled: true
-    assert url? url: 'http://redirect.com/7', crawled: true
+    assert url? url: "http://redirect.com/6", crawled: true
+    assert url? url: "http://redirect.com/7", crawled: true
 
     # Assert that some indexed docs were inserted into the DB.
     assert_equal 2, db.num_urls
@@ -554,7 +556,7 @@ class TestIndexer < TestHelper
   end
 
   def test_index_url__several_redirects
-    url = Wgit::Url.new 'http://redirect.com/4'
+    url = Wgit::Url.new "http://redirect.com/4"
 
     refute url? url: url
 
@@ -562,12 +564,12 @@ class TestIndexer < TestHelper
     @indexer.index_url url
 
     # Assert that url and its redirects all get indexed as crawled.
-    assert_equal 'http://redirect.com/7', url.to_s
+    assert_equal "http://redirect.com/7", url.to_s
 
-    assert url? url: 'http://redirect.com/4', crawled: true
-    assert url? url: 'http://redirect.com/5', crawled: true
-    assert url? url: 'http://redirect.com/6', crawled: true
-    assert url? url: 'http://redirect.com/7', crawled: true
+    assert url? url: "http://redirect.com/4", crawled: true
+    assert url? url: "http://redirect.com/5", crawled: true
+    assert url? url: "http://redirect.com/6", crawled: true
+    assert url? url: "http://redirect.com/7", crawled: true
 
     # Assert that some indexed docs were inserted into the DB.
     assert_equal 4, db.num_urls
@@ -577,7 +579,7 @@ class TestIndexer < TestHelper
 
   def test_index_url__robots_txt
     # /login is disallowed by robots.txt file.
-    url = Wgit::Url.new 'http://robots.txt.com/login'
+    url = Wgit::Url.new "http://robots.txt.com/login"
 
     refute url? url: url
 
@@ -592,7 +594,7 @@ class TestIndexer < TestHelper
   end
 
   def test_index_url__robots_txt__disallow_all
-    url = Wgit::Url.new 'http://disallow-all.com'
+    url = Wgit::Url.new "http://disallow-all.com"
 
     refute url? url: url
 
@@ -608,7 +610,7 @@ class TestIndexer < TestHelper
 
   def test_index_url__no_index__html
     # /pwreset is disallowed by HTML meta tag.
-    url = Wgit::Url.new 'http://robots.txt.com/pwreset'
+    url = Wgit::Url.new "http://robots.txt.com/pwreset"
 
     refute url? url: url
 
@@ -624,7 +626,7 @@ class TestIndexer < TestHelper
 
   def test_index_url__no_index__resp
     # /account is disallowed by HTTP response header.
-    url = Wgit::Url.new 'http://robots.txt.com/account'
+    url = Wgit::Url.new "http://robots.txt.com/account"
 
     refute url? url: url
 
@@ -662,10 +664,11 @@ class TestIndexer < TestHelper
       Disallow: /login2
     TEXT
     allow, disallow = @indexer.send(
-      :merge_paths, parser, %w(/contact /contact2), %w(/passreset /passreset2))
+      :merge_paths, parser, %w[/contact /contact2], %w[/passreset /passreset2]
+    )
 
-    assert_equal %w(/contact /contact2 /about /about2), allow
-    assert_equal %w(/passreset /passreset2 /login /login2), disallow
+    assert_equal %w[/contact /contact2 /about /about2], allow
+    assert_equal %w[/passreset /passreset2 /login /login2], disallow
   end
 
   def test_merge_paths__single_path_string
@@ -674,9 +677,9 @@ class TestIndexer < TestHelper
       Allow: /about
       Disallow: /login
     TEXT
-    allow, disallow = @indexer.send(:merge_paths, parser, '/contact', '/passreset')
+    allow, disallow = @indexer.send(:merge_paths, parser, "/contact", "/passreset")
 
-    assert_equal %w(/contact /about), allow
-    assert_equal %w(/passreset /login), disallow
+    assert_equal %w[/contact /about], allow
+    assert_equal %w[/passreset /login], disallow
   end
 end

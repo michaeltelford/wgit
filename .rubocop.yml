@@ -2,6 +2,9 @@ AllCops:
   Include:
     - 'lib/**/*.rb'
     - 'bin/**'
+    - 'test/**/*.rb'
+    - '*.rb'
+    - .toys.rb
 Security/Eval:
   Exclude:
     - 'bin/wgit'
@@ -11,9 +14,13 @@ Metrics/ParameterLists:
     - 'lib/wgit/database/database_adapter.rb'
 Style/FrozenStringLiteralComment:
   Enabled: false
+Style/ClassAndModuleChildren:
+  Enabled: false
 Layout/HashAlignment:
   Enabled: false
 Layout/FirstArrayElementIndentation:
+  Enabled: false
+Layout/FirstHashElementIndentation:
   Enabled: false
 Metrics/ModuleLength:
   Enabled: false
@@ -29,5 +36,9 @@ Metrics/CyclomaticComplexity:
   Max: 12
 Layout/LineLength:
   Max: 85
+  Exclude:
+    - 'test/**/*.rb'
 Style/Alias:
   EnforcedStyle: prefer_alias_method
+Style/StringLiterals:
+  EnforcedStyle: double_quotes

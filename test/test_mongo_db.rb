@@ -1,4 +1,4 @@
-require_relative 'helpers/test_helper'
+require_relative "helpers/test_helper"
 
 # Test class for the Database::MongoDB adapter logic.
 # WARNING: The DB is cleared down prior to each test run.
@@ -24,7 +24,7 @@ class TestMongoDB < TestHelper
     refute_nil db2.client
     assert_nil db2.last_result
 
-    db2 = Wgit::Database::MongoDB.new ENV['WGIT_CONNECTION_STRING']
+    db2 = Wgit::Database::MongoDB.new ENV["WGIT_CONNECTION_STRING"]
     refute_nil db2.connection_string
     refute_nil db2.client
     assert_nil db2.last_result
@@ -41,7 +41,7 @@ class TestMongoDB < TestHelper
     refute_nil db2.client
     assert_nil db2.last_result
 
-    db2 = Wgit::Database::MongoDB.connect ENV['WGIT_CONNECTION_STRING']
+    db2 = Wgit::Database::MongoDB.connect ENV["WGIT_CONNECTION_STRING"]
     refute_nil db2.connection_string
     refute_nil db2.client
     assert_nil db2.last_result
@@ -71,16 +71,16 @@ class TestMongoDB < TestHelper
     field_strs = Wgit::Model.search_fields.transform_keys(&:to_s)
 
     # Mimic an extracted field and seed in the DB.
-    @doc.instance_variable_set :@code, ['bundle install']
+    @doc.instance_variable_set :@code, ["bundle install"]
     seed { doc @doc }
 
     db = Wgit::Database::MongoDB.new
     assert_equal field_strs, db.search_fields
-    assert_empty db.search('bundle')
+    assert_empty db.search("bundle")
 
     Wgit::Model.set_search_fields(%i[code], db)
-    assert_equal({ 'code' => 1 }, db.search_fields)
-    refute_empty db.search('bundle')
+    assert_equal({ "code" => 1 }, db.search_fields)
+    refute_empty db.search("bundle")
   end
 
   def test_insert__urls
@@ -101,11 +101,11 @@ class TestMongoDB < TestHelper
 
     # Insert an invalid type.
     e = assert_raises(StandardError) { db.insert true }
-    assert_equal 'obj must be a Wgit::Url or Wgit::Document, not: TrueClass', e.message
+    assert_equal "obj must be a Wgit::Url or Wgit::Document, not: TrueClass", e.message
 
     # Insert a url with redirects.
-    url_with_redirects = Wgit::Url.new('http://example.com')
-    url_with_redirects.redirects = {'http://example.com' => 'https://example.com'}
+    url_with_redirects = Wgit::Url.new("http://example.com")
+    url_with_redirects.redirects = { "http://example.com" => "https://example.com" }
     assert_equal 1, db.insert(url_with_redirects)
     assert url?(url_with_redirects.to_h)
   end
@@ -143,10 +143,10 @@ class TestMongoDB < TestHelper
 
   def test_bulk_upsert__urls
     urls = [
-      'http://example.com',   # Gets inserted.
-      'http://example.com/2', # Gets inserted.
-      'http://example.com',   # Dup of 1, will be updated.
-      'http://example.com/3'  # Gets inserted.
+      "http://example.com",   # Gets inserted.
+      "http://example.com/2", # Gets inserted.
+      "http://example.com",   # Dup of 1, will be updated.
+      "http://example.com/3"  # Gets inserted.
     ].to_urls
     count = db.bulk_upsert(urls)
 
@@ -154,19 +154,19 @@ class TestMongoDB < TestHelper
     assert_equal 3, db.num_urls
     assert_equal 0, db.num_docs
     assert_equal [
-      'http://example.com',
-      'http://example.com/2',
-      'http://example.com/3'
+      "http://example.com",
+      "http://example.com/2",
+      "http://example.com/3"
     ], db.urls.map(&:to_s)
     refute_nil db.last_result
   end
 
   def test_bulk_upsert__docs
     urls = [
-      'http://example.com',   # Gets inserted.
-      'http://example.com/2', # Gets inserted.
-      'http://example.com',   # Dup of 1, will be updated.
-      'http://example.com/3'  # Gets inserted.
+      "http://example.com",   # Gets inserted.
+      "http://example.com/2", # Gets inserted.
+      "http://example.com",   # Dup of 1, will be updated.
+      "http://example.com/3"  # Gets inserted.
     ].to_urls
     # Map each of the urls above into a document.
     docs = urls.map do |url|
@@ -180,9 +180,9 @@ class TestMongoDB < TestHelper
     assert_equal 3, db.num_docs
     assert_equal 0, db.num_urls
     assert_equal [
-      'http://example.com',
-      'http://example.com/2',
-      'http://example.com/3'
+      "http://example.com",
+      "http://example.com/2",
+      "http://example.com/3"
     ], db.docs.map(&:url)
     refute_nil db.last_result
   end
@@ -195,7 +195,7 @@ class TestMongoDB < TestHelper
     docs = db.docs
 
     # Test non empty docs results.
-    assert docs.all? { |doc| doc.instance_of? Wgit::Document }
+    assert(docs.all? { |doc| doc.instance_of? Wgit::Document })
     assert_equal 3, docs.length
     refute_nil db.last_result
 
@@ -221,15 +221,15 @@ class TestMongoDB < TestHelper
     uncrawled_urls = db.uncrawled_urls
 
     # Test urls.
-    assert urls.all? { |url| url.instance_of? Wgit::Url }
+    assert(urls.all? { |url| url.instance_of? Wgit::Url })
     assert_equal 3, urls.length
 
     # Test crawled_urls
-    assert crawled_urls.all? { |url| url.instance_of? Wgit::Url }
+    assert(crawled_urls.all? { |url| url.instance_of? Wgit::Url })
     assert_equal 2, crawled_urls.length
 
     # Test uncrawled_urls.
-    assert uncrawled_urls.all? { |url| url.instance_of? Wgit::Url }
+    assert(uncrawled_urls.all? { |url| url.instance_of? Wgit::Url })
     assert_equal 1, uncrawled_urls.length
 
     # Test limit and skip.
@@ -239,71 +239,71 @@ class TestMongoDB < TestHelper
   def test_urls__with_redirects
     # Seed url data to the DB.
     # Url with redirects populated.
-    redirects_hash = {'http://example.com' => 'https://example.com'}
+    redirects_hash = { "http://example.com" => "https://example.com" }
     @urls.first.redirects = redirects_hash
     seed { urls @urls }
 
     urls = db.urls
 
     # Test urls.
-    assert urls.all? { |url| url.instance_of? Wgit::Url }
+    assert(urls.all? { |url| url.instance_of? Wgit::Url })
     assert_equal 3, urls.length
     assert_equal redirects_hash, urls.first.redirects
   end
 
   def test_search__case_sensitive
-    @docs.last.text << 'Foo Bar'
+    @docs.last.text << "Foo Bar"
     seed { docs @docs }
 
     # Test no results.
-    assert_empty db.search('doesnt_exist_123')
+    assert_empty db.search("doesnt_exist_123")
     refute_nil db.last_result
 
     # Test case_sensitive: false and block.
     count = 0
-    results = db.search('foo bar', case_sensitive: false) do |doc|
+    results = db.search("foo bar", case_sensitive: false) do |doc|
       assert_instance_of Wgit::Document, doc
       count += 1
     end
     assert_equal 1, count
     assert_equal 1, results.length
-    assert results.all? { |doc| doc.instance_of? Wgit::Document }
+    assert(results.all? { |doc| doc.instance_of? Wgit::Document })
 
     # Test case_sensitive: true.
-    assert_empty db.search('foo bar', case_sensitive: true)
+    assert_empty db.search("foo bar", case_sensitive: true)
   end
 
   def test_search__whole_sentence
-    @docs.last.text << 'Foo Bar'
+    @docs.last.text << "Foo Bar"
     seed { docs @docs }
 
     # Test whole_sentence: false.
-    results = db.search('bar foo', whole_sentence: false)
+    results = db.search("bar foo", whole_sentence: false)
     assert_equal 1, results.length
-    assert results.all? { |doc| doc.instance_of? Wgit::Document }
+    assert(results.all? { |doc| doc.instance_of? Wgit::Document })
 
     # Test whole_sentence: true.
-    assert_empty db.search('bar foo', whole_sentence: true)
+    assert_empty db.search("bar foo", whole_sentence: true)
 
     # Test case_sensitive: true and whole_sentence: true.
-    results = db.search('Foo Bar', case_sensitive: true, whole_sentence: true)
+    results = db.search("Foo Bar", case_sensitive: true, whole_sentence: true)
     assert_equal 1, results.length
-    assert results.all? { |doc| doc.instance_of? Wgit::Document }
+    assert(results.all? { |doc| doc.instance_of? Wgit::Document })
   end
 
   def test_search__limit
     # First doc has highest textScore and so on...
     @docs.reverse.each_with_index do |doc, i|
-      i.times { doc.text << 'Everest' }
+      i.times { doc.text << "Everest" }
     end
     seed { docs @docs }
 
     # Test search.
-    assert_equal 3, db.search('everest').length
+    assert_equal 3, db.search("everest").length
     assert_equal 3, db.last_result&.count
 
     # Test limit.
-    results = db.search('everest', limit: 2)
+    results = db.search("everest", limit: 2)
     assert_equal 2, results.length
     assert_equal 3, db.last_result&.count
 
@@ -317,12 +317,12 @@ class TestMongoDB < TestHelper
   def test_search__skip
     # First doc has highest textScore and so on...
     @docs.reverse.each_with_index do |doc, i|
-      i.times { doc.text << 'Everest' }
+      i.times { doc.text << "Everest" }
     end
     seed { docs @docs }
 
     # Test skip.
-    results = db.search('everest', skip: 1)
+    results = db.search("everest", skip: 1)
     assert_equal 2, results.length
     assert_equal 3, db.last_result&.count
 
@@ -333,7 +333,7 @@ class TestMongoDB < TestHelper
     end
 
     # Test limit and skip.
-    results = db.search('everest', limit: 1, skip: 1)
+    results = db.search("everest", limit: 1, skip: 1)
     assert_equal 1, results.length
     assert_equal 3, db.last_result&.count
 
@@ -352,14 +352,14 @@ class TestMongoDB < TestHelper
     # ------------------------------------
     # => Total match score:          == 11
     test_doc = Wgit::Document.new({
-      'url' => 'http://www.mytestsite.com/home',
-      'title' => 'abc abc',
-      'keywords' => ['abc 2', 'abc 3'],
-      'text' => 'abc abc abc'
+      "url" => "http://www.mytestsite.com/home",
+      "title" => "abc abc",
+      "keywords" => ["abc 2", "abc 3"],
+      "text" => "abc abc abc"
     })
     seed { doc test_doc }
 
-    results = db.search('abc')
+    results = db.search("abc")
 
     assert_equal(1, results.size)
     assert_equal(7.75, results.first.score)
@@ -368,11 +368,11 @@ class TestMongoDB < TestHelper
   def test_search__set_search_fields
     Wgit::Model.set_search_fields(%i[code foo], db) # @code exists, @foo doesn't.
 
-    test_doc = Wgit::Document.new('http://www.mytestsite.com/home')
+    test_doc = Wgit::Document.new("http://www.mytestsite.com/home")
     test_doc.instance_variable_set(:@code, 'print("hello world")') # Score of 1.
     seed { doc test_doc }
 
-    results = db.search('hello')
+    results = db.search("hello")
 
     assert_equal(1, results.size)
     assert_equal(0.67, results.first.score.round(2))
@@ -381,19 +381,19 @@ class TestMongoDB < TestHelper
   def test_search!
     # All dev data @docs contain the word 'peak' in the text.
     # And doc has 'peak' in the title.
-    html = '<html><head><title>peak</title></head></html>'
-    doc  = Wgit::Document.new 'http://example.com'.to_url, html
-    doc2 = Wgit::Document.new 'https://example.com'.to_url, '<html>FooBar</html>'
+    html = "<html><head><title>peak</title></head></html>"
+    doc  = Wgit::Document.new "http://example.com".to_url, html
+    doc2 = Wgit::Document.new "https://example.com".to_url, "<html>FooBar</html>"
     test_docs = @docs + [doc, doc2] # 5 docs in total, 4 matching.
     seed { docs test_docs }
 
-    query = 'peak'
+    query = "peak"
     expected_matches = [
-      'Highest Peak',
-      'All climbers need to have climbed on a 7,000-8,000-meter peak previously',
-      '8,000-meter peaks are a serious undertaking and climbers need to be aware there ',
-      ' a 7,000-meter or 8,000-meter Himalayan peak to qualify for our expedition. We d',
-      '· Expedition permit, peak fee and conservation fees'
+      "Highest Peak",
+      "All climbers need to have climbed on a 7,000-8,000-meter peak previously",
+      "8,000-meter peaks are a serious undertaking and climbers need to be aware there ",
+      " a 7,000-meter or 8,000-meter Himalayan peak to qualify for our expedition. We d",
+      "· Expedition permit, peak fee and conservation fees"
     ]
 
     results     = db.search!(query)
@@ -405,10 +405,10 @@ class TestMongoDB < TestHelper
     assert_instance_of Hash, top_results
 
     assert(results.values.first(3).all? { |matches| matches == expected_matches })
-    assert(top_results.values.first(3).all? { |match| match == 'Highest Peak' })
+    assert(top_results.values.first(3).all? { |match| match == "Highest Peak" })
 
-    assert_equal ['peak'], results.values.last
-    assert_equal 'peak', top_results.values.last
+    assert_equal ["peak"], results.values.last
+    assert_equal "peak", top_results.values.last
   end
 
   def test_stats
@@ -439,7 +439,10 @@ class TestMongoDB < TestHelper
   def test_num_records
     assert_equal 0, db.num_records
 
-    seed { url 3; doc 2 }
+    seed do
+      url 3
+      doc 2
+    end
     assert_equal 5, db.num_records
   end
 
@@ -483,7 +486,7 @@ class TestMongoDB < TestHelper
 
   def test_get__empty
     ex = assert_raises(StandardError) { db.get 1 }
-    assert_equal 'obj must be a Wgit::Url or Wgit::Document, not: Integer', ex.message
+    assert_equal "obj must be a Wgit::Url or Wgit::Document, not: Integer", ex.message
 
     assert_nil db.get(@url)
     refute_nil db.last_result
@@ -501,7 +504,7 @@ class TestMongoDB < TestHelper
   end
 
   def test_update__doc
-    title = 'Climb Everest!'
+    title = "Climb Everest!"
     seed { doc @doc }
     @doc.title = title
     result = db.update @doc
@@ -509,7 +512,7 @@ class TestMongoDB < TestHelper
     assert_equal 1, result
     refute_nil db.last_result
     assert doc?(Wgit::Model.document(@doc))
-    refute doc? url: @doc.url, title: 'Altitude Junkies | Everest'
+    refute doc? url: @doc.url, title: "Altitude Junkies | Everest"
   end
 
   def test_delete
@@ -523,7 +526,7 @@ class TestMongoDB < TestHelper
     assert_equal 1, db.delete(@doc)
 
     ex = assert_raises(StandardError) { db.delete 1 }
-    assert_equal 'obj must be a Wgit::Url or Wgit::Document, not: Integer', ex.message
+    assert_equal "obj must be a Wgit::Url or Wgit::Document, not: Integer", ex.message
   end
 
   def test_empty_urls
@@ -554,8 +557,8 @@ class TestMongoDB < TestHelper
 
   # Reset the WGIT_CONNECTION_STRING after the block executes.
   def reset_connection_string
-    connection_string = ENV.delete 'WGIT_CONNECTION_STRING'
+    connection_string = ENV.delete "WGIT_CONNECTION_STRING"
     yield # Run assertions etc. here.
-    ENV['WGIT_CONNECTION_STRING'] = connection_string
+    ENV["WGIT_CONNECTION_STRING"] = connection_string
   end
 end

@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require_relative 'utils'
-require_relative 'assertable'
-require 'uri'
-require 'addressable/uri'
+require_relative "utils"
+require_relative "assertable"
+require "uri"
+require "addressable/uri"
 
 module Wgit
   # Class modeling/serialising a web based HTTP URL.
@@ -56,11 +56,11 @@ module Wgit
         obj = url_or_obj
         assert_respond_to(obj, :fetch)
 
-        url            = obj.fetch('url') # Should always be present.
-        crawled        = obj.fetch('crawled', false)
-        date_crawled   = obj.fetch('date_crawled', nil)
-        crawl_duration = obj.fetch('crawl_duration', nil)
-        redirects      = obj.fetch('redirects', {})
+        url            = obj.fetch("url") # Should always be present.
+        crawled        = obj.fetch("crawled", false)
+        date_crawled   = obj.fetch("date_crawled", nil)
+        crawl_duration = obj.fetch("crawl_duration", nil)
+        redirects      = obj.fetch("redirects", {})
       end
 
       @uri            = Addressable::URI.parse(url)
@@ -89,7 +89,7 @@ module Wgit
     # @raise [StandardError] If obj.is_a?(String) is false.
     # @return [Wgit::Url] A Wgit::Url instance.
     def self.parse(obj)
-      raise 'Can only parse if obj#is_a?(String)' unless obj.is_a?(String)
+      raise "Can only parse if obj#is_a?(String)" unless obj.is_a?(String)
 
       # Return a Wgit::Url as is to avoid losing state e.g. date_crawled etc.
       obj.is_a?(Wgit::Url) ? obj : new(obj)
@@ -227,7 +227,7 @@ Addressable::URI::InvalidURIError")
     def relative?(opts = {})
       defaults = { origin: nil, host: nil, domain: nil, brand: nil }
       opts = defaults.merge(opts)
-      raise 'Url (self) cannot be empty' if empty?
+      raise "Url (self) cannot be empty" if empty?
 
       return false if scheme_relative?
       return true  if @uri.relative?
@@ -295,11 +295,11 @@ protocol scheme and domain (e.g. http://example.com): #{url}"
     # @return [Wgit::Url] self + separator + other, separator depends on other.
     def join(other)
       other = Wgit::Url.new(other)
-      raise 'other must be relative' unless other.relative?
+      raise "other must be relative" unless other.relative?
 
       other = other.omit_leading_slash
-      separator = %w[# ? .].include?(other[0]) ? '' : '/'
-      separator = '' if end_with?('/')
+      separator = %w[# ? .].include?(other[0]) ? "" : "/"
+      separator = "" if end_with?("/")
       joined = self + separator + other
 
       Wgit::Url.new(joined)
@@ -335,7 +335,7 @@ protocol scheme and domain (e.g. http://example.com): #{url}"
     # @return [Wgit::Url] Self in absolute form.
     def make_absolute(doc)
       assert_type(doc, Wgit::Document)
-      raise 'Cannot make absolute when Document @url is not valid' \
+      raise "Cannot make absolute when Document @url is not valid" \
       unless doc.url.valid?
 
       return prefix_scheme(doc.url.to_scheme&.to_sym) if scheme_relative?
@@ -355,7 +355,7 @@ protocol scheme and domain (e.g. http://example.com): #{url}"
 
       return self if absolute? && !scheme_relative?
 
-      separator = scheme_relative? ? '' : '//'
+      separator = scheme_relative? ? "" : "//"
       Wgit::Url.new("#{scheme}:#{separator}#{self}")
     end
 
@@ -364,8 +364,8 @@ protocol scheme and domain (e.g. http://example.com): #{url}"
     #
     # @return [Hash] self's instance vars as a Hash.
     def to_h
-      h = Wgit::Utils.to_h(self, ignore: ['@uri'])
-      Hash[h.to_a.insert(0, ['url', to_s])] # Insert url at position 0.
+      h = Wgit::Utils.to_h(self, ignore: ["@uri"])
+      Hash[h.to_a.insert(0, ["url", to_s])] # Insert url at position 0.
     end
 
     # Returns a normalised URI object for this URL.
@@ -440,7 +440,7 @@ protocol scheme and domain (e.g. http://example.com): #{url}"
       dot_domain = ".#{to_domain}"
       return nil unless include?(dot_domain)
 
-      sub_domain = to_host.sub(dot_domain, '')
+      sub_domain = to_host.sub(dot_domain, "")
       Wgit::Url.new(sub_domain)
     end
 
@@ -450,7 +450,7 @@ protocol scheme and domain (e.g. http://example.com): #{url}"
     # @return [Wgit::Url, nil] Containing just the brand or nil.
     def to_brand
       domain = to_domain
-      domain ? Wgit::Url.new(domain.split('.').first) : nil
+      domain ? Wgit::Url.new(domain.split(".").first) : nil
     end
 
     # Returns only the base of this URL e.g. the protocol scheme and host
@@ -486,7 +486,7 @@ protocol scheme and domain (e.g. http://example.com): #{url}"
     def to_path
       path = @uri.path
       return nil if path.nil? || path.empty?
-      return Wgit::Url.new('/') if path == '/'
+      return Wgit::Url.new("/") if path == "/"
 
       Wgit::Url.new(path).omit_leading_slash
     end
@@ -500,7 +500,7 @@ protocol scheme and domain (e.g. http://example.com): #{url}"
     #   an endpoint, / is returned.
     def to_endpoint
       endpoint = @uri.path
-      endpoint = "/#{endpoint}" unless endpoint.start_with?('/')
+      endpoint = "/#{endpoint}" unless endpoint.start_with?("/")
       Wgit::Url.new(endpoint)
     end
 
@@ -524,8 +524,8 @@ protocol scheme and domain (e.g. http://example.com): #{url}"
       query_str = to_query
       return {} unless query_str
 
-      query_str.split('&').each_with_object({}) do |param, hash|
-        k, v = param.split('=')
+      query_str.split("&").each_with_object({}) do |param, hash|
+        k, v = param.split("=")
         k = k.to_sym if symbolize_keys
         hash[k] = v
       end
@@ -548,7 +548,7 @@ protocol scheme and domain (e.g. http://example.com): #{url}"
       path = to_path&.omit_trailing_slash
       return nil unless path
 
-      segs = path.split('.')
+      segs = path.split(".")
       segs.length > 1 ? Wgit::Url.new(segs.last) : nil
     end
 
@@ -591,7 +591,7 @@ protocol scheme and domain (e.g. http://example.com): #{url}"
     #
     # @return [Wgit::Url] Self without a trailing slash.
     def omit_leading_slash
-      start_with?('/') ? Wgit::Url.new(self[1..]) : self
+      start_with?("/") ? Wgit::Url.new(self[1..]) : self
     end
 
     # Returns a new Wgit::Url containing self without a trailing slash. Is
@@ -600,7 +600,7 @@ protocol scheme and domain (e.g. http://example.com): #{url}"
     #
     # @return [Wgit::Url] Self without a trailing slash.
     def omit_trailing_slash
-      end_with?('/') ? Wgit::Url.new(chop) : self
+      end_with?("/") ? Wgit::Url.new(chop) : self
     end
 
     # Returns a new Wgit::Url containing self without a leading or trailing
@@ -621,9 +621,9 @@ protocol scheme and domain (e.g. http://example.com): #{url}"
     # @return [Wgit::Url] Self containing everything after the base.
     def omit_base
       base_url = to_base
-      omit_base = base_url ? gsub(base_url, '') : self
+      omit_base = base_url ? gsub(base_url, "") : self
 
-      return self if ['', '/'].include?(omit_base)
+      return self if ["", "/"].include?(omit_base)
 
       Wgit::Url.new(omit_base).omit_leading_slash
     end
@@ -636,9 +636,9 @@ protocol scheme and domain (e.g. http://example.com): #{url}"
     # @return [Wgit::Url] Self containing everything after the origin.
     def omit_origin
       origin = to_origin
-      omit_origin = origin ? gsub(origin, '') : self
+      omit_origin = origin ? gsub(origin, "") : self
 
-      return self if ['', '/'].include?(omit_origin)
+      return self if ["", "/"].include?(omit_origin)
 
       Wgit::Url.new(omit_origin).omit_leading_slash
     end
@@ -652,7 +652,7 @@ protocol scheme and domain (e.g. http://example.com): #{url}"
     # @return [Wgit::Url] Self with the query string portion removed.
     def omit_query
       query = to_query
-      omit_query_string = query ? gsub("?#{query}", '') : self
+      omit_query_string = query ? gsub("?#{query}", "") : self
 
       Wgit::Url.new(omit_query_string)
     end
@@ -667,7 +667,7 @@ protocol scheme and domain (e.g. http://example.com): #{url}"
     # @return [Wgit::Url] Self with the fragment portion removed.
     def omit_fragment
       fragment = to_fragment
-      omit_fragment = fragment ? gsub("##{fragment}", '') : self
+      omit_fragment = fragment ? gsub("##{fragment}", "") : self
 
       Wgit::Url.new(omit_fragment)
     end
@@ -677,7 +677,7 @@ protocol scheme and domain (e.g. http://example.com): #{url}"
     #
     # @return [Boolean] True if self is a query string, false otherwise.
     def query?
-      start_with?('?')
+      start_with?("?")
     end
 
     # Returns true if self is a URL fragment e.g. #top etc. Note this
@@ -685,14 +685,14 @@ protocol scheme and domain (e.g. http://example.com): #{url}"
     #
     # @return [Boolean] True if self is a fragment, false otherwise.
     def fragment?
-      start_with?('#')
+      start_with?("#")
     end
 
     # Returns true if self equals '/' a.k.a. index.
     #
     # @return [Boolean] True if self equals '/', false otherwise.
     def index?
-      self == '/'
+      self == "/"
     end
 
     # Returns true if self starts with '//' a.k.a a scheme/protocol relative
@@ -700,7 +700,7 @@ protocol scheme and domain (e.g. http://example.com): #{url}"
     #
     # @return [Boolean] True if self starts with '//', false otherwise.
     def scheme_relative?
-      start_with?('//')
+      start_with?("//")
     end
 
     alias_method :crawled?,            :crawled

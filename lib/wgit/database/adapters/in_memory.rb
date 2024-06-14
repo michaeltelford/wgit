@@ -1,8 +1,8 @@
-require_relative '../../utils'
-require_relative '../../url'
-require_relative '../../document'
-require_relative '../../model'
-require_relative '../database_adapter'
+require_relative "../../utils"
+require_relative "../../url"
+require_relative "../../document"
+require_relative "../../model"
+require_relative "../database_adapter"
 
 module Wgit::Database
   # Database implementer class for in-memory (RAM) storage. This DB is mainly used
@@ -62,20 +62,20 @@ num_docs=#{@docs.size} size=#{size}>"
                 query
               else
                 query = "\\b#{query}\\b"
-                query = query.gsub(' ', '\b|\b') unless whole_sentence
+                query = query.gsub(" ", '\b|\b') unless whole_sentence
                 Regexp.new(query, !case_sensitive)
               end
 
       results = @docs.select do |doc|
         score = search_doc(doc, regex)
-        doc['score'] = score
+        doc["score"] = score
 
         score.positive?
       end
 
       return [] if results.empty?
 
-      results.sort! { |a, b| b['score'] <=> a['score'] }
+      results.sort! { |a, b| b["score"] <=> a["score"] }
 
       results = results[skip..]
       return [] unless results
@@ -101,7 +101,7 @@ num_docs=#{@docs.size} size=#{size}>"
     # @yield [url] Given each Url object (Wgit::Url) returned from the DB.
     # @return [Array<Wgit::Url>] The uncrawled Urls obtained from the DB.
     def uncrawled_urls(limit: 0, skip: 0, &block)
-      uncrawled = @urls.reject { |url| url['crawled'] }
+      uncrawled = @urls.reject { |url| url["crawled"] }
       uncrawled = uncrawled[skip..]
       return [] unless uncrawled
 
@@ -169,12 +169,12 @@ num_docs=#{@docs.size} size=#{size}>"
       when Wgit::Url
         key        = obj.to_s
         collection = @urls
-        index      = @urls.index { |url| url['url'] == key }
+        index      = @urls.index { |url| url["url"] == key }
         model      = build_model(obj)
       when Wgit::Document
         key        = obj.url.to_s
         collection = @docs
-        index      = @docs.index { |doc| doc['url']&.[]('url') == key }
+        index      = @docs.index { |doc| doc["url"]&.[]("url") == key }
         model      = build_model(obj)
       else
         raise "obj must be a Wgit::Url or Wgit::Document, not: #{obj.class}"

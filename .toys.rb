@@ -4,22 +4,22 @@
 # To load .env vars into the ENV from within a tool definition, use:
 # require 'dotenv/load'
 
-require 'json'
-require 'byebug' # Useful for tool development.
+require "json"
+require "byebug" # Useful for tool development.
 
 # tool :build
 expand :gem_build
 
 tool :ci do
-  desc 'Runs the CI steps needed for a green build'
+  desc "Runs the CI steps needed for a green build"
 
   include :exec, exit_on_nonzero_status: false
   include :terminal
 
   def run
-    run_step 'Build gem', 'build'
-    run_step 'Check documentation', ['generate_docs', '--no-output']
-    run_step 'Run tests', 'test'
+    run_step "Build gem", "build"
+    run_step "Check documentation", ["generate_docs", "--no-output"]
+    run_step "Run tests", "test"
   end
 
   def run_step(name, tool)
@@ -34,16 +34,16 @@ tool :ci do
 end
 
 # tool :clean
-expand :clean, paths: ['pkg', 'doc', 'tmp', '.doc', '.yardoc']
+expand :clean, paths: ["pkg", "doc", "tmp", ".doc", ".yardoc"]
 
 tool :compile do
-  desc 'Compile all project Ruby files with warnings'
+  desc "Compile all project Ruby files with warnings"
 
   include :exec, exit_on_nonzero_status: true
   include :terminal
 
   def run
-    Dir['**/*.rb', '**/*.gemspec', 'bin/wgit'].each do |file|
+    Dir["**/*.rb", "**/*.gemspec", "bin/wgit"].each do |file|
       puts "\nCompiling #{file}...", :cyan
       exec "ruby -cw #{file}"
     end
@@ -51,59 +51,59 @@ tool :compile do
 end
 
 tool :console do
-  desc 'Run the (latest) wgit console script'
+  desc "Run the (latest) wgit console script"
 
   include :exec, exit_on_nonzero_status: true
 
   def run
-    exec './bin/wgit'
+    exec "./bin/wgit"
   end
 end
 
 # namespace :db
 tool :db do
   tool :build do
-    desc 'Build the mongo DB image from ./docker/Dockerfile'
+    desc "Build the mongo DB image from ./docker/Dockerfile"
 
     include :exec, exit_on_nonzero_status: true
 
     def run
-      exec 'docker build --no-cache -t michaeltelford/mongo-wgit ./docker'
+      exec "docker build --no-cache -t michaeltelford/mongo-wgit ./docker"
     end
   end
 
   tool :start do
-    desc 'Start a local mongo DB docker daemon'
+    desc "Start a local mongo DB docker daemon"
 
     include :terminal
     include :exec, exit_on_nonzero_status: true
 
     def run
-      exec 'docker run --name mongo-wgit -p 27017:27017 --rm -d michaeltelford/mongo-wgit'
+      exec "docker run --name mongo-wgit -p 27017:27017 --rm -d michaeltelford/mongo-wgit"
       puts "Successfully started container 'mongo-wgit'", :green
     end
   end
 
   tool :stop do
-    desc 'Stop the local mongo DB docker container'
+    desc "Stop the local mongo DB docker container"
 
     include :terminal
     include :exec, exit_on_nonzero_status: true
 
     def run
-      exec 'docker stop mongo-wgit'
+      exec "docker stop mongo-wgit"
       puts "Successfully stopped container 'mongo-wgit'", :green
     end
   end
 
   tool :push do
-    desc 'Push the local mongo DB image to Docker Hub'
+    desc "Push the local mongo DB image to Docker Hub"
 
     include :exec, exit_on_nonzero_status: true
 
     def run
-      exec 'docker login' unless docker_authenticated?
-      exec 'docker push michaeltelford/mongo-wgit'
+      exec "docker login" unless docker_authenticated?
+      exec "docker push michaeltelford/mongo-wgit"
     end
 
     def docker_authenticated?
@@ -111,7 +111,7 @@ tool :db do
       return false unless File.exist?(docker_config)
 
       config = JSON.parse(File.read(docker_config))
-      auths = config['auths']
+      auths = config["auths"]
       return false unless auths && !auths.empty?
 
       true
@@ -154,28 +154,27 @@ expand :gem_build do |t|
   t.install_gem = true
 end
 
-# tool :lint
-expand :rubocop, name: :lint
+tool :lint, delegate_to: :rubocop
 
 tool :release do
-  desc 'The SAFE release task which double checks things!'
-  long_desc 'Tag and push commits to Github, then build and push the gem to Rubygems.'
+  desc "The SAFE release task which double checks things!"
+  long_desc "Tag and push commits to Github, then build and push the gem to Rubygems."
 
   include :exec, exit_on_nonzero_status: true
   include :terminal
 
   def run
-    raise 'Error requiring wgit' unless require_relative 'lib/wgit'
+    raise "Error requiring wgit" unless require_relative "lib/wgit"
 
     puts "Releasing #{Wgit.version_str}, using the 'origin' Git remote...", :cyan
     confirmed = confirm "Have you applied the wiki's 'Gem Publishing Checklist'?"
     unless confirmed
-      puts 'Aborting!', :red
+      puts "Aborting!", :red
       exit(0)
     end
 
-    exec_tool 'release_gem'
-    puts 'Release complete', :green
+    exec_tool "release_gem"
+    puts "Release complete", :green
   end
 end
 
@@ -189,35 +188,35 @@ expand :gem_build do |t|
 end
 
 tool :rubocop do
-  desc 'Run the rubocop linter, use -a to auto correct'
-  flag :autocorrect,    '-a', '--autocorrect'
-  flag :autocorrectall, '-A', '--autocorrect-all'
+  desc "Run the rubocop linter, use -a to auto correct"
+  flag :autocorrect,    "-a", "--autocorrect"
+  flag :autocorrectall, "-A", "--autocorrect-all"
+  remaining_args :dirs_or_files
 
   include :exec, exit_on_nonzero_status: true
 
   def run
-    if autocorrect
-      exec('bundle exec rubocop -a')
-    elsif autocorrectall
-      exec('bundle exec rubocop -A')
-    else
-      exec_tool('lint')
-    end
+    command_str = "bundle exec rubocop"
+    command_str += " -a" if autocorrect
+    command_str += " -A" if autocorrectall
+    command_str += " #{dirs_or_files.join(' ')}" if dirs_or_files.any?
+
+    exec(command_str)
   end
 end
 
 tool :setup do
-  desc 'Sets up the cloned repo for development'
+  desc "Sets up the cloned repo for development"
 
   include :exec, exit_on_nonzero_status: true
   include :terminal
 
   def run
-    exec_cmd 'gem install wgit'
-    exec_cmd 'touch .env'
-    exec_cmd 'touch .wgit.rb'
+    exec_cmd "gem install wgit"
+    exec_cmd "touch .env"
+    exec_cmd "touch .wgit.rb"
 
-    puts 'Setup complete', :green
+    puts "Setup complete", :green
   end
 
   def exec_cmd(command)
@@ -228,25 +227,25 @@ end
 
 # namespace :test
 tool :test do
-  desc 'Run all tests'
+  desc "Run all tests"
 
   include :exec, exit_on_nonzero_status: true
 
   def run
-    exec_tool 'test all'
+    exec_tool "test all"
   end
 
   # tool :all
   expand :minitest do |t|
     t.name = :all
-    t.libs = ['lib']
-    t.files = ['test/test_*.rb']
+    t.libs = ["lib"]
+    t.files = ["test/test_*.rb"]
   end
 
   tool :file do
-    desc 'Runs entire test_*.rb file or single test at --line'
+    desc "Runs entire test_*.rb file or single test at --line"
     required_arg :file
-    flag :line, '-l', '--line=VALUE'
+    flag :line, "-l", "--line=VALUE"
 
     include :exec, exit_on_nonzero_status: true
 
@@ -256,10 +255,10 @@ tool :test do
 
     def test_cmd
       cmd = options[:file]
-      raise 'Colon not allowed, use --line' if cmd.include?(':')
+      raise "Colon not allowed, use --line" if cmd.include?(":")
 
-      cmd = "test/test_#{cmd}" unless cmd.start_with?('test/test_')
-      cmd += '.rb' unless cmd.end_with?('.rb')
+      cmd = "test/test_#{cmd}" unless cmd.start_with?("test/test_")
+      cmd += ".rb" unless cmd.end_with?(".rb")
       cmd += ":#{line}" if line
 
       cmd
@@ -267,56 +266,57 @@ tool :test do
   end
 
   tool :infinite_crawl_loop do
-    desc 'Manually crawl_r URLs to check for an infinite loop condition'
+    desc "Manually crawl_r URLs to check for an infinite loop condition"
 
     include :terminal
 
-    require 'wgit'
-    require 'wgit/core_ext'
+    require "wgit"
+    require "wgit/core_ext"
 
     def run
-      puts 'If the crawl is hanging for more than 2 mins, there is an infinite loop', :yellow
+      puts "If the crawl is hanging for more than 2 mins, there is an infinite loop",
+           :yellow
 
       crawler = Wgit::Crawler.new
-      urls = %w(
+      urls = %w[
         https://jaloulangeree.com/
         https://www.belfastpilates.co.uk/
         https://anaeko.com/
-      ).to_urls
+      ].to_urls
 
       urls.each_with_index do |url, i|
         crawler.crawl_site(url)
-        puts "Successfully crawled site (#{i+1}/#{urls.size}): #{url}"
+        puts "Successfully crawled site (#{i + 1}/#{urls.size}): #{url}"
       end
 
-      puts 'Successfully crawled all sites, no infinite loop detected', :green
+      puts "Successfully crawled all sites, no infinite loop detected", :green
     end
   end
 
   tool :save_page do
-    desc 'Download/update a web page test fixture to test/mock/fixtures'
+    desc "Download/update a web page test fixture to test/mock/fixtures"
     required_arg :url
 
     include :exec, exit_on_nonzero_status: true
     include :terminal
 
     def run
-      load 'test/mock/save_page.rb'
+      load "test/mock/save_page.rb"
       save_page(options[:url])
       puts "Don't forget to mock the page in test/mock/fixtures.rb", :green
     end
   end
 
   tool :save_site do
-    desc 'Download/update a web site test fixture to test/mock/fixtures'
+    desc "Download/update a web site test fixture to test/mock/fixtures"
     required_arg :url
-    flag :follow, '-f', '--follow=VALUE'
+    flag :follow, "-f", "--follow=VALUE"
 
     include :exec, exit_on_nonzero_status: true
     include :terminal
 
     def run
-      load 'test/mock/save_site.rb'
+      load "test/mock/save_site.rb"
       xpath = follow || :default
       save_site(options[:url], follow: xpath)
       puts "Don't forget to mock the site in test/mock/fixtures.rb", :green
@@ -326,42 +326,42 @@ tool :test do
   # tool :smoke
   expand :minitest do |t|
     t.name = :smoke
-    t.libs = ['lib']
+    t.libs = ["lib"]
     t.files = [
-      'test/test_utils.rb',
-      'test/test_url.rb',
-      'test/test_document.rb',
-      'test/test_document_extractors.rb',
-      'test/test_response.rb',
-      'test/test_crawler.rb'
+      "test/test_utils.rb",
+      "test/test_url.rb",
+      "test/test_document.rb",
+      "test/test_document_extractors.rb",
+      "test/test_response.rb",
+      "test/test_crawler.rb"
     ]
   end
 end
 
 tool :yardoc do
-  desc 'Generates the YARD docs, use --serve to browse'
-  flag :serve, '-s', '--serve'
+  desc "Generates the YARD docs, use --serve to browse"
+  flag :serve, "-s", "--serve"
 
   include :exec, exit_on_nonzero_status: false
   include :terminal
 
   def run
-    serve ? serve_docs : exec_tool('generate_docs')
+    serve ? serve_docs : exec_tool("generate_docs")
   end
 
   def serve_docs
-    url = 'http://localhost:8808'
+    url = "http://localhost:8808"
 
-    if exec('which pbcopy', out: :null).success?
+    if exec("which pbcopy", out: :null).success?
       exec "echo '#{url}' | pbcopy"
       puts "Copied '#{url}' to clipboard", :green
-    elsif exec('which xclip', out: :null).success?
+    elsif exec("which xclip", out: :null).success?
       exec "echo '#{url}' | xclip -sel clip"
       puts "Copied '#{url}' to clipboard", :green
     else
-      puts 'Install pbcopy or xclip to automatically copy url to clipboard'
+      puts "Install pbcopy or xclip to automatically copy url to clipboard"
     end
 
-    exec 'bundle exec yard server -r'
+    exec "bundle exec yard server -r"
   end
 end

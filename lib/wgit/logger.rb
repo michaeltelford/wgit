@@ -2,7 +2,7 @@
 
 # FYI: The default logger is set at the bottom of this file.
 
-require 'logger'
+require "logger"
 
 module Wgit
   # The Logger instance used by Wgit. Set your own custom logger after
@@ -28,7 +28,7 @@ module Wgit
   #
   # @return [Logger] The default Logger instance.
   def self.default_logger
-    logger = Logger.new($stdout, progname: 'wgit', level: :info)
+    logger = Logger.new($stdout, progname: "wgit", level: :info)
     logger.formatter = proc do |_severity, _datetime, progname, msg|
       "[#{progname}] #{msg}\n"
     end

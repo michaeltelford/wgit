@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require_relative 'database_test_data'
-require_relative 'database_helper'
-require 'mongo'
+require_relative "database_test_data"
+require_relative "database_helper"
+require "mongo"
 
 # Helper class used to manipulate the MongoDB database.
 module MongoDBHelper
@@ -23,7 +23,7 @@ module MongoDBHelper
   def seed_urls(url_hashes)
     db.client[:urls].insert_many(url_hashes)
   rescue StandardError => e
-    err_msg = e.respond_to?(:result) ? e.result['writeErrors'] : e.message
+    err_msg = e.respond_to?(:result) ? e.result["writeErrors"] : e.message
     raise "Write to DB failed - remember that both urls and docs won't \
 accept duplicate urls. Exception details: #{err_msg}"
   end
@@ -32,7 +32,7 @@ accept duplicate urls. Exception details: #{err_msg}"
   def seed_docs(doc_hashes)
     db.client[:documents].insert_many(doc_hashes)
   rescue StandardError => e
-    err_msg = e.respond_to?(:result) ? e.result['writeErrors'] : e.message
+    err_msg = e.respond_to?(:result) ? e.result["writeErrors"] : e.message
     raise "Write to DB failed - remember that both urls and docs won't \
 accept duplicate urls. Exception details: #{err_msg}"
   end
