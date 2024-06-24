@@ -191,17 +191,17 @@ tool :rubocop do
   desc 'Run the rubocop linter, use -a to auto correct'
   flag :autocorrect,    '-a', '--autocorrect'
   flag :autocorrectall, '-A', '--autocorrect-all'
+  remaining_args :dirs_or_files
 
   include :exec, exit_on_nonzero_status: true
 
   def run
-    if autocorrect
-      exec('bundle exec rubocop -a')
-    elsif autocorrectall
-      exec('bundle exec rubocop -A')
-    else
-      exec('bundle exec rubocop')
-    end
+    command_str = "bundle exec rubocop"
+    command_str += " -a" if autocorrect
+    command_str += " -A" if autocorrectall
+    command_str += " #{dirs_or_files.join(" ")}" if dirs_or_files.any?
+
+    exec(command_str)
   end
 end
 

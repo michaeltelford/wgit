@@ -16,6 +16,8 @@ Layout/HashAlignment:
   Enabled: false
 Layout/FirstArrayElementIndentation:
   Enabled: false
+Layout/FirstHashElementIndentation:
+  Enabled: false
 Metrics/ModuleLength:
   Enabled: false
 Metrics/ClassLength:
