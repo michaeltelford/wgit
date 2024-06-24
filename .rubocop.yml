@@ -1,15 +1,14 @@
 AllCops:
   Include:
-    - "lib/**/*.rb"
-    - "test/**/*.rb"
-    - "bin/**"
+    - 'lib/**/*.rb'
+    - 'bin/**'
 Security/Eval:
   Exclude:
-    - "bin/wgit"
+    - 'bin/wgit'
 Metrics/ParameterLists:
   Exclude:
-    - "lib/wgit/dsl.rb"
-    - "lib/wgit/database/database_adapter.rb"
+    - 'lib/wgit/dsl.rb'
+    - 'lib/wgit/database/database_adapter.rb'
 Style/FrozenStringLiteralComment:
   Enabled: false
 Layout/HashAlignment:
@@ -34,3 +33,5 @@ Style/Alias:
   EnforcedStyle: prefer_alias_method
 Style/StringLiterals:
   EnforcedStyle: double_quotes
+  Include:
+    - 'test/**/*.rb'
