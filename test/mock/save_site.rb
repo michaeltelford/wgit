@@ -59,7 +59,7 @@ def save_site(base_url, follow: :default)
   end
 end
 
-if $0 == __FILE__
+if $PROGRAM_NAME == __FILE__
   raise "ARGV[0] must be a URL" unless ARGV[0]
 
   base_url = ARGV[0]

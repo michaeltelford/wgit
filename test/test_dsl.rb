@@ -257,7 +257,7 @@ class TestDSL < TestHelper
 
     index_site "http://txti.es/" do |doc|
       # Dont save the index page to the DB.
-      !(doc.url == "http://txti.es/")
+      doc.url != "http://txti.es/"
     end
 
     refute doc?("url.url" => "http://txti.es/")

@@ -18,7 +18,7 @@ class TestLogger < TestHelper
   end
 
   def test_logger=
-    stdout = Logger.new STDOUT
+    stdout = Logger.new $stdout
     assert_equal stdout, Wgit.logger = stdout
   end
 

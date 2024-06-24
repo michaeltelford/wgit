@@ -31,7 +31,7 @@ def save_page(url)
   end
 end
 
-if $0 == __FILE__
+if $PROGRAM_NAME == __FILE__
   raise "ARGV[0] must be a URL" unless ARGV[0]
 
   url = ARGV[0]
