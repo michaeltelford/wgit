@@ -3,6 +3,8 @@ AllCops:
     - 'lib/**/*.rb'
     - 'bin/**'
     - 'test/**/*.rb'
+    - '*.rb'
+    - .toys.rb
 Security/Eval:
   Exclude:
     - 'bin/wgit'
