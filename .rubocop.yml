@@ -30,6 +30,8 @@ Metrics/CyclomaticComplexity:
   Max: 12
 Layout/LineLength:
   Max: 85
+  Exclude:
+    - 'test/**/*.rb'
 Style/Alias:
   EnforcedStyle: prefer_alias_method
 Style/StringLiterals:
