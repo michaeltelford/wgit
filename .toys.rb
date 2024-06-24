@@ -200,7 +200,7 @@ tool :rubocop do
     elsif autocorrectall
       exec('bundle exec rubocop -A')
     else
-      exec_tool('lint')
+      exec('bundle exec rubocop')
     end
   end
 end
