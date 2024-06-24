@@ -1,4 +1,4 @@
-require_relative 'helpers/test_helper'
+require_relative "helpers/test_helper"
 
 # Test class for the Response methods.
 class TestResponse < TestHelper
@@ -28,18 +28,18 @@ class TestResponse < TestHelper
     r = Wgit::Response.new
 
     r.body = nil
-    assert_equal '', r.body
+    assert_equal "", r.body
 
-    r.body = 'hello world'
-    assert_equal 'hello world', r.body
+    r.body = "hello world"
+    assert_equal "hello world", r.body
   end
 
   def test_body_or_nil
     r = Wgit::Response.new
     assert_nil r.body_or_nil
 
-    r.body = 'hello world'
-    assert_equal 'hello world', r.body
+    r.body = "hello world"
+    assert_equal "hello world", r.body
   end
 
   def test_failure?
@@ -59,8 +59,8 @@ class TestResponse < TestHelper
   def test_headers_equals
     r = Wgit::Response.new
 
-    r.headers = { 'Content-Type' => 'text/html' }
-    assert_equal({ content_type: 'text/html' }, r.headers)
+    r.headers = { "Content-Type" => "text/html" }
+    assert_equal({ content_type: "text/html" }, r.headers)
   end
 
   def test_not_found?
@@ -96,8 +96,8 @@ class TestResponse < TestHelper
 
   def test_redirect_count
     r = Wgit::Response.new
-    r.redirections['a'] = 'foo'
-    r.redirections['b'] = 'bar'
+    r.redirections["a"] = "foo"
+    r.redirections["b"] = "bar"
 
     assert_equal 2, r.redirect_count
   end
@@ -106,7 +106,7 @@ class TestResponse < TestHelper
     r = Wgit::Response.new
     assert_equal 0, r.size
 
-    r.body = 'hello world'
+    r.body = "hello world"
     assert_equal 11, r.size
   end
 
@@ -138,10 +138,10 @@ class TestResponse < TestHelper
     r = Wgit::Response.new
     refute r.no_index?
 
-    r.headers = {'X-Robots-Tag' => 'index'}
+    r.headers = { "X-Robots-Tag" => "index" }
     refute r.no_index?
 
-    r.headers = {'X-Robots-Tag' => 'noindex'}
+    r.headers = { "X-Robots-Tag" => "noindex" }
     assert r.no_index?
   end
 end
