@@ -2,6 +2,7 @@ AllCops:
   Include:
     - 'lib/**/*.rb'
     - 'bin/**'
+    - 'test/**/*.rb'
 Security/Eval:
   Exclude:
     - 'bin/wgit'
@@ -33,5 +34,3 @@ Style/Alias:
   EnforcedStyle: prefer_alias_method
 Style/StringLiterals:
   EnforcedStyle: double_quotes
-  Include:
-    - 'test/**/*.rb'
