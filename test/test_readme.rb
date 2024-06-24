@@ -1,4 +1,4 @@
-require_relative 'helpers/test_helper'
+require_relative "helpers/test_helper"
 
 # Test class for code snippets in the README.md.
 # WARNING: Certain tests will clear down the DB prior to the test run.
@@ -16,7 +16,7 @@ class TestReadme < TestHelper
 
     # include Wgit::DSL
 
-    start  'http://quotes.toscrape.com/tag/humor/'
+    start  "http://quotes.toscrape.com/tag/humor/"
     follow "//li[@class='next']/a/@href"
 
     extract :quotes,  "//div[@class='quote']/span[@class='text']", singleton: false
@@ -55,19 +55,19 @@ class TestReadme < TestHelper
 
     # ENV['WGIT_CONNECTION_STRING'] = 'mongodb://user:password@localhost/crawler'
 
-    start  'http://quotes.toscrape.com/tag/humor/'
+    start  "http://quotes.toscrape.com/tag/humor/"
     follow "//li[@class='next']/a/@href"
 
     extract :quotes,  "//div[@class='quote']/span[@class='text']", singleton: false
     extract :authors, "//div[@class='quote']/span/small",          singleton: false
 
     index_site
-    results = search 'prejudice', stream: nil
+    results = search "prejudice", stream: nil
 
     ### PUT README CODE ABOVE ###
 
     assert_equal 1, results.size
-    assert_equal 'http://quotes.toscrape.com/tag/humor/page/2/', results.first.url
+    assert_equal "http://quotes.toscrape.com/tag/humor/page/2/", results.first.url
 
     # Clean up the extractors for other tests.
     Wgit::Document.remove_extractor :quotes
@@ -81,7 +81,7 @@ class TestReadme < TestHelper
     # require 'json'
 
     crawler = Wgit::Crawler.new
-    url     = Wgit::Url.new('http://quotes.toscrape.com/tag/humor/')
+    url     = Wgit::Url.new("http://quotes.toscrape.com/tag/humor/")
     quotes  = []
 
     Wgit::Document.define_extractor(:quotes,  "//div[@class='quote']/span[@class='text']", singleton: false)
