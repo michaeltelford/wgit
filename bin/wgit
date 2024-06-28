@@ -2,40 +2,93 @@
 
 require "wgit"
 
+# Shorten the filepath for nicer output to the user.
+def format_path(dir, path)
+  return path.gsub(dir, ".") if dir == Dir.pwd
+  return path.gsub(dir, "~") if dir == Dir.home
+
+  path
+end
+
+# Load .env file (if it exists somewhere).
+def load_env
+  begin
+    require "dotenv"
+  rescue LoadError
+    puts "Skipping .env load because 'dotenv' isn't installed"
+    puts
+    return false
+  end
+
+  puts "Searching for .env file in local and home directories..."
+  success = false
+
+  [Dir.pwd, Dir.home].each do |dir|
+    path = "#{dir}/.env"
+    next unless File.exist?(path)
+
+    puts "Loading #{format_path(dir, path)}"
+    puts "Call `load_env` after changes to re-load the environment variables"
+
+    Dotenv.load(path)
+    success = true
+
+    break
+  end
+
+  puts
+
+  success
+end
+
 # Eval .wgit.rb file (if it exists somewhere).
-def eval_wgit(filepath = nil)
+def eval_wgit
   puts "Searching for .wgit.rb file in local and home directories..."
   success = false
 
-  [filepath, Dir.pwd, Dir.home].each do |dir|
+  [Dir.pwd, Dir.home].each do |dir|
     path = "#{dir}/.wgit.rb"
     next unless File.exist?(path)
 
-    puts "Eval'ing #{path}"
+    puts "Eval'ing #{format_path(dir, path)}"
     puts "Call `eval_wgit` after changes to re-eval the file"
+
     eval(File.read(path))
     success = true
 
     break
   end
 
+  puts
+
   success
 end
 
-eval_wgit
-puts "\n#{Wgit.version_str}\n\n"
-
+# Choose and return which REPL class to use.
 # Use Pry if installed or fall back to IRB.
-begin
-  require "pry"
-  klass = Pry
-rescue LoadError
-  require "irb"
-  klass = IRB
+def repl_class
+  begin
+    require "pry"
+    klass = Pry
+  rescue LoadError
+    require "irb"
+    klass = IRB
 
-  puts "Starting IRB because Pry isn't installed."
+    puts "Using 'irb' REPL because 'pry' isn't installed"
+    puts
+  end
+
+  klass
 end
 
-klass.start
+### START OF EXECUTABLE ###
 
-puts "Interactive session complete."
+load_env
+eval_wgit
+
+puts Wgit.version_str
+puts "#{'-' * Wgit.version_str.size}\n\n"
+
+repl_class.start
+
+puts "Interactive wgit session complete"
