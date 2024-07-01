@@ -451,6 +451,38 @@ class TestCrawler < TestHelper
     ], crawled
   end
 
+  def test_crawl_site__max_pages
+    url = Wgit::Url.new "http://txti.es/"
+    c = Wgit::Crawler.new
+
+    crawled = []
+    c.crawl_site(url, max_pages: 3) { |doc| crawled << doc.url }
+
+    assert_equal [
+      "http://txti.es/",
+      "http://txti.es/about",
+      "http://txti.es/how"
+    ], crawled
+  end
+
+  def test_crawl_site__max_pages__not_reached
+    url = Wgit::Url.new "http://txti.es/"
+    c = Wgit::Crawler.new
+
+    crawled = []
+    c.crawl_site(url, max_pages: 10) { |doc| crawled << doc.url }
+
+    assert_equal [
+      "http://txti.es/",
+      "http://txti.es/about",
+      "http://txti.es/how",
+      "http://txti.es/terms",
+      "http://txti.es/images",
+      "http://txti.es/barry/json",
+      "http://txti.es/images/images"
+    ], crawled
+  end
+
   def test_crawl_site__add_supported_url_extension
     # odd-extension.com returns a HTML page with a link to /other.html5.
     # other.html5 isn't crawled until we add it to supported_file_extensions.

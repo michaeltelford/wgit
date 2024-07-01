@@ -20,6 +20,7 @@ A big release with several breaking changes, not all of which can be listed belo
 - `Wgit::Model.include_doc_html` and `include_doc_score` methods to set in one place if html/score is included in the corresponding document model output.
 - `Wgit::Assertable#common_arr_types` method.
 - `Wgit::Utils.pprint(display:)` param to turn off all logs easily (by setting from ENV etc).
+- `Wgit::Crawler#crawl_site(max_pages:)` param to quit the crawl early.
 ### Changed/Removed
 - Update Wgit to work with ruby v3 and above, removed support for older versions.
 - Removed default extractors `meta_robots` and `meta_wgit` without losing any functionality.

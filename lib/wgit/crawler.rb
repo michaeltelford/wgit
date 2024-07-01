@@ -110,6 +110,7 @@ module Wgit
     #   the crawl. This changes how a site is crawled. Only links pointing to
     #   the site domain are allowed. The `:default` is any `<a>` href returning
     #   HTML.
+    # @param max_pages [Integer]
     # @param allow_paths [String, Array<String>] Filters the `follow:` links by
     #   selecting them if their path `File.fnmatch?` one of allow_paths.
     # @param disallow_paths [String, Array<String>] Filters the `follow` links
@@ -121,12 +122,14 @@ module Wgit
     #   from all of the site's pages or nil if the given url could not be
     #   crawled successfully.
     def crawl_site(
-      url, follow: :default, allow_paths: nil, disallow_paths: nil, &block
+      url, follow: :default, max_pages: nil,
+      allow_paths: nil, disallow_paths: nil, &block
     )
       doc = crawl_url(url, &block)
       return nil if doc.empty?
 
       total_pages = 1
+      limit_reached = max_pages && total_pages >= max_pages
       link_opts = { xpath: follow, allow_paths:, disallow_paths: }
 
       crawled   = Set.new(url.redirects_journey)
@@ -136,10 +139,18 @@ module Wgit
       return externals.to_a if internals.empty?
 
       loop do
+        if limit_reached
+          Wgit.logger.debug("Crawled and reached the max_pages limit of: #{max_pages}")
+          break
+        end
+
         links = subtract_links(internals, crawled)
         break if links.empty?
 
         links.each do |link|
+          limit_reached = max_pages && total_pages >= max_pages
+          break if limit_reached
+
           doc = crawl_url(link, follow_redirects: :host, &block)
 
           crawled += link.redirects_journey
