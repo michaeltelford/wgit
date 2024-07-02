@@ -103,32 +103,22 @@ module Wgit
       assert_type(parser, Nokogiri::HTML4::Document)
 
       @parser = parser
-      @display_logs = ENV["WGIT_DEBUG_HTML_TO_TEXT"]
     end
 
     # Extracts and returns the text sentences from the @parser HTML.
     #
     # @return [Array<String>] An array of unique text sentences.
     def extract_arr
-      Wgit::Utils.pprint("START_TEXT_ARR", display: @display_logs)
-
       return [] if @parser.to_s.empty?
 
       text_str = extract_str
 
-      Wgit::Utils.pprint("FINAL_TEXT_STR", display: @display_logs,
-text_str: text_str)
-
       # Split the text_str into an Array of text sentences.
-      text = text_str
-             .split("\n")
-             .map(&:strip)
-             .reject(&:empty?)
-             .uniq
-
-      Wgit::Utils.pprint("FINAL_TEXT_ARR", display: @display_logs, text: text)
-
-      text
+      text_str
+        .split("\n")
+        .map(&:strip)
+        .reject(&:empty?)
+        .uniq
     end
 
     # Extracts and returns a text string from the @parser HTML.
@@ -138,17 +128,9 @@ text_str: text_str)
       text_str = ""
 
       iterate_child_nodes(@parser) do |node, display|
-        Wgit::Utils.pprint("NODE", display: @display_logs, node: node.name,
-text: node.text)
-
-        # byebug if node_name(node) == :span && node.text.downcase == 'post'
-
         # Handle any special cases e.g. skip nodes we don't care about...
         # <pre> nodes should have their contents displayed exactly as is.
         if node_name(node) == :pre
-          Wgit::Utils.pprint("ADDING_PRE_CONTENT_AS_IS", display: @display_logs,
-content: "\n#{node.text}")
-
           text_str << "\n"
           text_str << node.text
           next
@@ -165,42 +147,23 @@ content: "\n#{node.text}")
           # will be iterated onto later.
           #
           # Process if node has no children or one child which is a valid text node.
-          unless node.children.empty? || (node.children.size == 1 && parent_of_text_node?(node))
-            next
-          end
+          next unless node.children.empty? || parent_of_text_node_only?(node)
         end
 
         # Apply display rules deciding if a new line is needed before node.text.
         add_new_line = false
-        node_text    = format_text(node.text)
-        prev         = prev_sibling_or_parent(node)
+        prev = prev_sibling_or_parent(node)
 
         if node.text?
-          unless prev && inline?(prev)
-            Wgit::Utils.pprint("ADDING_NEW_LINE_FOR_TEXT_1", display: @display_logs)
-            add_new_line = true
-          end
+          add_new_line = true unless prev && inline?(prev)
         else
-          if display == :block
-            Wgit::Utils.pprint("ADDING_NEW_LINE_FOR_NODE_1", display: @display_logs)
-            add_new_line = true
-          end
-
-          if prev && block?(prev)
-            Wgit::Utils.pprint("ADDING_NEW_LINE_FOR_NODE_2", display: @display_logs)
-            add_new_line = true
-          end
+          add_new_line = true if display == :block
+          add_new_line = true if prev && block?(prev)
         end
 
         text_str << "\n" if add_new_line
-
-        Wgit::Utils.pprint("ADDING_NODE_TEXT", display: @display_logs,
-node: node.name, text: node_text)
-        text_str << node_text
+        text_str << format_text(node.text)
       end
-
-      Wgit::Utils.pprint("TEXT_STR_PRE_SQUEEZE", display: @display_logs,
-text_str: text_str)
 
       text_str
         .strip
@@ -256,6 +219,10 @@ text_str: text_str)
     # Returns true if any of the child nodes contain a non empty :text node.
     def parent_of_text_node?(node)
       node.children.any? { |child| child.text? && valid_text_content?(child.text) }
+    end
+
+    def parent_of_text_node_only?(node)
+      node.children.size == 1 && parent_of_text_node?(node)
     end
 
     # Returns true if text is not empty having removed all new lines.
