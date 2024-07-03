@@ -590,7 +590,7 @@ be relative"
     # @raise [StandardError] Raises if no matching target element containg
     #   el_text can be found.
     def nearest_fragment(el_text, el_type = "*")
-      results = xpath("//#{el_type}[contains(text(),\"#{el_text}\")]")
+      results = xpath("//#{el_type}[text()[contains(.,\"#{el_text}\")]]")
       if results.empty?
         raise "Unable to find element '#{el_type}' containing text '#{el_text}'"
       end
@@ -606,7 +606,7 @@ be relative"
 
       fragment_h = fragment_indices(fragments)
 
-      # Return the target href if it's a fragment.
+      # Return the target href if the target is itself a fragment.
       return fragment_h[target_index] if fragment_h.keys.include?(target_index)
 
       # Find the target's nearest preceeding fragment href.
