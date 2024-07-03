@@ -211,10 +211,11 @@ Installing the Wgit gem adds a `wgit` executable to your `$PATH`. The executable
 The `wgit` executable does the following things (in order):
 
 1. `require wgit`
-2. `eval`'s a `.wgit.rb` file (if one exists in either the local or home directory, which ever is found first)
-3. Starts an interactive shell (using `pry` if it's installed, or `irb` if not)
+2. Loads an `.env` file (if one exists in either the local or home directory, which ever is found first)
+3. `eval`'s a `.wgit.rb` file (if one exists in either the local or home directory, which ever is found first)
+4. Starts an interactive shell (using `pry` if it's installed, or `irb` if not)
 
-The `.wgit.rb` file can be used to seed fixture data or define helper functions for the session. For example, you could define a function which indexes your website for quick and easy searching everytime you start a new session.
+The `.wgit.rb` file can be used to seed fixture data or define helper functions for the session. For example, you could define a function which indexes your website for quick and easy searching everytime you start `wgit`.
 
 ## License
 

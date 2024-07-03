@@ -10,11 +10,11 @@
 ---
 
 ## v0.12.0 - BREAKING CHANGES
-A big release with several breaking changes, not all of which can be listed below.
+A big release with several breaking changes, not all of which can be listed below. The headline feature for this release is the introduction of a database adapter, allowing Wgit to work with practically any underlying database system.
 ### Added
-- `Wgit::Document#nearest_fragment` method which allows you to search for the nearest fragement (#blah) to a piece of text and/or element type.
 - `Wgit::Database::DatabaseAdapter` class to allow the easy development of other database adapters that work with Wgit.
 - `Wgit::Database::InMemory` database adapter class and logic for quick and easy usage of Wgit on the fly (without needing a MongoDB instance to be running). This also serves as an example of how to write your own database adapter class.
+- `Wgit::Document#nearest_fragment` method which allows you to search for the nearest fragement (#blah) to a piece of text and/or element type.
 - `Wgit::Model.search_fields` and `.set_search_fields` for setting which search fields are used in document and database adapter searches.
 - `Wgit::HTMLToText` class and logic for extracting text from a HTML string. This is now how a `Wgit::Document` extracts its text for searching etc. This class is different in that it not only focuses on the elements we specify, but also applies those elements display in how it delimits where one sentence ends and the next starts e.g. `<span>` is `:inline` etc.
 - `Wgit::Model.include_doc_html` and `include_doc_score` methods to set in one place if html/score is included in the corresponding document model output.
@@ -31,6 +31,7 @@ A big release with several breaking changes, not all of which can be listed belo
 - Renamed `Wgit::MongoDB#search_text` to `Wgit::Database::MongoDB#search!`.
 - Reworked `Wgit::DSL` methods to accept a database param instead of a connection_string. This offers better flexibility.
 - Updated the Wgit `Dockerfile` to pull from `mongo:latest`.
+- `Wgit::Document#search` now searches more than just it's text. See `Wgit::Model.search_fields` for more information.
 - `Wgit::Document` now has the following search methods: `#search`, `#search_text`, `#search_text!`. See their documentation and source code for more information.
 - `Wgit::Document.define_extractor` now accepts a `nil` xpath parameter which omits the xpath search.
 ### Fixed
