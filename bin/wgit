@@ -85,10 +85,11 @@ end
 
 load_env
 eval_wgit
+klass = repl_class
 
 puts Wgit.version_str
 puts "#{'-' * Wgit.version_str.size}\n\n"
 
-repl_class.start
+klass.start
 
 puts "Interactive wgit session complete"
