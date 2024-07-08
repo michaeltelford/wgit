@@ -588,9 +588,12 @@ be relative"
     # @return [String, nil] nil if no nearest fragment or '#about' if nearest
     #   fragment's href is '#about'.
     # @raise [StandardError] Raises if no matching target element containg
-    #   el_text can be found.
+    #   el_text can be found or if @html is empty.
     def nearest_fragment(el_text, el_type = "*")
-      results = xpath("//#{el_type}[text()[contains(.,\"#{el_text}\")]]")
+      raise "The @html is empty" if @html.empty?
+
+      xpath_query = "//#{el_type}[text()[contains(.,\"#{el_text}\")]]"
+      results = xpath(xpath_query)
       if results.empty?
         raise "Unable to find element '#{el_type}' containing text '#{el_text}'"
       end

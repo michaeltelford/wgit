@@ -672,6 +672,12 @@ class TestDocument < TestHelper
     assert_equal "#foo", doc.nearest_fragment("Hello", &:last)
   end
 
+  def test_nearest_fragment__empty_html
+    doc = Wgit::Document.new "http://example.com".to_url, ""
+
+    assert_raises { doc.nearest_fragment("FooBar") }
+  end
+
   private
 
   # Inserts a <base> element into @html.
