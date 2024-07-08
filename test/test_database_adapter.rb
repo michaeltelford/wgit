@@ -41,4 +41,11 @@ class TestDatabaseAdapter < TestHelper
 
     assert_equal Wgit::Database::InMemory, test_class.send(:get_db).class
   end
+
+  def test_database_new_alias
+    Wgit::Database.adapter_class = Wgit::Database::InMemory
+    db = Wgit::Database.new
+
+    assert_instance_of Wgit::Database::InMemory, db
+  end
 end

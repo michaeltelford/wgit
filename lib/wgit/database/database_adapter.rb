@@ -32,6 +32,7 @@ module Wgit::Database
     ###################### START OF INTERFACE METHODS ######################
 
     # Initializes a DatabaseAdapter instance.
+    #
     # The implementor class should establish a DB connection here using the
     # given connection_string, falling back to `ENV['WGIT_CONNECTION_STRING']`.
     # Don't forget to call `super`.

@@ -301,7 +301,7 @@ the 'start' function".freeze
     end
 
     def get_db
-      @dsl_db ||= Wgit::Database.adapter_class.new
+      @dsl_db ||= Wgit::Database.new
     end
 
     alias_method :crawl_url,  :crawl

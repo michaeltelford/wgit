@@ -19,5 +19,16 @@ module Wgit
       # implement the methods within it, in order to work with Wgit.
       attr_accessor :adapter_class
     end
+
+    # Initializes a DatabaseAdapter instance. Is an alias for:
+    # `Wgit::Database.adapter_class.new(connection_string)`
+    #
+    # @param connection_string [String] The connection string needed to connect
+    #   to the database.
+    # @raise [StandardError] If a connection string isn't provided, either as a
+    #   parameter or via the environment.
+    def self.new(connection_string = nil)
+      Wgit::Database.adapter_class.new(connection_string)
+    end
   end
 end
