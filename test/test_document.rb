@@ -661,7 +661,7 @@ class TestDocument < TestHelper
     html = "<html><body><p>Hello</p></body></html>"
     doc = Wgit::Document.new "http://example.com".to_url, html
 
-    assert_raises { doc.nearest_fragment("FooBar") }
+    assert_nil doc.nearest_fragment("FooBar")
   end
 
   def test_nearest_fragment__block

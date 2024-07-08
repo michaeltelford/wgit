@@ -585,8 +585,8 @@ be relative"
     # @param el_type [String] The element type, defaulting to any type.
     # @yield [results] Given the results of the xpath query. Return the target
     #   you want or nil to use the default (first) target in results.
-    # @return [String, nil] nil if no nearest fragment or '#about' if nearest
-    #   fragment's href is '#about'.
+    # @return [String, nil] nil if no nearest fragment or the nearest
+    #   fragment's href e.g. '#about'.
     # @raise [StandardError] Raises if no matching target element containg
     #   el_text can be found or if @html is empty.
     def nearest_fragment(el_text, el_type = "*")
@@ -594,9 +594,7 @@ be relative"
 
       xpath_query = "//#{el_type}[text()[contains(.,\"#{el_text}\")]]"
       results = xpath(xpath_query)
-      if results.empty?
-        raise "Unable to find element '#{el_type}' containing text '#{el_text}'"
-      end
+      return nil if results.empty?
 
       target = results.first
       if block_given?
