@@ -257,7 +257,7 @@ class TestDSL < TestHelper
 
     index_site "http://txti.es/" do |doc|
       # Dont save the index page to the DB.
-      doc.url != "http://txti.es/"
+      :skip if doc.url == "http://txti.es/"
     end
 
     refute doc?("url.url" => "http://txti.es/")
@@ -305,7 +305,7 @@ class TestDSL < TestHelper
     empty_db
 
     # Dont save the page to the DB.
-    index("http://txti.es/") { false }
+    index("http://txti.es/") { :skip }
 
     refute doc?("url.url" => "http://txti.es/")
     assert_equal 0, db.num_docs

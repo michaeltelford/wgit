@@ -230,7 +230,7 @@ class TestIndexer < TestHelper
     # Index the site and don't insert the external urls.
     @indexer.index_site url do |doc|
       assert_instance_of Wgit::Document, doc
-      false # To avoid inserting the doc into the DB.
+      :skip # To avoid inserting the doc into the DB.
     end
 
     # Assert that url.crawled gets updated.
@@ -466,7 +466,7 @@ class TestIndexer < TestHelper
     # Index the page and don't insert the external urls.
     @indexer.index_url url do |doc|
       assert_instance_of Wgit::Document, doc
-      false # To avoid inserting the doc into the DB.
+      :skip # To avoid inserting the doc into the DB.
     end
 
     # Assert that url.crawled gets updated.

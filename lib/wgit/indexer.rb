@@ -7,6 +7,10 @@ module Wgit
   # Class which crawls and saves the Documents to a database. Can be thought of
   # as a combination of Wgit::Crawler and Wgit::Database::DatabaseAdapter.
   class Indexer
+    # The block return value used to skip saving a crawled document to the
+    # database. Applies to all index_* methods that take a block.
+    SKIP_UPSERT = :skip.freeze
+
     # The crawler used to index the WWW.
     attr_reader :crawler
 
@@ -19,6 +23,8 @@ module Wgit
     #   (already initialized and connected) used for indexing.
     # @param crawler [Wgit::Crawler] The crawler instance used for indexing.
     def initialize(database = Wgit::Database.new, crawler = Wgit::Crawler.new)
+      # TODO: assert types of params
+
       @db      = database
       @crawler = crawler
     end
@@ -143,11 +149,10 @@ future iterations")
         next if no_index?(@crawler.last_response, doc)
 
         result = block_given? ? yield(doc) : true
+        next if doc.empty? || result == SKIP_UPSERT
 
-        if result && !doc.empty?
-          upsert_doc(doc)
-          total_pages_indexed += 1
-        end
+        upsert_doc(doc)
+        total_pages_indexed += 1
       end
 
       upsert_url_and_redirects(url)
@@ -207,7 +212,9 @@ for the site: #{url}")
         break if no_index?(@crawler.last_response, doc)
 
         result = block_given? ? yield(doc) : true
-        upsert_doc(doc) if result && !doc.empty?
+        break if doc.empty? || result == SKIP_UPSERT
+
+        upsert_doc(doc)
       end
 
       upsert_url_and_redirects(url)
