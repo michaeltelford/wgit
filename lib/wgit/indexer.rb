@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require_relative 'assertable'
 require_relative 'crawler'
 require_relative 'database/database_adapter'
 
@@ -7,6 +8,8 @@ module Wgit
   # Class which crawls and saves the Documents to a database. Can be thought of
   # as a combination of Wgit::Crawler and Wgit::Database::DatabaseAdapter.
   class Indexer
+    include Assertable
+
     # The block return value used to skip saving a crawled document to the
     # database. Applies to all index_* methods that take a block.
     SKIP_UPSERT = :skip.freeze
@@ -23,7 +26,8 @@ module Wgit
     #   (already initialized and connected) used for indexing.
     # @param crawler [Wgit::Crawler] The crawler instance used for indexing.
     def initialize(database = Wgit::Database.new, crawler = Wgit::Crawler.new)
-      # TODO: assert types of params
+      assert_type(database, Wgit::Database::DatabaseAdapter)
+      assert_type(crawler, Wgit::Crawler)
 
       @db      = database
       @crawler = crawler

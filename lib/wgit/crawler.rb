@@ -73,6 +73,12 @@ module Wgit
     #   JS to update the DOM. After the delay, the HTML is crawled.
     def initialize(redirect_limit: 5, timeout: 5, encode: true,
                    parse_javascript: false, parse_javascript_delay: 1)
+      assert_type(redirect_limit, Integer)
+      assert_type(timeout, [Integer, Float])
+      assert_type(encode, [TrueClass, FalseClass])
+      assert_type(parse_javascript, [TrueClass, FalseClass])
+      assert_type(parse_javascript_delay, Integer)
+
       @redirect_limit         = redirect_limit
       @timeout                = timeout
       @encode                 = encode
