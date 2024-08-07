@@ -338,13 +338,18 @@ module Wgit::Database
         .map do |doc|
           yield(doc) if block_given?
 
-          # Only return result if it's text has a match - compact is called below.
           results = doc.search(
             query, case_sensitive:, whole_sentence:, sentence_limit:
           )
-          next nil if results.empty?
 
-          [doc.url, (top_result_only ? results.first : results)]
+          if results.empty?
+            Wgit.logger.warn("MongoDB and Document #search calls have \
+differing results")
+            next nil
+          end
+
+          results = results.first if top_result_only
+          [doc.url, results]
         end
         .compact
         .to_h

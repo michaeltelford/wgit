@@ -344,6 +344,20 @@ class TestMongoDB < TestHelper
     end
   end
 
+  def test_search__special_char
+    @doc = Wgit::Document.new @url, <<~HTML
+      <p>Hello, this is to test :colon text searches</p>
+    HTML
+
+    seed { doc @doc }
+
+    # Test the result comes back.
+    results = db.search(":colon")
+
+    assert_equal 1, results.length
+    results.all? { |doc| doc.instance_of? Wgit::Document }
+  end
+
   def test_search__default_search_fields
     # => title    (2 hit  * 2 weight == 4)
     # => text     (3 hits * 1 weight == 3)
@@ -391,7 +405,6 @@ class TestMongoDB < TestHelper
     expected_matches = [
       "Highest Peak",
       "All climbers need to have climbed on a 7,000-8,000-meter peak previously",
-      "8,000-meter peaks are a serious undertaking and climbers need to be aware there ",
       " a 7,000-meter or 8,000-meter Himalayan peak to qualify for our expedition. We d",
       "· Expedition permit, peak fee and conservation fees"
     ]

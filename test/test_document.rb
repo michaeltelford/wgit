@@ -500,7 +500,7 @@ class TestDocument < TestHelper
     assert doc.empty?
   end
 
-  def test_search
+  def test_search__case_sensitive
     doc = Wgit::Document.new "http://www.mytestsite.com/home", @html
 
     # Test case_sensitive: false.
@@ -513,12 +513,10 @@ class TestDocument < TestHelper
 
     # Test case_sensitive: true.
     assert_empty doc.search("minitest", case_sensitive: true)
+  end
 
-    # Test whole_sentence: false.
-    results = doc.search("used code", whole_sentence: false)
-    assert_equal([
-      " page is primarily for testing the Ruby code used in Wgit with the Minitest fram"
-    ], results)
+  def test_search__whole_sentence
+    doc = Wgit::Document.new "http://www.mytestsite.com/home", @html
 
     # Test whole_sentence: true.
     assert_empty doc.search("used code", whole_sentence: true)
@@ -531,8 +529,20 @@ class TestDocument < TestHelper
 
     # Test case_sensitive: true, whole_sentence: true with exact words.
     assert_empty doc.search("coDe usEd", case_sensitive: true, whole_sentence: true)
+  end
 
-    # Test Regexp query.
+  def test_search__whole_sentence__special_char
+    doc = Wgit::Document.new "http://www.mytestsite.com/home", <<~HTML
+      <p>This is a :special char test</p>
+    HTML
+
+    results = doc.search(":special")
+    assert_equal(["This is a :special char test"], results)
+  end
+
+  def test_search__regex_query
+    doc = Wgit::Document.new "http://www.mytestsite.com/home", @html
+
     results = doc.search(/used|code/)
     assert_equal([
       " page is primarily for testing the Ruby code used in Wgit with the Minitest fram"

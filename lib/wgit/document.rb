@@ -448,6 +448,8 @@ be relative"
     #   to search and the weight for a match (used to determine relevence).
     #   This should only be set for custom one-off Document searches. For
     #   permanent changing of search fields, see Wgit::Model.set_search_fields.
+    # @yield [results_hash] Given the results_hash containing each search
+    #   result (String) and its score (num_matches * weight).
     # @return [Array<String>] A subset of this document's instance vars,
     #   matching the query for the search_fields: param.
     def search(
@@ -457,13 +459,8 @@ be relative"
       raise 'The sentence_limit value must be even' if sentence_limit.odd?
       assert_type(search_fields, Hash)
 
-      regex = if query.is_a?(Regexp)
-                query
-              else
-                query = query.to_s
-                query = query.gsub(' ', '|') unless whole_sentence
-                Regexp.new(query, !case_sensitive)
-              end
+      regex = Wgit::Utils.build_whole_sentence_regex(
+        query, case_sensitive:, whole_sentence:)
       results = {}
 
       search_fields.each do |field, weight|
@@ -488,6 +485,9 @@ be relative"
 
       return [] if results.empty?
 
+      yield results if block_given?
+
+      # Return only the matching text sentences, sorted by relevance.
       Hash[results.sort_by { |_, score| -score }].keys
     end
 
@@ -782,7 +782,7 @@ be relative"
     def fragment_indices(fragments)
       fragments.reduce({}) do |hash, fragment|
         index = html_index(fragment)
-        next(hash) unless index
+        next hash unless index
 
         href = fragment.attributes['href']&.value
         hash[index] = href

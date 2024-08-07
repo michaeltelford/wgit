@@ -19,7 +19,12 @@ class TestInMemory < TestHelper
   end
 
   # Runs after every test.
-  def teardown; end
+  def teardown
+    # Remove any defined extractors to avoid interfering with other tests.
+    return unless Wgit::Document.remove_extractor(:code)
+
+    Wgit::Document.send(:remove_method, :code)
+  end
 
   def test_initialize
     db2 = Wgit::Database::InMemory.new
@@ -166,7 +171,7 @@ class TestInMemory < TestHelper
     # Test whole_sentence: false.
     results = db.search("bar foo", whole_sentence: false)
     assert_equal 1, results.length
-    assert(results.all? { |doc| doc.instance_of? Wgit::Document })
+    assert results.first.instance_of?(Wgit::Document)
 
     # Test whole_sentence: true.
     assert_empty db.search("bar foo", whole_sentence: true)
@@ -174,7 +179,7 @@ class TestInMemory < TestHelper
     # Test case_sensitive: true and whole_sentence: true.
     results = db.search("Foo Bar", case_sensitive: true, whole_sentence: true)
     assert_equal 1, results.length
-    assert(results.all? { |doc| doc.instance_of? Wgit::Document })
+    assert results.first.instance_of?(Wgit::Document)
   end
 
   def test_search__limit
@@ -225,6 +230,20 @@ class TestInMemory < TestHelper
     end
   end
 
+  def test_search__special_char
+    @doc = Wgit::Document.new @url, <<~HTML
+      <p>Hello, this is to test :colon text searches</p>
+    HTML
+
+    seed { doc @doc }
+
+    # Test the result comes back.
+    results = db.search(":colon")
+
+    assert_equal 1, results.length
+    results.all? { |doc| doc.instance_of? Wgit::Document }
+  end
+
   def test_search__default_search_fields
     # => title    (2 hit  * 2 weight == 4)
     # => text     (3 hits * 1 weight == 3)
@@ -247,6 +266,7 @@ class TestInMemory < TestHelper
   end
 
   def test_search__set_search_fields
+    Wgit::Document.define_extractor(:code, nil)
     Wgit::Model.set_search_fields(%i[code foo]) # @code exists, @foo doesn't.
 
     test_doc = Wgit::Document.new("http://www.mytestsite.com/home")

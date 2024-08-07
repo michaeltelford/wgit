@@ -19,7 +19,7 @@ module Wgit
     # @return [Hash] A Hash created from obj's instance vars and values.
     def self.to_h(obj, ignore: [], use_strings_as_keys: true)
       obj.instance_variables.reduce({}) do |hash, var|
-        next(hash) if ignore.include?(var.to_s)
+        next hash if ignore.include?(var.to_s)
 
         key = var.to_s[1..] # Remove the @ prefix.
         key = key.to_sym unless use_strings_as_keys
@@ -226,6 +226,32 @@ module Wgit
         .reject { |str| str.is_a?(String) && str.empty? }
         .compact
         .uniq
+    end
+
+    # Build a regular expression from a query string, for searching text with.
+    # This regex supports whole sentence only, not partial word searches.
+    #
+    # @param query [String, Regexp] The query string to build a regex from.
+    # @param case_sensitive [Boolean] Whether character case must match.
+    # @param whole_sentence [Boolean] Whether multiple words should be searched
+    #   for separately, matching in any order.
+    # @return [Regexp] The regex with which to search text.
+    def self.build_whole_sentence_regex(
+      query, case_sensitive: false, whole_sentence: true
+    )
+      return query if query.is_a?(Regexp)
+
+      # query: "hello world", whole_sentence: false produces:
+      # (?<=^|\s|[^a-zA-Z0-9])hello(?=$|\s|[^a-zA-Z0-9])|(?<=^|\s|[^a-zA-Z0-9])world(?=$|\s|[^a-zA-Z0-9])
+
+      sep = whole_sentence ? " " : "|"
+      segs = query.split(" ").map do |word|
+        word = Regexp.escape(word)
+        "(?<=^|\\s|[^a-zA-Z0-9])#{word}(?=$|\\s|[^a-zA-Z0-9])"
+      end
+      query = segs.join(sep)
+
+      Regexp.new(query, !case_sensitive)
     end
 
     # Pretty prints a log statement, used for debugging purposes.

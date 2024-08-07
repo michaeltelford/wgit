@@ -57,7 +57,8 @@ num_docs=#{@docs.size} size=#{size}>"
     end
 
     # Searches the database's Document#text for the given query. The returned
-    # Documents are sorted for relevance, starting with the most relevant.
+    # Documents are sorted for relevance, starting with the most relevant. Each
+    # Document's #score value will be set accordingly.
     #
     # @param query [Regexp, #to_s] The regex or text value to search each
     #   document's @text for.
@@ -73,30 +74,32 @@ num_docs=#{@docs.size} size=#{size}>"
       query, case_sensitive: false, whole_sentence: true,
       limit: 10, skip: 0, &block
     )
-      regex = if query.is_a?(Regexp)
-                query
-              else
-                query = "\\b#{query}\\b"
-                query = query.gsub(" ", '\b|\b') unless whole_sentence
-                Regexp.new(query, !case_sensitive)
-              end
+      regex = Wgit::Utils.build_whole_sentence_regex(
+        query, case_sensitive:, whole_sentence:)
 
-      results = @docs.select do |doc|
-        score = search_doc(doc, regex)
-        doc["score"] = score
+      # Search the Wgit::Document's, not the raw Hashes.
+      results = docs.select do |doc|
+        score = 0
+        doc.search(regex, case_sensitive:, whole_sentence:) do |results_hash|
+          score = results_hash.values.sum
+        end
+        next false if score.zero?
 
-        score.positive?
+        doc.instance_variable_set :@score, score
+        true
       end
 
       return [] if results.empty?
 
-      results.sort! { |a, b| b["score"] <=> a["score"] }
+      results = results.sort_by { |doc| -doc.score }
 
       results = results[skip..]
       return [] unless results
 
       results = results[0...limit] if limit.positive?
-      map_documents(results, &block)
+      results.each(&block) if block_given?
+
+      results
     end
 
     # Deletes everything in the urls and documents collections.
@@ -196,27 +199,6 @@ num_docs=#{@docs.size} size=#{size}>"
       end
 
       [collection, index, model]
-    end
-
-    # Searches the given doc using the regex and returns a numeric score.
-    def search_doc(doc, regex)
-      score = 0.0
-
-      Wgit::Model.search_fields.each do |field, weight|
-        doc_field = doc[field.to_s]
-        next unless doc_field
-
-        Wgit::Utils.each(doc_field) do |text|
-          assert_type(text, String)
-
-          matches = text.strip.scan(regex).count
-          next unless matches.positive?
-
-          score += matches * weight
-        end
-      end
-
-      score
     end
   end
 end
