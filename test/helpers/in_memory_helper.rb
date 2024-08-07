@@ -22,21 +22,21 @@ module InMemoryHelper
 
   # Seed an Array of url Hashes into the database.
   def seed_urls(url_hashes)
-    url_hashes.each { |url_h| db.urls << url_h }
+    url_hashes.each { |url_h| db.url_hashes << url_h }
   end
 
   # Seed an Array of document Hashes into the database.
   def seed_docs(doc_hashes)
-    doc_hashes.each { |doc_h| db.docs << doc_h }
+    doc_hashes.each { |doc_h| db.doc_hashes << doc_h }
   end
 
   # Returns if the url_hash/record exists in the database.
   def url?(url_hash)
-    db.urls.any? { |url| url == url_hash }
+    db.url_hashes.any? { |url| url == url_hash }
   end
 
   # Returns if the doc_hash/record exists in the database.
   def doc?(doc_hash)
-    db.docs.any? { |doc| doc == doc_hash }
+    db.doc_hashes.any? { |doc| doc == doc_hash }
   end
 end

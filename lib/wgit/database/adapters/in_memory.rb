@@ -8,17 +8,12 @@ module Wgit::Database
   # Database implementer class for in-memory (RAM) storage. This DB is mainly used
   # for testing and experimenting with. This DB is thread safe.
   class InMemory < DatabaseAdapter
-    # The urls collections stored as an in-memory Concurrent::Array.
-    attr_reader :urls
-
-    # The documents collections stored as an in-memory Concurrent::Array.
-    attr_reader :docs
-
     # Initializes a thread safe InMemory Database instance.
     #
     # @param connection_string [String] Not used but needed to adhere to the
     #   DatabaseAdapter interface.
     def initialize(connection_string = nil)
+      # Inits @urls and @docs vars.
       initialize_store
 
       super
@@ -30,6 +25,26 @@ module Wgit::Database
     def inspect
       "#<Wgit::Database::InMemory num_urls=#{@urls.size} \
 num_docs=#{@docs.size} size=#{size}>"
+    end
+
+    # The Wgit::Url's collection stored as an in-memory Concurrent::Array.
+    def urls(&block)
+      map_urls(@urls, &block)
+    end
+
+    # The Wgit::Document's collection stored as an in-memory Concurrent::Array.
+    def docs(&block)
+      map_documents(@docs, &block)
+    end
+
+    # The raw url Hashes, not mapped into their corresponding Wgit objects.
+    def url_hashes
+      @urls
+    end
+
+    # The raw doc Hashes, not mapped into their corresponding Wgit objects.
+    def doc_hashes
+      @docs
     end
 
     # Returns the current size of the in-memory database.

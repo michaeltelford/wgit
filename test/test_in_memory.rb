@@ -43,16 +43,17 @@ class TestInMemory < TestHelper
       "http://example.com",
       "http://example.com/2",
       "http://example.com/3"
-    ], db.urls.map { |url| url["url"] })
+    ], db.urls)
   end
 
   def test_bulk_upsert__docs
     urls = [
       "http://example.com",   # Gets inserted.
       "http://example.com/2", # Gets inserted.
-      "http://example.com",   # Dup of 1, will be updated.
+      "http://example.com",   # Dup of urls[0], will be updated.
       "http://example.com/3"  # Gets inserted.
     ].to_urls
+
     # Map each of the urls above into a document.
     docs = urls.map do |url|
       doc_hash = DatabaseTestData.doc(url: url, append_suffix: false)
@@ -66,7 +67,7 @@ class TestInMemory < TestHelper
       "http://example.com",
       "http://example.com/2",
       "http://example.com/3"
-    ], db.docs.map { |doc| doc["url"]&.[]("url") })
+    ], db.docs.map(&:url))
   end
 
   def test_docs
@@ -77,7 +78,7 @@ class TestInMemory < TestHelper
     docs = db.docs
 
     # Test non empty docs results.
-    assert(docs.all? { |doc| doc.instance_of? Hash })
+    assert(docs.all? { |doc| doc.instance_of? Wgit::Document })
     assert_equal 3, docs.length
   end
 
@@ -95,7 +96,7 @@ class TestInMemory < TestHelper
     uncrawled_urls = db.uncrawled_urls
 
     # Test urls.
-    assert(urls.all? { |url| url.instance_of? Hash })
+    assert(urls.all? { |url| url.instance_of? Wgit::Url })
     assert_equal 3, urls.length
 
     # Test uncrawled_urls.
@@ -113,9 +114,9 @@ class TestInMemory < TestHelper
     urls = db.urls
 
     # Test urls.
-    assert(urls.all? { |url| url.instance_of? Hash })
+    assert(urls.all? { |url| url.instance_of? Wgit::Url })
     assert_equal 3, urls.length
-    assert_equal redirects_hash, urls.first["redirects"]
+    assert_equal redirects_hash, urls.first.redirects
   end
 
   def test_search
