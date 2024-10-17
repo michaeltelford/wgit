@@ -10,7 +10,7 @@
 ---
 
 ## v0.12.0 - BREAKING CHANGES
-A big release with several breaking changes, not all of which can be listed below. The headline feature for this release is the introduction of a database adapter, allowing Wgit to work with practically any underlying database system.
+A big release with several breaking changes, not all of which can be listed below. The headline features for this release are the introduction of a database adapter, allowing Wgit to work with practically any underlying database system; and a custom in-house text extractor.
 ### Added
 - `Wgit::Database::DatabaseAdapter` class to allow the easy development of other database adapters that work with Wgit.
 - `Wgit::Database::InMemory` database adapter class and logic for quick and easy usage of Wgit on the fly (without needing a MongoDB instance to be running). This also serves as an example of how to write your own database adapter class.
@@ -34,9 +34,14 @@ A big release with several breaking changes, not all of which can be listed belo
 - `Wgit::Document#search` now searches more than just it's text. See `Wgit::Model.search_fields` for more information.
 - `Wgit::Document` now has the following search methods: `#search`, `#search_text`, `#search_text!`. See their documentation and source code for more information.
 - `Wgit::Document.define_extractor` now accepts a `nil` xpath parameter which omits the xpath search.
+- `Wgit::Indexer#index_*` methods now use `:skip` block return value to avoid DB upserts.
+- Updated `Wgit::Crawler.new` to accept `ferrum_opts:` which are passed to directly ferrum on init.
+- `Wgit::Document#search` now accepts a `&block` which yields the results Hash.
 ### Fixed
 - Issue [Document#search only searches the text](https://github.com/michaeltelford/wgit/issues/2)
 - Issue [Document#search doesn't find certain text](https://github.com/michaeltelford/wgit/issues/20)
+- Issue with `Wgit::Document#search` `whole_sentence:` search capability by updating the regex used.
+- Issue with `Wgit::Document#search` which now totals the text score for duplicated results.
 ---
 
 ## v0.11.0 - BREAKING CHANGES
