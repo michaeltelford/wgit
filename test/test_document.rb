@@ -577,6 +577,27 @@ class TestDocument < TestHelper
     ], results)
   end
 
+  def test_search__total_dup_results
+    # Two matching fields that when formatted will be 80 chars long.
+    # The text result will be a single string with a text score of 2 (because of the dup).
+    doc = Wgit::Document.new "http://www.mytestsite.com/home", <<~HTML
+      <p>Note: The text search index lists all document fields to be searched by MongoDB when calling Wgit::Database#search. Therefore, you should append this list with any other fields that you want searched. For example, if you extend the API then you might want to search your new fields in the database by adding them to the index above. This can be done programmatically with:</p>
+      <hr>
+      <p>Note: The text search index lists all document fields to be searched by MongoDB when calling Wgit::Database#search. Therefore, you should append this list with any other fields that you want searched. For example, if you extend the API then you might want to search your new fields in the database by adding them to the index above. This can be done programmatically with:</p>
+    HTML
+
+    results = doc.search("Wgit::Database") do |results_hash|
+      assert_equal(
+        { " to be searched by MongoDB when calling Wgit::Database#search. Therefore, you sh" => 2 },
+        results_hash
+      )
+    end
+    assert_equal(
+      [" to be searched by MongoDB when calling Wgit::Database#search. Therefore, you sh"],
+      results
+    )
+  end
+
   def test_search_text
     doc = Wgit::Document.new "http://www.mytestsite.com/home", @html
     orig_text = doc.text

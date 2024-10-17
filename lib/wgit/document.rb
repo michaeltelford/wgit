@@ -471,15 +471,18 @@ be relative"
           assert_type(text, String)
 
           text = text.strip
-          next if results[text]
-
           matches = text.scan(regex).count
           next unless matches.positive?
 
           index = text.index(regex) # Index of first match.
           Wgit::Utils.format_sentence_length(text, index, sentence_limit)
 
-          results[text] = matches * weight
+          # For duplicate matching text, total the text score.
+          text_score = matches * weight
+          existing_score = results[text]
+          text_score += existing_score if existing_score
+
+          results[text] = text_score
         end
       end
 
