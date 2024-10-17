@@ -118,7 +118,6 @@ module Wgit
         .split("\n")
         .map(&:strip)
         .reject(&:empty?)
-        .uniq
     end
 
     # Extracts and returns a text string from the @parser HTML.

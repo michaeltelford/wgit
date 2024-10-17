@@ -225,6 +225,19 @@ class TestHTMLToText < TestHelper
     ], doc.text
   end
 
+  def test_extract__dups_are_not_removed
+    doc = Wgit::Document.new "http://www.mytestsite.com/home", <<~HTML
+      <p>Note: The text search index lists all document fields.</p>
+      <hr>
+      <p>Note: The text search index lists all document fields.</p>
+    HTML
+
+    assert_equal [
+      "Note: The text search index lists all document fields.",
+      "Note: The text search index lists all document fields."
+    ], doc.text
+  end
+
   private
 
   def gsub_use_case_content(use_case, content)
