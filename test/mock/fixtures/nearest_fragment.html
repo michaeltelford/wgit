@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    </head>
+    <body>
+        <p>Hello1</p> <!-- nil -->
+        <div>
+            <a href="#fragment1">Anchor1</a>
+            <p>Hello2</p> <!-- #fragment1 -->
+        </div>
+        <p>Hello3</p> <!-- nil -->
+        <div>
+            <p>Hello4</p> <!-- nil -->
+        </div>
+        <a href="#fragment2">Anchor2</a>
+        <a href="#fragment3">Anchor3</a>
+        <p>Hello5</p> <!-- #fragment3 -->
+        <div>
+            <a href="#fragment4">Anchor4</a>
+            <p>Hello6</p> <!-- #fragment4 -->
+        </div>
+        <div>
+            <div>
+                <p>Hello7</p> <!-- #fragment4 -->
+            </div>
+        </div>
+        <a href="#fragment5">Anchor5</a>
+        <div>
+            <div>
+                <div>
+                    <!-- viewBox camelCase is used to test case insensitivity -->
+                    <a href="#fragment6" viewBox="0 0 16 16">Anchor6</a>
+                </div>
+                <p>Hello8</p> <!-- #fragment6 -->
+            </div>
+        </div>
+        <a href="#fragment7">Hello9</a>
+        <h2>
+            <a href="#fragment8">Anchor8</a>
+        </h2>
+        <div>
+            <p>Hello10</p> <!-- #fragment8 -->
+        </div>
+    </body>
+</html>

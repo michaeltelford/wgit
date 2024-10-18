@@ -1,33 +1,32 @@
 # frozen_string_literal: true
 
-require_relative 'database_test_data'
-require 'mongo'
+require_relative "database_test_data"
 
-# Helper class used to manipulate the database.
+# Helper module used to manipulate any database adapter. This module should
+# be included in other DB helper modules. To do so, you must implement the
+# following underlying methods:
+#
+# db                    # Returns a connected database adapter instance
+# empty_db              # Empties the url and document collections
+# seed_urls(url_hashes) # Seeds the given url hashes
+# seed_docs(doc_hashes) # Seeds the given document hashes
+# url?(url_hash)        # Returns true if the given url hash exists
+# doc?(url_hash)        # Returns true if the given document hash exists
+#
+# The above method implementations should be done using the raw client for
+# your DB adapter, not the Wgit adapter class that you're testing; this way
+# the helpers won't fail before your DB tests fail.
 module DatabaseHelper
-  # A connection to the database is established when this module is included.
   def self.included(_base)
-    @@db ||= Wgit::Database.new
-
     @@urls = []
     @@docs = []
-  end
-
-  # Returns the connected Wgit::Database instance.
-  def db
-    @@db
-  end
-
-  # Deletes everything in the urls and documents collections.
-  def clear_db
-    @@db.clear_db
   end
 
   # Seed what's in the block, comprising of url and doc method calls
   # (from this module). An integer can be used to specify how many default
   # objects should be seeded, defaults to 1; or provide your own Wgit:Url and
-  # Wgit:Document instances (which are passed through Wgit::Model). Hashes
-  # are also supported and will be merged with Model.common_insert_data.
+  # Wgit:Document instances (which are passed through Wgit::Model). Hashes are
+  # also supported and will be merged with Wgit::Model.common_insert_data.
   #
   # Returns the number of seeded/inserted documents in the DB.
   #
@@ -39,7 +38,7 @@ module DatabaseHelper
   #     doc     # Seeds 1 of the default dev doc records.
   #   end
   def seed(&block)
-    raise 'Must provide a block' unless block_given?
+    raise "Must provide a block" unless block_given?
 
     @@urls.clear
     @@docs.clear
@@ -47,32 +46,10 @@ module DatabaseHelper
     # &block populates the @@urls and @@docs arrays.
     instance_eval(&block)
 
-    begin
-      @@db.client[:urls].insert_many(@@urls) unless @@urls.empty?
-      @@db.client[:documents].insert_many(@@docs) unless @@docs.empty?
+    seed_urls(@@urls) unless @@urls.empty?
+    seed_docs(@@docs) unless @@docs.empty?
 
-      @@urls.count + @@docs.count
-    rescue StandardError => e
-      err_msg = e.respond_to?(:result) ? e.result['writeErrors'] : e.message
-      raise "Write to DB failed - remember that both urls and docs won't \
-accept duplicate urls. Exception details: #{err_msg}"
-    end
-  end
-
-  # Returns if the url_hash/record exists in the DB.
-  #
-  # Different from Wgit::Database#url? because it asserts the full url_hash,
-  # not just the presence of the unique 'url' field.
-  def url?(url_hash)
-    @@db.client[:urls].find(url_hash).any?
-  end
-
-  # Returns if the doc_hash/record exists in the DB.
-  #
-  # Different from Wgit::Database#doc? because it asserts the full doc_hash,
-  # not just the presence of the unique 'url' field.
-  def doc?(doc_hash)
-    @@db.client[:documents].find(doc_hash).any?
+    @@urls.count + @@docs.count
   end
 
   private
@@ -111,13 +88,13 @@ accept duplicate urls. Exception details: #{err_msg}"
   # Appends a Url to @@urls.
   def append_url(url)
     model_hash = case url
-                  when Wgit::Url
-                    Wgit::Model.url(url)
-                  when Hash
-                    url
-                  else
-                    raise "Invalid data type: #{url.class}"
-                  end
+                 when Wgit::Url
+                   Wgit::Model.url(url)
+                 when Hash
+                   url
+                 else
+                   raise "Invalid data type: #{url.class}"
+                 end
 
     @@urls << model_hash.merge(Wgit::Model.common_insert_data)
   end
@@ -125,13 +102,13 @@ accept duplicate urls. Exception details: #{err_msg}"
   # Appends a Document to @@docs.
   def append_doc(doc)
     model_hash = case doc
-                  when Wgit::Document
-                    Wgit::Model.document(doc)
-                  when Hash
-                    doc
-                  else
-                    raise "Invalid data type: #{doc.class}"
-                  end
+                 when Wgit::Document
+                   Wgit::Model.document(doc)
+                 when Hash
+                   doc
+                 else
+                   raise "Invalid data type: #{doc.class}"
+                 end
 
     @@docs << model_hash.merge(Wgit::Model.common_insert_data)
   end

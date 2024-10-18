@@ -54,6 +54,11 @@ module Wgit
     # The value should balance between a good UX and enough JS parse time.
     attr_accessor :parse_javascript_delay
 
+    # The opts Hash passed directly to the ferrum Chrome browser when
+    # `parse_javascript: true`.
+    # See https://github.com/rubycdp/ferrum for details.
+    attr_accessor :ferrum_opts
+
     # The Wgit::Response of the most recently crawled URL.
     attr_reader :last_response
 
@@ -72,12 +77,28 @@ module Wgit
     # @param parse_javascript_delay [Integer] The delay time given to a page's
     #   JS to update the DOM. After the delay, the HTML is crawled.
     def initialize(redirect_limit: 5, timeout: 5, encode: true,
-                   parse_javascript: false, parse_javascript_delay: 1)
+                   parse_javascript: false, parse_javascript_delay: 1,
+                   ferrum_opts: {})
+      assert_type(redirect_limit, Integer)
+      assert_type(timeout, [Integer, Float])
+      assert_type(encode, [TrueClass, FalseClass])
+      assert_type(parse_javascript, [TrueClass, FalseClass])
+      assert_type(parse_javascript_delay, Integer)
+      assert_type(ferrum_opts, Hash)
+
       @redirect_limit         = redirect_limit
       @timeout                = timeout
       @encode                 = encode
       @parse_javascript       = parse_javascript
       @parse_javascript_delay = parse_javascript_delay
+      @ferrum_opts            = default_ferrum_opts.merge(ferrum_opts)
+    end
+
+    # Overrides String#inspect to shorten the printed output of a Crawler.
+    #
+    # @return [String] A short textual representation of this Crawler.
+    def inspect
+      "#<Wgit::Crawler timeout=#{@timeout} redirect_limit=#{@redirect_limit} encode=#{@encode} parse_javascript=#{@parse_javascript} parse_javascript_delay=#{@parse_javascript_delay} ferrum_opts=#{@ferrum_opts}>"
     end
 
     # Crawls an entire website's HTML pages by recursively going through
@@ -103,6 +124,7 @@ module Wgit
     #   the crawl. This changes how a site is crawled. Only links pointing to
     #   the site domain are allowed. The `:default` is any `<a>` href returning
     #   HTML.
+    # @param max_pages [Integer]
     # @param allow_paths [String, Array<String>] Filters the `follow:` links by
     #   selecting them if their path `File.fnmatch?` one of allow_paths.
     # @param disallow_paths [String, Array<String>] Filters the `follow` links
@@ -114,12 +136,14 @@ module Wgit
     #   from all of the site's pages or nil if the given url could not be
     #   crawled successfully.
     def crawl_site(
-      url, follow: :default, allow_paths: nil, disallow_paths: nil, &block
+      url, follow: :default, max_pages: nil,
+      allow_paths: nil, disallow_paths: nil, &block
     )
       doc = crawl_url(url, &block)
       return nil if doc.empty?
 
       total_pages = 1
+      limit_reached = max_pages && total_pages >= max_pages
       link_opts = { xpath: follow, allow_paths:, disallow_paths: }
 
       crawled   = Set.new(url.redirects_journey)
@@ -129,10 +153,18 @@ module Wgit
       return externals.to_a if internals.empty?
 
       loop do
+        if limit_reached
+          Wgit.logger.debug("Crawled and reached the max_pages limit of: #{max_pages}")
+          break
+        end
+
         links = subtract_links(internals, crawled)
         break if links.empty?
 
         links.each do |link|
+          limit_reached = max_pages && total_pages >= max_pages
+          break if limit_reached
+
           doc = crawl_url(link, follow_redirects: :host, &block)
 
           crawled += link.redirects_journey
@@ -370,7 +402,7 @@ module Wgit
     # @param url [String] The url to browse to.
     # @return [Ferrum::Browser] The browser response object.
     def browser_get(url)
-      @browser ||= Ferrum::Browser.new(timeout: @timeout, process_timeout: 10)
+      @browser ||= Ferrum::Browser.new(**@ferrum_opts)
       @browser.goto(url)
 
       # Wait for the page's JS to finish dynamically manipulating the DOM.
@@ -420,9 +452,20 @@ module Wgit
 
     private
 
+    # The default opts which are merged with the user's ferrum_opts: and then
+    # passed directly to the ferrum Chrome browser.
+    def default_ferrum_opts
+      {
+        timeout: @timeout,
+        process_timeout: 10,
+        headless: true
+      }
+    end
+
     # Manually does the following: `links = internals - crawled`.
     # This is needed due to an apparent bug in Set<Url> (when upgrading from
     # Ruby v3.0.2 to v3.3.0) causing an infinite crawl loop in #crawl_site.
+    # Run in a shell to test: bundle exec toys test infinite_crawl_loop
     # TODO: Check in future Ruby versions and remove this method when fixed.
     def subtract_links(internals, crawled)
       links = Set.new

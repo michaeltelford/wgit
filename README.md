@@ -2,7 +2,7 @@
 
 [![Inline gem version](https://badge.fury.io/rb/wgit.svg)](https://rubygems.org/gems/wgit)
 [![Inline downloads](https://img.shields.io/gem/dt/wgit)](https://rubygems.org/gems/wgit)
-[![Inline build](https://travis-ci.org/michaeltelford/wgit.svg?branch=master)](https://travis-ci.org/michaeltelford/wgit)
+[![Inline build](https://github.com/michaeltelford/wgit/actions/workflows/wgit.yaml/badge.svg?branch=master)](https://github.com/michaeltelford/wgit/actions)
 [![Inline docs](http://inch-ci.org/github/michaeltelford/wgit.svg?branch=master)](http://inch-ci.org/github/michaeltelford/wgit)
 [![Inline code quality](https://api.codacy.com/project/badge/Grade/d5a0de62e78b460997cb8ce1127cea9e)](https://www.codacy.com/app/michaeltelford/wgit?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=michaeltelford/wgit&amp;utm_campaign=Badge_Grade)
 
@@ -13,12 +13,12 @@ Wgit is a HTML web crawler, written in Ruby, that allows you to programmatically
 Wgit was primarily designed to crawl static HTML websites to index and  search their content - providing the basis of any search engine; but Wgit is suitable for many application domains including:
 
 - URL parsing
-- Document content extraction (data mining)
-- Crawling entire websites (statistical analysis)
+- Document content extraction (data mining etc)
+- Recursive website crawling (indexing, statistical analysis etc)
 
 Wgit provides a high level, easy-to-use API and DSL that you can use in your own applications and scripts.
 
-Check out this [demo search engine](https://wgit-search-engine.fly.dev) - [built](https://github.com/michaeltelford/search_engine) using Wgit and Sinatra - deployed to [fly.io](https://fly.io). Try searching for something that's Ruby related like "Matz" or "Rails".
+Check out this [demo search engine](https://wgit-search-engine.fly.dev) - [built](https://github.com/michaeltelford/search_engine) using Wgit, Sinatra and MongoDB - deployed to [fly.io](https://fly.io). Try searching for something that's Ruby related like "Matz" or "Rails".
 
 ## Table Of Contents
 
@@ -78,7 +78,7 @@ Which outputs:
 ]
 ```
 
-Great! But what if we want to crawl and store the content in a database, so that it can be searched? Wgit makes it easy to index and search HTML using [MongoDB](https://www.mongodb.com/):
+Great! But what if we want to crawl and store the content in a database, so that it can be searched? Wgit makes it easy to index and search HTML using [MongoDB](https://www.mongodb.com/) (by default):
 
 ```ruby
 require 'wgit'
@@ -87,7 +87,7 @@ include Wgit::DSL
 
 Wgit.logger.level = Logger::WARN
 
-connection_string 'mongodb://user:password@localhost/crawler'
+ENV['WGIT_CONNECTION_STRING'] = 'mongodb://user:password@localhost/crawler'
 
 start  'http://quotes.toscrape.com/tag/humor/'
 follow "//li[@class='next']/a/@href"
@@ -109,11 +109,11 @@ http://quotes.toscrape.com/tag/humor/page/2/
 ...
 ```
 
-Using a MongoDB [client](https://robomongo.org/), we can see that the two web pages have been indexed, along with their extracted *quotes* and *authors*:
+Using a database client, we can see that the two web pages have been indexed, along with their extracted *quotes* and *authors*:
 
 ![MongoDBClient](https://raw.githubusercontent.com/michaeltelford/wgit/assets/assets/wgit_mongo_index.png)
 
-The [DSL](https://github.com/michaeltelford/wgit/wiki/How-To-Use-The-DSL) makes it easy to write scripts for experimenting with. Wgit's DSL is simply a wrapper around the underlying classes however. For comparison, here is the above example written using the Wgit API *instead of* the DSL:
+The [DSL](https://github.com/michaeltelford/wgit/wiki/How-To-Use-The-DSL) makes it easy to write scripts for experimenting with. Wgit's DSL is simply a wrapper around the underlying classes. For comparison, here is the quote example re-written using the Wgit API *instead of* the DSL:
 
 ```ruby
 require 'wgit'
@@ -143,9 +143,9 @@ puts JSON.generate(quotes)
 There are many [other HTML crawlers](https://awesome-ruby.com/#-web-crawling) out there so why use Wgit?
 
 - Wgit has excellent unit testing, 100% documentation coverage and follows [semantic versioning](https://semver.org/) rules.
-- Wgit excels at crawling an entire website's HTML out of the box. Many alternative crawlers require you to provide the `xpath` needed to *follow* the next URLs to crawl. Wgit by default, crawls the entire site by extracting its internal links pointing to the same host.
+- Wgit excels at crawling an entire website's HTML out of the box. Many alternative crawlers require you to provide the `xpath` needed to *follow* the next URLs to crawl. Wgit by default, crawls the entire site by extracting its internal links pointing to the same host - no `xpath` needed.
 - Wgit allows you to define content *extractors* that will fire on every subsequent crawl; be it a single URL or an entire website. This enables you to focus on the content you want.
-- Wgit can index (crawl and store) HTML to a database making it a breeze to build custom search engines. You can also specify which page content gets searched, making the search more meaningful. For example, here's a script that will index the Wgit [wiki](https://github.com/michaeltelford/wgit/wiki) articles:
+- Wgit can index (crawl and save) HTML to a database making it a breeze to build custom search engines. You can also specify which page content gets searched, making the search more meaningful. For example, here's a script that will index the Wgit [wiki](https://github.com/michaeltelford/wgit/wiki) articles:
 
 ```ruby
 require 'wgit'
@@ -164,7 +164,8 @@ indexer = Wgit::Indexer.new
 indexer.index_site(wiki, **opts)
 ```
 
-- Wgit's built in indexing methods will by default, honour a site's `robots.txt` rules. There's also a handy robots.txt parser that you can use in your own code.
+- Wgit supports different databases through the use of "adapter" classes, which you can write to support your own database of choice.
+- Wgit's built in indexing methods will by default, honour a site's `robots.txt` rules. There's also a handy `robots.txt` parser that you can use in your own code.
 
 ## Why Not Wgit?
 
@@ -178,9 +179,9 @@ So why might you not use Wgit, I hear you ask?
 
 Only MRI Ruby is tested and supported, but Wgit may work with other Ruby implementations.
 
-Currently, the required MRI Ruby version is:
+Currently, the supported range of MRI Ruby versions is:
 
-`ruby '>= 2.6', '< 4'`
+`ruby '~> 3.0'` a.k.a. between Ruby 3.0 and up to but not including Ruby 4.0. Wgit will probably work fine with older versions but best to upgrade if possible.
 
 ### Using Bundler
 
@@ -210,10 +211,11 @@ Installing the Wgit gem adds a `wgit` executable to your `$PATH`. The executable
 The `wgit` executable does the following things (in order):
 
 1. `require wgit`
-2. `eval`'s a `.wgit.rb` file (if one exists in either the local or home directory, which ever is found first)
-3. Starts an interactive shell (using `pry` if it's installed, or `irb` if not)
+2. Loads an `.env` file (if one exists in either the local or home directory, which ever is found first)
+3. `eval`'s a `.wgit.rb` file (if one exists in either the local or home directory, which ever is found first)
+4. Starts an interactive shell (using `pry` if it's installed, or `irb` if not)
 
-The `.wgit.rb` file can be used to seed fixture data or define helper functions for the session. For example, you could define a function which indexes your website for quick and easy searching everytime you start a new session.
+The `.wgit.rb` file can be used to seed fixture data or define helper functions for the session. For example, you could define a function which indexes your website for quick and easy searching everytime you start `wgit`.
 
 ## License
 
@@ -239,14 +241,14 @@ And you're good to go!
 
 ### Tooling
 
-Wgit uses the [`toys`](https://github.com/dazuma/toys) gem (instead of Rake) for task invocation. Always run `toys` as `bundle exec toys`. For a full list of available tasks a.k.a. tools, run `toys --tools`. You can search for a tool using `toys -s tool_name`. The most commonly used tools are listed below...
+Wgit uses the [toys](https://github.com/dazuma/toys) gem (instead of Rake) for task invocation. Always run `toys` as `bundle exec toys`. For a full list of available tasks a.k.a. tools, run `bundle exec toys --tools`. You can search for a tool using `bundle exec toys -s tool_name`. The most commonly used tools are listed below...
 
-Run `toys db` to see a list of database related tools, enabling you to run a Mongo DB instance locally using Docker. Run `toys test` to execute the tests.
+Run `bundle exec toys db` to see a list of database related tools, enabling you to run a Mongo DB instance locally using Docker. Run `bundle exec toys test` to execute the tests.
 
-To generate code documentation locally, run `toys yardoc`. To browse the docs in a browser run `toys yardoc --serve`. You can also use the `yri` command line tool e.g. `yri Wgit::Crawler#crawl_site` etc.
+To generate code documentation locally, run `bundle exec toys yardoc`. To browse the docs in a browser run `bundle exec toys yardoc --serve`. You can also use the `yri` command line tool e.g. `yri Wgit::Crawler#crawl_site` etc.
 
-To install this gem onto your local machine, run `toys install` and follow the prompt.
+To install this gem onto your local machine, run `bundle exec toys install` and follow the prompt.
 
 ### Console
 
-You can run `toys console` for an interactive shell using the `./bin/wgit` executable. The `toys setup` task will have created an `.env` and `.wgit.rb` file which get loaded by the executable. You can use the contents of this [gist](https://gist.github.com/michaeltelford/b90d5e062da383be503ca2c3a16e9164) to turn the executable into a development console. It defines some useful functions, fixtures and connects to the database etc. Don't forget to set the `WGIT_CONNECTION_STRING` in the `.env` file.
+You can run `bundle exec toys console` for an interactive shell using the `./bin/wgit` executable. The `bundle exec toys setup` task will have created an `.env` and `.wgit.rb` file which get loaded by the executable. You can use the contents of this [gist](https://gist.github.com/michaeltelford/b90d5e062da383be503ca2c3a16e9164) to turn the executable into a development console. It defines some useful functions, fixtures and connects to the database etc. Don't forget to set the `WGIT_CONNECTION_STRING` in the `.env` file.

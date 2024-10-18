@@ -7,7 +7,8 @@ require 'json'
 module Wgit
   # Class modeling/serialising a HTML web document, although other MIME types
   # will work e.g. images etc. Also doubles as a search result when
-  # loading Documents from the database via `Wgit::Database#search`.
+  # loading Documents from the database via
+  # `Wgit::Database::DatabaseAdapter#search`.
   #
   # The initialize method dynamically initializes instance variables from the
   # Document HTML / Database object e.g. text. This bit is dynamic so that the
@@ -19,33 +20,18 @@ module Wgit
     # Regex for the allowed var names when defining an extractor.
     REGEX_EXTRACTOR_NAME = /[a-z0-9_]+/
 
-    # Set of text elements used to build the xpath for Document#text.
-    @text_elements = Set.new(%i[
-      a abbr address article aside b bdi bdo blockquote button caption cite
-      code data dd del details dfn div dl dt em figcaption figure footer h1 h2
-      h3 h4 h5 h6 header hr i input ins kbd label legend li main mark meter ol
-      option output p pre q rb rt ruby s samp section small span strong sub
-      summary sup td textarea th time u ul var wbr
-    ])
-
-    # Instance vars to be ignored by Document#to_h and in turn Model.document.
+    # Instance vars to be ignored by Document#to_h and in turn
+    # Wgit::Model.document.
     @to_h_ignore_vars = [
-      '@parser',      # Always ignore the Nokogiri object.
-      '@meta_robots', # Used by #no_index?, ignore.
-      '@meta_wgit'    # Used by #no_index?, ignore.
+      '@parser' # Always ignore the Nokogiri object.
     ]
 
     # Set of Symbols representing the defined Document extractors.
     @extractors = Set.new
 
     class << self
-      # Set of HTML elements that make up the visible text on a page. These
-      # elements are used to initialize the Wgit::Document#text. See the
-      # README.md for how to add to this Set dynamically.
-      attr_reader :text_elements
-
-      # Array of instance vars to ignore when Document#to_h and in turn
-      # Model.document methods are called. Append your own defined extractor
+      # Array of instance vars to ignore when Document#to_h and (in turn)
+      # Wgit::Model.document methods are called. Append your own defined extractor
       # vars to omit them from the model (database object) when indexing.
       # Each var should be a String starting with an '@' char e.g. "@data" etc.
       attr_reader :to_h_ignore_vars
@@ -64,7 +50,7 @@ module Wgit
     # The Nokogiri::HTML document object initialized from @html.
     attr_reader :parser
 
-    # The score is only used following a `Database#search` and records matches.
+    # The score is set/used following a `Database#search` and records matches.
     attr_reader :score
 
     # Initialize takes either two strings (representing the URL and HTML) or an
@@ -96,17 +82,6 @@ module Wgit
 
     ### Document Class Methods ###
 
-    # Uses Document.text_elements to build an xpath String, used to obtain
-    # all of the combined visual text on a webpage.
-    #
-    # @return [String] An xpath String to obtain a webpage's text elements.
-    def self.text_elements_xpath
-      @text_elements.each_with_index.reduce('') do |xpath, (el, i)|
-        xpath += ' | ' unless i.zero?
-        xpath + format('//%s/text()', el)
-      end
-    end
-
     # Defines a content extractor, which extracts HTML elements/content
     # into instance variables upon Document initialization. See the default
     # extractors defined in 'document_extractors.rb' as examples. Defining an
@@ -130,8 +105,9 @@ module Wgit
     # @param var [Symbol] The name of the variable to be initialised, that will
     #   contain the extracted content. A getter and setter method is defined
     #   for the initialised variable.
-    # @param xpath [String, #call] The xpath used to find the element(s)
-    #   of the webpage. Only used when initializing from HTML.
+    # @param xpath [String, #call, nil] The xpath used to find the element(s)
+    #   of the webpage. Only used when initializing from HTML. Passing nil will
+    #   skip the HTML extraction, which sometimes isn't required.
     #
     #   Pass a callable object (proc etc.) if you want the
     #   xpath value to be derived on Document initialisation (instead of when
@@ -447,12 +423,14 @@ be relative"
       Wgit::Utils.sanitize(links)
     end
 
-    # Searches the @text for the given query and returns the results.
+    # Searches the Document's instance vars for the given query and returns
+    # the results. The `Wgit::Model.search_fields` denote the vars to be
+    # searched, unless overridden using the search_fields: param.
     #
-    # The number of search hits for each sentenence are recorded internally
+    # The number of matches for each search field is recorded internally
     # and used to rank/sort the search results before being returned. Where
-    # the Wgit::Database#search method search all documents for the most hits,
-    # this method searches each document's @text for the most hits.
+    # the Wgit::Database::DatabaseAdapter#search method searches all documents
+    # for matches, this method searches each individual Document for matches.
     #
     # Each search result comprises of a sentence of a given length. The length
     # will be based on the sentence_limit parameter or the full length of the
@@ -460,51 +438,86 @@ be relative"
     # that the search query is visible somewhere in the sentence.
     #
     # @param query [Regexp, #to_s] The regex or text value to search the
-    #   document's @text for.
+    #   document's instance vars (Wgit::Model.search_fields) for.
     # @param case_sensitive [Boolean] Whether character case must match.
     # @param whole_sentence [Boolean] Whether multiple words should be searched
     #   for separately.
     # @param sentence_limit [Integer] The max length of each search result
     #   sentence.
-    # @return [Array<String>] A subset of @text, matching the query.
+    # @param search_fields [Hash<Symbol, Integer>] The Document instance vars
+    #   to search and the weight for a match (used to determine relevence).
+    #   This should only be set for custom one-off Document searches. For
+    #   permanent changing of search fields, see Wgit::Model.set_search_fields.
+    # @yield [results_hash] Given the results_hash containing each search
+    #   result (String) and its score (num_matches * weight).
+    # @return [Array<String>] A subset of this document's instance vars,
+    #   matching the query for the search_fields: param.
     def search(
-      query, case_sensitive: false, whole_sentence: true, sentence_limit: 80
+      query, case_sensitive: false, whole_sentence: true,
+      sentence_limit: 80, search_fields: Wgit::Model.search_fields
     )
       raise 'The sentence_limit value must be even' if sentence_limit.odd?
+      assert_type(search_fields, Hash)
 
-      if query.is_a?(Regexp)
-        regex = query
-      else # query.respond_to? :to_s == true
-        query = query.to_s
-        query = query.gsub(' ', '|') unless whole_sentence
-        regex = Regexp.new(query, !case_sensitive)
-      end
-
+      regex = Wgit::Utils.build_whole_sentence_regex(
+        query, case_sensitive:, whole_sentence:)
       results = {}
 
-      @text.each do |sentence|
-        sentence = sentence.strip
-        next if results[sentence]
+      search_fields.each do |field, weight|
+        doc_field = instance_variable_get("@#{field}".to_sym)
+        next unless doc_field
 
-        hits = sentence.scan(regex).count
-        next unless hits.positive?
+        Wgit::Utils.each(doc_field) do |text|
+          assert_type(text, String)
 
-        index = sentence.index(regex) # Index of first match.
-        Wgit::Utils.format_sentence_length(sentence, index, sentence_limit)
+          text = text.strip
+          matches = text.scan(regex).count
+          next unless matches.positive?
 
-        results[sentence] = hits
+          index = text.index(regex) # Index of first match.
+          Wgit::Utils.format_sentence_length(text, index, sentence_limit)
+
+          # For duplicate matching text, total the text score.
+          text_score = matches * weight
+          existing_score = results[text]
+          text_score += existing_score if existing_score
+
+          results[text] = text_score
+        end
       end
 
       return [] if results.empty?
 
-      results = Hash[results.sort_by { |_k, v| v }]
-      results.keys.reverse
+      yield results if block_given?
+
+      # Return only the matching text sentences, sorted by relevance.
+      Hash[results.sort_by { |_, score| -score }].keys
     end
 
-    # Performs a text search (see Document#search for details) but assigns the
-    # results to the @text instance variable. This can be used for sub search
-    # functionality. The original text is returned; no other reference to it
-    # is kept thereafter.
+    # Performs a text only search of the Document, instead of searching all
+    # search fields defined in Wgit::Model.search_fields.
+    #
+    # @param query [Regexp, #to_s] The regex or text value to search the
+    #   document's text for.
+    # @param case_sensitive [Boolean] Whether character case must match.
+    # @param whole_sentence [Boolean] Whether multiple words should be searched
+    #   for separately.
+    # @param sentence_limit [Integer] The max length of each search result
+    #   sentence.
+    # @return [Array<String>] A subset of this document's text fields that
+    #   match the query.
+    def search_text(
+      query, case_sensitive: false, whole_sentence: true, sentence_limit: 80
+    )
+      search(
+        query, case_sensitive:, whole_sentence:,
+        sentence_limit:, search_fields: { text: 1 })
+    end
+
+    # Performs a text only search (see Document#search_text for details) but
+    # assigns the results to the @text instance variable. This can be used
+    # for sub search functionality. The original text is returned; no other
+    # reference to it is kept thereafter.
     #
     # @param query [Regexp, #to_s] The regex or text value to search the
     #   document's @text for.
@@ -514,11 +527,11 @@ be relative"
     # @param sentence_limit [Integer] The max length of each search result
     #   sentence.
     # @return [String] This Document's original @text value.
-    def search!(
+    def search_text!(
       query, case_sensitive: false, whole_sentence: true, sentence_limit: 80
     )
       orig_text = @text
-      @text = search(query, case_sensitive:, whole_sentence:, sentence_limit:)
+      @text = search_text(query, case_sensitive:, whole_sentence:, sentence_limit:)
 
       orig_text
     end
@@ -544,14 +557,71 @@ be relative"
       send(:extract_from_html, xpath, singleton:, text_content_only:, &block)
     end
 
-    # Works with the default extractors to extract and check the HTML meta tags
-    # instructing Wgit not to index this document (save it to a Database). If
-    # the default extractors are removed, this method will always return false.
+    # Attempts to extract and check the HTML meta tags instructing Wgit not to
+    # index this document (save it to a Database).
     #
     # @return [Boolean] True if this document shouldn't be saved to a Database,
     #   false otherwise.
     def no_index?
-      [@meta_robots, @meta_wgit].include?('noindex')
+      meta_robots = extract_from_html(
+        '//meta[@name="robots"]/@content',
+        singleton: true,
+        text_content_only: true
+      )
+      meta_wgit = extract_from_html(
+        '//meta[@name="wgit"]/@content',
+        singleton: true,
+        text_content_only: true
+      )
+
+      [meta_robots, meta_wgit].include?('noindex')
+    end
+
+    # Firstly finds the target element whose text contains el_text.
+    # Then finds the preceeding fragment element nearest to the target
+    # element and returns it's href value (starting with #). The search is
+    # performed against the @html so Documents loaded from a DB will need to
+    # contain the 'html' field in the Wgit::Model. See the
+    # `Wgit::Model#include_doc_html` documentation for more info.
+    #
+    # @param el_text [String] The element text of the target element.
+    # @param el_type [String] The element type, defaulting to any type.
+    # @yield [results] Given the results of the xpath query. Return the target
+    #   you want or nil to use the default (first) target in results.
+    # @return [String, nil] nil if no nearest fragment or the nearest
+    #   fragment's href e.g. '#about'.
+    # @raise [StandardError] Raises if no matching target element containg
+    #   el_text can be found or if @html is empty.
+    def nearest_fragment(el_text, el_type = "*")
+      raise "The @html is empty" if @html.empty?
+
+      xpath_query = "//#{el_type}[text()[contains(.,\"#{el_text}\")]]"
+      results = xpath(xpath_query)
+      return nil if results.empty?
+
+      target = results.first
+      if block_given?
+        result = yield(results)
+        target = result if result
+      end
+
+      target_index = html_index(target)
+      raise 'Failed to find target index' unless target_index
+
+      fragment_h = fragment_indices(fragments)
+
+      # Return the target href if the target is itself a fragment.
+      return fragment_h[target_index] if fragment_h.keys.include?(target_index)
+
+      # Find the target's nearest preceeding fragment href.
+      closest_index = 0
+      fragment_h.each do |fragment_index, href|
+        if fragment_index.between?(closest_index, target_index)
+          closest_index = fragment_index
+        end
+      end
+
+      fragment_h[closest_index]
     end
 
     protected
@@ -573,7 +643,8 @@ be relative"
     # Extracts a value/object from this Document's @html using the given xpath
     # parameter.
     #
-    # @param xpath [String, #call] Used to find the value/object in @html.
+    # @param xpath [String, #call, nil] Used to find the value/object in @html.
+    #   Passing nil will skip the HTML extraction which isn't always needed.
     # @param singleton [Boolean] singleton ? results.first (single Object) :
     #   results (Enumerable).
     # @param text_content_only [Boolean] text_content_only ? result.content
@@ -588,8 +659,12 @@ be relative"
     # @return [String, Object] The value found in the html or the default value
     #   (singleton ? nil : []).
     def extract_from_html(xpath, singleton: true, text_content_only: true)
-      xpath  = xpath.call if xpath.respond_to?(:call)
-      result = singleton ? at_xpath(xpath) : xpath(xpath)
+      result = nil
+
+      if xpath
+        xpath  = xpath.call if xpath.respond_to?(:call)
+        result = singleton ? at_xpath(xpath) : xpath(xpath)
+      end
 
       if result && text_content_only
         result = singleton ? result.content : result.map(&:content)
@@ -647,7 +722,8 @@ be relative"
       # Dynamically run the init_*_from_html methods.
       Document.private_instance_methods(false).each do |method|
         if method.to_s.start_with?('init_') &&
-           method.to_s.end_with?('_from_html') && method != __method__
+           method.to_s.end_with?('_from_html') &&
+           method != __method__
           send(method)
         end
       end
@@ -658,12 +734,14 @@ be relative"
     def init_from_object(obj, encode: true)
       assert_respond_to(obj, :fetch)
 
-      @url    = Wgit::Url.new(obj.fetch('url')) # Should always be present.
+      url = obj.fetch('url') # Should always be present.
+      raise "Missing 'url' field in doc object" unless url
+
+      @url    = Wgit::Url.new(url)
       @html   = obj.fetch('html', '')
       @parser = init_nokogiri
       @score  = obj.fetch('score', 0.0)
-
-      @html = Wgit::Utils.sanitize(@html, encode:)
+      @html   = Wgit::Utils.sanitize(@html, encode:)
 
       # Dynamically run the init_*_from_object methods.
       Document.private_instance_methods(false).each do |method|
@@ -689,6 +767,38 @@ be relative"
       Wgit::Document.attr_accessor(var_name)
 
       var_name
+    end
+
+    # Returns all <a> fragment elements from within the HTML body e.g. #about.
+    def fragments
+      anchors = xpath("/html/body//a")
+
+      anchors.select do |anchor|
+        href = anchor.attributes['href']&.value
+        href&.start_with?('#')
+      end
+    end
+
+    # Returns a Hash{Int=>String} of <a> fragment positions and their href
+    # values. Only fragment anchors are returned e.g. <a> elements with a
+    # href starting with '#'.
+    def fragment_indices(fragments)
+      fragments.reduce({}) do |hash, fragment|
+        index = html_index(fragment)
+        next hash unless index
+
+        href = fragment.attributes['href']&.value
+        hash[index] = href
+
+        hash
+      end
+    end
+
+    # Takes a Nokogiri element or HTML substring and returns it's index in
+    # the html. Returns the index/position Int or nil if not found. The search
+    # is case insensitive because Nokogiri lower cases camelCase attributes.
+    def html_index(el_or_str)
+      @html.downcase.index(el_or_str.to_s.strip.downcase)
     end
 
     alias_method :content,                :html
