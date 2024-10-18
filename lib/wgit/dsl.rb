@@ -266,7 +266,7 @@ the 'start' function".freeze
     #   database containing only its matching `#text`.
     # @return [Array<Wgit::Document>] The search results with matching text.
     def search(
-      query, stream: $stdout,
+      query, stream: $stdout, include_score: false,
       case_sensitive: false, whole_sentence: true,
       limit: 10, skip: 0, sentence_limit: 80
     )
@@ -281,7 +281,7 @@ the 'start' function".freeze
         yield(doc) if block_given?
       end
 
-      Wgit::Utils.pprint_search_results(results, stream:)
+      Wgit::Utils.pprint_search_results(results, include_score:, stream:)
 
       results
     end

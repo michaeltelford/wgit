@@ -108,6 +108,32 @@ class TestUtils < TestHelper
     assert_equal printf_output__results, buffer.string
   end
 
+  def test_pprint_search_results__include_score
+    # Setup the test results data.
+    query   = "Everest"
+    results = []
+
+    5.times do
+      doc_hash          = DatabaseTestData.doc
+      doc_hash["url"]   = "http://altitudejunkies.com/everest.html"
+      doc_hash["score"] = 23.4
+
+      doc = Wgit::Document.new(doc_hash)
+      doc.search_text!(query)
+
+      results << doc
+    end
+
+    # Setup a buffer to record the output.
+    buffer = StringIO.new
+    num_results = Wgit::Utils.pprint_search_results(
+      results, include_score: true, stream: buffer
+    )
+
+    assert_equal 5, num_results
+    assert_equal printf_output__results__include_score, buffer.string
+  end
+
   def test_pprint_search_results__empty
     # Setup the test results data.
     results = []
@@ -277,6 +303,41 @@ class TestUtils < TestHelper
       Everest, Highest Peak, High Altitude, Altitude Junkies
       e Summit for the hugely successful IMAX Everest film from the 1996 spring season
       http://altitudejunkies.com/everest.html
+
+    TEXT
+  end
+
+  def printf_output__results__include_score
+    <<~TEXT
+      Altitude Junkies | Everest
+      Everest, Highest Peak, High Altitude, Altitude Junkies
+      e Summit for the hugely successful IMAX Everest film from the 1996 spring season
+      http://altitudejunkies.com/everest.html
+      23.4
+
+      Altitude Junkies | Everest
+      Everest, Highest Peak, High Altitude, Altitude Junkies
+      e Summit for the hugely successful IMAX Everest film from the 1996 spring season
+      http://altitudejunkies.com/everest.html
+      23.4
+
+      Altitude Junkies | Everest
+      Everest, Highest Peak, High Altitude, Altitude Junkies
+      e Summit for the hugely successful IMAX Everest film from the 1996 spring season
+      http://altitudejunkies.com/everest.html
+      23.4
+
+      Altitude Junkies | Everest
+      Everest, Highest Peak, High Altitude, Altitude Junkies
+      e Summit for the hugely successful IMAX Everest film from the 1996 spring season
+      http://altitudejunkies.com/everest.html
+      23.4
+
+      Altitude Junkies | Everest
+      Everest, Highest Peak, High Altitude, Altitude Junkies
+      e Summit for the hugely successful IMAX Everest film from the 1996 spring season
+      http://altitudejunkies.com/everest.html
+      23.4
 
     TEXT
   end

@@ -143,7 +143,9 @@ module Wgit
     # @param stream [#puts] Any object that respond_to?(:puts). It is used
     #   to output text somewhere e.g. a file or STDERR.
     # @return [Integer] The number of results.
-    def self.pprint_search_results(results, keyword_limit: 5, stream: $stdout)
+    def self.pprint_search_results(
+      results, keyword_limit: 5, include_score: false, stream: $stdout
+    )
       raise 'stream must respond_to? :puts' unless stream.respond_to?(:puts)
 
       results.each do |doc|
@@ -151,11 +153,13 @@ module Wgit
         keywords = doc.keywords&.take(keyword_limit)&.join(', ')
         sentence = doc.text.first
         url      = doc.url
+        score    = doc.score
 
         stream.puts title
         stream.puts keywords if keywords
         stream.puts sentence
         stream.puts url
+        stream.puts score if include_score
         stream.puts
       end
 
