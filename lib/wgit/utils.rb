@@ -18,17 +18,15 @@ module Wgit
     #   keys.
     # @return [Hash] A Hash created from obj's instance vars and values.
     def self.to_h(obj, ignore: [], use_strings_as_keys: true)
-      hash = {}
-
-      obj.instance_variables.each do |var|
-        next if ignore.include?(var.to_s)
+      obj.instance_variables.reduce({}) do |hash, var|
+        next hash if ignore.include?(var.to_s)
 
         key = var.to_s[1..] # Remove the @ prefix.
         key = key.to_sym unless use_strings_as_keys
         hash[key] = obj.instance_variable_get(var)
-      end
 
-      hash
+        hash
+      end
     end
 
     # An improved :each method which supports both singleton and Enumerable
@@ -145,19 +143,23 @@ module Wgit
     # @param stream [#puts] Any object that respond_to?(:puts). It is used
     #   to output text somewhere e.g. a file or STDERR.
     # @return [Integer] The number of results.
-    def self.pprint_search_results(results, keyword_limit: 5, stream: $stdout)
+    def self.pprint_search_results(
+      results, keyword_limit: 5, include_score: false, stream: $stdout
+    )
       raise 'stream must respond_to? :puts' unless stream.respond_to?(:puts)
 
       results.each do |doc|
-        title    = (doc.title || '<no title>')
+        title    = doc.title || '<no title>'
         keywords = doc.keywords&.take(keyword_limit)&.join(', ')
         sentence = doc.text.first
         url      = doc.url
+        score    = doc.score
 
         stream.puts title
         stream.puts keywords if keywords
         stream.puts sentence
         stream.puts url
+        stream.puts score if include_score
         stream.puts
       end
 
@@ -230,6 +232,42 @@ module Wgit
         .uniq
     end
 
+    # Build a regular expression from a query string, for searching text with.
+    #
+    # All searches using this regex are always whole word based while whole
+    # sentence searches are configurable using the whole_sentence: param. For
+    # example:
+    #
+    # ```
+    # text  = "hello world"
+    # query = "world hello", whole_sentence: true  # => No match
+    # query = "world hello", whole_sentence: false # => Match
+    # query = "he"                                 # => Never matches
+    # ```
+    #
+    # @param query [String, Regexp] The query string to build a regex from.
+    # @param case_sensitive [Boolean] Whether character case must match.
+    # @param whole_sentence [Boolean] Whether multiple words should be searched
+    #   for separately, matching in any order.
+    # @return [Regexp] The regex with which to search text.
+    def self.build_search_regex(
+      query, case_sensitive: false, whole_sentence: true
+    )
+      return query if query.is_a?(Regexp)
+
+      # query: "hello world", whole_sentence: false produces:
+      # (?<=^|\s|[^a-zA-Z0-9])hello(?=$|\s|[^a-zA-Z0-9])|(?<=^|\s|[^a-zA-Z0-9])world(?=$|\s|[^a-zA-Z0-9])
+
+      sep = whole_sentence ? " " : "|"
+      segs = query.split(" ").map do |word|
+        word = Regexp.escape(word)
+        "(?<=^|\\s|[^a-zA-Z0-9])#{word}(?=$|\\s|[^a-zA-Z0-9])"
+      end
+      query = segs.join(sep)
+
+      Regexp.new(query, !case_sensitive)
+    end
+
     # Pretty prints a log statement, used for debugging purposes.
     #
     # Use like:
@@ -245,25 +283,30 @@ module Wgit
     # ```
     #
     # @param identifier [#to_s] A log identifier e.g. "START" or 1 etc.
+    # @param display [Boolean] Setting as false will cause a noop, useful for
+    #   switching off several/all pprint statements at once e.g. via ENV var.
     # @param stream [#puts] Any object that respond_to? :puts and :print. It is
     #   used to output the log text somewhere e.g. a file or STDERR.
     # @param prefix [String] The log prefix, useful for visibility/greping.
     # @param new_line [Boolean] Wether or not to use a new line (\n) as the
     #   separator.
     # @param vars [Hash<#inspect, #inspect>] The vars to inspect in the log.
-    def self.pprint(identifier, stream: $stdout, prefix: 'DEBUG', new_line: false, **vars)
+    def self.pprint(identifier, display: true, stream: $stdout, prefix: 'DEBUG', new_line: false, **vars)
+      return unless display
+
       sep1 = new_line ? "\n" : ' - '
+      sep1 = '' if vars.empty?
       sep2 = new_line ? "\n" : ' | '
 
       stream.print "\n#{prefix}_#{identifier}#{sep1}"
 
       vars.each_with_index do |arr, i|
-        last_item = (i + 1) == vars.size
+        is_last_item = (i + 1) == vars.size
         sep3 = sep2
-        sep3 = new_line ? "\n" : '' if last_item
+        sep3 = new_line ? "\n" : '' if is_last_item
         k, v = arr
 
-        stream.print "#{k}: #{v}#{sep3}"
+        stream.print "#{k}: #{v.inspect}#{sep3}"
       end
 
       stream.puts "\n"

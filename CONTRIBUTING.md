@@ -2,7 +2,7 @@
 
 ## Consult
 
-Before you make a contribution, reach out to michael.telford@live.com about what changes need made. Otherwise, your time spent might be wasted. Once you're clear on what needs done follow the technical steps below.
+Before you make a contribution, reach out on Github about what changes need made. Otherwise, your time spent might be wasted. Once you're clear on what needs done follow the technical steps below.
 
 ## Technical Steps
 

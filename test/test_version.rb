@@ -1,4 +1,4 @@
-require_relative 'helpers/test_helper'
+require_relative "helpers/test_helper"
 
 # Test class for the Wgit version.
 class TestVersion < TestHelper
@@ -7,7 +7,7 @@ class TestVersion < TestHelper
 
   def test_version_const
     assert_instance_of String, Wgit::VERSION
-    assert_equal 2, Wgit::VERSION.count('.')
+    assert_equal 2, Wgit::VERSION.count(".")
   end
 
   def test_version
