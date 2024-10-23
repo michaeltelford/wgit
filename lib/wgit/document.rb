@@ -459,7 +459,7 @@ be relative"
       raise 'The sentence_limit value must be even' if sentence_limit.odd?
       assert_type(search_fields, Hash)
 
-      regex = Wgit::Utils.build_whole_sentence_regex(
+      regex = Wgit::Utils.build_search_regex(
         query, case_sensitive:, whole_sentence:)
       results = {}
 

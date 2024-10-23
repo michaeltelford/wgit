@@ -208,43 +208,43 @@ class TestUtils < TestHelper
 
   def test_build_regex__given_regex
     r = /hello/
-    regex = Wgit::Utils.build_whole_sentence_regex(r)
+    regex = Wgit::Utils.build_search_regex(r)
 
     assert_equal r, regex
   end
 
   def test_build_regex__case_sensitive
-    regex = Wgit::Utils.build_whole_sentence_regex("hello", case_sensitive: true)
+    regex = Wgit::Utils.build_search_regex("hello", case_sensitive: true)
     assert regex.match("hello")
     refute regex.match("Hello")
 
-    regex = Wgit::Utils.build_whole_sentence_regex("hello", case_sensitive: false)
+    regex = Wgit::Utils.build_search_regex("hello", case_sensitive: false)
     assert regex.match("hello")
     assert regex.match("Hello")
   end
 
   def test_build_regex__whole_sentence
-    regex = Wgit::Utils.build_whole_sentence_regex("hello world", whole_sentence: true)
+    regex = Wgit::Utils.build_search_regex("hello world", whole_sentence: true)
     assert regex.match("hello world")
     refute regex.match("world hello")
 
-    regex = Wgit::Utils.build_whole_sentence_regex("hello world", whole_sentence: false)
+    regex = Wgit::Utils.build_search_regex("hello world", whole_sentence: false)
     assert regex.match("hello world")
     assert regex.match("world hello")
 
     # Special character ':'.
-    regex = Wgit::Utils.build_whole_sentence_regex(":colon", whole_sentence: true)
+    regex = Wgit::Utils.build_search_regex(":colon", whole_sentence: true)
     assert regex.match(":colon")
 
-    regex = Wgit::Utils.build_whole_sentence_regex(":colon", whole_sentence: false)
+    regex = Wgit::Utils.build_search_regex(":colon", whole_sentence: false)
     assert regex.match(":colon")
   end
 
   def test_build_regex__whole_sentence__special_char
-    regex = Wgit::Utils.build_whole_sentence_regex(":colon", whole_sentence: true)
+    regex = Wgit::Utils.build_search_regex(":colon", whole_sentence: true)
     assert regex.match(":colon")
 
-    regex = Wgit::Utils.build_whole_sentence_regex(":colon", whole_sentence: false)
+    regex = Wgit::Utils.build_search_regex(":colon", whole_sentence: false)
     assert regex.match(":colon")
   end
 

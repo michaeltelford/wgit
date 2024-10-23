@@ -233,14 +233,24 @@ module Wgit
     end
 
     # Build a regular expression from a query string, for searching text with.
-    # This regex supports whole sentence only, not partial word searches.
+    #
+    # All searches using this regex are always whole word based while whole
+    # sentence searches are configurable using the whole_sentence: param. For
+    # example:
+    #
+    # ```
+    # text  = "hello world"
+    # query = "world hello", whole_sentence: true  # => No match
+    # query = "world hello", whole_sentence: false # => Match
+    # query = "he"                                 # => Never matches
+    # ```
     #
     # @param query [String, Regexp] The query string to build a regex from.
     # @param case_sensitive [Boolean] Whether character case must match.
     # @param whole_sentence [Boolean] Whether multiple words should be searched
     #   for separately, matching in any order.
     # @return [Regexp] The regex with which to search text.
-    def self.build_whole_sentence_regex(
+    def self.build_search_regex(
       query, case_sensitive: false, whole_sentence: true
     )
       return query if query.is_a?(Regexp)

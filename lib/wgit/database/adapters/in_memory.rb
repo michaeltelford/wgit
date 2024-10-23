@@ -74,7 +74,7 @@ num_docs=#{@docs.size} size=#{size}>"
       query, case_sensitive: false, whole_sentence: true,
       limit: 10, skip: 0, &block
     )
-      regex = Wgit::Utils.build_whole_sentence_regex(
+      regex = Wgit::Utils.build_search_regex(
         query, case_sensitive:, whole_sentence:)
 
       # Search the Wgit::Document's, not the raw Hashes.
