@@ -266,7 +266,8 @@ the 'start' function".freeze
     #   database containing only its matching `#text`.
     # @return [Array<Wgit::Document>] The search results with matching text.
     def search(
-      query, stream: $stdout, include_score: false,
+      query, stream: $stdout,
+      top_result_only: true, include_score: false,
       case_sensitive: false, whole_sentence: true,
       limit: 10, skip: 0, sentence_limit: 80
     )
@@ -281,7 +282,11 @@ the 'start' function".freeze
         yield(doc) if block_given?
       end
 
-      Wgit::Utils.pprint_search_results(results, include_score:, stream:)
+      if top_result_only
+        Wgit::Utils.pprint_top_search_results(results, include_score:, stream:)
+      else
+        Wgit::Utils.pprint_all_search_results(results, include_score:, stream:)
+      end
 
       results
     end
