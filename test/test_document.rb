@@ -549,6 +549,45 @@ class TestDocument < TestHelper
     ], results)
   end
 
+  def test_search__duplicate_sentences
+    # Two matching fields that when formatted will be 80 chars long.
+    # The text result will be a single string with a text score of 2 (because of the dup).
+    doc = Wgit::Document.new "http://www.mytestsite.com/home", <<~HTML
+      <p>Note: The text search index lists all document fields to be searched by MongoDB when calling Wgit::Database#search. Therefore, you should append this list with any other fields that you want searched. For example, if you extend the API then you might want to search your new fields in the database by adding them to the index above. This can be done programmatically with:</p>
+      <hr>
+      <p>Note: The text search index lists all document fields to be searched by MongoDB when calling Wgit::Database#search. Therefore, you should append this list with any other fields that you want searched. For example, if you extend the API then you might want to search your new fields in the database by adding them to the index above. This can be done programmatically with:</p>
+    HTML
+
+    results = doc.search("Wgit::Database") do |results_hash|
+      assert_equal(
+        { " to be searched by MongoDB when calling Wgit::Database#search. Therefore, you sh" => 2 },
+        results_hash
+      )
+    end
+    assert_equal(
+      [" to be searched by MongoDB when calling Wgit::Database#search. Therefore, you sh"],
+      results
+    )
+  end
+
+  def test_search__sentence_with_several_matches
+    # Contains "it's" twice, resulting in one match with a score of 2.
+    doc = Wgit::Document.new "http://www.mytestsite.com/home", <<~HTML
+      <p>A Wgit::Document extractor (once initialised) will become a Document instance variable, meaning that the value will be inserted into the Database if it's a primitive type e.g. String, Array etc. Complex types e.g. Ruby objects won't be inserted. It's up to you to ensure the data you want inserted, can be inserted.</p>
+    HTML
+
+    results = doc.search("it's") do |results_hash|
+      assert_equal(
+        { "e will be inserted into the Database if it's a primitive type e.g. String, Array" => 2 },
+        results_hash
+      )
+    end
+    assert_equal(
+      ["e will be inserted into the Database if it's a primitive type e.g. String, Array"],
+      results
+    )
+  end
+
   def test_search__default_search_fields
     doc = Wgit::Document.new({
       "url" => "http://www.mytestsite.com/home",
@@ -575,27 +614,6 @@ class TestDocument < TestHelper
     assert_equal([
       'print("hello world")' # => code (1 hits * 1 weight == 1)
     ], results)
-  end
-
-  def test_search__total_dup_results
-    # Two matching fields that when formatted will be 80 chars long.
-    # The text result will be a single string with a text score of 2 (because of the dup).
-    doc = Wgit::Document.new "http://www.mytestsite.com/home", <<~HTML
-      <p>Note: The text search index lists all document fields to be searched by MongoDB when calling Wgit::Database#search. Therefore, you should append this list with any other fields that you want searched. For example, if you extend the API then you might want to search your new fields in the database by adding them to the index above. This can be done programmatically with:</p>
-      <hr>
-      <p>Note: The text search index lists all document fields to be searched by MongoDB when calling Wgit::Database#search. Therefore, you should append this list with any other fields that you want searched. For example, if you extend the API then you might want to search your new fields in the database by adding them to the index above. This can be done programmatically with:</p>
-    HTML
-
-    results = doc.search("Wgit::Database") do |results_hash|
-      assert_equal(
-        { " to be searched by MongoDB when calling Wgit::Database#search. Therefore, you sh" => 2 },
-        results_hash
-      )
-    end
-    assert_equal(
-      [" to be searched by MongoDB when calling Wgit::Database#search. Therefore, you sh"],
-      results
-    )
   end
 
   def test_search_text

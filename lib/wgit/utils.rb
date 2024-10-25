@@ -125,13 +125,19 @@ module Wgit
     end
 
     # Prints out the search results in a search engine like format.
-    # The format for each result looks like:
+    #
+    # The given results should be matching documents from a DB and should have
+    # `doc.search_text!` called for each document - to turn doc.text into only
+    # matching text, which this method uses.
+    #
+    # The format for each result looks something like:
     #
     # ```
     # Title
     # Keywords (if there are some)
-    # Text Snippet (formatted to show the searched for query, if provided)
+    # Text Snippet (formatted to show the searched for query)
     # URL
+    # Score (if include_score: true)
     # <empty_line_seperator>
     # ```
     #
@@ -140,10 +146,11 @@ module Wgit
     #   the search results). The first @text sentence gets printed.
     # @param keyword_limit [Integer] The max amount of keywords to be
     #   outputted to the stream.
+    # @param include_score [Boolean] Wether or not to puts the document score.
     # @param stream [#puts] Any object that respond_to?(:puts). It is used
     #   to output text somewhere e.g. a file or STDERR.
     # @return [Integer] The number of results.
-    def self.pprint_search_results(
+    def self.pprint_top_search_results(
       results, keyword_limit: 5, include_score: false, stream: $stdout
     )
       raise 'stream must respond_to? :puts' unless stream.respond_to?(:puts)
@@ -161,6 +168,64 @@ module Wgit
         stream.puts url
         stream.puts score if include_score
         stream.puts
+      end
+
+      results.size
+    end
+
+    # Prints out the search results listing all of the matching text in each
+    # document.
+    #
+    # The given results should be matching documents from a DB and should have
+    # `doc.search_text!` called for each document - to turn doc.text into only
+    # matching text, which this method uses.
+    #
+    # The format for each result looks something like:
+    #
+    # ```
+    # Title
+    # Keywords (if there are some)
+    # URL
+    # Score (if include_score: true)
+    #
+    # "<text_snippet_1>"
+    # "<text_snippet_2>"
+    # ...
+    #
+    # <seperator>
+    # ```
+    #
+    # @param results [Array<Wgit::Document>] Array of Wgit::Document's which
+    #   each have had #search!(query) called (to update it's @text with the
+    #   the search results). The first @text sentence gets printed.
+    # @param keyword_limit [Integer] The max amount of keywords to be
+    #   outputted to the stream.
+    # @param include_score [Boolean] Wether or not to puts the document score.
+    # @param stream [#puts] Any object that respond_to?(:puts). It is used
+    #   to output text somewhere e.g. a file or STDERR.
+    # @return [Integer] The number of results.
+    def self.pprint_all_search_results(
+      results, keyword_limit: 5, include_score: false, stream: $stdout
+    )
+      raise 'stream must respond_to? :puts' unless stream.respond_to?(:puts)
+
+      results.each_with_index do |doc, i|
+        last_result = i == (results.size-1)
+
+        title    = doc.title || '<no title>'
+        keywords = doc.keywords&.take(keyword_limit)&.join(', ')
+        url      = doc.url
+        score    = doc.score
+
+        stream.puts title
+        stream.puts keywords if keywords
+        stream.puts url
+        stream.puts score if include_score
+        stream.puts
+        doc.text.each { |text| stream.puts text }
+        stream.puts
+        stream.puts "-----" unless last_result
+        stream.puts unless last_result
       end
 
       results.size
@@ -314,5 +379,7 @@ module Wgit
 
       nil
     end
+
+    self.singleton_class.alias_method :pprint_search_results, :pprint_top_search_results
   end
 end

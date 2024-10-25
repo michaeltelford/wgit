@@ -85,7 +85,7 @@ class TestUtils < TestHelper
     assert_equal sentence, result
   end
 
-  def test_pprint_search_results
+  def test_pprint_top_search_results
     # Setup the test results data.
     query   = "Everest"
     results = []
@@ -105,10 +105,10 @@ class TestUtils < TestHelper
     num_results = Wgit::Utils.pprint_search_results(results, stream: buffer)
 
     assert_equal 5, num_results
-    assert_equal printf_output__results, buffer.string
+    assert_equal pprint_output__top_results, buffer.string
   end
 
-  def test_pprint_search_results__include_score
+  def test_pprint_top_search_results__include_score
     # Setup the test results data.
     query   = "Everest"
     results = []
@@ -131,16 +131,88 @@ class TestUtils < TestHelper
     )
 
     assert_equal 5, num_results
-    assert_equal printf_output__results__include_score, buffer.string
+    assert_equal pprint_output__top_results__include_score, buffer.string
   end
 
-  def test_pprint_search_results__empty
+  def test_pprint_top_search_results__empty
     # Setup the test results data.
     results = []
 
     # Setup a buffer to record the output.
     buffer = StringIO.new
-    num_results = Wgit::Utils.pprint_search_results(results, stream: buffer)
+    num_results = Wgit::Utils.pprint_top_search_results(results, stream: buffer)
+
+    assert_equal 0, num_results
+    assert_equal "", buffer.string
+  end
+
+  def test_pprint_all_search_results
+    # Setup the test results data.
+    query   = "Everest"
+    results = []
+
+    5.times do
+      doc_hash          = DatabaseTestData.doc
+      doc_hash["url"]   = "http://altitudejunkies.com/everest.html"
+      doc_hash["score"] = 23.4
+      doc_hash["text"]  = [
+        "Everest 1",
+        "Everest 2",
+        "Everest 3"
+      ]
+
+      doc = Wgit::Document.new(doc_hash)
+      doc.search_text!(query)
+
+      results << doc
+    end
+
+    # Setup a buffer to record the output.
+    buffer = StringIO.new
+    num_results = Wgit::Utils.pprint_all_search_results(results, stream: buffer)
+
+    assert_equal 5, num_results
+    assert_equal pprint_output__all_results, buffer.string
+  end
+
+  def test_pprint_all_search_results__include_score
+    # Setup the test results data.
+    query   = "Everest"
+    results = []
+
+    5.times do
+      doc_hash          = DatabaseTestData.doc
+      doc_hash["url"]   = "http://altitudejunkies.com/everest.html"
+      doc_hash["score"] = 23.4
+      doc_hash["text"]  = [
+        "Everest 1",
+        "Everest 2",
+        "Everest 3"
+      ]
+
+      doc = Wgit::Document.new(doc_hash)
+      doc.search_text!(query)
+
+      results << doc
+    end
+
+    # Setup a buffer to record the output.
+    buffer = StringIO.new
+    num_results = Wgit::Utils.pprint_all_search_results(
+      results, include_score: true, stream: buffer
+    )
+
+    assert_equal 5, num_results
+    assert_equal pprint_output__all_results__include_score, buffer.string
+  end
+
+  def test_pprint_all_search_results__empty
+    # Setup the test results data.
+    results = []
+
+    # Setup a buffer to record the output.
+    buffer = StringIO.new
+    num_results = Wgit::Utils.pprint_all_search_results(results, stream: buffer)
 
     assert_equal 0, num_results
     assert_equal "", buffer.string
@@ -277,7 +349,7 @@ class TestUtils < TestHelper
 
   private
 
-  def printf_output__results
+  def pprint_output__top_results
     <<~TEXT
       Altitude Junkies | Everest
       Everest, Highest Peak, High Altitude, Altitude Junkies
@@ -307,7 +379,7 @@ class TestUtils < TestHelper
     TEXT
   end
 
-  def printf_output__results__include_score
+  def pprint_output__top_results__include_score
     <<~TEXT
       Altitude Junkies | Everest
       Everest, Highest Peak, High Altitude, Altitude Junkies
@@ -338,6 +410,117 @@ class TestUtils < TestHelper
       e Summit for the hugely successful IMAX Everest film from the 1996 spring season
       http://altitudejunkies.com/everest.html
       23.4
+
+    TEXT
+  end
+
+  def pprint_output__all_results
+    <<~TEXT
+      Altitude Junkies | Everest
+      Everest, Highest Peak, High Altitude, Altitude Junkies
+      http://altitudejunkies.com/everest.html
+
+      Everest 1
+      Everest 2
+      Everest 3
+
+      -----
+
+      Altitude Junkies | Everest
+      Everest, Highest Peak, High Altitude, Altitude Junkies
+      http://altitudejunkies.com/everest.html
+
+      Everest 1
+      Everest 2
+      Everest 3
+
+      -----
+
+      Altitude Junkies | Everest
+      Everest, Highest Peak, High Altitude, Altitude Junkies
+      http://altitudejunkies.com/everest.html
+
+      Everest 1
+      Everest 2
+      Everest 3
+
+      -----
+
+      Altitude Junkies | Everest
+      Everest, Highest Peak, High Altitude, Altitude Junkies
+      http://altitudejunkies.com/everest.html
+
+      Everest 1
+      Everest 2
+      Everest 3
+
+      -----
+
+      Altitude Junkies | Everest
+      Everest, Highest Peak, High Altitude, Altitude Junkies
+      http://altitudejunkies.com/everest.html
+
+      Everest 1
+      Everest 2
+      Everest 3
+
+    TEXT
+  end
+
+  def pprint_output__all_results__include_score
+    <<~TEXT
+      Altitude Junkies | Everest
+      Everest, Highest Peak, High Altitude, Altitude Junkies
+      http://altitudejunkies.com/everest.html
+      23.4
+
+      Everest 1
+      Everest 2
+      Everest 3
+
+      -----
+
+      Altitude Junkies | Everest
+      Everest, Highest Peak, High Altitude, Altitude Junkies
+      http://altitudejunkies.com/everest.html
+      23.4
+
+      Everest 1
+      Everest 2
+      Everest 3
+
+      -----
+
+      Altitude Junkies | Everest
+      Everest, Highest Peak, High Altitude, Altitude Junkies
+      http://altitudejunkies.com/everest.html
+      23.4
+
+      Everest 1
+      Everest 2
+      Everest 3
+
+      -----
+
+      Altitude Junkies | Everest
+      Everest, Highest Peak, High Altitude, Altitude Junkies
+      http://altitudejunkies.com/everest.html
+      23.4
+
+      Everest 1
+      Everest 2
+      Everest 3
+
+      -----
+
+      Altitude Junkies | Everest
+      Everest, Highest Peak, High Altitude, Altitude Junkies
+      http://altitudejunkies.com/everest.html
+      23.4
+
+      Everest 1
+      Everest 2
+      Everest 3
 
     TEXT
   end
