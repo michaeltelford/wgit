@@ -545,7 +545,7 @@ class TestUrl < TestHelper
   # Test that Wgit::Url#+ is actually String#+ underneath.
   def test_plus
     url = "http://twitter.com".to_url
-    joined = url + "/about" + "#top"
+    joined = "#{url}/about#top"
 
     assert_equal "http://twitter.com/about#top", joined
     assert_instance_of String, joined
@@ -1115,7 +1115,7 @@ class TestUrl < TestHelper
     assert_equal Wgit::Url, url.omit_query.class
 
     iri_omit_fragment = "https://www.über.com/about"
-    url = Wgit::Url.new iri_omit_fragment + "?q=hello"
+    url = Wgit::Url.new "#{iri_omit_fragment}?q=hello"
     assert_equal iri_omit_fragment, url.omit_query
     assert_equal Wgit::Url, url.omit_query.class
   end
