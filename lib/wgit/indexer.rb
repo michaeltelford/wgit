@@ -10,6 +10,10 @@ module Wgit
   class Indexer
     include Assertable
 
+    # The ENV var used to omit and ignore robots.txt parsing during an index.
+    # Applies to all index_* methods if set in the ENV.
+    WGIT_IGNORE_ROBOTS_TXT = "WGIT_IGNORE_ROBOTS_TXT".freeze
+
     # The block return value used to skip saving a crawled document to the
     # database. Applies to all index_* methods that take a block.
     SKIP_UPSERT = :skip.freeze
@@ -296,6 +300,8 @@ for the site: #{url}")
 
     # Crawls and parses robots.txt file (if found). Returns the parser or nil.
     def parse_robots_txt(url)
+      return nil if ENV[WGIT_IGNORE_ROBOTS_TXT]
+
       robots_url = url.to_origin.join('/robots.txt')
 
       Wgit.logger.info("Crawling for robots.txt: #{robots_url}")
@@ -339,6 +345,8 @@ for the site: #{url}")
 
     # Returns if the last_response or doc #no_index? is true or not.
     def no_index?(last_response, doc)
+      return false if ENV[WGIT_IGNORE_ROBOTS_TXT]
+
       url = last_response.url.to_s
       if last_response.no_index?
         Wgit.logger.info("Skipping page due to no-index response header: #{url}")

@@ -40,6 +40,7 @@ A big release with several breaking changes, not all of which can be listed belo
 - `Wgit::Indexer#index_*` methods now use `:skip` block return value to avoid DB upserts.
 - Updated `Wgit::Crawler.new` to accept `ferrum_opts:` which are passed to directly ferrum on init.
 - `Wgit::Document#search` now accepts a `&block` which yields the results Hash.
+- Updated `Wgit::Indexer#index_*` methods to accept `ENV["WGIT_IGNORE_ROBOTS_TXT"]` ignoring a site's robot.txt file.
 ### Fixed
 - Issue [Document#search only searches the text](https://github.com/michaeltelford/wgit/issues/2)
 - Issue [Document#search doesn't find certain text](https://github.com/michaeltelford/wgit/issues/20)

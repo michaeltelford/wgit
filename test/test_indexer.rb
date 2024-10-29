@@ -12,6 +12,11 @@ class TestIndexer < TestHelper
     @indexer = Wgit::Indexer.new(db)
   end
 
+  # Runs after every test.
+  def teardown
+    ENV[Wgit::Indexer::WGIT_IGNORE_ROBOTS_TXT] = nil
+  end
+
   def test_initialize
     indexer = Wgit::Indexer.new
 
@@ -158,6 +163,37 @@ class TestIndexer < TestHelper
       %w[
         http://link-to-robots-txt.com
         http://robots.txt.com
+        http://robots.txt.com/about
+        http://robots.txt.com/contact
+        http://robots.txt.com/
+      ],
+      db.docs.map(&:url).map(&:to_s)
+    )
+  end
+
+  def test_index_www__ignore_robots_txt
+    ENV[Wgit::Indexer::WGIT_IGNORE_ROBOTS_TXT] = "true"
+
+    # Links to http://robots.txt.com which has no externals, so crawl 2 sites.
+    url = Wgit::Url.new "http://link-to-robots-txt.com"
+    seed { url(url) }
+
+    @indexer.index_www
+
+    # Assert that url.crawled gets updated.
+    assert url? url: url, crawled: true
+
+    # Assert that some indexed docs were inserted into the DB.
+    # The orig url and its doc plus an external url and pages.
+    assert_equal 2, db.num_urls
+    assert_equal 8, db.num_docs
+    assert_equal(
+      %w[
+        http://link-to-robots-txt.com
+        http://robots.txt.com
+        http://robots.txt.com/login
+        http://robots.txt.com/pwreset
+        http://robots.txt.com/account
         http://robots.txt.com/about
         http://robots.txt.com/contact
         http://robots.txt.com/
@@ -327,6 +363,36 @@ class TestIndexer < TestHelper
     )
   end
 
+  def test_index_site__ignore_robots_txt
+    ENV[Wgit::Indexer::WGIT_IGNORE_ROBOTS_TXT] = "true"
+
+    url = Wgit::Url.new "http://robots.txt.com"
+
+    refute url? url: url
+
+    # Index the site and don't insert the external urls.
+    @indexer.index_site url
+
+    # Assert that url.crawled gets updated.
+    assert url? url: url, crawled: true
+
+    # The site has 3 indexable docs, 1 ignored disallow plus its url.
+    assert_equal 1, db.num_urls
+    assert_equal 7, db.num_docs
+    assert_equal(
+      %w[
+        http://robots.txt.com
+        http://robots.txt.com/login
+        http://robots.txt.com/pwreset
+        http://robots.txt.com/account
+        http://robots.txt.com/about
+        http://robots.txt.com/contact
+        http://robots.txt.com/
+      ],
+      db.docs.map(&:url).map(&:to_s)
+    )
+  end
+
   def test_index_site__robots_txt__disallow_all
     url = Wgit::Url.new "http://disallow-all.com"
 
@@ -420,8 +486,25 @@ class TestIndexer < TestHelper
     # Index several URLs, not inserting the external urls found.
     @indexer.index_urls(*urls)
 
-    assert_equal urls.size, db.num_urls
+    assert_equal 4, db.num_urls
     assert_equal 0, db.num_docs
+  end
+
+  def test_index_urls__ignore_robots_txt
+    ENV[Wgit::Indexer::WGIT_IGNORE_ROBOTS_TXT] = "true"
+
+    urls = %w[
+      http://robots.txt.com/login
+      http://disallow-all.com
+      http://robots.txt.com/pwreset
+      http://robots.txt.com/account
+    ].to_urls
+
+    # Index several URLs, not inserting the external urls found.
+    @indexer.index_urls(*urls)
+
+    assert_equal 4, db.num_urls
+    assert_equal 4, db.num_docs
   end
 
   def test_index_url__without_externals
@@ -591,6 +674,24 @@ class TestIndexer < TestHelper
 
     assert_equal 1, db.num_urls
     assert_equal 0, db.num_docs
+  end
+
+  def test_index_url__ignore_robots_txt
+    ENV[Wgit::Indexer::WGIT_IGNORE_ROBOTS_TXT] = "true"
+
+    # /login is disallowed by robots.txt file.
+    url = Wgit::Url.new "http://robots.txt.com/login"
+
+    refute url? url: url
+
+    # Index the url and don't insert the external urls.
+    @indexer.index_url url
+
+    # Assert that url.crawled gets updated.
+    assert url? url: url, crawled: true
+
+    assert_equal 1, db.num_urls
+    assert_equal 1, db.num_docs
   end
 
   def test_index_url__robots_txt__disallow_all
