@@ -144,6 +144,7 @@ There are many [other HTML crawlers](https://awesome-ruby.com/#-web-crawling) ou
 
 - Wgit has excellent unit testing, 100% documentation coverage and follows [semantic versioning](https://semver.org/) rules.
 - Wgit excels at crawling an entire website's HTML out of the box. Many alternative crawlers require you to provide the `xpath` needed to *follow* the next URLs to crawl. Wgit by default, crawls the entire site by extracting its internal links pointing to the same host - no `xpath` needed.
+- Wgit can crawl authenticated content, providing you can login on a web browser and export your session cookies.
 - Wgit allows you to define content *extractors* that will fire on every subsequent crawl; be it a single URL or an entire website. This enables you to focus on the content you want.
 - Wgit can index (crawl and save) HTML to a database making it a breeze to build custom search engines. You can also specify which page content gets searched, making the search more meaningful. For example, here's a script that will index the Wgit [wiki](https://github.com/michaeltelford/wgit/wiki) articles:
 
@@ -171,9 +172,9 @@ indexer.index_site(wiki, **opts)
 
 So why might you not use Wgit, I hear you ask?
 
-- Wgit doesn't allow for webpage interaction e.g. signing in as a user. There are better gems out there for that.
-- Wgit can parse a crawled page's Javascript, but it doesn't do so by default. If your crawls are JS heavy then you might best consider a pure browser-based crawler instead.
-- Wgit while fast (using `libcurl` for HTTP etc.), isn't multi-threaded; so each URL gets crawled sequentially. You could hand each crawled document to a worker thread for processing - but if you need concurrent crawling then you should consider something else.
+- Wgit doesn't allow for webpage interaction e.g. signing in as a user. There are better gems out there for that. If however, you simply want to crawl webpages requiring authentication, then it's entirely achievable using Wgit.
+- Wgit *can* parse a crawled page's Javascript, but it doesn't do so by default. If your crawls are JS heavy then you might best consider using a purely browser-based crawler instead.
+- Wgit while fast (using `libcurl` for HTTP etc.), isn't multi-threaded; so each URL gets crawled sequentially. You could hand each crawled document to a worker thread for processing - but if you need concurrent requests then you should consider something else.
 
 ## Installation
 
