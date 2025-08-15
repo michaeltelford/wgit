@@ -17,6 +17,8 @@ class TestCrawler < TestHelper
     assert c.encode
     refute c.parse_javascript
     assert_equal 1, c.parse_javascript_delay
+    assert_equal(c.send(:default_typhoeus_opts), c.typhoeus_opts)
+    assert_equal(c.send(:default_ferrum_opts), c.ferrum_opts)
   end
 
   def test_initialise__redirect_limit
@@ -46,7 +48,36 @@ class TestCrawler < TestHelper
   def test_initialise__parse_javascript_delay
     c = Wgit::Crawler.new parse_javascript_delay: 2
 
-    assert_equal c.parse_javascript_delay, 2
+    assert_equal 2, c.parse_javascript_delay
+  end
+
+  def test_initialise__typhoeus_opts
+    c = Wgit::Crawler.new(typhoeus_opts: {
+      timeout: 3,
+      headers: {
+        'User-Agent' => 'test'
+      },
+    })
+
+    assert_equal({
+      followlocation: false,
+      timeout: 3,
+      accept_encoding: 'gzip',
+      headers: {
+        'User-Agent' => 'test',
+        'Accept'     => 'text/html'
+      }
+    }, c.typhoeus_opts)
+  end
+
+  def test_initialise__ferrum_opts
+    c = Wgit::Crawler.new ferrum_opts: { timeout: 3 }
+
+    assert_equal({
+      timeout: 3,
+      process_timeout: 10,
+      headless: true
+    }, c.ferrum_opts)
   end
 
   def test_crawl_url
@@ -111,7 +142,7 @@ class TestCrawler < TestHelper
     doc = crawler.crawl_url(url)
 
     # Basic crawl assertions.
-    assert crawler.last_response.ok?
+    assert crawler.last_response.success?
     refute_empty crawler.last_response.headers
     assert_equal "https://duckduckgo.com/?q=aid+workers", url
     assert_equal url, doc.url
@@ -394,7 +425,7 @@ class TestCrawler < TestHelper
     end
 
     # Because real websites change over time we limit our assertions.
-    assert crawler.last_response.ok?
+    crawler.last_response.instance_of?(Wgit::Response)
 
     refute_empty externals
     assert(externals.all? { |external| external.instance_of? Wgit::Url })
@@ -958,6 +989,27 @@ class TestCrawler < TestHelper
     assert_equal links, crawler.send(:process_paths, links, nil, "")
     assert_equal [],    crawler.send(:process_paths, links, nil, ["*"])
     assert_equal links, crawler.send(:process_paths, links, nil, [])
+  end
+
+  def test_merge_typhoeus_opts
+    crawler = Wgit::Crawler.new
+    opts = { timeout: 10, headers: { "User-Agent" => "Test" } }
+    merged = crawler.send(:merge_typhoeus_opts, opts)
+
+    refute merged[:followlocation]
+    assert_equal 10, merged[:timeout]
+    assert_equal "Test", merged[:headers]["User-Agent"]
+    assert_equal "text/html", merged[:headers]["Accept"]
+  end
+
+  def test_merge_ferrum_opts
+    crawler = Wgit::Crawler.new
+    opts = { timeout: 3, headless: false }
+    merged = crawler.send(:merge_ferrum_opts, opts)
+
+    assert_equal 10, merged[:process_timeout]
+    assert_equal 3, merged[:timeout]
+    refute merged[:headless]
   end
 
   private

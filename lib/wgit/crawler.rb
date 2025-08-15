@@ -54,12 +54,16 @@ module Wgit
     # The value should balance between a good UX and enough JS parse time.
     attr_accessor :parse_javascript_delay
 
+    # The opts Hash passed directly to the Typhoeus#get request.
+    attr_accessor :typhoeus_opts
+
     # The opts Hash passed directly to the ferrum Chrome browser when
     # `parse_javascript: true`.
-    # See https://github.com/rubycdp/ferrum for details.
+    # See https://github.com/rubycdp/ferrum for more info.
     attr_accessor :ferrum_opts
 
     # The Wgit::Response of the most recently crawled URL.
+    # See https://rubydoc.info/gems/typhoeus for more info.
     attr_reader :last_response
 
     # Initializes and returns a Wgit::Crawler instance.
@@ -76,14 +80,17 @@ module Wgit
     #   installed and in $PATH.
     # @param parse_javascript_delay [Integer] The delay time given to a page's
     #   JS to update the DOM. After the delay, the HTML is crawled.
+    # @param typhoeus_opts [Hash] The options to pass to Typhoeus.
+    # @param ferrum_opts [Hash] The options to pass to Ferrum.
     def initialize(redirect_limit: 5, timeout: 5, encode: true,
                    parse_javascript: false, parse_javascript_delay: 1,
-                   ferrum_opts: {})
+                   typhoeus_opts: {}, ferrum_opts: {})
       assert_type(redirect_limit, Integer)
       assert_type(timeout, [Integer, Float])
       assert_type(encode, [TrueClass, FalseClass])
       assert_type(parse_javascript, [TrueClass, FalseClass])
       assert_type(parse_javascript_delay, Integer)
+      assert_type(typhoeus_opts, Hash)
       assert_type(ferrum_opts, Hash)
 
       @redirect_limit         = redirect_limit
@@ -91,14 +98,15 @@ module Wgit
       @encode                 = encode
       @parse_javascript       = parse_javascript
       @parse_javascript_delay = parse_javascript_delay
-      @ferrum_opts            = default_ferrum_opts.merge(ferrum_opts)
+      @typhoeus_opts          = merge_typhoeus_opts(typhoeus_opts)
+      @ferrum_opts            = merge_ferrum_opts(ferrum_opts)
     end
 
     # Overrides String#inspect to shorten the printed output of a Crawler.
     #
     # @return [String] A short textual representation of this Crawler.
     def inspect
-      "#<Wgit::Crawler timeout=#{@timeout} redirect_limit=#{@redirect_limit} encode=#{@encode} parse_javascript=#{@parse_javascript} parse_javascript_delay=#{@parse_javascript_delay} ferrum_opts=#{@ferrum_opts}>"
+      "#<Wgit::Crawler timeout=#{@timeout} redirect_limit=#{@redirect_limit} encode=#{@encode} parse_javascript=#{@parse_javascript} parse_javascript_delay=#{@parse_javascript_delay} typhoeus_opts=#{@typhoeus_opts} ferrum_opts=#{@ferrum_opts}>"
     end
 
     # Crawls an entire website's HTML pages by recursively going through
@@ -377,27 +385,18 @@ module Wgit
     end
 
     # Performs a HTTP GET request and returns the response.
+    # See https://rubydoc.info/gems/typhoeus for more info.
     #
     # @param url [String] The url to GET.
-    # @return [Typhoeus::Response] The HTTP response object.
+    # @return [Typhoeus::Response] The Typhoeus HTTP response object.
     def http_get(url)
-      opts = {
-        followlocation: false,
-        timeout: @timeout,
-        accept_encoding: 'gzip',
-        headers: {
-          'User-Agent' => "wgit/#{Wgit::VERSION}",
-          'Accept'     => 'text/html'
-        }
-      }
-
-      # See https://rubydoc.info/gems/typhoeus for more info.
-      Typhoeus.get(url, **opts)
+      Typhoeus.get(url, **@typhoeus_opts)
     end
 
-    # Performs a HTTP GET request in a web browser and parses the response JS
-    # before returning the HTML body of the fully rendered webpage. This allows
-    # Javascript (SPA apps etc.) to generate HTML dynamically.
+    # Performs a HTTP GET request in a web browser allowing the response JS to
+    # execute before returning the HTML body of the fully rendered webpage.
+    # This allows Javascript (SPA apps etc.) to generate HTML dynamically.
+    # See https://github.com/rubycdp/ferrum for more info.
     #
     # @param url [String] The url to browse to.
     # @return [Ferrum::Browser] The browser response object.
@@ -452,6 +451,20 @@ module Wgit
 
     private
 
+    # The default opts which are merged with the user's typhoeus_opts: and then
+    # passed directly to the Typhoeus#get request.
+    def default_typhoeus_opts
+      {
+        followlocation: false,
+        timeout: @timeout,
+        accept_encoding: 'gzip',
+        headers: {
+          'User-Agent' => "wgit/#{Wgit::VERSION}",
+          'Accept'     => 'text/html'
+        }
+      }
+    end
+
     # The default opts which are merged with the user's ferrum_opts: and then
     # passed directly to the ferrum Chrome browser.
     def default_ferrum_opts
@@ -460,6 +473,19 @@ module Wgit
         process_timeout: 10,
         headless: true
       }
+    end
+
+    # Merges the default Typhoeus options with user-provided options.
+    # Performs a separate merge of headers to allow user customization.
+    def merge_typhoeus_opts(typhoeus_opts)
+      default_typhoeus_opts.merge(typhoeus_opts) do |key, oldval, newval|
+        key == :headers ? oldval.merge(newval) : newval
+      end
+    end
+
+    # Merges the default Ferrum options with user-provided options.
+    def merge_ferrum_opts(ferrum_opts)
+      default_ferrum_opts.merge(ferrum_opts)
     end
 
     # Manually does the following: `links = internals - crawled`.
