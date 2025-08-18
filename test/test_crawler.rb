@@ -55,17 +55,17 @@ class TestCrawler < TestHelper
     c = Wgit::Crawler.new(typhoeus_opts: {
       timeout: 3,
       headers: {
-        'User-Agent' => 'test'
-      },
+        "User-Agent" => "test"
+      }
     })
 
     assert_equal({
       followlocation: false,
       timeout: 3,
-      accept_encoding: 'gzip',
+      accept_encoding: "gzip",
       headers: {
-        'User-Agent' => 'test',
-        'Accept'     => 'text/html'
+        "User-Agent" => "test",
+        "Accept"     => "text/html"
       }
     }, c.typhoeus_opts)
   end
@@ -135,11 +135,45 @@ class TestCrawler < TestHelper
     refute_nil url.crawl_duration
   end
 
+  def test_crawl_url__parse_javascript
+    # The javascript-eval.com page will use JS to render a <table> after 500ms.
+    url_str = "http://javascript-eval.com/" # Clean url object for each crawl.
+
+    crawler = Wgit::Crawler.new parse_javascript: false
+    doc = crawler.crawl_url(url_str.to_url)
+
+    # Assert the JS generated HTML is not present.
+    refute doc.empty?
+    assert_equal 0, doc.xpath("//table").size
+
+    crawler = Wgit::Crawler.new parse_javascript: true
+    doc = crawler.crawl_url(url_str.to_url)
+
+    # Basic crawl assertions.
+    assert crawler.last_response.ok?
+    assert_equal "http://javascript-eval.com/", doc.url
+    assert_crawl doc
+    assert doc.url.crawled
+    refute_nil doc.url.date_crawled
+    refute_nil doc.url.crawl_duration
+
+    # Assert the JS generated HTML is present.
+    assert_equal "Mock JavaScript Evaluator", doc.xpath("//h1").text
+    assert_equal 1, doc.xpath("//table").size
+  end
+
   def test_crawl_url__parse_javascript__not_mocked
     # The duckduckgo.com host is not mocked to test the HTTP crawl logic.
     url = "https://duckduckgo.com/?q=aid+workers".to_url
+
+    # Get the html size without JS parsing.
+    crawler = Wgit::Crawler.new parse_javascript: false
+    html_size_1 = crawler.crawl_url(url).html.size
+
+    # Get the html size with JS parsing.
     crawler = Wgit::Crawler.new parse_javascript: true
     doc = crawler.crawl_url(url)
+    html_size_2 = doc.html.size
 
     # Basic crawl assertions.
     assert crawler.last_response.success?
@@ -155,8 +189,7 @@ class TestCrawler < TestHelper
     refute_nil url.crawl_duration
 
     # Assert the JS generated HTML is present.
-    xpath = '//article[contains(@data-testid, "result")]'
-    assert_equal 10, doc.xpath(xpath).size
+    assert html_size_2 > html_size_1
   end
 
   def test_crawl_url__redirects

@@ -10,16 +10,19 @@ require "logger"
 require "dotenv"
 require "byebug" # Call 'byebug' anywhere in the code to debug.
 
-# Require any test helpers.
+# Require all code being tested, once, in one place.
+require_relative "../../lib/wgit"
+require_relative "../../lib/wgit/core_ext"
+
+# This needs to be after requiring wgit.
 require_relative "../mock/fixtures" # Mock HTTP responses.
+require_relative "../mock/ferrum"   # Mock Ferrum responses.
+
+# Require any test helpers.
 require_relative "database_test_data"
 require_relative "database_helper"
 require_relative "mongo_db_helper"
 require_relative "in_memory_helper"
-
-# Require all code being tested, once, in one place.
-require_relative "../../lib/wgit"
-require_relative "../../lib/wgit/core_ext"
 
 Maxitest.timeout  = 60           # Fail test after N seconds.
 Wgit.logger.level = Logger::WARN # Remove STDOUT noise from test run.

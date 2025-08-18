@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic DOM Manipulation with Delay</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        #content {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Mock JavaScript Evaluator</h1>
+    <p>This page demonstrates adding elements to the DOM using JavaScript after a delay for realism.</p>
+
+    <div id="content"></div>
+
+    <script>
+        // Function to create and add a new table to the DOM
+        function addTable() {
+            const table = document.createElement('table');
+            table.border = '1';
+            table.style.width = '100%';
+            table.style.borderCollapse = 'collapse';
+
+            const headerRow = document.createElement('tr');
+            const headers = ['Name', 'Age', 'City'];
+            headers.forEach(headerText => {
+                const header = document.createElement('th');
+                header.textContent = headerText;
+                header.style.padding = '8px';
+                header.style.textAlign = 'left';
+                headerRow.appendChild(header);
+            });
+            table.appendChild(headerRow);
+
+            const data = [
+                ['Alice', 30, 'New York'],
+                ['Bob', 25, 'Los Angeles'],
+                ['Charlie', 35, 'Chicago']
+            ];
+
+            data.forEach(rowData => {
+                const row = document.createElement('tr');
+                rowData.forEach(cellData => {
+                    const cell = document.createElement('td');
+                    cell.textContent = cellData;
+                    cell.style.padding = '8px';
+                    row.appendChild(cell);
+                });
+                table.appendChild(row);
+            });
+
+            document.getElementById('content').appendChild(table);
+        }
+
+        // Call the function to add the table after a 500ms delay
+        setTimeout(addTable, 500);
+    </script>
+</body>
+</html>
