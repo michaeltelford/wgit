@@ -9,6 +9,15 @@
 - ...
 ---
 
+## v0.12.1
+### Added
+- `Wgit::Crawler.new typhoeus_opts:` param which passes the `Hash` directly to `Typhoeus.get`. See the Typhoeus documentation for more info on what can be passed.
+### Changed/Removed
+- ...
+### Fixed
+- ...
+---
+
 ## v0.12.0 - BREAKING CHANGES
 A big release with several breaking changes, not all of which can be listed below. The headline features for this release are the introduction of a database adapter, allowing Wgit to work with practically any underlying database system; and a custom in-house text extractor.
 ### Added
