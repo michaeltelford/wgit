@@ -1,5 +1,4 @@
 require "ferrum"
-require "byebug"
 require_relative "webmock"
 
 # Add any Ferrum (chromium) mocks below.
