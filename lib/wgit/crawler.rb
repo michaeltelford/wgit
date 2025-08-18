@@ -276,7 +276,7 @@ module Wgit
       url.crawl_duration = response.total_time
 
       # Don't override previous url.redirects if response is fully resolved.
-      url.redirects      = response.redirects unless response.redirects.empty?
+      url.redirects = response.redirects unless response.redirects.empty?
 
       @last_response = response
     end
@@ -402,6 +402,8 @@ module Wgit
     # @return [Ferrum::Browser] The browser response object.
     def browser_get(url)
       @browser ||= Ferrum::Browser.new(**@ferrum_opts)
+
+      # Navigate to the url and start parsing the JS on the page.
       @browser.goto(url)
 
       # Wait for the page's JS to finish dynamically manipulating the DOM.

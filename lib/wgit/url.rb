@@ -98,7 +98,7 @@ module Wgit
     # Returns a Wgit::Url instance from Wgit::Url.parse, or nil if obj cannot
     # be parsed successfully e.g. the String is invalid.
     #
-    # Use this method when you can't gaurentee that obj is parsable as a URL.
+    # Use this method when you can't guarantee that obj is parsable as a URL.
     # See Wgit::Url.parse for more information.
     #
     # @param obj [Object] The object to parse, which #is_a?(String).

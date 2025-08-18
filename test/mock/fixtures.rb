@@ -81,7 +81,8 @@ pages = [
   "http://www.adventureconsultants.com",
   "http://odd-extension.com",
   "http://link-to-robots-txt.com",
-  "https://external-link-portal.com/"
+  "https://external-link-portal.com/",
+  "http://javascript-eval.com/"
 ]
 
 # Mock sites based on a collection of files saved in a directory.
