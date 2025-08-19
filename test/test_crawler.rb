@@ -136,14 +136,17 @@ class TestCrawler < TestHelper
   end
 
   def test_crawl_url__parse_javascript
-    # The javascript-eval.com page will use JS to render a <table> after 500ms.
-    url_str = "http://javascript-eval.com/" # Clean url object for each crawl.
+    # Redirect once to javascript-eval.com, which will use JS to render <table>
+    # elements after 500ms.
+    url_str = "http://redirect.javascript-eval.com/"
 
     crawler = Wgit::Crawler.new parse_javascript: false
     doc = crawler.crawl_url(url_str.to_url)
 
     # Assert the JS generated HTML is not present.
+    assert_equal "http://javascript-eval.com/", doc.url
     refute doc.empty?
+    assert_equal "Mock JavaScript Evaluator", doc.xpath("//h1").text
     assert_equal 0, doc.xpath("//table").size
 
     crawler = Wgit::Crawler.new parse_javascript: true
@@ -159,7 +162,7 @@ class TestCrawler < TestHelper
 
     # Assert the JS generated HTML is present.
     assert_equal "Mock JavaScript Evaluator", doc.xpath("//h1").text
-    assert_equal 1, doc.xpath("//table").size
+    assert_equal 3, doc.xpath("//table").size
   end
 
   def test_crawl_url__parse_javascript__not_mocked

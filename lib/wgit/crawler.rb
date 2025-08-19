@@ -335,6 +335,7 @@ module Wgit
       orig_url = url.to_s
       url      = url.normalize if url.respond_to?(:normalize)
 
+      log_net_req(:http, url)
       http_response = http_get(url)
 
       # Enrich the given Wgit::Response object.
@@ -346,8 +347,7 @@ module Wgit
       response.ip_address       = http_response.primary_ip
       response.add_total_time(http_response.total_time)
 
-      # Log the request/response details.
-      log_net(:http, response, http_response.total_time)
+      log_net_resp(:http, response, http_response.total_time)
 
       # Handle a failed response.
       raise "No response (within timeout: #{@timeout} second(s))" \
@@ -363,9 +363,11 @@ module Wgit
     # @raise [StandardError] If a response can't be obtained.
     # @return [Wgit::Response] The enriched HTTP Wgit::Response object.
     def get_browser_response(url, response)
+      # Perform a browser request.
       url     = url.normalize if url.respond_to?(:normalize)
       browser = nil
 
+      log_net_req(:browser, url)
       crawl_time = Benchmark.measure { browser = browser_get(url) }.real
       yield browser if block_given?
 
@@ -376,8 +378,7 @@ module Wgit
       response.body             = browser.body
       response.add_total_time(crawl_time)
 
-      # Log the request/response details.
-      log_net(:browser, response, crawl_time)
+      log_net_resp(:browser, response, crawl_time)
 
       # Handle a failed response.
       raise "No browser response (within timeout: #{@timeout} second(s))" \
@@ -412,6 +413,9 @@ module Wgit
         sleep @parse_javascript_delay
         break if html.size == @browser.body.size
 
+        Wgit.logger.debug(
+          "[browser] HTML grew from #{html.size} to #{@browser.body.size} bytes"
+        )
         html = @browser.body
       end
 
@@ -609,20 +613,19 @@ module Wgit
       [follow_redirects, nil]
     end
 
-    # Log (at debug level) the network request/response details.
-    def log_net(client, response, duration)
-      resp_template  = "[#{client}] Response: %s (%s bytes in %s seconds)"
-      log_status     = (response.status || 0)
-      log_total_time = (duration || 0.0).truncate(3)
+    # Log (debug) the network request info.
+    def log_net_req(client, url)
+      Wgit.logger.debug("[#{client}] Request: #{url}")
+    end
 
-      # The browsers request URL is the same so ignore it.
-      if client.to_sym == :http
-        Wgit.logger.debug("[#{client}] Request:  #{response.url}")
-      end
+    # Log (debug) the network response info.
+    def log_net_resp(client, response, duration)
+      template    = "[#{client}] Response: %s (%s bytes in %s seconds)"
+      http_status = (response.status || 0)
+      html_size   = (response.size || 0)
+      duration    = (duration || 0.0).truncate(3)
 
-      Wgit.logger.debug(
-        format(resp_template, log_status, response.size, log_total_time)
-      )
+      Wgit.logger.debug(format(template, http_status, html_size, duration))
     end
 
     alias_method :crawl,       :crawl_urls

@@ -41,6 +41,7 @@ stub_page "http://blank-site-4.com",  fixture: "blank"
 stub_page "https://blank-site-5.com", fixture: "blank"
 stub_redirect "http://blank-site-2.com", "https://blank-site-2.com"
 stub_redirect "http://blank-site-2.com/robots.txt", "https://blank-site-2.com/robots.txt"
+stub_redirect "http://redirect.javascript-eval.com/", "http://javascript-eval.com/"
 
 # Mock a website whose's content gets updated (between indexes).
 stub_request(:get, "http://www.content-updates.com")
