@@ -47,6 +47,7 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency "logger", "~> 1.7"
   s.add_runtime_dependency "mongo", "~> 2.21"
   s.add_runtime_dependency "nokogiri", "~> 1.18"
+  s.add_runtime_dependency "reline", "~> 0.6"
   s.add_runtime_dependency "typhoeus", "~> 1.4"
 
   s.add_development_dependency "byebug", "~> 12.0"

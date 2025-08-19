@@ -9,6 +9,7 @@ PATH
       logger (~> 1.7)
       mongo (~> 2.21)
       nokogiri (~> 1.18)
+      reline (~> 0.6)
       typhoeus (~> 1.4)
 
 GEM
@@ -38,6 +39,7 @@ GEM
       websocket-driver (~> 0.7)
     ffi (1.17.2)
     hashdiff (1.2.0)
+    io-console (0.8.1)
     json (2.13.2)
     language_server-protocol (3.17.0.5)
     lint_roller (1.1.0)
@@ -65,6 +67,8 @@ GEM
     racc (1.8.1)
     rainbow (3.1.1)
     regexp_parser (2.11.2)
+    reline (0.6.2)
+      io-console (~> 0.5)
     rexml (3.4.1)
     rubocop (1.79.2)
       json (~> 2.3)
