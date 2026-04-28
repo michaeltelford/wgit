@@ -60,12 +60,14 @@ class TestCrawler < TestHelper
     })
 
     assert_equal({
+      http_version: :httpv1_1,
       followlocation: false,
       timeout: 3,
       accept_encoding: "gzip",
       headers: {
-        "User-Agent" => "test",
-        "Accept"     => "text/html"
+        "User-Agent"      => "test",
+        "Accept"          => "text/html",
+        "Accept-Encoding" => "gzip"
       }
     }, c.typhoeus_opts)
   end

@@ -461,12 +461,16 @@ module Wgit
     # passed directly to the Typhoeus#get request.
     def default_typhoeus_opts
       {
+        # Ignore HTTP/2 GOAWAY's, allowing TCP/TLS connection reuse.
+        http_version: :httpv1_1,
+        # We implement our own redirect logic in #resolve.
         followlocation: false,
         timeout: @timeout,
         accept_encoding: 'gzip',
         headers: {
-          'User-Agent' => "wgit/#{Wgit::VERSION}",
-          'Accept'     => 'text/html'
+          'User-Agent'      => "wgit/#{Wgit::VERSION}",
+          'Accept'          => 'text/html',
+          'Accept-Encoding' => 'gzip'
         }
       }
     end
