@@ -92,7 +92,6 @@ database capacity, exiting")
             next
           end
 
-          site_docs_count = 0
           ext_links = @crawler.crawl_site(
             url, allow_paths: parser&.allow_paths, disallow_paths: parser&.disallow_paths
           ) do |doc|
@@ -100,7 +99,6 @@ database capacity, exiting")
 
             upsert_doc(doc)
             docs_count += 1
-            site_docs_count += 1
           end
 
           upsert_url_and_redirects(url)
