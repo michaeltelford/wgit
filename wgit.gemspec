@@ -54,6 +54,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency "dotenv", "~> 3.1"
   s.add_development_dependency "maxitest", "~> 6.0"
   s.add_development_dependency "pry", "~> 0.15"
+  s.add_development_dependency "rdoc", "~> 7.2"
   s.add_development_dependency "rubocop", "~> 1.79"
   s.add_development_dependency "toys", "~> 0.15"
   s.add_development_dependency "webmock", "~> 3.25"
