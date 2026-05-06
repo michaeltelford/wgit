@@ -1,0 +1,31 @@
+name: Continuous Integration
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+jobs:
+  wgit-ci:
+    runs-on: ubuntu-22.04
+    services:
+      mongodb:
+        image: michaeltelford/mongo-wgit
+        ports:
+          - 27017:27017
+    env:
+      WGIT_CONNECTION_STRING: "mongodb://rubyapp:abcdef@localhost/crawler"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          # ruby-version: '3.3' # Not needed with a .ruby-version file
+          bundler-cache: true # runs 'bundle install' and caches installed gems automatically
+      - name: build
+        run: bundle exec toys build
+      - name: docs
+        run: bundle exec toys generate_docs --no-output
+      - name: tests
+        run: bundle exec toys test
