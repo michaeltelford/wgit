@@ -402,7 +402,7 @@ module Wgit
     # @param url [String] The url to browse to.
     # @return [Ferrum::Browser] The browser response object.
     def browser_get(url)
-      @browser ||= Ferrum::Browser.new(**@ferrum_opts)
+      @browser ||= browser_new
 
       # Navigate to the url and start parsing the JS on the page.
       @browser.goto(url)
@@ -420,6 +420,14 @@ module Wgit
       end
 
       @browser
+    end
+
+    # Initializes and returns a new Ferrum::Browser instance with @ferrum_opts.
+    # Override this method if the default browser instance isn't desired.
+    #
+    # @return [Ferrum::Browser] A new browser instance.
+    def browser_new
+      Ferrum::Browser.new(**@ferrum_opts)
     end
 
     # Returns a doc's internal HTML page links in absolute form; used when
