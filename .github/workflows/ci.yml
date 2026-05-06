@@ -8,7 +8,27 @@ on:
   workflow_dispatch:
 
 jobs:
-  wgit-ci:
+  gem:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          # ruby-version: '3.3' # Not needed with a .ruby-version file
+          bundler-cache: true # runs 'bundle install' and caches installed gems automatically
+      - name: gem
+        run: bundle exec toys build
+  docs:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          # ruby-version: '3.3' # Not needed with a .ruby-version file
+          bundler-cache: true # runs 'bundle install' and caches installed gems automatically
+      - name: docs
+        run: bundle exec toys generate_docs --no-output
+  tests:
     runs-on: ubuntu-22.04
     services:
       mongodb:
@@ -23,9 +43,5 @@ jobs:
         with:
           # ruby-version: '3.3' # Not needed with a .ruby-version file
           bundler-cache: true # runs 'bundle install' and caches installed gems automatically
-      - name: build
-        run: bundle exec toys build
-      - name: docs
-        run: bundle exec toys generate_docs --no-output
       - name: tests
         run: bundle exec toys test
