@@ -8,28 +8,38 @@ on:
   workflow_dispatch:
 
 jobs:
-  gem:
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ruby/setup-ruby@v1
-        with:
-          # ruby-version: '3.3' # Not needed with a .ruby-version file
-          bundler-cache: true # runs 'bundle install' and caches installed gems automatically
-      - name: gem
-        run: bundle exec toys build
   docs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
       - uses: ruby/setup-ruby@v1
         with:
-          # ruby-version: '3.3' # Not needed with a .ruby-version file
+          # ruby-version: 'x.x' # Not needed with a .ruby-version file
           bundler-cache: true # runs 'bundle install' and caches installed gems automatically
       - name: docs
         run: bundle exec toys generate_docs --no-output
+
+  build:
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        ruby-version: ['3.2', '3.3', '3.4']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby-version }}
+          bundler-cache: true
+      - name: build
+        run: bundle exec toys build
+
   tests:
     runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        ruby-version: ['3.2', '3.3', '3.4']
     services:
       mongodb:
         image: michaeltelford/mongo-wgit
@@ -41,7 +51,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ruby/setup-ruby@v1
         with:
-          # ruby-version: '3.3' # Not needed with a .ruby-version file
-          bundler-cache: true # runs 'bundle install' and caches installed gems automatically
+          ruby-version: ${{ matrix.ruby-version }}
+          bundler-cache: true
       - name: tests
         run: bundle exec toys test
