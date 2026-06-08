@@ -20,9 +20,9 @@ module Wgit
     # Regex for the allowed var names when defining an extractor.
     REGEX_EXTRACTOR_NAME = /[a-z0-9_]+/
 
-    # Instance vars to be ignored by Document#to_h and in turn
-    # Wgit::Model.document.
+    # Instance vars to be ignored by Document#to_h and in turn Wgit::Model.document.
     @to_h_ignore_vars = [
+      '@extractors_called',
       '@parser' # Always ignore the Nokogiri object.
     ]
 
@@ -40,6 +40,9 @@ module Wgit
       # read-only. Use Wgit::Document.define_extractor for a new extractor.
       attr_reader :extractors
     end
+
+    # The exact order the extractor init methods were called for this instance.
+    attr_reader :extractors_called
 
     # The URL of the webpage, an instance of Wgit::Url.
     attr_reader :url
@@ -101,6 +104,12 @@ module Wgit
     # empty value. If a value cannot be found (in either the HTML or database
     # object), then a default will be used. The default value is:
     # `singleton ? nil : []`.
+    #
+    # The extractor initialisation methods are executed in the order they're defined,
+    # meaning that the default extractors are executed before user defined extractors;
+    # resulting in their values being available for use in custom extractors, as needed.
+    # Use Wgit::Document#extractors_called to see the exact methods called (in order)
+    # for a given Document instance.
     #
     # @param var [Symbol] The name of the variable to be initialised, that will
     #   contain the extracted content. A getter and setter method is defined
@@ -298,6 +307,7 @@ be relative"
     # user defined extractors (and their created instance vars) will appear in
     # the returned Hash as well. The number of text snippets as well as total
     # number of textual bytes are always included in the returned Hash.
+    # Note, any vars in Wgit::Document.to_h_ignore_vars are ignored.
     #
     # @return [Hash] Containing self's HTML page statistics.
     def stats
@@ -309,6 +319,7 @@ be relative"
           hash[:text_bytes] = @text.sum(&:length)
         # Else take the var's #length method return value.
         else
+          next if self.class.to_h_ignore_vars.include?(var.to_s)
           next unless instance_variable_get(var).respond_to?(:length)
 
           hash[var[1..].to_sym] = instance_variable_get(var).send(:length)
@@ -712,20 +723,19 @@ be relative"
       url = Wgit::Url.parse(url)
       url.crawled = true unless url.crawled? # Avoid overriding date_crawled.
 
-      @url    = url
-      @html   = html || ''
-      @parser = init_nokogiri
-      @score  = 0.0
+      @extractors_called = []
+      @url               = url
+      @html              = html || ''
+      @parser            = init_nokogiri
+      @score             = 0.0
 
       @html = Wgit::Utils.sanitize(@html, encode:)
 
-      # Dynamically run the init_*_from_html methods.
-      Document.private_instance_methods(false).each do |method|
-        if method.to_s.start_with?('init_') &&
-           method.to_s.end_with?('_from_html') &&
-           method != __method__
-          send(method)
-        end
+      # Dynamically run the init_*_from_html extractor methods.
+      self.class.extractors.each do |var|
+        method = "init_#{var}_from_html".to_sym
+        send(method)
+        @extractors_called << method
       end
     end
 
@@ -737,18 +747,18 @@ be relative"
       url = obj.fetch('url') # Should always be present.
       raise "Missing 'url' field in doc object" unless url
 
-      @url    = Wgit::Url.new(url)
-      @html   = obj.fetch('html', '')
-      @parser = init_nokogiri
-      @score  = obj.fetch('score', 0.0)
-      @html   = Wgit::Utils.sanitize(@html, encode:)
+      @extractors_called = []
+      @url               = Wgit::Url.new(url)
+      @html              = obj.fetch('html', '')
+      @parser            = init_nokogiri
+      @score             = obj.fetch('score', 0.0)
+      @html              = Wgit::Utils.sanitize(@html, encode:)
 
-      # Dynamically run the init_*_from_object methods.
-      Document.private_instance_methods(false).each do |method|
-        if method.to_s.start_with?('init_') &&
-           method.to_s.end_with?('_from_object') && method != __method__
-          send(method, obj)
-        end
+      # Dynamically run the init_*_from_object extractor methods.
+      self.class.extractors.each do |var|
+        method = "init_#{var}_from_object".to_sym
+        send(method, obj)
+        @extractors_called << method
       end
     end
 

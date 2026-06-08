@@ -79,6 +79,10 @@ class TestDocumentExtractors < TestHelper
       Wgit::Document.send(:remove_method, :single)
     end
 
+    if Wgit::Document.remove_extractor(:new_text)
+      Wgit::Document.send(:remove_method, :new_text)
+    end
+
     return unless Wgit::Document.remove_extractor(:array)
 
     Wgit::Document.send(:remove_method, :array)
@@ -604,6 +608,58 @@ class TestDocumentExtractors < TestHelper
     end
 
     Wgit::Document.new extended_mongo_doc
+  end
+
+  def test_extractor_order__from_html
+    Wgit::Document.define_extractor(:new_text, nil) do |value, source, type|
+      assert_nil value
+      assert_instance_of Wgit::Document, source
+      assert_equal :document, type
+      assert_equal ["The text extractor ran before this one"], source.text
+    end
+
+    doc = Wgit::Document.new(
+      "http://some_url.com".to_url,
+      "<html><p>The text extractor ran before this one</p></html>"
+    )
+    assert_equal(%i[
+      init_base_from_html
+      init_title_from_html
+      init_description_from_html
+      init_author_from_html
+      init_keywords_from_html
+      init_links_from_html
+      init_text_from_html
+      init_new_text_from_html
+    ], doc.extractors_called)
+  end
+
+  def test_extractor_order__from_object
+    extended_mongo_doc = {
+      "url" => "https://google.co.uk",
+      "score" => 2.1,
+      "title" => "Test Page 233",
+      "text" => ["The text extractor ran before this one"]
+    }
+
+    Wgit::Document.define_extractor(:new_text, nil) do |value, source, type|
+      assert_nil value
+      assert_instance_of Hash, source
+      assert_equal :object, type
+      assert_equal ["The text extractor ran before this one"], source["text"]
+    end
+
+    doc = Wgit::Document.new extended_mongo_doc
+    assert_equal(%i[
+      init_base_from_object
+      init_title_from_object
+      init_description_from_object
+      init_author_from_object
+      init_keywords_from_object
+      init_links_from_object
+      init_text_from_object
+      init_new_text_from_object
+    ], doc.extractors_called)
   end
 
   ### REMOVE EXTRACTOR TESTS ###
